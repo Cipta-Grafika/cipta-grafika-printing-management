@@ -257,6 +257,37 @@
         </div>
     </section>
 
+    <style>
+        #blog .faq-card {
+            transition:
+                opacity .6s cubic-bezier(.4, 0, .2, 1),
+                transform .6s cubic-bezier(.4, 0, .2, 1),
+                background-color .15s ease,
+                border-color .15s ease;
+            transition-delay:
+                var(--faq-reveal-delay, 0s),
+                var(--faq-reveal-delay, 0s),
+                0s,
+                0s;
+        }
+
+        #blog .faq-card.d1 {
+            --faq-reveal-delay: .08s;
+        }
+
+        #blog .faq-card.d2 {
+            --faq-reveal-delay: .16s;
+        }
+
+        #blog .faq-card.d3 {
+            --faq-reveal-delay: .24s;
+        }
+
+        #blog .faq-card.d4 {
+            --faq-reveal-delay: .32s;
+        }
+    </style>
+
     <!-- ═══ BLOG ═══ -->
     <section id="blog" class="py-24">
         <div class="max-w-6xl mx-auto px-6">
@@ -290,7 +321,7 @@
 
                     <!-- FAQ 1 -->
                     <article
-                        class="reveal d1 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 overflow-hidden hover:border-accent transition-colors">
+                        class="faq-card reveal d1 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 overflow-hidden hover:border-accent">
                         <button type="button"
                             class="faq-toggle w-full flex items-center justify-between gap-6 p-6 text-left">
                             <span class="font-display font-bold text-lg text-zinc-900 dark:text-white">
@@ -317,7 +348,7 @@
 
                     <!-- FAQ 2 -->
                     <article
-                        class="reveal d2 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 overflow-hidden hover:border-accent transition-colors">
+                        class="faq-card reveal d2 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 overflow-hidden hover:border-accent">
                         <button type="button"
                             class="faq-toggle w-full flex items-center justify-between gap-6 p-6 text-left">
 
@@ -346,7 +377,7 @@
 
                     <!-- FAQ 3 -->
                     <article
-                        class="reveal d3 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 overflow-hidden hover:border-accent transition-colors">
+                        class="faq-card reveal d3 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 overflow-hidden hover:border-accent">
                         <button type="button"
                             class="faq-toggle w-full flex items-center justify-between gap-6 p-6 text-left">
 
@@ -373,7 +404,7 @@
 
                     <!-- FAQ 4 -->
                     <article
-                        class="reveal d4 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 overflow-hidden hover:border-accent transition-colors">
+                        class="faq-card reveal d4 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 overflow-hidden hover:border-accent">
                         <button type="button"
                             class="faq-toggle w-full flex items-center justify-between gap-6 p-6 text-left">
                             <span class="font-display font-bold text-lg text-zinc-900 dark:text-white">
@@ -397,7 +428,7 @@
 
                     <!-- FAQ 5 -->
                     <article
-                        class="reveal d5 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 overflow-hidden hover:border-accent transition-colors">
+                        class="faq-card reveal d5 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 overflow-hidden hover:border-accent">
                         <button type="button"
                             class="faq-toggle w-full flex items-center justify-between gap-6 p-6 text-left">
                             <span class="font-display font-bold text-lg text-zinc-900 dark:text-white">
@@ -421,7 +452,7 @@
 
                     <!-- FAQ 6 -->
                     <article
-                        class="reveal d6 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 overflow-hidden hover:border-accent transition-colors">
+                        class="faq-card reveal d6 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 overflow-hidden hover:border-accent">
                         <button type="button"
                             class="faq-toggle w-full flex items-center justify-between gap-6 p-6 text-left">
                             <span class="font-display font-bold text-lg text-zinc-900 dark:text-white">
@@ -444,7 +475,7 @@
 
                     <!-- FAQ 7 -->
                     <article
-                        class="reveal d7 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 overflow-hidden hover:border-accent transition-colors">
+                        class="faq-card reveal d7 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 overflow-hidden hover:border-accent">
                         <button type="button"
                             class="faq-toggle w-full flex items-center justify-between gap-6 p-6 text-left">
                             <span class="font-display font-bold text-lg text-zinc-900 dark:text-white">
