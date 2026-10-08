@@ -4,8 +4,8 @@ Aplikasi manajemen percetakan Cipta Grafika.
 
 ## Teknologi
 
-- **Laravel:** 13.26.1 (versi terkunci pada `composer.lock`)
-- **PHP:** 8.3 atau lebih baru
+- **Laravel:** 12.69.3 (versi terkunci pada `composer.lock`)
+- **PHP:** 8.2 atau lebih baru
 - **Database:** PostgreSQL
 - **Frontend:** Node.js, npm, dan Vite
 
@@ -13,7 +13,7 @@ Aplikasi manajemen percetakan Cipta Grafika.
 
 Sebelum menjalankan aplikasi, pasang:
 
-- PHP 8.3+ dengan ekstensi `pdo_pgsql`
+- PHP 8.2+ dengan ekstensi `pdo_pgsql` dan `zip`
 - Composer
 - PostgreSQL
 - Node.js dan npm
@@ -32,6 +32,8 @@ Pasang dependency PHP:
 ```bash
 composer install
 ```
+
+Pastikan ekstensi `pdo_pgsql` dan `zip` aktif pada PHP yang digunakan Composer. Ekstensi `zip` diperlukan untuk dependency spreadsheet.
 
 ### Inisialisasi file `.env`
 
