@@ -1917,8 +1917,9 @@ class EstimationCT extends Controller
             |--------------------------------------------------------------------------
             */
 
-            $grandTotal =
-                $subtotal - $discount;
+            $grandTotal = $this->roundGrandTotalUpToThousand(
+                $subtotal - $discount
+            );
 
 
             /*
@@ -2315,6 +2316,11 @@ class EstimationCT extends Controller
         ];
     }
 
+    private function roundGrandTotalUpToThousand(float $amount): float
+    {
+        return ceil(round($amount, 2) / 1000) * 1000;
+    }
+
     private function calculateDisplayPurwakarta(
         array $validated,
         Request $request
@@ -2665,7 +2671,9 @@ class EstimationCT extends Controller
 
             $discount = min($discount, $subtotal);
 
-            $grandTotal = $subtotal - $discount;
+            $grandTotal = $this->roundGrandTotalUpToThousand(
+                $subtotal - $discount
+            );
 
             /*
             |--------------------------------------------------------------------------
