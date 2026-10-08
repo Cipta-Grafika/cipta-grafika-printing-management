@@ -15,7 +15,8 @@
             <div class="grid lg:grid-cols-[1.05fr_0.95fr] gap-14 lg:gap-20 items-center">
 
                 <div>
-                    <p class="reveal inline-flex items-center gap-3 text-xs md:text-sm font-semibold text-accent tracking-[0.2em] uppercase mb-6">
+                    <p
+                        class="reveal inline-flex items-center gap-3 text-xs md:text-sm font-semibold text-accent tracking-[0.2em] uppercase mb-6">
                         <span class="w-8 h-px bg-accent" aria-hidden="true"></span>
                         Solusi Cetak untuk Bisnis & Kebutuhan Anda
                     </p>
@@ -44,7 +45,8 @@
                             Lihat Semua Katalog
                         </a>
                     </div>
-                    <div class="reveal d4 flex flex-wrap gap-x-9 gap-y-5 mt-12 pt-7 border-t border-zinc-200 dark:border-zinc-800">
+                    <div
+                        class="reveal d4 flex flex-wrap gap-x-9 gap-y-5 mt-12 pt-7 border-t border-zinc-200 dark:border-zinc-800">
                         <div>
                             <p class="font-display font-bold text-3xl text-zinc-900 dark:text-white">34+</p>
                             <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Pilihan Produk</p>
@@ -67,14 +69,16 @@
                             aria-hidden="true"></div>
                         <div class="absolute -bottom-4 -left-4 w-24 h-24 rounded-full border-[10px] border-accent/20"
                             aria-hidden="true"></div>
-                        <div class="relative aspect-[4/4.25] overflow-hidden rounded-[2rem] border border-white/70 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-900 shadow-2xl shadow-zinc-900/15">
+                        <div
+                            class="relative aspect-[4/4.25] overflow-hidden rounded-[2rem] border border-white/70 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-900 shadow-2xl shadow-zinc-900/15">
                             <img src="{{ asset('images/hero-printing-showcase.svg') }}"
                                 alt="Ilustrasi beragam produk cetak: brosur, kartu nama, kemasan, dan banner"
                                 loading="eager" class="absolute inset-0 w-full h-full object-cover">
                             <div class="absolute inset-0 bg-gradient-to-t from-zinc-950/85 via-zinc-950/10 to-transparent"
                                 aria-hidden="true"></div>
                             <div class="absolute inset-x-0 bottom-0 p-6 md:p-8">
-                                <span class="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/15 px-3 py-1.5 text-xs font-medium text-white backdrop-blur-md">
+                                <span
+                                    class="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/15 px-3 py-1.5 text-xs font-medium text-white backdrop-blur-md">
                                     <span class="w-1.5 h-1.5 rounded-full bg-accent"></span>
                                     A3+ · Large Format
                                 </span>
@@ -97,10 +101,12 @@
                             </span>
                             <span>
                                 <span class="block text-xs text-zinc-500 dark:text-zinc-400">Cetak sesuai kebutuhan</span>
-                                <span class="block text-sm font-semibold text-zinc-900 dark:text-white">Material & finishing pilihan</span>
+                                <span class="block text-sm font-semibold text-zinc-900 dark:text-white">Material & finishing
+                                    pilihan</span>
                             </span>
                         </div>
-                        <div class="absolute -bottom-5 right-4 md:right-8 rounded-full bg-accent px-4 py-2.5 text-xs font-bold text-white shadow-lg shadow-accent/25">
+                        <div
+                            class="absolute -bottom-5 right-4 md:right-8 rounded-full bg-accent px-4 py-2.5 text-xs font-bold text-white shadow-lg shadow-accent/25">
                             Partner Cetak Anda
                         </div>
                     </div>
@@ -111,8 +117,57 @@
     </section>
 
     <!-- ═══ PRODUCTS ═══ -->
-    <section id="products" class="py-24 bg-zinc-50 dark:bg-zinc-900/40">
+    <section id="products" class="py-24">
         <div class="max-w-6xl mx-auto px-6">
+            <div
+                class="reveal mb-14 grid gap-5 py-5 sm:grid-cols-3 sm:gap-0">
+                <div class="flex items-center gap-3 sm:pr-5">
+                    <span
+                        class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-accent/10 text-accent">
+                        <i class="bi bi-grid-1x2 text-lg" aria-hidden="true"></i>
+                    </span>
+                    <span>
+                        <span
+                            class="block text-[10px] font-semibold uppercase tracking-[0.16em] text-zinc-400 dark:text-zinc-500">
+                            Pilihan produk
+                        </span>
+                        <span class="mt-1 block text-sm font-semibold text-zinc-800 dark:text-zinc-100">
+                            A3+ &amp; Large Format
+                        </span>
+                    </span>
+                </div>
+                <div class="flex items-center gap-3 sm:px-5">
+                    <span
+                        class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-accent/10 text-accent">
+                        <i class="bi bi-sliders text-lg" aria-hidden="true"></i>
+                    </span>
+                    <span>
+                        <span
+                            class="block text-[10px] font-semibold uppercase tracking-[0.16em] text-zinc-400 dark:text-zinc-500">
+                            Sesuai kebutuhan
+                        </span>
+                        <span class="mt-1 block text-sm font-semibold text-zinc-800 dark:text-zinc-100">
+                            Material &amp; finishing pilihan
+                        </span>
+                    </span>
+                </div>
+                <div class="flex items-center gap-3 sm:pl-5">
+                    <span
+                        class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-accent/10 text-accent">
+                        <i class="bi bi-calculator text-lg" aria-hidden="true"></i>
+                    </span>
+                    <span>
+                        <span
+                            class="block text-[10px] font-semibold uppercase tracking-[0.16em] text-zinc-400 dark:text-zinc-500">
+                            Lebih terencana
+                        </span>
+                        <span class="mt-1 block text-sm font-semibold text-zinc-800 dark:text-zinc-100">
+                            Cek estimasi sebelum pesan
+                        </span>
+                    </span>
+                </div>
+            </div>
+
             <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-14">
                 <div>
                     <p class="reveal text-xs font-medium text-accent tracking-widest uppercase mb-3">PALING SERING DICETAK
@@ -162,7 +217,8 @@
                         <div class="flex flex-1 flex-col p-5">
                             <div class="mb-3 flex items-center gap-2">
                                 <span class="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden="true"></span>
-                                <span class="text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                                <span
+                                    class="text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
                                     Produk cetak
                                 </span>
                             </div>
@@ -182,7 +238,8 @@
                                 <a href="{{ $product['url'] }}"
                                     class="inline-flex w-full items-center justify-between text-sm font-semibold text-zinc-800 dark:text-zinc-200 group-hover:text-accent transition-colors">
                                     <span>Lihat detail produk</span>
-                                    <span class="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 transition-colors group-hover:bg-accent/10 group-hover:text-accent"
+                                    <span
+                                        class="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 transition-colors group-hover:bg-accent/10 group-hover:text-accent"
                                         aria-hidden="true">
                                         <i class="bi bi-arrow-right"></i>
                                     </span>
@@ -206,7 +263,8 @@
             <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-14">
                 <div>
                     <p class="reveal text-xs font-medium text-accent tracking-widest uppercase mb-3">Pertanyaan Umum</p>
-                    <h2 class="reveal d1 font-display font-bold text-4xl md:text-5xl text-zinc-900 dark:text-white">Informasi
+                    <h2 class="reveal d1 font-display font-bold text-4xl md:text-5xl text-zinc-900 dark:text-white">
+                        Informasi
                         penting sebelum memilih produk dan membuat pesanan.</h2>
                 </div>
             </div>
@@ -214,9 +272,9 @@
             <div class="grid md:grid-cols-2 gap-6">
                 <div class="flex flex-col gap-6"
                     style="height: auto; display: flex; justify-content: center; align-items: center;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="90%" height="400" viewBox="0 0 32 32" fill="none"
-                        stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
-                        class="text-[#16294d] dark:text-[#c2a857]">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="90%" height="400" viewBox="0 0 32 32"
+                        fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round"
+                        stroke-linejoin="round" class="text-[#16294d] dark:text-[#c2a857]">
 
                         <!-- Oval Speech Bubble -->
                         <path d="M10 6h12a7 7 0 0 1 0 14H14l-5 4 1.5-4H10a7 7 0 0 1 0-14Z" />

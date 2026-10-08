@@ -383,13 +383,11 @@ body {
     padding: 7px 10px;
     transition:
         color 0.16s ease,
-        background-color 0.16s ease,
-        padding-left 0.16s ease;
+        background-color 0.16s ease;
 }
 .nav-submenu a:hover {
     background: var(--bg-hover);
     color: var(--t-base);
-    padding-left: 13px;
 }
 .nav-submenu a.is-active {
     background: var(--primary-soft);

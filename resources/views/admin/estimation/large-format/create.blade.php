@@ -1324,8 +1324,8 @@
 @section('scripts')
     <script>
         /* =========================================================
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                SELECT2
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            ========================================================== */
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    SELECT2
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                ========================================================== */
 
         $(document).ready(function() {
 
@@ -1420,6 +1420,21 @@
                 >
             `);
 
+            const materialPriceReferenceField = $(`
+                <div class="field mt-2" id="materialPriceReferenceField" style="display: none;">
+                    <label class="field-label" for="material_price_reference_select">
+                        Ukuran Referensi Harga Vendor
+                        <span class="req">*</span>
+                    </label>
+                    <select id="material_price_reference_select" class="select">
+                        <option value=""></option>
+                    </select>
+                    <small class="field-help">
+                        Pilih ukuran vendor sebagai acuan harga untuk lebar custom.
+                    </small>
+                </div>
+            `);
+
             const laminationCustomWidthInput = $(`
                 <input
                     type="number"
@@ -1439,9 +1454,14 @@
                 .next('.select2')
                 .after(materialCustomWidthInput);
 
+            materialCustomWidthInput.after(materialPriceReferenceField);
+
             laminationSizeSelect
                 .next('.select2')
                 .after(laminationCustomWidthInput);
+
+            const materialPriceReferenceSelect =
+                $('#material_price_reference_select');
 
             /* =====================================================
                URL
@@ -1488,6 +1508,16 @@
                         .prop('required', true)
                         .show();
 
+                    if (isMaterial && isOutsourcingLocation()) {
+                        const currentReferenceId =
+                            materialPriceSizeInput.val();
+
+                        materialPriceReferenceField.show();
+                        materialPriceReferenceSelect
+                            .prop('required', true)
+                            .val(currentReferenceId);
+                    }
+
                 } else {
 
                     input
@@ -1496,7 +1526,22 @@
                         .prop('required', false)
                         .hide();
 
+                    if (isMaterial) {
+                        materialPriceReferenceField.hide();
+                        materialPriceReferenceSelect
+                            .prop('required', false)
+                            .val('');
+                    }
+
                 }
+            }
+
+            function isOutsourcingLocation() {
+                return locationSelect
+                    .find('option:selected')
+                    .text()
+                    .trim()
+                    .toLowerCase() === 'outsourcing';
             }
 
             function loadCategories() {
@@ -1886,6 +1931,12 @@
                     .val(null)
                     .trigger('change');
 
+                materialPriceSizeInput.val('');
+                materialPriceReferenceSelect
+                    .empty()
+                    .append('<option value=""></option>');
+                materialPriceReferenceField.hide();
+
                 materialCustomWidthInput
                     .val('')
                     .prop('disabled', true)
@@ -2045,6 +2096,14 @@
                         );
 
                         materialSizeSelect.append(option);
+                        materialPriceReferenceSelect.append(
+                            new Option(
+                                size.width + ' cm',
+                                size.id,
+                                false,
+                                false
+                            )
+                        );
 
                     });
 
@@ -2052,14 +2111,36 @@
                     // OPSI CUSTOM
                     // =====================================================
 
-                    materialSizeSelect.append(
-                        new Option(
-                            '+ Custom / Input Manual',
-                            '__custom__',
-                            false,
-                            false
-                        )
+                    const customWidthOption = new Option(
+                        '+ Custom / Input Manual',
+                        '__custom__',
+                        false,
+                        false
                     );
+
+                    if (isOutsourcing && result.data.length === 0) {
+                        materialPriceReferenceSelect.append(
+                            new Option(
+                                'Tidak ada ukuran referensi harga vendor',
+                                '',
+                                false,
+                                false
+                            )
+                        );
+                        materialPriceReferenceField
+                            .find('.field-help')
+                            .text(
+                                'Vendor ini belum memiliki ukuran referensi harga untuk material. Konfigurasi harga vendor perlu dilengkapi sebelum lebar custom dapat dihitung.'
+                            );
+                    } else {
+                        materialPriceReferenceField
+                            .find('.field-help')
+                            .text(
+                                'Pilih ukuran vendor sebagai acuan harga untuk lebar custom.'
+                            );
+                    }
+
+                    materialSizeSelect.append(customWidthOption);
 
                     // Refresh Select2
                     materialSizeSelect.trigger('change');
@@ -2538,6 +2619,10 @@
                 }
 
                 toggleCustomWidth('material');
+            });
+
+            materialPriceReferenceSelect.on('change', function() {
+                materialPriceSizeInput.val(this.value);
             });
 
             // =====================================================
@@ -3708,6 +3793,8 @@
                                 materialCustomWidthInput.val();
 
                             const referenceSizeId =
+                                isOutsourcingLocation() ?
+                                materialPriceReferenceSelect.val() :
                                 materialPriceSizeInput.val();
 
                             // Hapus sentinel agar tidak dikirim sebagai integer ID
@@ -4707,7 +4794,7 @@
                     ).textContent =
                     formatNumberResult(
                         data.production_width
-                    ) + ' m';
+                    ) + ' cm';
 
                 document.getElementById(
                         'previewProductionArea'
