@@ -927,6 +927,23 @@ class GallerySampleCT extends Controller
                 'required',
                 'in:0,1',
             ],
+
+            'primary_existing_image_id' => [
+                'nullable',
+                'integer',
+            ],
+
+            'primary_new_image_index' => [
+                'nullable',
+                'integer',
+                'min:0',
+            ],
+
+            'primary_image' => [
+                'nullable',
+                'string',
+                'regex:/^(existing|new):\d+$/',
+            ],
         ]);
 
         /*
@@ -1003,7 +1020,9 @@ class GallerySampleCT extends Controller
             $request->input('deleted_image_ids', [])
         );
 
-        $images = $request->file('images', []);
+        $images = array_values(
+            $request->file('images', [])
+        );
 
         $primaryFlags = $request->input(
             'image_is_primary',
@@ -1114,29 +1133,108 @@ class GallerySampleCT extends Controller
     */
 
         $primaryExistingIds = [];
-
-        foreach ($activeExistingImages as $image) {
-
-            $fieldName =
-                'existing_image_is_primary_' .
-                $image->id;
-
-            if (
-                (int) $request->input($fieldName, 0) === 1
-            ) {
-                $primaryExistingIds[] = (int) $image->id;
-            }
-        }
-
         $primaryNewIndexes = [];
 
-        foreach ($images as $index => $image) {
+        if (isset($validated['primary_image'])) {
+            [$primaryImageType, $primaryImageValue] = explode(
+                ':',
+                $validated['primary_image'],
+                2
+            );
+
+            if ($primaryImageType === 'existing') {
+                $primaryExistingImageId = (int) $primaryImageValue;
+
+                $isActiveExistingImage = $activeExistingImages->contains(
+                    fn($image) => (int) $image->id === $primaryExistingImageId
+                );
+
+                if (!$isActiveExistingImage) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Gambar utama yang dipilih tidak valid.',
+                    ], 422);
+                }
+
+                $primaryExistingIds[] = $primaryExistingImageId;
+            } else {
+                $primaryNewImageIndex = (int) $primaryImageValue;
+
+                if (!array_key_exists($primaryNewImageIndex, $images)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Gambar utama yang dipilih tidak valid.',
+                    ], 422);
+                }
+
+                $primaryNewIndexes[] = $primaryNewImageIndex;
+            }
+        } elseif ($request->hasAny([
+            'primary_existing_image_id',
+            'primary_new_image_index',
+        ])) {
+            $primaryExistingImageId =
+                $validated['primary_existing_image_id'] ?? null;
+
+            $primaryNewImageIndex =
+                $validated['primary_new_image_index'] ?? null;
 
             if (
-                isset($primaryFlags[$index]) &&
-                (int) $primaryFlags[$index] === 1
+                ($primaryExistingImageId === null) ===
+                ($primaryNewImageIndex === null)
             ) {
-                $primaryNewIndexes[] = $index;
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Harus terdapat tepat satu gambar utama.',
+                ], 422);
+            }
+
+            if ($primaryExistingImageId !== null) {
+                $primaryExistingImageId = (int) $primaryExistingImageId;
+
+                $isActiveExistingImage = $activeExistingImages->contains(
+                    fn($image) => (int) $image->id === $primaryExistingImageId
+                );
+
+                if (!$isActiveExistingImage) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Gambar utama yang dipilih tidak valid.',
+                    ], 422);
+                }
+
+                $primaryExistingIds[] = $primaryExistingImageId;
+            } else {
+                $primaryNewImageIndex = (int) $primaryNewImageIndex;
+
+                if (!array_key_exists($primaryNewImageIndex, $images)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Gambar utama yang dipilih tidak valid.',
+                    ], 422);
+                }
+
+                $primaryNewIndexes[] = $primaryNewImageIndex;
+            }
+        } else {
+            // Accept the previous form payload while an older page is still open.
+            foreach ($activeExistingImages as $image) {
+                $fieldName =
+                    'existing_image_is_primary_' .
+                    $image->id;
+
+                if ((int) $request->input($fieldName, 0) === 1) {
+                    $primaryExistingIds[] = (int) $image->id;
+                }
+            }
+
+            foreach ($images as $index => $image) {
+                if (
+                    isset($primaryFlags[$index]) &&
+                    (int) $primaryFlags[$index] === 1
+                ) {
+                    $primaryNewIndexes[] = $index;
+                }
             }
         }
 

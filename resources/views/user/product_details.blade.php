@@ -1,5 +1,19 @@
 @extends('user_master')
 
+@php
+    $productDescription =
+        'Pilih ukuran, bahan, sisi cetak, dan finishing sesuai kebutuhan Anda, lalu lihat estimasi harganya langsung di halaman ini.';
+    $shareTitle = $product['title'] . ' | Cipta Grafika';
+    $shareDescription = $product['type'] === 'gallery'
+        ? 'Lihat contoh hasil cetak ' . $product['title'] . ' dengan ' . $product['label'] . ' dari Cipta Grafika.'
+        : 'Lihat produk ' . $product['title'] . ' (' . $product['label'] . ') dan hitung estimasi harga cetaknya di Cipta Grafika.';
+@endphp
+
+@section('meta_title', $shareTitle)
+@section('meta_description', $shareDescription)
+@section('meta_url', request()->fullUrl())
+@section('meta_image', $product['images'][0] ?? null)
+
 @section('contents')
     <style>
         .select2-container--default .select2-results__option[aria-selected=true],
@@ -66,11 +80,6 @@
             opacity: 0.5;
         }
     </style>
-
-    @php
-        $productDescription =
-            'Pilih ukuran, bahan, sisi cetak, dan finishing sesuai kebutuhan Anda, lalu lihat estimasi harganya langsung di halaman ini.';
-    @endphp
 
     <div x-data="products()">
         <!-- ═══ CASE STUDY HEADER ═══ -->
@@ -323,8 +332,8 @@
                                                                                                                                                                         SHARE PRODUCT
                                                                                                                                                                     ========================== -->
                         <div x-data='shareProduct(
-                            @json($product['title'], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS),
-                            @json($productDescription, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS)
+                            @json($shareTitle, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS),
+                            @json($shareDescription, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS)
                         )'
                             class="reveal d2 mt-6" style="margin-bottom: 15px;">
 

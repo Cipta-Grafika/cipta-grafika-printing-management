@@ -1410,24 +1410,11 @@
                         existingImages.forEach(
                             function(item) {
 
-                                /*
-                                |--------------------------------------------------------------------------
-                                | EXISTING IMAGE YANG MASIH AKTIF
-                                |--------------------------------------------------------------------------
-                                */
-
                                 if (!item.isDeleted) {
 
                                     formData.append(
                                         'existing_image_ids[]',
                                         item.id
-                                    );
-
-
-                                    formData.append(
-                                        'existing_image_is_primary_' +
-                                        item.id,
-                                        item.isPrimary ? '1' : '0'
                                     );
 
                                 }
@@ -1468,18 +1455,38 @@
                             function(item, index) {
 
                                 formData.append(
-                                    'images[]',
+                                    'images[' + index + ']',
                                     item.file
-                                );
-
-
-                                formData.append(
-                                    'image_is_primary[' + index + ']',
-                                    item.isPrimary ? '1' : '0'
                                 );
 
                             }
                         );
+
+                        const primaryImage =
+                            getActiveImages().find(
+                                function(item) {
+                                    return item.isPrimary;
+                                }
+                            );
+
+                        const primaryNewImageIndex =
+                            selectedImages.indexOf(primaryImage);
+
+                        if (primaryNewImageIndex !== -1) {
+
+                            formData.append(
+                                'primary_image',
+                                'new:' + primaryNewImageIndex
+                            );
+
+                        } else if (primaryImage) {
+
+                            formData.append(
+                                'primary_image',
+                                'existing:' + primaryImage.id
+                            );
+
+                        }
 
 
                         /*

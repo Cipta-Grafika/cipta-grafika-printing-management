@@ -4,18 +4,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description"
-        content="Eliott — Freelance UI/UX Designer and Frontend Developer. Fast, clean and accessible digital products.">
-    <meta name="keywords" content="freelance developer, UI designer, portfolio, Tailwind CSS, Alpine.js">
-    <meta name="author" content="Eliott">
-    <meta property="og:title" content="Eliott — Freelance UI/UX Designer">
-    <meta property="og:description" content="I design and build digital products that people love to use.">
+    <meta name="description" content="@yield('meta_description', 'Layanan percetakan dan estimasi harga dari Cipta Grafika.')">
+    <meta name="author" content="Cipta Grafika">
+    <meta property="og:title" content="@yield('meta_title', 'Cipta Grafika')">
+    <meta property="og:description" content="@yield('meta_description', 'Layanan percetakan dan estimasi harga dari Cipta Grafika.')">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://eliott.dev">
+    <meta property="og:url" content="@yield('meta_url', url()->current())">
+    @hasSection('meta_image')
+        <meta property="og:image" content="@yield('meta_image')">
+    @endif
+    <meta name="twitter:card" content="@hasSection('meta_image') summary_large_image @else summary @endif">
+    <meta name="twitter:title" content="@yield('meta_title', 'Cipta Grafika')">
+    <meta name="twitter:description" content="@yield('meta_description', 'Layanan percetakan dan estimasi harga dari Cipta Grafika.')">
+    @hasSection('meta_image')
+        <meta name="twitter:image" content="@yield('meta_image')">
+    @endif
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DynaPuff:wght@400..700&display=swap" rel="stylesheet">
-    <title>Cipta Grafika</title>
+    <title>@yield('meta_title', 'Cipta Grafika')</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
