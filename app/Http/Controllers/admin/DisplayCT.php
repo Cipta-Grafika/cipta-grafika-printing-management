@@ -350,42 +350,7 @@ class DisplayCT extends Controller
 
         $storedFiles = [];
 
-        if (app()->environment('production')) {
-
-            /*
-        |--------------------------------------------------------------------------
-        | PRODUCTION
-        |--------------------------------------------------------------------------
-        | Path production akan ditentukan kemudian.
-        |--------------------------------------------------------------------------
-        */
-
-            $uploadPath = null;
-        } else {
-
-            /*
-        |--------------------------------------------------------------------------
-        | LOCAL
-        |--------------------------------------------------------------------------
-        */
-
-            $uploadPath = public_path(
-                'images/display'
-            );
-        }
-
-        /*
-    |--------------------------------------------------------------------------
-    | PRODUCTION STORAGE BELUM DIKONFIGURASI
-    |--------------------------------------------------------------------------
-    */
-
-        if (!$uploadPath) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Penyimpanan gambar untuk environment production belum dikonfigurasi.',
-            ], 500);
-        }
+        $uploadPath = public_path('images/display');
 
         /*
     |--------------------------------------------------------------------------
@@ -903,30 +868,20 @@ class DisplayCT extends Controller
 
         $fileCleanupIncomplete = false;
 
-        if (app()->environment('production')) {
-            if ($displayImages->isNotEmpty()) {
+        foreach ($displayImages as $image) {
+            $filePath = public_path(
+                'images/display/' . basename($image->image_path)
+            );
+
+            if (file_exists($filePath) && !@unlink($filePath)) {
                 $fileCleanupIncomplete = true;
                 Log::warning(
-                    'Record Display dihapus, tetapi file fisik tidak dapat dihapus karena path production belum dikonfigurasi.',
-                    ['display_product_id' => $id]
+                    'Record Display dihapus, tetapi file gambar fisik gagal dihapus.',
+                    [
+                        'display_product_id' => $id,
+                        'file_path' => $filePath,
+                    ]
                 );
-            }
-        } else {
-            foreach ($displayImages as $image) {
-                $filePath = public_path(
-                    'images/display/' . basename($image->image_path)
-                );
-
-                if (file_exists($filePath) && !@unlink($filePath)) {
-                    $fileCleanupIncomplete = true;
-                    Log::warning(
-                        'Record Display dihapus, tetapi file gambar fisik gagal dihapus.',
-                        [
-                            'display_product_id' => $id,
-                            'file_path' => $filePath,
-                        ]
-                    );
-                }
             }
         }
 
@@ -958,38 +913,7 @@ class DisplayCT extends Controller
     | SOURCE PATH
     |--------------------------------------------------------------------------
     */
-        if (app()->environment('production')) {
-
-            /*
-        |--------------------------------------------------------------------------
-        | PRODUCTION
-        |--------------------------------------------------------------------------
-        | Path production akan ditentukan kemudian.
-        |--------------------------------------------------------------------------
-        */
-
-            $sourcePath = null;
-        } else {
-
-            /*
-        |--------------------------------------------------------------------------
-        | LOCAL
-        |--------------------------------------------------------------------------
-        */
-
-            $sourcePath = public_path(
-                'images/display'
-            );
-        }
-
-        /*
-    |--------------------------------------------------------------------------
-    | VALIDASI SOURCE PATH
-    |--------------------------------------------------------------------------
-    */
-        if (!$sourcePath) {
-            abort(404);
-        }
+        $sourcePath = public_path('images/display');
 
         /*
     |--------------------------------------------------------------------------
@@ -1799,45 +1723,7 @@ class DisplayCT extends Controller
 
         $storedFiles = [];
 
-        if (app()->environment('production')) {
-
-            /*
-        |--------------------------------------------------------------------------
-        | PRODUCTION
-        |--------------------------------------------------------------------------
-        | Path production akan ditentukan kemudian.
-        |--------------------------------------------------------------------------
-        */
-
-            $uploadPath = null;
-        } else {
-
-            /*
-        |--------------------------------------------------------------------------
-        | LOCAL
-        |--------------------------------------------------------------------------
-        */
-
-            $uploadPath = public_path(
-                'images/display'
-            );
-        }
-
-        /*
-    |--------------------------------------------------------------------------
-    | PRODUCTION STORAGE BELUM DIKONFIGURASI
-    |--------------------------------------------------------------------------
-    */
-
-        if (
-            !$uploadPath &&
-            (count($images) > 0 || count($deletedImageIds) > 0)
-        ) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Penyimpanan gambar untuk environment production belum dikonfigurasi.',
-            ], 500);
-        }
+        $uploadPath = public_path('images/display');
 
         /*
     |--------------------------------------------------------------------------

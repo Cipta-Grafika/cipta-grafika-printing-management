@@ -250,21 +250,7 @@ class CatalogCT extends Controller
     |--------------------------------------------------------------------------
     */
 
-        if (app()->environment('production')) {
-
-            /*
-        | Path production akan ditentukan kemudian.
-        */
-
-            $sourcePath = null;
-        } else {
-
-            $sourcePath = public_path($sourceFolder);
-        }
-
-        if (!$sourcePath) {
-            abort(404);
-        }
+        $sourcePath = public_path($sourceFolder);
 
         /*
     |--------------------------------------------------------------------------

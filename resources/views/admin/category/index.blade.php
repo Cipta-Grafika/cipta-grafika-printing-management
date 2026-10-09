@@ -38,14 +38,7 @@
 
                         </button>
                         <button class="btn btn--primary" id="btnTambahKategori">
-                            <svg viewBox="0 0 24 24">
-                                <!-- Folder -->
-                                <path d="M3 7a2 2 0 0 1 2-2h5l2 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-
-                                <!-- Tanda Plus -->
-                                <path d="M12 11v6" />
-                                <path d="M9 14h6" />
-                            </svg>
+                            <i class="bi bi-plus-lg"></i>
                             Tambah Kategori
                         </button>
                     </div>
@@ -395,8 +388,8 @@
     </div>
 
     <!-- =========================================================
-                                                                                                                                                                                                                                                                                                                                                                                                                             MODAL KONFIRMASI HAPUS KATEGORI
-                                                                                                                                                                                                                                                                                                                                                                                                                        ========================================================= -->
+                                                                                                                                                                                                                                                                                                                                                                                                                                 MODAL KONFIRMASI HAPUS KATEGORI
+                                                                                                                                                                                                                                                                                                                                                                                                                            ========================================================= -->
 
     <div class="modal-overlay" id="modalDeleteKategori">
 

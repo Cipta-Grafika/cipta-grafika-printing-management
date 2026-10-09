@@ -341,24 +341,7 @@ class GallerySampleCT extends Controller
 
         $storedFiles = [];
 
-        if (app()->environment('production')) {
-
-            /*
-        | Path production akan ditentukan kemudian.
-        */
-
-            $uploadPath = null;
-        } else {
-
-            $uploadPath = public_path('images/gallery-samples');
-        }
-
-        if (!$uploadPath) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Penyimpanan gambar untuk environment production belum dikonfigurasi.',
-            ], 500);
-        }
+        $uploadPath = public_path('images/gallery-samples');
 
         if (!is_dir($uploadPath)) {
             if (!mkdir($uploadPath, 0755, true)) {
@@ -681,15 +664,7 @@ class GallerySampleCT extends Controller
             abort(404);
         }
 
-        if (app()->environment('production')) {
-            $sourcePath = null;
-        } else {
-            $sourcePath = public_path('images/gallery-samples');
-        }
-
-        if (!$sourcePath) {
-            abort(404);
-        }
+        $sourcePath = public_path('images/gallery-samples');
 
         $sourceFile = $sourcePath
             . DIRECTORY_SEPARATOR
@@ -859,37 +834,26 @@ class GallerySampleCT extends Controller
 
         $fileCleanupIncomplete = false;
 
-        if (app()->environment('production')) {
-            $fileCleanupIncomplete = true;
-            Log::warning(
-                'Record Gallery Sampel dihapus, tetapi file fisik tidak dapat dihapus karena path production belum dikonfigurasi.',
-                [
-                    'engine_id' => $engineId,
-                    'category_id' => $categoryId,
-                ]
+        foreach ($galleries as $gallery) {
+            if (empty($gallery->image_path)) {
+                continue;
+            }
+
+            $filePath = public_path(
+                'images/gallery-samples/' .
+                basename($gallery->image_path)
             );
-        } else {
-            foreach ($galleries as $gallery) {
-                if (empty($gallery->image_path)) {
-                    continue;
-                }
 
-                $filePath = public_path(
-                    'images/gallery-samples/' .
-                    basename($gallery->image_path)
+            if (file_exists($filePath) && !@unlink($filePath)) {
+                $fileCleanupIncomplete = true;
+                Log::warning(
+                    'Record Gallery Sampel dihapus, tetapi file fisik gagal dihapus.',
+                    [
+                        'engine_id' => $engineId,
+                        'category_id' => $categoryId,
+                        'file_path' => $filePath,
+                    ]
                 );
-
-                if (file_exists($filePath) && !@unlink($filePath)) {
-                    $fileCleanupIncomplete = true;
-                    Log::warning(
-                        'Record Gallery Sampel dihapus, tetapi file fisik gagal dihapus.',
-                        [
-                            'engine_id' => $engineId,
-                            'category_id' => $categoryId,
-                            'file_path' => $filePath,
-                        ]
-                    );
-                }
             }
         }
 
@@ -1271,29 +1235,7 @@ class GallerySampleCT extends Controller
 
         $storedFiles = [];
 
-        if (app()->environment('production')) {
-
-            /*
-        |--------------------------------------------------------------------------
-        | Path production akan ditentukan kemudian.
-        |--------------------------------------------------------------------------
-        */
-
-            $uploadPath = null;
-        } else {
-
-            $uploadPath =
-                public_path('images/gallery-samples');
-        }
-
-        if (!$uploadPath && count($images) > 0) {
-
-            return response()->json([
-                'success' => false,
-                'message' =>
-                'Penyimpanan gambar untuk environment production belum dikonfigurasi.',
-            ], 500);
-        }
+        $uploadPath = public_path('images/gallery-samples');
 
         if ($uploadPath && !is_dir($uploadPath)) {
 
@@ -1506,33 +1448,20 @@ class GallerySampleCT extends Controller
 
             $fileCleanupIncomplete = false;
 
-            if (app()->environment('production')) {
-                if (!empty($deletedFilePaths)) {
+            foreach ($deletedFilePaths as $filePath) {
+                if (
+                    file_exists($filePath) &&
+                    !@unlink($filePath)
+                ) {
                     $fileCleanupIncomplete = true;
                     Log::warning(
-                        'Record gambar Gallery Sampel dihapus, tetapi file fisik tidak dapat dihapus karena path production belum dikonfigurasi.',
+                        'Record gambar Gallery Sampel dihapus, tetapi file fisik gagal dihapus.',
                         [
                             'engine_id' => $engineId,
                             'category_id' => $categoryId,
+                            'file_path' => $filePath,
                         ]
                     );
-                }
-            } else {
-                foreach ($deletedFilePaths as $filePath) {
-                    if (
-                        file_exists($filePath) &&
-                        !@unlink($filePath)
-                    ) {
-                        $fileCleanupIncomplete = true;
-                        Log::warning(
-                            'Record gambar Gallery Sampel dihapus, tetapi file fisik gagal dihapus.',
-                            [
-                                'engine_id' => $engineId,
-                                'category_id' => $categoryId,
-                                'file_path' => $filePath,
-                            ]
-                        );
-                    }
                 }
             }
 
