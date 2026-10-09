@@ -27,3 +27,8 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+app/Http/Controllers/admin/EstimationCT-backup.php
+database/seeders/RefreshCiptaGrafikaSeeder.php
+public/js/2026-backup-3.js
+resources/views/admin/estimation/large-format/create-backup4.blade.php
