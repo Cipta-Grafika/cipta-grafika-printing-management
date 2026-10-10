@@ -54,6 +54,12 @@ class MaterialCT extends Controller
                 'm_categories.name as category_name'
             );
 
+        $categoryId = $request->input('category_id');
+
+        if ($categoryId !== null && $categoryId !== '') {
+            $query->where('m_materials.category_id', $categoryId);
+        }
+
 
         /*
     |--------------------------------------------------------------------------
@@ -1430,10 +1436,18 @@ class MaterialCT extends Controller
         }
     }
 
-    public function export()
+    public function export(Request $request)
     {
+        $validated = $request->validate([
+            'category_id' => ['nullable', 'integer', 'exists:m_categories,id'],
+        ]);
+
         return Excel::download(
-            new MaterialsExport(),
+            new MaterialsExport(
+                isset($validated['category_id'])
+                    ? (int) $validated['category_id']
+                    : null
+            ),
             'master_material.xlsx'
         );
     }

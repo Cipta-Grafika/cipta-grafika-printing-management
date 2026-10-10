@@ -11,12 +11,22 @@
                         <p class="hero-sub">Kelola dan pantau seluruh data material yang digunakan dalam proses produksi dan
                             perhitungan estimasi harga.</p>
                     </div>
-                    <div class="hero-actions"><a href="{{ route('admin_export_material') }}" class="btn btn--ghost"><svg
+                    <div class="hero-actions material-hero-actions">
+                        <a id="btnExportMaterial" href="{{ route('admin_export_material') }}" class="btn btn--ghost"><svg
                                 viewBox="0 0 24 24">
                                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                                 <path d="M7 10l5 5 5-5" />
                                 <path d="M12 15V3" />
                             </svg> Export</a>
+                        <div class="material-category-filter">
+                            <select id="filterMaterialCategory" class="select select2"
+                                aria-label="Filter kategori material">
+                                <option value="">Semua Kategori</option>
+                                @foreach ($categories as $category)
+                                    <option value="{{ $category->id }}">{{ $category->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
                         <a href="{{ asset('templates/template_material.xlsx') }}" class="btn btn--ghost">
 
                             <svg viewBox="0 0 24 24">
@@ -1351,6 +1361,10 @@
 
         document.addEventListener('DOMContentLoaded', function() {
 
+            $('#filterMaterialCategory').select2({
+                width: '100%'
+            });
+
             materialTable = new DataTable('#materialTable', {
 
                 /*
@@ -1395,7 +1409,11 @@
 
                     url: "{{ route('admin_data_material') }}",
 
-                    type: "GET"
+                    type: "GET",
+
+                    data: function(requestData) {
+                        requestData.category_id = $('#filterMaterialCategory').val();
+                    }
 
                 },
 
@@ -1701,6 +1719,22 @@
                         });
                 }
 
+            });
+
+            $('#filterMaterialCategory').on('change', function() {
+                materialTable.ajax.reload();
+
+                const exportUrl = new URL(
+                    "{{ route('admin_export_material') }}",
+                    window.location.origin
+                );
+                const categoryId = $(this).val();
+
+                if (categoryId) {
+                    exportUrl.searchParams.set('category_id', categoryId);
+                }
+
+                document.getElementById('btnExportMaterial').href = exportUrl.toString();
             });
 
         });

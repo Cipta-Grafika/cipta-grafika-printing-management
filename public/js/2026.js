@@ -246,10 +246,10 @@
                             <aside class="d-sidebar">
                                 <div class="brand">
                                     <img class="brand-logo brand-logo-theme brand-logo-light"
-                                        src="/images/estimator-logo-light.png"
+                                        src="/images/logo-teks-tema-terang.png"
                                         alt="Cipta Grafika Estimator System">
                                     <img class="brand-logo brand-logo-theme brand-logo-dark"
-                                        src="/images/estimator-logo-dark.png"
+                                        src="/images/logo-teks-tema-gelap.png"
                                         alt=""
                                         aria-hidden="true">
                                 </div>

@@ -10,6 +10,10 @@ use Maatwebsite\Excel\Concerns\WithMapping;
 
 class MaterialsExport implements FromCollection, WithHeadings, WithMapping
 {
+    public function __construct(private readonly ?int $categoryId = null)
+    {
+    }
+
     /*
     |--------------------------------------------------------------------------
     | NOMOR URUT
@@ -56,6 +60,13 @@ class MaterialsExport implements FromCollection, WithHeadings, WithMapping
                 'm_material_sizes.width',
                 'm_material_sizes.length',
                 'm_material_sizes.unit'
+            )
+            ->when(
+                $this->categoryId !== null,
+                fn ($query) => $query->where(
+                    'm_materials.category_id',
+                    $this->categoryId
+                )
             )
             ->orderByRaw(
                 "CASE
