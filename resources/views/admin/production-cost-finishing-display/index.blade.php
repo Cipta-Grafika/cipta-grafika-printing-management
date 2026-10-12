@@ -15,7 +15,7 @@
                         <a href="{{ route('admin_create_pc_finishing_display') }}" class="btn btn--primary"><svg
                                 viewBox="0 0 24 24">
                                 <path d="M12 5v14M5 12h14" />
-                            </svg> Tambah Ongkos Produksi</a>
+                            </svg> Tambah Ongkos</a>
                     </div>
                 </section>
                 <div class="grid">
@@ -321,9 +321,9 @@
 
                             if (total === 0) {
                                 return `
-                                <span class="text-center">
-                                    Belum ada komponen
-                                </span>
+                                    <div style="text-align: center;">
+                                        Belum ada komponen
+                                    </div>
                                 `;
                             }
 
@@ -346,14 +346,15 @@
                                         style="
                                                 display: flex;
                                                 flex-wrap: wrap;
+                                                justify-content: center;
                                                 gap: 5px;
                                             ">
                                         ${parts.map(function (part) {
                                         return `
-                                                                                <span class="badge">
-                                                                                    ${escapeHtml(part)}
-                                                                                </span>
-                                                                        `;
+                                                                                    <span class="badge">
+                                                                                        ${escapeHtml(part)}
+                                                                                    </span>
+                                                                            `;
                                         }).join('')}
                                     </div>
                                 `;

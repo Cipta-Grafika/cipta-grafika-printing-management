@@ -13,6 +13,20 @@ class DisplayCT extends Controller
 {
     private const MAX_DISPLAY_IMAGE_BYTES = 1048576;
 
+    private function displayCategory(): object
+    {
+        $category = DB::table('m_categories')
+            ->select('id', 'name')
+            ->where('name', 'Display')
+            ->first();
+
+        if ($category === null) {
+            abort(500, 'Master kategori Display tidak ditemukan.');
+        }
+
+        return $category;
+    }
+
     private function saveDisplayImageAsWebp(
         UploadedFile $image,
         string $destination
@@ -178,23 +192,23 @@ class DisplayCT extends Controller
     {
         $this->cleanTemporary();
 
-        $categories = DB::table('m_categories')
-            ->orderBy('name')
-            ->get();
-
-        return view('admin.displays.index', compact('categories'));
+        return view('admin.displays.index');
     }
 
     public function create()
     {
-        $data['categories'] = DB::table('m_categories')
-            ->orderBy('name', 'asc')
-            ->get()->toArray();
-        return view('admin.displays.create')->with($data);
+        $displayCategory = $this->displayCategory();
+
+        return view(
+            'admin.displays.create',
+            compact('displayCategory')
+        );
     }
 
     public function store(Request $request)
     {
+        $displayCategory = $this->displayCategory();
+
         /*
     |--------------------------------------------------------------------------
     | VALIDATION
@@ -206,12 +220,6 @@ class DisplayCT extends Controller
                 'required',
                 'string',
                 'max:255',
-            ],
-
-            'category_id' => [
-                'required',
-                'integer',
-                'exists:m_categories,id',
             ],
 
             'length' => [
@@ -396,7 +404,7 @@ class DisplayCT extends Controller
                 $displayName,
 
                 'category_id' =>
-                $validated['category_id'],
+                $displayCategory->id,
 
                 'length' =>
                 $validated['length'],
@@ -1203,15 +1211,7 @@ class DisplayCT extends Controller
             abort(404);
         }
 
-        /*
-    |--------------------------------------------------------------------------
-    | DATA KATEGORI
-    |--------------------------------------------------------------------------
-    */
-
-        $categories = DB::table('m_categories')
-            ->orderBy('name')
-            ->get();
+        $displayCategory = $this->displayCategory();
 
         /*
     |--------------------------------------------------------------------------
@@ -1240,7 +1240,7 @@ class DisplayCT extends Controller
             'admin.displays.edit',
             compact(
                 'displayProduct',
-                'categories',
+                'displayCategory',
                 'displayImages'
             )
         );
@@ -1248,6 +1248,8 @@ class DisplayCT extends Controller
 
     public function update(Request $request, $id)
     {
+        $displayCategory = $this->displayCategory();
+
         /*
     |--------------------------------------------------------------------------
     | VALIDATION
@@ -1259,12 +1261,6 @@ class DisplayCT extends Controller
                 'required',
                 'string',
                 'max:255',
-            ],
-
-            'category_id' => [
-                'required',
-                'integer',
-                'exists:m_categories,id',
             ],
 
             'length' => [
@@ -1798,7 +1794,7 @@ class DisplayCT extends Controller
                     $displayName,
 
                     'category_id' =>
-                    $validated['category_id'],
+                    $displayCategory->id,
 
                     'length' =>
                     $validated['length'],

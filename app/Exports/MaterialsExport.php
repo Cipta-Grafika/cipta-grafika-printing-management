@@ -28,8 +28,10 @@ class MaterialsExport implements FromCollection, WithHeadings, WithMapping
     | AMBIL DATA MATERIAL
     |--------------------------------------------------------------------------
     |
-    | Active dulu, baru Inactive.
-    | Kemudian diurutkan berdasarkan:
+    | Saat semua kategori diekspor, data dikelompokkan
+    | berdasarkan kategori. Di dalam setiap kategori:
+    | - Active dulu, baru Inactive.
+    | - Kemudian diurutkan berdasarkan:
     | - Nama material
     | - Lebar
     | - Panjang
@@ -66,6 +68,13 @@ class MaterialsExport implements FromCollection, WithHeadings, WithMapping
                 fn ($query) => $query->where(
                     'm_materials.category_id',
                     $this->categoryId
+                )
+            )
+            ->when(
+                $this->categoryId === null,
+                fn ($query) => $query->orderBy(
+                    'm_categories.name',
+                    'asc'
                 )
             )
             ->orderByRaw(

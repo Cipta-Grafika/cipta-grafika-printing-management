@@ -188,17 +188,11 @@
                                             <span class="req">*</span>
                                         </label>
 
-                                        <select name="headers[0][category_id]" class="select select2 markup-category"
-                                            required>
-                                            <option value="">
-                                                Pilih Kategori
-                                            </option>
-
-                                            @foreach ($categories as $category)
-                                                <option value="{{ $category->id }}">
-                                                    {{ $category->name }}
-                                                </option>
-                                            @endforeach
+                                        <input type="hidden" name="headers[0][category_id]"
+                                            class="markup-category-input" value="{{ $displayCategory->id }}">
+                                        <select class="select select2 markup-category-display" disabled
+                                            aria-label="Kategori Display">
+                                            <option selected>{{ $displayCategory->name }}</option>
                                         </select>
                                     </div>
 
@@ -1311,7 +1305,7 @@
                 );
 
                 initSelect2(
-                    header.querySelector('.markup-category')
+                    header.querySelector('.markup-category-display')
                 );
             }
 
@@ -1365,7 +1359,7 @@
                 );
 
                 destroySelect2(
-                    header.querySelector('.markup-category')
+                    header.querySelector('.markup-category-display')
                 );
             }
 
@@ -1999,20 +1993,18 @@
                             <span class="req">*</span>
                         </label>
 
-                        <select
+                        <input
+                            type="hidden"
                             name="headers[${index}][category_id]"
-                            class="select select2 markup-category"
-                            required
+                            class="markup-category-input"
+                            value="{{ $displayCategory->id }}"
                         >
-                            <option value="">
-                                Pilih Kategori
-                            </option>
-
-                            @foreach ($categories as $category)
-                                <option value="{{ $category->id }}">
-                                    {{ $category->name }}
-                                </option>
-                            @endforeach
+                        <select
+                            class="select select2 markup-category-display"
+                            disabled
+                            aria-label="Kategori Display"
+                        >
+                            <option selected>{{ $displayCategory->name }}</option>
                         </select>
 
                     </div>
@@ -2145,7 +2137,7 @@
 
                         const category =
                             header.querySelector(
-                                '.markup-category'
+                                '.markup-category-input'
                             );
 
 
@@ -2366,7 +2358,7 @@
                      */
                     const category =
                         header.querySelector(
-                            '.markup-category'
+                            '.markup-category-input'
                         );
 
 

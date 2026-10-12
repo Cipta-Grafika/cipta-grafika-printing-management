@@ -11,13 +11,20 @@
                         <p class="hero-sub">Kelola dan pantau seluruh data material yang digunakan dalam proses produksi dan
                             perhitungan estimasi harga.</p>
                     </div>
-                    <div class="hero-actions"><a href="{{ route('admin_export_pricing_rules') }}" class="btn btn--ghost"><svg
-                                viewBox="0 0 24 24">
+                    <div class="hero-actions material-hero-actions"><a id="btnExportPricingRules"
+                            href="{{ route('admin_export_pricing_rules') }}" class="btn btn--ghost"><svg viewBox="0 0 24 24">
                                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                                 <path d="M7 10l5 5 5-5" />
                                 <path d="M12 15V3" />
                             </svg> Export</a>
-                        <a href="{{ asset('templates/template_harga_markup.xlsx') }}" class="btn btn--ghost">
+                        <div class="material-category-filter">
+                            <select id="pricingRuleEngineFilter" class="select select2"
+                                aria-label="Filter mesin pricing rule">
+                                <option value="large_format" selected>Large Format</option>
+                                <option value="digital_print_a3">Digital Print A3+</option>
+                            </select>
+                        </div>
+                        <button type="button" class="btn btn--ghost" id="btnDownloadTemplatePricingRules">
 
                             <svg viewBox="0 0 24 24">
                                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -27,7 +34,7 @@
 
                             Download Template
 
-                        </a>
+                        </button>
                         <button class="btn btn--ghost" id="btnImportPricingRules"><svg viewBox="0 0 24 24">
                                 <path d="M12 16V3" />
                                 <path d="m7 8 5-5 5 5" />
@@ -78,6 +85,116 @@
             </main>
             <div data-shell-footer></div>
         </div>
+    </div>
+
+    <!-- Modal Download Template Pricing Rules -->
+    <div class="modal-overlay" id="modalDownloadTemplatePricingRules">
+
+        <div class="modal modal-import">
+
+            <div class="modal-header">
+
+                <div>
+                    <span class="eyebrow">HARGA MARKUP · MATERIAL</span>
+                    <br>
+                    <span class="eyebrow">Download Template Excel</span>
+                </div>
+
+                <button type="button" class="modal-close" id="btnCloseDownloadTemplatePricingRules"
+                    aria-label="Tutup">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M18 6 6 18" />
+                        <path d="M6 6 18 18" />
+                    </svg>
+                </button>
+
+            </div>
+
+            <div class="modal-body">
+
+                <div class="import-description">
+                    <p>
+                        Pilih template Excel sesuai dengan jenis mesin pricing
+                        rules yang ingin diinput.
+                    </p>
+                </div>
+
+                <div class="template-download-options">
+
+                    <a href="{{ asset('templates/template_harga_markup.xlsx') }}"
+                        class="template-download-card file-upload-box">
+
+                        <div class="template-download-icon">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M12 3v12" />
+                                <path d="m7 10 5 5 5-5" />
+                                <path d="M5 21h14" />
+                                <path d="M5 17v4" />
+                                <path d="M19 17v4" />
+                            </svg>
+                        </div>
+
+                        <div class="template-download-content">
+                            <strong>Template Large Format</strong>
+                            <span>
+                                Template pricing rules untuk mesin Large
+                                Format.
+                            </span>
+                        </div>
+
+                        <div class="template-download-arrow">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M5 12h14" />
+                                <path d="m13 6 6 6-6 6" />
+                            </svg>
+                        </div>
+
+                    </a>
+
+                    <a href="{{ asset('templates/template_harga_markup_a3.xlsx') }}"
+                        class="template-download-card file-upload-box">
+
+                        <div class="template-download-icon">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M12 3v12" />
+                                <path d="m7 10 5 5 5-5" />
+                                <path d="M5 21h14" />
+                                <path d="M5 17v4" />
+                                <path d="M19 17v4" />
+                            </svg>
+                        </div>
+
+                        <div class="template-download-content">
+                            <strong>Template Digital Print A3+</strong>
+                            <span>
+                                Template pricing rules untuk mesin Digital
+                                Print A3+.
+                            </span>
+                        </div>
+
+                        <div class="template-download-arrow">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M5 12h14" />
+                                <path d="m13 6 6 6-6 6" />
+                            </svg>
+                        </div>
+
+                    </a>
+
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+
+                <button type="button" class="btn btn--ghost" id="btnCancelDownloadTemplatePricingRules">
+                    Batal
+                </button>
+
+            </div>
+
+        </div>
+
     </div>
 
     <!-- Modal Import Pricing Rules -->
@@ -473,8 +590,8 @@
                     <div id="markupHeaderContainer">
 
                         <!-- =====================================================
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     HEADER MARKUP #0
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                ====================================================== -->
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 HEADER MARKUP #0
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            ====================================================== -->
 
                         <div class="markup-header-group" data-header-index="0">
 
@@ -951,6 +1068,75 @@
 
         document.addEventListener('DOMContentLoaded', function() {
 
+            $('#pricingRuleEngineFilter').select2({
+                width: '100%'
+            });
+
+            const btnDownloadTemplatePricingRules =
+                document.getElementById(
+                    'btnDownloadTemplatePricingRules'
+                );
+
+            const modalDownloadTemplatePricingRules =
+                document.getElementById(
+                    'modalDownloadTemplatePricingRules'
+                );
+
+            const btnCloseDownloadTemplatePricingRules =
+                document.getElementById(
+                    'btnCloseDownloadTemplatePricingRules'
+                );
+
+            const btnCancelDownloadTemplatePricingRules =
+                document.getElementById(
+                    'btnCancelDownloadTemplatePricingRules'
+                );
+
+            function closeDownloadTemplatePricingRulesModal() {
+                modalDownloadTemplatePricingRules.classList.remove(
+                    'is-open'
+                );
+            }
+
+            btnDownloadTemplatePricingRules.addEventListener(
+                'click',
+                function() {
+                    modalDownloadTemplatePricingRules.classList.add(
+                        'is-open'
+                    );
+                }
+            );
+
+            btnCloseDownloadTemplatePricingRules.addEventListener(
+                'click',
+                closeDownloadTemplatePricingRulesModal
+            );
+
+            btnCancelDownloadTemplatePricingRules.addEventListener(
+                'click',
+                closeDownloadTemplatePricingRulesModal
+            );
+
+            modalDownloadTemplatePricingRules.addEventListener(
+                'click',
+                function(event) {
+                    if (event.target === modalDownloadTemplatePricingRules) {
+                        closeDownloadTemplatePricingRulesModal();
+                    }
+                }
+            );
+
+            document.addEventListener('keydown', function(event) {
+                if (
+                    event.key === 'Escape' &&
+                    modalDownloadTemplatePricingRules.classList.contains(
+                        'is-open'
+                    )
+                ) {
+                    closeDownloadTemplatePricingRulesModal();
+                }
+            });
+
             pricingRuleTable = new DataTable('#pricingRuleTable', {
 
                 /*
@@ -995,7 +1181,14 @@
 
                     url: "{{ route('admin_data_pricing_rule') }}",
 
-                    type: "GET"
+                    type: "GET",
+
+                    data: function(data) {
+                        data.pricing_engine =
+                            document.getElementById(
+                                'pricingRuleEngineFilter'
+                            ).value;
+                    }
 
                 },
 
@@ -1216,6 +1409,8 @@
                                 <button
                                     type="button"
                                     class="btn--icon btn-detail-pricing-rule"
+                                    data-pricing-rule-source="${row.pricing_rule_source}"
+                                    data-digital-pricing-rule-id="${row.digital_pricing_rule_id ?? ''}"
                                     data-engine-id="${row.engine_id}"
                                     data-location-id="${row.location_id}"
                                     data-vendor-id="${row.vendor_id ?? 'null'}"
@@ -1226,30 +1421,50 @@
                                 </button>
 
 
-                                <button
-                                    type="button"
-                                    class="btn--icon btn-edit-pricing-rule"
-                                    data-engine-id="${row.engine_id}"
-                                    data-location-id="${row.location_id}"
-                                    data-vendor-id="${row.vendor_id ?? 'null'}"
-                                    data-category-id="${row.category_id}"
-                                    aria-label="Edit"
-                                >
-                                    <i class="bi bi-pen"></i>
-                                </button>
+                                ${row.pricing_rule_source === 'digital' ? `
+                                    <button
+                                        type="button"
+                                        class="btn--icon btn-edit-digital-pricing-rule"
+                                        data-digital-pricing-rule-id="${row.digital_pricing_rule_id}"
+                                        aria-label="Edit"
+                                    >
+                                        <i class="bi bi-pen"></i>
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        class="btn--icon btn-delete-digital-pricing-rule"
+                                        data-digital-pricing-rule-id="${row.digital_pricing_rule_id}"
+                                        aria-label="Hapus"
+                                    >
+                                        <i class="bi bi-trash3-fill"></i>
+                                    </button>
+                                    ` : `
+                                    <button
+                                        type="button"
+                                        class="btn--icon btn-edit-pricing-rule"
+                                        data-engine-id="${row.engine_id}"
+                                        data-location-id="${row.location_id}"
+                                        data-vendor-id="${row.vendor_id ?? 'null'}"
+                                        data-category-id="${row.category_id}"
+                                        aria-label="Edit"
+                                    >
+                                        <i class="bi bi-pen"></i>
+                                    </button>
 
 
-                                <button
-                                    type="button"
-                                    class="btn--icon btn-delete-pricing-rule"
-                                    data-engine-id="${row.engine_id}"
-                                    data-location-id="${row.location_id}"
-                                    data-vendor-id="${row.vendor_id ?? 'null'}"
-                                    data-category-id="${row.category_id}"
-                                    aria-label="Hapus"
-                                >
-                                    <i class="bi bi-trash3-fill"></i>
-                                </button>
+                                    <button
+                                        type="button"
+                                        class="btn--icon btn-delete-pricing-rule"
+                                        data-engine-id="${row.engine_id}"
+                                        data-location-id="${row.location_id}"
+                                        data-vendor-id="${row.vendor_id ?? 'null'}"
+                                        data-category-id="${row.category_id}"
+                                        aria-label="Hapus"
+                                    >
+                                        <i class="bi bi-trash3-fill"></i>
+                                    </button>
+                                    `}
 
                             </div>
 
@@ -1380,6 +1595,22 @@
 
                 }
 
+            });
+
+            $('#pricingRuleEngineFilter').on('change', function() {
+                pricingRuleTable.ajax.reload(null, true);
+            });
+
+            $('#btnExportPricingRules').on('click', function(event) {
+                event.preventDefault();
+
+                const pricingEngine =
+                    $('#pricingRuleEngineFilter').val() || 'large_format';
+
+                const exportUrl =
+                    `{{ route('admin_export_pricing_rules') }}?pricing_engine=${encodeURIComponent(pricingEngine)}`;
+
+                window.location.href = exportUrl;
             });
 
         });
@@ -1585,6 +1816,160 @@
                 );
             }
 
+            function isDigitalPricingHeader(header) {
+
+                const engine = header.querySelector('.markup-engine');
+                const category = header.querySelector('.markup-category');
+
+                const engineName = engine && engine.selectedIndex >= 0 ?
+                    engine.options[engine.selectedIndex].textContent
+                    .trim()
+                    .toLowerCase()
+                    .replace(/\s+/g, '') :
+                    '';
+
+                const categoryName = category && category.selectedIndex >= 0 ?
+                    category.options[category.selectedIndex].textContent
+                    .trim()
+                    .toLowerCase()
+                    .replace(/[\s/]+/g, '') :
+                    '';
+
+                return engineName === 'digitalprinta3+' &&
+                    category.value !== '' &&
+                    categoryName !== 'indoor&outdoor' &&
+                    categoryName !== 'indooroutdoor';
+            }
+
+            function createDigitalPricingFields(index) {
+                const tiers = [
+                    ['1 lbr', 'tier_1'],
+                    ['2 - 5 lbr', 'tier_2_5'],
+                    ['6 - 50 lbr', 'tier_6_50'],
+                    ['100 lbr', 'tier_100'],
+                    ['300 lbr', 'tier_300'],
+                    ['500 lbr', 'tier_500']
+                ];
+
+                return `
+                    <div class="markup-digital-fields" style="display: none;">
+                        <div class="markup-field digital-print-type-field">
+                            <label class="category-label">Harga Print</label>
+                            <select
+                                name="pricing_rules[${index}][print_type]"
+                                class="select markup-print-type"
+                                required
+                                disabled
+                            >
+                                <option value="">Pilih Harga Print</option>
+                                <option value="single">1 Muka</option>
+                                <option value="double">2 Muka</option>
+                            </select>
+                        </div>
+                        <div class="digital-pricing-tiers">
+                            ${tiers.map(([label, suffix]) => `
+                                        <div class="digital-price-tier">
+                                            <label class="category-label">${label}</label>
+                                            <div class="markup-field">
+                                                <label class="category-label">Markup (%)</label>
+                                                <input
+                                                    type="number"
+                                                    name="pricing_rules[${index}][${suffix}_markup_percentage]"
+                                                    data-pricing-suffix="${suffix}_markup_percentage"
+                                                    class="input digital-tier-percentage"
+                                                    min="0"
+                                                    step="0.01"
+                                                    placeholder="Contoh: 10"
+                                                    required
+                                                    disabled
+                                                >
+                                            </div>
+                                            <div class="markup-field">
+                                                <label class="category-label">Pembulatan (Rp)</label>
+                                                <input
+                                                    type="text"
+                                                    name="pricing_rules[${index}][${suffix}_rounding_value]"
+                                                    data-pricing-suffix="${suffix}_rounding_value"
+                                                    class="input markup-rounding digital-tier-rounding"
+                                                    inputmode="numeric"
+                                                    autocomplete="off"
+                                                    placeholder="Contoh: Rp 1.000"
+                                                    disabled
+                                                >
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            function installDigitalPricingFields(row, index) {
+                const statusField = row.querySelector('.markup-status')
+                    .closest('.markup-field');
+                const digitalFields = document.createElement('div');
+
+                digitalFields.innerHTML = createDigitalPricingFields(index);
+                row.insertBefore(digitalFields.firstElementChild, statusField);
+                statusField.classList.add('markup-status-field');
+            }
+
+            function updateMarkupBody(header) {
+                const isDigitalPricing = isDigitalPricingHeader(header);
+
+                getRuleRows(header).forEach(function(row) {
+                    row.classList.toggle('is-digital-pricing', isDigitalPricing);
+
+                    const markup = row.querySelector('.markup-percentage');
+                    const rounding = row.querySelector('.markup-rounding:not(.digital-tier-rounding)');
+                    const digitalFields = row.querySelector('.markup-digital-fields');
+                    const printType = row.querySelector('.markup-print-type');
+                    const plainPriceOption = row.querySelector(
+                        '.markup-price-type option[value="plain"]'
+                    );
+
+                    if (markup) {
+                        markup.closest('.markup-field').style.display =
+                            isDigitalPricing ? 'none' : '';
+                        markup.disabled = isDigitalPricing;
+                    }
+
+                    if (rounding) {
+                        rounding.closest('.markup-field').style.display =
+                            isDigitalPricing ? 'none' : '';
+                        rounding.disabled = isDigitalPricing;
+                    }
+
+                    if (digitalFields) {
+                        digitalFields.style.display =
+                            isDigitalPricing ? '' : 'none';
+                    }
+
+                    if (printType) {
+                        printType.disabled = !isDigitalPricing;
+                    }
+
+                    row.querySelectorAll('.digital-tier-percentage, .digital-tier-rounding')
+                        .forEach(function(input) {
+                            input.disabled = !isDigitalPricing;
+                        });
+
+                    if (plainPriceOption) {
+                        plainPriceOption.disabled = isDigitalPricing;
+                        plainPriceOption.hidden = isDigitalPricing;
+
+                        if (isDigitalPricing && row.querySelector('.markup-price-type').value === 'plain') {
+                            row.querySelector('.markup-price-type').value = '';
+
+                            if (typeof $ !== 'undefined') {
+                                $(row.querySelector('.markup-price-type'))
+                                    .trigger('change.select2');
+                            }
+                        }
+                    }
+                });
+            }
+
 
             /*
             |--------------------------------------------------------------------------
@@ -1740,6 +2125,11 @@
                                         '.markup-vendor-id'
                                     );
 
+                                const printType =
+                                    row.querySelector(
+                                        '.markup-print-type'
+                                    );
+
                                 const priceType =
                                     row.querySelector(
                                         '.markup-price-type'
@@ -1790,6 +2180,17 @@
                                     priceType.name =
                                         `pricing_rules[${newIndex}][price_type]`;
                                 }
+
+                                if (printType) {
+                                    printType.name =
+                                        `pricing_rules[${newIndex}][print_type]`;
+                                }
+
+                                row.querySelectorAll('[data-pricing-suffix]')
+                                    .forEach(function(input) {
+                                        input.name =
+                                            `pricing_rules[${newIndex}][${input.dataset.pricingSuffix}]`;
+                                    });
 
 
                                 if (markup) {
@@ -2040,6 +2441,12 @@
                         }
 
 
+                        const isDigitalPricing =
+                            isDigitalPricingHeader(header);
+
+                        const printType =
+                            row.querySelector('.markup-print-type');
+
                         const combination =
                             engineId +
                             '|' +
@@ -2049,7 +2456,8 @@
                             '|' +
                             categoryId +
                             '|' +
-                            priceType.value;
+                            priceType.value +
+                            (isDigitalPricing ? '|' + (printType ? printType.value : '') : '');
 
 
                         if (usedCombinations[combination]) {
@@ -2058,6 +2466,8 @@
 
                             showToast(
                                 'error',
+                                isDigitalPricing ?
+                                'Kombinasi mesin, lokasi, kategori, tipe harga, dan harga print tidak boleh sama.' :
                                 'Kombinasi mesin, lokasi, kategori, dan tipe harga tidak boleh sama.'
                             );
 
@@ -2310,18 +2720,6 @@
                             );
 
 
-                        const markup =
-                            row.querySelector(
-                                '.markup-percentage'
-                            );
-
-
-                        const rounding =
-                            row.querySelector(
-                                '.markup-rounding'
-                            );
-
-
                         const status =
                             row.querySelector(
                                 '.markup-status'
@@ -2356,79 +2754,106 @@
                         }
 
 
-                        /*
-                        |--------------------------------------------------------------------------
-                        | MARKUP
-                        |--------------------------------------------------------------------------
-                        */
+                        if (row.classList.contains('is-digital-pricing')) {
+                            const printType =
+                                row.querySelector('.markup-print-type');
 
-                        if (
-                            !markup ||
-                            markup.value === '' ||
-                            isNaN(markup.value)
-                        ) {
-
-                            setFieldError(
-                                markup
-                            );
-
-                            showToast(
-                                'error',
-                                'Markup wajib diisi dengan angka.'
-                            );
-
-                            if (markup) {
-                                markup.focus();
+                            if (!printType || !printType.value) {
+                                setFieldError(printType);
+                                showToast('error', 'Harga Print wajib dipilih.');
+                                if (printType) {
+                                    printType.focus();
+                                }
+                                return false;
                             }
 
-                            return false;
-                        }
+                            const digitalMarkups =
+                                row.querySelectorAll('.digital-tier-percentage');
 
+                            for (const digitalMarkup of digitalMarkups) {
+                                if (
+                                    digitalMarkup.value === '' ||
+                                    isNaN(digitalMarkup.value)
+                                ) {
+                                    setFieldError(digitalMarkup);
+                                    showToast(
+                                        'error',
+                                        'Markup wajib diisi dengan angka untuk setiap jumlah lembar.'
+                                    );
+                                    digitalMarkup.focus();
+                                    return false;
+                                }
 
-                        if (
-                            Number(markup.value) < 0
-                        ) {
+                                if (Number(digitalMarkup.value) < 0) {
+                                    setFieldError(digitalMarkup);
+                                    showToast(
+                                        'error',
+                                        'Markup tidak boleh bernilai negatif.'
+                                    );
+                                    digitalMarkup.focus();
+                                    return false;
+                                }
+                            }
 
-                            setFieldError(
-                                markup
-                            );
+                            const digitalRoundings =
+                                row.querySelectorAll('.digital-tier-rounding');
 
-                            showToast(
-                                'error',
-                                'Markup tidak boleh bernilai negatif.'
-                            );
+                            for (const digitalRounding of digitalRoundings) {
+                                if (
+                                    Number(unformatRupiah(digitalRounding.value)) < 0
+                                ) {
+                                    setFieldError(digitalRounding);
+                                    showToast(
+                                        'error',
+                                        'Pembulatan tidak boleh bernilai negatif.'
+                                    );
+                                    digitalRounding.focus();
+                                    return false;
+                                }
+                            }
+                        } else {
+                            const markup =
+                                row.querySelector('.markup-percentage');
+                            const rounding =
+                                row.querySelector('.markup-rounding:not(.digital-tier-rounding)');
 
-                            markup.focus();
+                            if (
+                                !markup ||
+                                markup.value === '' ||
+                                isNaN(markup.value)
+                            ) {
+                                setFieldError(markup);
+                                showToast(
+                                    'error',
+                                    'Markup wajib diisi dengan angka.'
+                                );
+                                if (markup) {
+                                    markup.focus();
+                                }
+                                return false;
+                            }
 
-                            return false;
-                        }
+                            if (Number(markup.value) < 0) {
+                                setFieldError(markup);
+                                showToast(
+                                    'error',
+                                    'Markup tidak boleh bernilai negatif.'
+                                );
+                                markup.focus();
+                                return false;
+                            }
 
-
-                        /*
-                        |--------------------------------------------------------------------------
-                        | PEMBULATAN
-                        |--------------------------------------------------------------------------
-                        */
-
-                        if (
-                            Number(
-                                unformatRupiah(
-                                    rounding.value
-                                )
-                            ) < 0
-                        ) {
-                            setFieldError(
-                                rounding
-                            );
-
-                            showToast(
-                                'error',
-                                'Pembulatan tidak boleh bernilai negatif.'
-                            );
-
-                            rounding.focus();
-
-                            return false;
+                            if (
+                                Number(unformatRupiah(rounding.value)) < 0
+                            ) {
+                                setFieldError(rounding);
+                                showToast(
+                                    'error',
+                                    'Pembulatan tidak boleh bernilai negatif.'
+                                );
+                                rounding.focus();
+                                return false;
+                            }
                         }
 
 
@@ -2621,11 +3046,13 @@
                     </div>
                 `;
 
+                installDigitalPricingFields(row, index);
 
                 container.appendChild(row);
 
 
                 initSelect2(row);
+                updateMarkupBody(header);
 
                 syncHeaderValues(header);
 
@@ -3033,6 +3460,17 @@
                     </div>
                 `;
 
+                const firstRuleRow =
+                    header.querySelector('.markup-rule-row');
+
+                if (firstRuleRow) {
+                    installDigitalPricingFields(
+                        firstRuleRow,
+                        firstRuleRow.dataset.ruleIndex
+                    );
+                }
+
+                updateMarkupBody(header);
 
                 markupHeaderContainer.appendChild(
                     header
@@ -3062,13 +3500,15 @@
 
                 if (engine) {
 
-                    engine.addEventListener(
-                        'change',
+                    $(engine).on(
+                        'change select2:select select2:clear',
                         function() {
 
                             syncHeaderValues(
                                 header
                             );
+
+                            updateMarkupBody(header);
 
                             clearFieldError(
                                 engine
@@ -3134,13 +3574,15 @@
 
                 if (category) {
 
-                    category.addEventListener(
-                        'change',
+                    $(category).on(
+                        'change select2:select select2:clear',
                         function() {
 
                             syncHeaderValues(
                                 header
                             );
+
+                            updateMarkupBody(header);
 
                             clearFieldError(
                                 category
@@ -3364,7 +3806,7 @@
 
                     if (
                         event.target.matches(
-                            '.markup-percentage, .markup-rounding'
+                            '.markup-percentage, .digital-tier-percentage, .markup-rounding'
                         )
                     ) {
 
@@ -3393,7 +3835,7 @@
 
                     if (
                         event.target.matches(
-                            '.markup-engine, .markup-location, .markup-vendor, .markup-category, .markup-price-type, .markup-status'
+                            '.markup-engine, .markup-location, .markup-vendor, .markup-category, .markup-price-type, .markup-print-type, .markup-status'
                         )
                     ) {
 
@@ -3421,6 +3863,24 @@
                     if (!validateForm()) {
                         return;
                     }
+
+                    const digitalPricingModes =
+                        Array.from(getHeaderGroups()).map(isDigitalPricingHeader);
+
+                    if (
+                        digitalPricingModes.some(Boolean) &&
+                        !digitalPricingModes.every(Boolean)
+                    ) {
+                        showToast(
+                            'error',
+                            'Pisahkan konfigurasi Digital Print A3+ dan mesin lain ke submit yang berbeda.'
+                        );
+                        return;
+                    }
+
+                    formTambahMarkup.action = digitalPricingModes.every(Boolean) ?
+                        "{{ route('admin_store_digital_pricing_rule') }}" :
+                        "{{ route('admin_store_pricing_rule') }}";
 
 
                     syncAllHeaderValues();
@@ -4743,7 +5203,6 @@
 
                 }
 
-
                 /*
                  * =====================================================
                  * MARKUP ACCORDION
@@ -4984,6 +5443,123 @@
 
             }
 
+            function renderDigitalDetailMarkup(pricingRules) {
+
+                detailMarkupContent.innerHTML = '';
+
+                const groups = [
+                    ['general', 'single'],
+                    ['general', 'double'],
+                    ['division', 'single'],
+                    ['division', 'double']
+                ];
+
+                groups.forEach(function([priceType, printType]) {
+
+                    const groupRules = pricingRules.filter(function(rule) {
+                        return rule.price_type === priceType &&
+                            rule.print_type === printType;
+                    });
+
+                    if (!groupRules.length) {
+                        return;
+                    }
+
+                    const section = document.createElement('section');
+
+                    section.style.cssText = `
+                        border: 1px solid var(--border);
+                        border-radius: 10px;
+                        overflow: hidden;
+                        background: var(--bg-card);
+                    `;
+
+                    const printTypeLabel =
+                        printType === 'single' ?
+                        '1 Muka' :
+                        '2 Muka';
+
+                    section.innerHTML = `
+                        <div style="
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: center;
+                            gap: 12px;
+                            padding: 12px 16px;
+                            background: var(--bg-muted);
+                            border-bottom: 1px solid var(--border);
+                        ">
+                            <strong>${getPriceTypeLabel(priceType)}</strong>
+                            <span class="badge">${printTypeLabel}</span>
+                        </div>
+                    `;
+
+                    const tableWrapper =
+                        document.createElement('div');
+
+                    tableWrapper.classList.add(
+                        'details-table-wrapper'
+                    );
+
+                    const table =
+                        document.createElement('table');
+
+                    table.classList.add('details-table');
+
+                    table.innerHTML = `
+                        <thead>
+                            <tr class="details-table-group-header">
+                                <th>Jumlah Lembar</th>
+                                <th>Markup</th>
+                                <th style="text-align: center;">Pembulatan (Rp)</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    `;
+
+                    const tbody = table.querySelector('tbody');
+
+                    groupRules.forEach(function(rule) {
+
+                        const statusClass =
+                            rule.status === 'Active' ?
+                            'details-status-active' :
+                            'details-status-inactive';
+
+                        const maximumQuantity =
+                            rule.maximum_quantity === null ?
+                            '+' :
+                            rule.minimum_quantity === rule.maximum_quantity ?
+                            '' :
+                            ` - ${rule.maximum_quantity}`;
+
+                        const tr = document.createElement('tr');
+
+                        tr.innerHTML = `
+                            <td>${rule.minimum_quantity}${maximumQuantity} lbr</td>
+                            <td class="details-money">
+                                ${rule.markup_percentage ?? '-'}%
+                            </td>
+                            <td class="details-money" style="text-align: center;">
+                                ${formatRupiah(rule.rounding_value)}
+                            </td>
+                            <td>
+                                <span class="${statusClass}">
+                                    ${rule.status ?? '-'}
+                                </span>
+                            </td>
+                        `;
+
+                        tbody.appendChild(tr);
+                    });
+
+                    tableWrapper.appendChild(table);
+                    section.appendChild(tableWrapper);
+                    detailMarkupContent.appendChild(section);
+                });
+            }
+
 
             /* =========================================================
              * TOMBOL DETAIL DATATABLE
@@ -5015,6 +5591,12 @@
                     const categoryId =
                         detailButton.dataset.categoryId;
 
+                    const pricingRuleSource =
+                        detailButton.dataset.pricingRuleSource;
+
+                    const digitalPricingRuleId =
+                        detailButton.dataset.digitalPricingRuleId;
+
 
                     // if (!locationId || !categoryId) {
 
@@ -5027,7 +5609,21 @@
 
                     // }
 
-                    if (!engineId || !locationId || !vendorId || !categoryId) {
+                    if (
+                        pricingRuleSource === 'digital' &&
+                        !digitalPricingRuleId
+                    ) {
+                        showToast(
+                            'error',
+                            'Data markup Digital Print tidak ditemukan.'
+                        );
+                        return;
+                    }
+
+                    if (
+                        pricingRuleSource !== 'digital' &&
+                        (!engineId || !locationId || !vendorId || !categoryId)
+                    ) {
                         showToast(
                             'error',
                             'Data mesin, lokasi, vendor atau kategori tidak ditemukan.'
@@ -5082,6 +5678,8 @@
                      */
 
                     const detailUrl =
+                        pricingRuleSource === 'digital' ?
+                        `{{ url('/admin/pricing-rules/digital') }}/${digitalPricingRuleId}/details` :
                         `{{ url('/admin/pricing-rules') }}/${engineId}/${locationId}/${vendorId}/${categoryId}/details`;
 
 
@@ -5191,9 +5789,11 @@
                              * =================================================
                              */
 
-                            renderDetailMarkup(
-                                pricingRules
-                            );
+                            if (pricingRuleSource === 'digital') {
+                                renderDigitalDetailMarkup(pricingRules);
+                            } else {
+                                renderDetailMarkup(pricingRules);
+                            }
 
                         })
 
@@ -5307,6 +5907,7 @@
             let pricingRuleLocationIdToDelete = null;
             let pricingRuleVendorIdToDelete = null;
             let pricingRuleCategoryIdToDelete = null;
+            let digitalPricingRuleIdToDelete = null;
 
 
             const modalDeletePricingRule =
@@ -5342,7 +5943,7 @@
 
                     const deleteButton =
                         event.target.closest(
-                            '.btn-delete-pricing-rule'
+                            '.btn-delete-pricing-rule, .btn-delete-digital-pricing-rule'
                         );
 
                     if (!deleteButton) {
@@ -5356,17 +5957,20 @@
                     |--------------------------------------------------------------------------
                     */
 
+                    digitalPricingRuleIdToDelete =
+                        deleteButton.dataset.digitalPricingRuleId || null;
+
                     pricingRuleEngineIdToDelete =
-                        deleteButton.dataset.engineId;
+                        deleteButton.dataset.engineId || null;
 
                     pricingRuleLocationIdToDelete =
-                        deleteButton.dataset.locationId;
+                        deleteButton.dataset.locationId || null;
 
                     pricingRuleVendorIdToDelete =
                         deleteButton.dataset.vendorId;
 
                     pricingRuleCategoryIdToDelete =
-                        deleteButton.dataset.categoryId;
+                        deleteButton.dataset.categoryId || null;
 
 
                     /*
@@ -5375,11 +5979,19 @@
                     |--------------------------------------------------------------------------
                     */
 
+                    const isDigitalDelete =
+                        Boolean(digitalPricingRuleIdToDelete);
+
                     if (
-                        !pricingRuleEngineIdToDelete ||
-                        !pricingRuleLocationIdToDelete ||
-                        !pricingRuleCategoryIdToDelete ||
-                        typeof pricingRuleVendorIdToDelete === 'undefined'
+                        (isDigitalDelete &&
+                            !digitalPricingRuleIdToDelete) ||
+                        (!isDigitalDelete &&
+                            (
+                                !pricingRuleEngineIdToDelete ||
+                                !pricingRuleLocationIdToDelete ||
+                                !pricingRuleCategoryIdToDelete ||
+                                typeof pricingRuleVendorIdToDelete === 'undefined'
+                            ))
                     ) {
 
                         showToast(
@@ -5421,6 +6033,7 @@
                 pricingRuleLocationIdToDelete = null;
                 pricingRuleVendorIdToDelete = null;
                 pricingRuleCategoryIdToDelete = null;
+                digitalPricingRuleIdToDelete = null;
 
             }
 
@@ -5501,11 +6114,19 @@
                     |--------------------------------------------------------------------------
                     */
 
+                    const isDigitalDelete =
+                        Boolean(digitalPricingRuleIdToDelete);
+
                     if (
-                        !pricingRuleEngineIdToDelete ||
-                        !pricingRuleLocationIdToDelete ||
-                        typeof pricingRuleVendorIdToDelete === 'undefined' ||
-                        !pricingRuleCategoryIdToDelete
+                        (isDigitalDelete &&
+                            !digitalPricingRuleIdToDelete) ||
+                        (!isDigitalDelete &&
+                            (
+                                !pricingRuleEngineIdToDelete ||
+                                !pricingRuleLocationIdToDelete ||
+                                typeof pricingRuleVendorIdToDelete === 'undefined' ||
+                                !pricingRuleCategoryIdToDelete
+                            ))
                     ) {
 
                         return;
@@ -5522,26 +6143,28 @@
                         |--------------------------------------------------------------------------
                         */
 
+                        const deleteUrl = isDigitalDelete ?
+                            `/admin/pricing-rules/digital/${digitalPricingRuleIdToDelete}` :
+                            `/admin/pricing-rules/${pricingRuleEngineIdToDelete}/${pricingRuleLocationIdToDelete}/${pricingRuleVendorIdToDelete}/${pricingRuleCategoryIdToDelete}/delete`;
+
                         const response =
-                            await fetch(
-                                `/admin/pricing-rules/${pricingRuleEngineIdToDelete}/${pricingRuleLocationIdToDelete}/${pricingRuleVendorIdToDelete}/${pricingRuleCategoryIdToDelete}/delete`, {
-                                    method: 'DELETE',
+                            await fetch(deleteUrl, {
+                                method: 'DELETE',
 
-                                    headers: {
+                                headers: {
 
-                                        'X-CSRF-TOKEN': document
-                                            .querySelector(
-                                                'meta[name="csrf-token"]'
-                                            )
-                                            .getAttribute(
-                                                'content'
-                                            ),
+                                    'X-CSRF-TOKEN': document
+                                        .querySelector(
+                                            'meta[name="csrf-token"]'
+                                        )
+                                        .getAttribute(
+                                            'content'
+                                        ),
 
-                                        'Accept': 'application/json'
+                                    'Accept': 'application/json'
 
-                                    }
                                 }
-                            );
+                            });
 
 
                         /*
@@ -5827,6 +6450,12 @@
                             fileImportPricingRules.files[0]
                         );
 
+                        formData.append(
+                            'pricing_engine',
+                            $('#pricingRuleEngineFilter').val() ||
+                            'large_format'
+                        );
+
 
                         /*
                          * CSRF Token
@@ -5973,6 +6602,444 @@
                 }
             );
 
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+
+            const tierLabels = [
+                ['tier_1', '1 lbr'],
+                ['tier_2_5', '2 - 5 lbr'],
+                ['tier_6_50', '6 - 50 lbr'],
+                ['tier_100', '51 - 100 lbr'],
+                ['tier_300', '101 - 300 lbr'],
+                ['tier_500', '301 - 500 lbr']
+            ];
+
+            const ruleGroups = [
+                ['general', 'single'],
+                ['general', 'double'],
+                ['division', 'single'],
+                ['division', 'double']
+            ];
+
+            function priceTypeLabel(priceType) {
+                return priceType === 'general' ?
+                    'Harga Umum' :
+                    'Harga Divisi';
+            }
+
+            function printTypeLabel(printType) {
+                return printType === 'single' ?
+                    '1 Muka' :
+                    '2 Muka';
+            }
+
+            function formatRupiah(value) {
+                let rawValue = String(value ?? '').trim();
+
+                if (!rawValue) {
+                    return '';
+                }
+
+                const hasRupiahPrefix =
+                    /^rp\s*/i.test(rawValue);
+
+                rawValue =
+                    rawValue.replace(/^rp\s*/i, '').trim();
+
+                let numericValue;
+
+                if (hasRupiahPrefix) {
+                    numericValue = Number(
+                        rawValue
+                        .replace(/\./g, '')
+                        .replace(',', '.')
+                    );
+                } else if (/^\d+\.\d{1,2}$/.test(rawValue)) {
+                    numericValue = Number(rawValue);
+                } else {
+                    numericValue = Number(
+                        rawValue
+                        .replace(/\./g, '')
+                        .replace(',', '.')
+                    );
+                }
+
+                if (!Number.isFinite(numericValue)) {
+                    return '';
+                }
+
+                return 'Rp ' + numericValue.toLocaleString('id-ID', {
+                    maximumFractionDigits: 2
+                });
+            }
+
+            function unformatRupiah(value) {
+                let rawValue =
+                    String(value ?? '')
+                    .replace(/^rp\s*/i, '')
+                    .trim();
+
+                if (!rawValue) {
+                    return '';
+                }
+
+                if (rawValue.includes(',')) {
+                    return rawValue
+                        .replace(/\./g, '')
+                        .replace(',', '.');
+                }
+
+                if (/^\d+\.\d{1,2}$/.test(rawValue)) {
+                    return rawValue;
+                }
+
+                return rawValue.replace(/\./g, '');
+            }
+
+            function createDigitalEditModal() {
+
+                document.body.insertAdjacentHTML('beforeend', `
+                    <div class="modal-overlay" id="modalEditDigitalMarkup">
+                        <div class="modal-dialog modal-dialog--wide">
+                            <form id="formEditDigitalMarkup" novalidate>
+                                <div class="modal-header">
+                                    <div>
+                                        <span class="eyebrow">MARKUP HARGA · DIGITAL PRINT</span>
+                                        <br>
+                                        <span class="eyebrow">Edit Markup Digital Print A3+</span>
+                                    </div>
+                                    <button type="button" class="modal-close" data-close-digital-edit
+                                        aria-label="Tutup">
+                                        <svg viewBox="0 0 24 24">
+                                            <path d="M18 6 6 18" />
+                                            <path d="m6 6 12 12" />
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="markup-row" style="margin-bottom: 20px;">
+                                        <div class="markup-row-top" id="digitalEditHeader"></div>
+                                    </div>
+                                    <div id="digitalEditRules"
+                                        style="display: flex; flex-direction: column; gap: 20px;"></div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn--ghost" data-close-digital-edit>
+                                        Batal
+                                    </button>
+                                    <button type="submit" class="btn btn--primary">
+                                        <svg viewBox="0 0 24 24">
+                                            <path d="M5 12l4 4L19 6" />
+                                        </svg>
+                                        Simpan
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                `);
+
+                return document.getElementById('modalEditDigitalMarkup');
+            }
+
+            const modal =
+                createDigitalEditModal();
+
+            const form =
+                document.getElementById('formEditDigitalMarkup');
+
+            const header =
+                document.getElementById('digitalEditHeader');
+
+            const rulesContainer =
+                document.getElementById('digitalEditRules');
+
+            function closeModal() {
+                modal.classList.remove('is-open');
+                form.reset();
+                form.action = '';
+                header.innerHTML = '';
+                rulesContainer.innerHTML = '';
+            }
+
+            function renderHeader(rule) {
+                const fields = [
+                    ['Mesin', rule.engine_name],
+                    ['Lokasi', rule.location_name],
+                    ['Vendor', rule.vendor_name || '-'],
+                    ['Kategori', rule.category_name]
+                ];
+
+                header.innerHTML = fields.map(function([label, value]) {
+                    return `
+                        <div class="markup-field">
+                            <label class="category-label">${label}</label>
+                            <div class="input">${value || '-'}</div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            function renderRuleGroup(index, priceType, printType, rules) {
+                const groupRules = rules.filter(function(rule) {
+                    return rule.price_type === priceType &&
+                        rule.print_type === printType;
+                });
+
+                if (!groupRules.length) {
+                    return '';
+                }
+
+                const byTier = groupRules.reduce(function(result, rule) {
+                    result[rule.quantity_tier] = rule;
+                    return result;
+                }, {});
+
+                const firstRule = groupRules[0];
+
+                return `
+                    <section style="
+                        border: 1px solid var(--border);
+                        border-radius: 10px;
+                        overflow: hidden;
+                        background: var(--bg-card);
+                    ">
+                        <div style="
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: center;
+                            gap: 12px;
+                            padding: 12px 16px;
+                            background: var(--bg-muted);
+                            border-bottom: 1px solid var(--border);
+                        ">
+                            <strong>${priceTypeLabel(priceType)}</strong>
+                            <span class="badge">${printTypeLabel(printType)}</span>
+                        </div>
+                        <div style="padding: 16px;">
+                            <input type="hidden" name="pricing_rules[${index}][detail_id]"
+                                value="${firstRule.detail_id}">
+                            <input type="hidden" name="pricing_rules[${index}][price_type]"
+                                value="${priceType}">
+                            <input type="hidden" name="pricing_rules[${index}][print_type]"
+                                value="${printType}">
+                            <div class="markup-field" style="max-width: 220px; margin-bottom: 16px;">
+                                <label class="category-label">Status</label>
+                                <select name="pricing_rules[${index}][status]" class="select" required>
+                                    <option value="Active"
+                                        ${firstRule.status === 'Active' ? 'selected' : ''}>Active</option>
+                                    <option value="Inactive"
+                                        ${firstRule.status === 'Inactive' ? 'selected' : ''}>Inactive</option>
+                                </select>
+                            </div>
+                            <div style="
+                                display: grid;
+                                grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+                                gap: 12px;
+                            ">
+                                ${tierLabels.map(function([tier, label]) {
+                                    const tierRule = byTier[tier];
+                                    return `
+                                            <div style="
+                                                min-width: 0;
+                                                padding: 12px;
+                                                border: 1px solid var(--border);
+                                                border-radius: 10px;
+                                            ">
+                                                <label class="category-label">${label}</label>
+                                                <div style="
+                                                    display: grid;
+                                                    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                                                    gap: 12px;
+                                                    margin-top: 10px;
+                                                ">
+                                                    <div class="markup-field">
+                                                        <label class="category-label">Markup (%)</label>
+                                                        <input type="number"
+                                                            name="pricing_rules[${index}][${tier}_markup_percentage]"
+                                                            class="input"
+                                                            value="${tierRule ? tierRule.markup_percentage : ''}"
+                                                            min="0" max="999999.99" step="0.01" required>
+                                                    </div>
+                                                    <div class="markup-field">
+                                                        <label class="category-label">Pembulatan (Rp)</label>
+                                                        <input type="text"
+                                                            name="pricing_rules[${index}][${tier}_rounding_value]"
+                                                            class="input digital-edit-rounding"
+                                                            value="${tierRule && tierRule.rounding_value !== null ?
+                                                                formatRupiah(tierRule.rounding_value) : ''}"
+                                                            inputmode="numeric"
+                                                            autocomplete="off">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        `;
+                                }).join('')}
+                            </div>
+                        </div>
+                    </section>
+                `;
+            }
+
+            document.addEventListener('click', function(event) {
+                const editButton =
+                    event.target.closest('.btn-edit-digital-pricing-rule');
+
+                if (!editButton) {
+                    return;
+                }
+
+                const digitalPricingRuleId =
+                    editButton.dataset.digitalPricingRuleId;
+
+                if (!digitalPricingRuleId) {
+                    showToast('error', 'Data markup Digital Print tidak ditemukan.');
+                    return;
+                }
+
+                header.innerHTML = '<div class="input">Memuat data...</div>';
+                rulesContainer.innerHTML = '';
+                modal.classList.add('is-open');
+
+                fetch(
+                        `{{ url('/admin/pricing-rules/digital') }}/${digitalPricingRuleId}/details`, {
+                            headers: {
+                                'Accept': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        }
+                    )
+                    .then(async function(response) {
+                        const data = await response.json();
+
+                        if (!response.ok || !data.success || !data.data.length) {
+                            throw new Error(
+                                data.message ||
+                                'Data markup Digital Print gagal dimuat.'
+                            );
+                        }
+
+                        return data.data;
+                    })
+                    .then(function(rules) {
+                        renderHeader(rules[0]);
+
+                        rulesContainer.innerHTML = ruleGroups.map(
+                            function([priceType, printType], index) {
+                                return renderRuleGroup(
+                                    index,
+                                    priceType,
+                                    printType,
+                                    rules
+                                );
+                            }
+                        ).join('');
+
+                        form.action =
+                            `{{ url('/admin/pricing-rules/digital') }}/${digitalPricingRuleId}`;
+                    })
+                    .catch(function(error) {
+                        closeModal();
+                        showToast(
+                            'error',
+                            error.message ||
+                            'Terjadi kesalahan saat memuat markup Digital Print.'
+                        );
+                    });
+            });
+
+            form.addEventListener('submit', async function(event) {
+                event.preventDefault();
+
+                if (!form.checkValidity()) {
+                    form.reportValidity();
+                    return;
+                }
+
+                const submitButton =
+                    form.querySelector('button[type="submit"]');
+
+                const originalButtonHtml =
+                    submitButton.innerHTML;
+
+                submitButton.disabled = true;
+                submitButton.innerHTML = 'Menyimpan...';
+
+                try {
+                    const formData =
+                        new FormData(form);
+
+                    form.querySelectorAll('.digital-edit-rounding')
+                        .forEach(function(input) {
+                            formData.set(
+                                input.name,
+                                unformatRupiah(input.value)
+                            );
+                        });
+
+                    formData.append('_method', 'PUT');
+
+                    const response = await fetch(form.action, {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector(
+                                'meta[name="csrf-token"]'
+                            ).getAttribute('content')
+                        },
+                        body: formData
+                    });
+
+                    const data = await response.json();
+
+                    if (!response.ok || !data.success) {
+                        throw new Error(
+                            data.message ||
+                            'Markup Digital Print gagal diperbarui.'
+                        );
+                    }
+
+                    closeModal();
+                    showToast('success', data.message);
+                    pricingRuleTable.ajax.reload(null, false);
+                } catch (error) {
+                    showToast(
+                        'error',
+                        error.message ||
+                        'Terjadi kesalahan saat memperbarui markup Digital Print.'
+                    );
+                } finally {
+                    submitButton.disabled = false;
+                    submitButton.innerHTML = originalButtonHtml;
+                }
+            });
+
+            form.addEventListener('input', function(event) {
+                if (event.target.matches('.digital-edit-rounding')) {
+                    event.target.value =
+                        formatRupiah(event.target.value);
+                }
+            });
+
+            modal.addEventListener('click', function(event) {
+                if (
+                    event.target === modal ||
+                    event.target.closest('[data-close-digital-edit]')
+                ) {
+                    closeModal();
+                }
+            });
+
+            document.addEventListener('keydown', function(event) {
+                if (event.key === 'Escape' && modal.classList.contains('is-open')) {
+                    closeModal();
+                }
+            });
+        });
+
+        $(document).on('wheel', 'input[type="number"]', function() {
+            this.blur();
         });
     </script>
 @endsection

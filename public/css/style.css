@@ -10312,11 +10312,21 @@ PROFIT
         width: 100%;
     }
 
+    .material-hero-actions > #btnExportPricingRules,
+    .material-hero-actions > #btnExportLaminationPricingRules,
+    .material-hero-actions > .material-category-filter {
+        grid-column: auto;
+        width: 100%;
+    }
+
     .material-category-filter .select2-container {
         width: 100% !important;
     }
 
-    .material-hero-actions > .btn:not(#btnExportMaterial),
+    .material-hero-actions
+        > .btn:not(#btnExportMaterial):not(#btnExportPricingRules):not(
+            #btnExportLaminationPricingRules
+        ),
     .material-hero-actions > .material-category-filter ~ .btn {
         grid-column: 1 / -1;
     }
@@ -16321,7 +16331,7 @@ RESPONSIVE
 
 .brand-logo.brand-logo-theme {
     display: block;
-    width: min(180px, 100%);
+    width: min(140px, 100%);
     height: auto;
     background: transparent;
     border-radius: 0;
@@ -16331,4 +16341,255 @@ RESPONSIVE
 html:not([data-theme="dark"]) .brand-logo-dark,
 html[data-theme="dark"] .brand-logo-light {
     display: none;
+}
+
+#modalTambahMarkup .markup-rule-row.is-digital-pricing {
+    display: grid;
+    grid-template-columns: auto minmax(180px, 1fr) minmax(180px, 1fr);
+    align-items: start;
+}
+
+#modalTambahMarkup .markup-rule-row.is-digital-pricing > .markup-remove {
+    grid-column: 1;
+    grid-row: 1;
+}
+
+#modalTambahMarkup
+    .markup-rule-row.is-digital-pricing
+    > .markup-field:not(.markup-status-field) {
+    grid-column: 2;
+    grid-row: 1;
+}
+
+#modalTambahMarkup .markup-rule-row.is-digital-pricing > .markup-status-field {
+    grid-column: 3;
+    grid-row: 1;
+}
+
+#modalTambahMarkup .markup-digital-fields {
+    grid-column: 2 / -1;
+    grid-row: 2;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+    min-width: 0;
+}
+
+#modalTambahMarkup .digital-print-type-field {
+    max-width: 320px;
+}
+
+#modalTambahMarkup .digital-pricing-tiers {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    min-width: 0;
+}
+
+#modalTambahMarkup .digital-price-tier {
+    min-width: 0;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+}
+
+#modalTambahMarkup .digital-price-tier > .category-label {
+    display: block;
+    margin-bottom: 10px;
+}
+
+#modalTambahMarkup .digital-price-tier .markup-field + .markup-field {
+    margin-top: 10px;
+}
+
+@media (max-width: 760px) {
+    #modalTambahMarkup .markup-rule-row.is-digital-pricing {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+
+    #modalTambahMarkup .markup-rule-row.is-digital-pricing > .markup-remove,
+    #modalTambahMarkup
+        .markup-rule-row.is-digital-pricing
+        > .markup-status-field {
+        grid-column: 1 / -1;
+        grid-row: auto;
+    }
+
+    #modalTambahMarkup .markup-digital-fields {
+        grid-column: 1 / -1;
+        grid-row: auto;
+    }
+
+    #modalTambahMarkup .digital-pricing-tiers {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 520px) {
+    #modalTambahMarkup .markup-rule-row.is-digital-pricing {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    #modalTambahMarkup .markup-rule-row.is-digital-pricing > .markup-remove,
+    #modalTambahMarkup
+        .markup-rule-row.is-digital-pricing
+        > .markup-field:not(.markup-status-field),
+    #modalTambahMarkup
+        .markup-rule-row.is-digital-pricing
+        > .markup-status-field,
+    #modalTambahMarkup .markup-digital-fields {
+        grid-column: 1;
+        grid-row: auto;
+    }
+
+    #modalTambahMarkup .digital-pricing-tiers {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+/* Laminasi Digital Print A3+ */
+#modalTambahMarkupLaminasi .markup-rule-row.is-digital-lamination {
+    display: grid;
+    grid-template-columns: auto minmax(180px, 1fr) minmax(180px, 1fr);
+    align-items: start;
+}
+
+#modalTambahMarkupLaminasi
+    .markup-rule-row.is-digital-lamination
+    > .markup-remove {
+    grid-column: 1;
+    grid-row: 1;
+}
+
+#modalTambahMarkupLaminasi
+    .markup-rule-row.is-digital-lamination
+    > .markup-field:not(.markup-laminasi-status-field) {
+    grid-column: 2;
+    grid-row: 1;
+}
+
+#modalTambahMarkupLaminasi
+    .markup-rule-row.is-digital-lamination
+    > .markup-laminasi-status-field {
+    grid-column: 3;
+    grid-row: 1;
+}
+
+#modalTambahMarkupLaminasi .markup-laminasi-digital-fields {
+    grid-column: 2 / -1;
+    grid-row: 2;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+    min-width: 0;
+}
+
+#modalTambahMarkupLaminasi .digital-lam-print-type-field {
+    max-width: 320px;
+}
+
+#modalTambahMarkupLaminasi .digital-lam-pricing-tiers {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    min-width: 0;
+}
+
+#modalTambahMarkupLaminasi .digital-lam-price-tier {
+    min-width: 0;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+}
+
+#modalTambahMarkupLaminasi .digital-lam-price-tier > .category-label {
+    display: block;
+    margin-bottom: 10px;
+}
+
+#modalTambahMarkupLaminasi
+    .digital-lam-price-tier
+    .markup-field
+    + .markup-field {
+    margin-top: 10px;
+}
+
+@media (max-width: 760px) {
+    #modalTambahMarkupLaminasi .markup-rule-row.is-digital-lamination {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+
+    #modalTambahMarkupLaminasi
+        .markup-rule-row.is-digital-lamination
+        > .markup-remove,
+    #modalTambahMarkupLaminasi
+        .markup-rule-row.is-digital-lamination
+        > .markup-laminasi-status-field {
+        grid-column: 1 / -1;
+        grid-row: auto;
+    }
+
+    #modalTambahMarkupLaminasi .markup-laminasi-digital-fields {
+        grid-column: 1 / -1;
+        grid-row: auto;
+    }
+
+    #modalTambahMarkupLaminasi .digital-lam-pricing-tiers {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 520px) {
+    #modalTambahMarkupLaminasi .markup-rule-row.is-digital-lamination {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    #modalTambahMarkupLaminasi
+        .markup-rule-row.is-digital-lamination
+        > .markup-remove,
+    #modalTambahMarkupLaminasi
+        .markup-rule-row.is-digital-lamination
+        > .markup-field:not(.markup-laminasi-status-field),
+    #modalTambahMarkupLaminasi
+        .markup-rule-row.is-digital-lamination
+        > .markup-laminasi-status-field,
+    #modalTambahMarkupLaminasi .markup-laminasi-digital-fields {
+        grid-column: 1;
+        grid-row: auto;
+    }
+
+    #modalTambahMarkupLaminasi .digital-lam-pricing-tiers {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+#modalTambahMarkupLaminasi .markup-laminasi-category-checkbox-field {
+    grid-column: 1 / -1;
+    flex: 0 0 100%;
+    width: 100%;
+    min-width: 0;
+}
+
+#modalTambahMarkupLaminasi .digital-lam-category-group {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+    margin-top: 8px !important;
+}
+
+#modalTambahMarkupLaminasi
+    .digital-lam-category-group.is-invalid
+    .category-checkbox-box {
+    border-color: #dc3545;
+}
+
+#modalTambahMarkupLaminasi
+    .digital-lam-category-group
+    .category-checkbox-label {
+    color: var(--text, inherit);
+}
+
+@media (max-width: 575px) {
+    #modalTambahMarkupLaminasi .digital-lam-category-group {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
 }

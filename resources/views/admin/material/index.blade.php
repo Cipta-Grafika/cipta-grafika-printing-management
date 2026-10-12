@@ -1471,7 +1471,7 @@
 
                     {
                         data: 'material_code',
-                        responsivePriority: 1,
+                        responsivePriority: 100,
 
                         render: function(data) {
                             const value = (data ?? '')
@@ -1479,15 +1479,15 @@
                                 .trim();
 
                             return `
-                <div style="
-                    display: flex;
-                    align-items: center;
-                    gap: 5px;
-                    justify-content: center;
-                ">
-                    ${value !== '' ? value : '-'}
-                </div>
-            `;
+                                <div style="
+                                    display: flex;
+                                    align-items: center;
+                                    gap: 5px;
+                                    justify-content: center;
+                                ">
+                                    ${value !== '' ? value : '-'}
+                                </div>
+                            `;
                         }
                     },
 

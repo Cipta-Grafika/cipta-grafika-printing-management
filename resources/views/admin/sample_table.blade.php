@@ -24,7 +24,7 @@
                         <a href="{{ route('admin_create_pc_finishing') }}" class="btn btn--primary"><svg
                                 viewBox="0 0 24 24">
                                 <path d="M12 5v14M5 12h14" />
-                            </svg> Tambah Ongkos Produksi</a>
+                            </svg> Tambah Ongkos</a>
                     </div>
                 </section>
                 <div class="grid">

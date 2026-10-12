@@ -70,11 +70,10 @@
                                 {{-- KATEGORI --}}
                                 <div class="field">
                                     <label class="field-label"> Kategori <span class="req">*</span></label>
-                                    <select name="category_id" class="select select2" required>
-                                        <option value="">Pilih Kategori</option>
-                                        @foreach ($categories as $category)
-                                            <option value="{{ $category->id }}"> {{ $category->name }} </option>
-                                        @endforeach
+                                    <input type="hidden" name="category_id" value="{{ $displayCategory->id }}">
+                                    <select id="displayCategory" class="select select2" disabled
+                                        aria-label="Kategori Display">
+                                        <option selected>{{ $displayCategory->name }}</option>
                                     </select>
 
                                 </div>
@@ -249,12 +248,6 @@
 @section('scripts')
     <script>
         $('.select2').select2({
-            allowClear: false,
-            width: '100%'
-        });
-
-        $('select[name="category_id"]').select2({
-            placeholder: 'Pilih Kategori',
             allowClear: false,
             width: '100%'
         });

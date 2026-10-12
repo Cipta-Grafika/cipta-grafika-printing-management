@@ -13,14 +13,38 @@ use App\Imports\DisplayPricingRulesImport;
 
 class DisplayPricingRuleCT extends Controller
 {
+    private function displayCategory(): object
+    {
+        $category = DB::table('m_categories')
+            ->select('id', 'name')
+            ->where('name', 'Display')
+            ->first();
+
+        if ($category === null) {
+            abort(500, 'Master kategori Display tidak ditemukan.');
+        }
+
+        return $category;
+    }
+
+    private function displayCategoryForId($categoryId): object
+    {
+        $category = $this->displayCategory();
+
+        if ((int) $categoryId !== (int) $category->id) {
+            abort(404);
+        }
+
+        return $category;
+    }
+
     public function index()
     {
         $data['locations'] = DB::table('m_locations')
             ->where('name', '!=', 'Outsourcing')
             ->orderBy('name')->where('status', 'Active')->get();
 
-        $data['categories'] = DB::table('m_categories')
-            ->orderBy('name')->get();
+        $data['displayCategory'] = $this->displayCategory();
 
         $data['engines'] = DB::table('m_engines')
             ->orderBy('name')->where('status', 'Active')->get();
@@ -181,6 +205,8 @@ class DisplayPricingRuleCT extends Controller
 
     public function store(Request $request)
     {
+        $displayCategory = $this->displayCategory();
+
         $request->validate([
             'headers' => [
                 'required',
@@ -198,12 +224,6 @@ class DisplayPricingRuleCT extends Controller
                 'required',
                 'integer',
                 'exists:m_locations,id',
-            ],
-
-            'headers.*.category_id' => [
-                'required',
-                'integer',
-                'exists:m_categories,id',
             ],
 
             'headers.*.pricing_rules' => [
@@ -252,7 +272,7 @@ class DisplayPricingRuleCT extends Controller
 
                 $engineId = $header['engine_id'];
                 $locationId = $header['location_id'];
-                $categoryId = $header['category_id'];
+                $categoryId = $displayCategory->id;
 
                 foreach ($header['pricing_rules'] as $ruleIndex => $rule) {
 
@@ -340,6 +360,8 @@ class DisplayPricingRuleCT extends Controller
         $location_id,
         $category_id
     ) {
+        $this->displayCategoryForId($category_id);
+
         try {
 
             DB::transaction(function () use (
@@ -423,6 +445,8 @@ class DisplayPricingRuleCT extends Controller
         $location_id,
         $category_id
     ) {
+        $this->displayCategoryForId($category_id);
+
         $pricingRules = DB::table('m_display_pricing_rules as a')
             ->leftJoin(
                 'm_engines as e',
@@ -479,6 +503,8 @@ class DisplayPricingRuleCT extends Controller
         $location_id,
         $category_id
     ) {
+        $this->displayCategoryForId($category_id);
+
         $pricingRules = DB::table('m_display_pricing_rules as a')
             ->leftJoin(
                 'm_engines as e',
@@ -536,6 +562,7 @@ class DisplayPricingRuleCT extends Controller
         $location_id,
         $category_id
     ) {
+        $category = $this->displayCategoryForId($category_id);
 
         $request->validate(
             [
@@ -662,19 +689,6 @@ class DisplayPricingRuleCT extends Controller
     | Validasi Kategori
     |--------------------------------------------------------------------------
     */
-
-        $category = DB::table('m_categories')
-            ->where('id', $category_id)
-            ->first();
-
-        if (!$category) {
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Kategori yang dipilih tidak ditemukan.'
-            ], 422);
-        }
-
 
         /*
     |--------------------------------------------------------------------------

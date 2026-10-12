@@ -11,13 +11,21 @@
                         <p class="hero-sub">Kelola dan pantau seluruh data laminasi yang digunakan dalam proses produksi dan
                             perhitungan estimasi harga.</p>
                     </div>
-                    <div class="hero-actions"><a href="{{ route('admin_lamination_export_pricing_rules') }}"
+                    <div class="hero-actions material-hero-actions"><a id="btnExportLaminationPricingRules"
+                            href="{{ route('admin_lamination_export_pricing_rules') }}"
                             class="btn btn--ghost"><svg viewBox="0 0 24 24">
                                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                                 <path d="M7 10l5 5 5-5" />
                                 <path d="M12 15V3" />
                             </svg> Export</a>
-                        <a href="{{ asset('templates/template_harga_markup_laminasi.xlsx') }}" class="btn btn--ghost">
+                        <div class="material-category-filter">
+                            <select id="laminationPricingRuleEngineFilter" class="select select2"
+                                aria-label="Filter mesin pricing rule laminasi">
+                                <option value="large_format" selected>Large Format</option>
+                                <option value="digital_print_a3">Digital Print A3+</option>
+                            </select>
+                        </div>
+                        <button type="button" class="btn btn--ghost" id="btnDownloadTemplateLaminationPricingRules">
 
                             <svg viewBox="0 0 24 24">
                                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -27,7 +35,7 @@
 
                             Download Template
 
-                        </a>
+                        </button>
                         <button type="button" class="btn btn--ghost" id="btnImportLaminationPricingRules">
                             <svg viewBox="0 0 24 24">
                                 <path d="M12 16V3" />
@@ -83,6 +91,116 @@
             </main>
             <div data-shell-footer></div>
         </div>
+    </div>
+
+    <!-- Modal Download Template Markup Laminasi -->
+    <div class="modal-overlay" id="modalDownloadTemplateLaminationPricingRules">
+
+        <div class="modal modal-import">
+
+            <div class="modal-header">
+
+                <div>
+                    <span class="eyebrow">HARGA MARKUP · LAMINASI</span>
+                    <br>
+                    <span class="eyebrow">Download Template Excel</span>
+                </div>
+
+                <button type="button" class="modal-close" id="btnCloseDownloadTemplateLaminationPricingRules"
+                    aria-label="Tutup">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M18 6 6 18" />
+                        <path d="M6 6 18 18" />
+                    </svg>
+                </button>
+
+            </div>
+
+            <div class="modal-body">
+
+                <div class="import-description">
+                    <p>
+                        Pilih template Excel sesuai dengan jenis mesin markup
+                        laminasi yang ingin diinput.
+                    </p>
+                </div>
+
+                <div class="template-download-options">
+
+                    <a href="{{ asset('templates/template_harga_markup_laminasi.xlsx') }}"
+                        class="template-download-card file-upload-box">
+
+                        <div class="template-download-icon">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M12 3v12" />
+                                <path d="m7 10 5 5 5-5" />
+                                <path d="M5 21h14" />
+                                <path d="M5 17v4" />
+                                <path d="M19 17v4" />
+                            </svg>
+                        </div>
+
+                        <div class="template-download-content">
+                            <strong>Template Large Format</strong>
+                            <span>
+                                Template markup laminasi untuk mesin Large
+                                Format.
+                            </span>
+                        </div>
+
+                        <div class="template-download-arrow">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M5 12h14" />
+                                <path d="m13 6 6 6-6 6" />
+                            </svg>
+                        </div>
+
+                    </a>
+
+                    <a href="{{ asset('templates/template_harga_markup_laminasi_digital_print_a3.xlsx') }}"
+                        class="template-download-card file-upload-box">
+
+                        <div class="template-download-icon">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M12 3v12" />
+                                <path d="m7 10 5 5 5-5" />
+                                <path d="M5 21h14" />
+                                <path d="M5 17v4" />
+                                <path d="M19 17v4" />
+                            </svg>
+                        </div>
+
+                        <div class="template-download-content">
+                            <strong>Template Digital Print A3+</strong>
+                            <span>
+                                Template markup laminasi untuk mesin Digital
+                                Print A3+.
+                            </span>
+                        </div>
+
+                        <div class="template-download-arrow">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M5 12h14" />
+                                <path d="m13 6 6 6-6 6" />
+                            </svg>
+                        </div>
+
+                    </a>
+
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+
+                <button type="button" class="btn btn--ghost" id="btnCancelDownloadTemplateLaminationPricingRules">
+                    Batal
+                </button>
+
+            </div>
+
+        </div>
+
     </div>
 
     <!-- Modal Import Markup Laminasi -->
@@ -283,7 +401,7 @@
                             ">
 
                                     <!-- Hapus Header -->
-                                    <div class="markup-header-action" style="display: none;">
+                                    <div class="markup-header-action">
 
                                         <i class="bi bi-trash3-fill btn-remove-header-laminasi"
                                             style="
@@ -371,7 +489,7 @@
 
 
                                     <!-- Kategori -->
-                                    <div class="markup-field">
+                                    <div class="markup-field markup-laminasi-category-field">
 
                                         <label class="category-label">
                                             Kategori
@@ -390,6 +508,30 @@
                                             @endforeach
 
                                         </select>
+
+                                    </div>
+
+                                    <!-- Kategori Digital Print A3+ (multi pilih) -->
+                                    <div class="markup-field markup-laminasi-category-checkbox-field"
+                                        style="display: none;">
+
+                                        <label class="category-label">
+                                            Kategori
+                                        </label>
+
+                                                                            <div class="digital-lam-category-group category-checkboxes">
+                                            @foreach ($categories as $category)
+                                                @continue(in_array(strtolower(preg_replace('/[\s\/]+/', '', trim($category->name))), ['indoor&outdoor', 'indooroutdoor'], true))
+                                                                                    <label class="category-checkbox">
+                                                    <input type="checkbox" class="markup-laminasi-category-checkbox"
+                                                        value="{{ $category->id }}">
+                                                                                        <span class="category-checkbox-box">
+                                                                                            <span class="category-checkbox-check">✓</span>
+                                                                                            <span class="category-checkbox-label">{{ $category->name }}</span>
+                                                                                        </span>
+                                                                                    </label>
+                                            @endforeach
+                                        </div>
 
                                     </div>
 
@@ -931,6 +1073,60 @@
 
         document.addEventListener('DOMContentLoaded', function() {
 
+            $('#laminationPricingRuleEngineFilter').select2({
+                width: '100%'
+            });
+
+            const modalDownloadTemplateLaminationPricingRules =
+                document.getElementById(
+                    'modalDownloadTemplateLaminationPricingRules'
+                );
+
+            function closeDownloadTemplateLaminationPricingRulesModal() {
+                modalDownloadTemplateLaminationPricingRules.classList.remove(
+                    'is-open'
+                );
+            }
+
+            document.getElementById('btnDownloadTemplateLaminationPricingRules')
+                .addEventListener('click', function() {
+                    modalDownloadTemplateLaminationPricingRules.classList.add(
+                        'is-open'
+                    );
+                });
+
+            document.getElementById('btnCloseDownloadTemplateLaminationPricingRules')
+                .addEventListener(
+                    'click',
+                    closeDownloadTemplateLaminationPricingRulesModal
+                );
+
+            document.getElementById('btnCancelDownloadTemplateLaminationPricingRules')
+                .addEventListener(
+                    'click',
+                    closeDownloadTemplateLaminationPricingRulesModal
+                );
+
+            modalDownloadTemplateLaminationPricingRules.addEventListener(
+                'click',
+                function(event) {
+                    if (event.target === modalDownloadTemplateLaminationPricingRules) {
+                        closeDownloadTemplateLaminationPricingRulesModal();
+                    }
+                }
+            );
+
+            document.addEventListener('keydown', function(event) {
+                if (
+                    event.key === 'Escape' &&
+                    modalDownloadTemplateLaminationPricingRules.classList.contains(
+                        'is-open'
+                    )
+                ) {
+                    closeDownloadTemplateLaminationPricingRulesModal();
+                }
+            });
+
             laminationPricingRuleTable = new DataTable('#laminationPricingRuleTable', {
 
                 /*
@@ -964,7 +1160,13 @@
 
                 ajax: {
                     url: "{{ route('admin_data_lamination_pricing_rule') }}",
-                    type: "GET"
+                    type: "GET",
+                    data: function(data) {
+                        data.pricing_engine =
+                            document.getElementById(
+                                'laminationPricingRuleEngineFilter'
+                            ).value;
+                    }
                 },
 
                 /*
@@ -1132,6 +1334,8 @@
                             <button
                                 type="button"
                                 class="btn--icon btn-detail-lamination-pricing-rule"
+                                data-pricing-rule-source="${row.pricing_rule_source}"
+                                data-digital-pricing-rule-id="${row.digital_pricing_rule_id ?? ''}"
                                 data-engine-id="${row.engine_id}"
                                 data-location-id="${row.location_id}"
                                 data-vendor-id="${row.vendor_id ?? 'null'}"
@@ -1141,6 +1345,16 @@
                                 <i class="bi bi-arrows-fullscreen"></i>
                             </button>
 
+                            ${row.pricing_rule_source === 'digital' ? `
+                            <button
+                                type="button"
+                                class="btn--icon btn-edit-digital-lamination-pricing-rule"
+                                data-digital-pricing-rule-id="${row.digital_pricing_rule_id}"
+                                aria-label="Edit"
+                            >
+                                <i class="bi bi-pen"></i>
+                            </button>
+                            ` : `
                             <button
                                 type="button"
                                 class="btn--icon btn-edit-lamination-pricing-rule"
@@ -1152,7 +1366,18 @@
                             >
                                 <i class="bi bi-pen"></i>
                             </button>
+                            `}
 
+                            ${row.pricing_rule_source === 'digital' ? `
+                            <button
+                                type="button"
+                                class="btn--icon btn-delete-digital-lamination-pricing-rule"
+                                data-digital-pricing-rule-id="${row.digital_pricing_rule_id}"
+                                aria-label="Hapus"
+                            >
+                                <i class="bi bi-trash3-fill"></i>
+                            </button>
+                            ` : `
                             <button
                                 type="button"
                                 class="btn--icon btn-delete-lamination-pricing-rule"
@@ -1164,6 +1389,7 @@
                             >
                                 <i class="bi bi-trash3-fill"></i>
                             </button>
+                            `}
 
                         </div>
                     `;
@@ -1254,6 +1480,16 @@
                             'border': '1px solid #e2e8f0'
                         });
                 }
+            });
+
+            $('#btnExportLaminationPricingRules').on('click', function(e) {
+                e.preventDefault();
+                const engine = $('#laminationPricingRuleEngineFilter').val() || 'large_format';
+                window.location.href = $(this).attr('href') + '?pricing_engine=' + encodeURIComponent(engine);
+            });
+
+            $('#laminationPricingRuleEngineFilter').on('change', function() {
+                laminationPricingRuleTable.ajax.reload(null, true);
             });
         });
 
@@ -1520,6 +1756,42 @@
 
                 });
 
+
+                /* Digital Print A3+: kategori multi pilih (checkbox) */
+
+                const isDigital = isDigitalLaminationHeader(header);
+
+                const checkedCategories = isDigital ?
+                    Array.from(header.querySelectorAll(
+                        '.markup-laminasi-category-checkbox:checked'
+                    )).map(function(checkbox) {
+                        return checkbox.value;
+                    }) :
+                    [];
+
+                getRuleRows(header).forEach(function(row) {
+
+                    row.querySelectorAll('.markup-laminasi-category-ids')
+                        .forEach(function(input) {
+                            input.remove();
+                        });
+
+                    checkedCategories.forEach(function(value) {
+
+                        const input = document.createElement('input');
+
+                        input.type = 'hidden';
+                        input.className = 'markup-laminasi-category-ids';
+                        input.name =
+                            `pricing_rules[${row.dataset.ruleIndex}][category_ids][]`;
+                        input.value = value;
+
+                        row.appendChild(input);
+
+                    });
+
+                });
+
             }
 
 
@@ -1616,6 +1888,15 @@
                         }
 
 
+                        row.querySelectorAll('.markup-laminasi-category-ids')
+                            .forEach(function(input) {
+
+                                input.name =
+                                    `pricing_rules[${index}][category_ids][]`;
+
+                            });
+
+
                         if (priceType) {
 
                             priceType.name =
@@ -1646,6 +1927,27 @@
                                 `pricing_rules[${index}][status]`;
 
                         }
+
+
+                        const printType = row.querySelector(
+                            '.markup-laminasi-print-type'
+                        );
+
+                        if (printType) {
+
+                            printType.name =
+                                `pricing_rules[${index}][print_type]`;
+
+                        }
+
+
+                        row.querySelectorAll('[data-pricing-suffix]')
+                            .forEach(function(input) {
+
+                                input.name =
+                                    `pricing_rules[${index}][${input.dataset.pricingSuffix}]`;
+
+                            });
 
 
                         index++;
@@ -1803,15 +2105,29 @@
                         '.markup-laminasi-category-id'
                     )?.value || '';
 
+                    const digitalCategoryIds = Array.from(
+                        row.querySelectorAll('.markup-laminasi-category-ids')
+                    ).map(function(input) {
+                        return input.value;
+                    });
+
                     const priceType = row.querySelector(
                         '.markup-laminasi-price-type'
                     )?.value || '';
 
+                    const printType = row.querySelector(
+                        '.markup-laminasi-print-type:not(:disabled)'
+                    )?.value || '';
+
+
+                    const categoryKeys = digitalCategoryIds.length > 0 ?
+                        digitalCategoryIds :
+                        [categoryId];
 
                     if (
                         !engineId ||
                         !locationId ||
-                        !categoryId ||
+                        !categoryKeys[0] ||
                         !priceType
                     ) {
 
@@ -1820,18 +2136,35 @@
                     }
 
 
-                    const key = [
+                    let isDuplicate = false;
 
-                        engineId,
-                        locationId,
-                        vendorId,
-                        categoryId,
-                        priceType
+                    categoryKeys.forEach(function(categoryKey) {
 
-                    ].join('|');
+                        const key = [
+
+                            engineId,
+                            locationId,
+                            vendorId,
+                            categoryKey,
+                            priceType,
+                            printType
+
+                        ].join('|');
+
+                        if (combinations.has(key)) {
+
+                            isDuplicate = true;
+
+                        } else {
+
+                            combinations.set(key, row);
+
+                        }
+
+                    });
 
 
-                    if (combinations.has(key)) {
+                    if (isDuplicate) {
 
                         const priceTypeField = row.querySelector(
                             '.markup-laminasi-price-type'
@@ -1845,10 +2178,6 @@
 
 
                         isValid = false;
-
-                    } else {
-
-                        combinations.set(key, row);
 
                     }
 
@@ -2048,7 +2377,35 @@
 
                     /* CATEGORY */
 
-                    if (!category || !category.value) {
+                    if (isDigitalLaminationHeader(header)) {
+
+                        const categoryGroup = header.querySelector(
+                            '.digital-lam-category-group'
+                        );
+
+                        if (!header.querySelector(
+                                '.markup-laminasi-category-checkbox:checked'
+                            )) {
+
+                            setFieldError(
+                                categoryGroup,
+                                'Minimal pilih satu kategori.'
+                            );
+
+                            if (typeof showToast === 'function') {
+
+                                showToast(
+                                    'error',
+                                    'Minimal pilih satu kategori.'
+                                );
+
+                            }
+
+                            isValid = false;
+
+                        }
+
+                    } else if (!category || !category.value) {
 
                         setFieldError(
                             category,
@@ -2114,6 +2471,53 @@
                         }
 
 
+                        /* DIGITAL PRINT A3+ */
+
+                        const isDigitalRow =
+                            row.classList.contains('is-digital-lamination');
+
+                        if (isDigitalRow) {
+
+                            const digitalPrintType = row.querySelector(
+                                '.markup-laminasi-print-type'
+                            );
+
+                            if (!digitalPrintType || !digitalPrintType.value) {
+
+                                setFieldError(
+                                    digitalPrintType,
+                                    'Harga Print wajib dipilih.'
+                                );
+
+                                isValid = false;
+
+                            }
+
+                            row.querySelectorAll('.digital-lam-tier-percentage')
+                                .forEach(function(input) {
+
+                                    const value = input.value.trim();
+
+                                    if (
+                                        !value ||
+                                        isNaN(value) ||
+                                        Number(value) < 0
+                                    ) {
+
+                                        setFieldError(
+                                            input,
+                                            'Markup wajib berupa angka dan tidak boleh negatif.'
+                                        );
+
+                                        isValid = false;
+
+                                    }
+
+                                });
+
+                        }
+
+
                         /* MARKUP */
 
                         const markupValue = percentage ?
@@ -2122,9 +2526,12 @@
 
 
                         if (
-                            !markupValue ||
-                            isNaN(markupValue) ||
-                            Number(markupValue) < 0
+                            !isDigitalRow &&
+                            (
+                                !markupValue ||
+                                isNaN(markupValue) ||
+                                Number(markupValue) < 0
+                            )
                         ) {
 
                             setFieldError(
@@ -2196,6 +2603,199 @@
 
 
                 return isValid;
+
+            }
+
+
+            /* =========================================================
+             * DIGITAL PRINT A3+ FIELDS
+             * ========================================================= */
+
+            function isDigitalLaminationHeader(header) {
+
+                const engine = header.querySelector('.markup-laminasi-engine');
+
+                const engineName = engine && engine.selectedIndex >= 0 ?
+                    engine.options[engine.selectedIndex].textContent
+                    .trim()
+                    .toLowerCase()
+                    .replace(/\s+/g, '') :
+                    '';
+
+                return engineName === 'digitalprinta3+';
+
+            }
+
+
+            function createDigitalLaminationFields(index) {
+
+                const tiers = [
+                    ['1 lbr', 'tier_1'],
+                    ['2 - 5 lbr', 'tier_2_5'],
+                    ['6 - 50 lbr', 'tier_6_50'],
+                    ['100 lbr', 'tier_100'],
+                    ['300 lbr', 'tier_300'],
+                    ['500 lbr', 'tier_500']
+                ];
+
+                return `
+                    <div class="markup-laminasi-digital-fields" style="display: none;">
+                        <div class="markup-field digital-lam-print-type-field">
+                            <label class="category-label">Harga Print</label>
+                            <select
+                                name="pricing_rules[${index}][print_type]"
+                                class="select markup-laminasi-print-type"
+                                required
+                                disabled
+                            >
+                                <option value="">Pilih Harga Print</option>
+                                <option value="single">1 Muka</option>
+                                <option value="double">2 Muka</option>
+                            </select>
+                        </div>
+                        <div class="digital-lam-pricing-tiers">
+                            ${tiers.map(([label, suffix]) => `
+                                <div class="digital-lam-price-tier">
+                                    <label class="category-label">${label}</label>
+                                    <div class="markup-field">
+                                        <label class="category-label">Markup (%)</label>
+                                        <input
+                                            type="number"
+                                            name="pricing_rules[${index}][${suffix}_markup_percentage]"
+                                            data-pricing-suffix="${suffix}_markup_percentage"
+                                            class="input digital-lam-tier-percentage"
+                                            min="0"
+                                            step="0.01"
+                                            placeholder="Contoh: 10"
+                                            required
+                                            disabled
+                                        >
+                                    </div>
+                                    <div class="markup-field">
+                                        <label class="category-label">Pembulatan (Rp)</label>
+                                        <input
+                                            type="text"
+                                            name="pricing_rules[${index}][${suffix}_rounding_value]"
+                                            data-pricing-suffix="${suffix}_rounding_value"
+                                            class="input digital-lam-tier-rounding"
+                                            inputmode="numeric"
+                                            autocomplete="off"
+                                            placeholder="Contoh: Rp 1.000"
+                                            disabled
+                                        >
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+
+            }
+
+
+            function installDigitalLaminationFields(row, index) {
+
+                const statusField = row.querySelector('.markup-laminasi-status')
+                    .closest('.markup-field');
+
+                const wrapper = document.createElement('div');
+
+                wrapper.innerHTML = createDigitalLaminationFields(index);
+
+                row.insertBefore(wrapper.firstElementChild, statusField);
+
+                statusField.classList.add('markup-laminasi-status-field');
+
+            }
+
+
+            function updateLaminationBody(header) {
+
+                const isDigital = isDigitalLaminationHeader(header);
+
+                const categorySelectField = header.querySelector('.markup-laminasi-category-field');
+                const categoryCheckboxField = header.querySelector('.markup-laminasi-category-checkbox-field');
+                const categorySelect = header.querySelector('.markup-laminasi-category');
+
+                if (categorySelectField && categoryCheckboxField && categorySelect) {
+
+                    categorySelectField.style.display = isDigital ? 'none' : '';
+                    categoryCheckboxField.style.display = isDigital ? '' : 'none';
+                    categorySelect.disabled = isDigital;
+
+                    if (isDigital && categorySelect.value !== '') {
+
+                        $(categorySelect).val('').trigger('change.select2');
+
+                    }
+
+                    if (!isDigital) {
+
+                        header.querySelectorAll('.markup-laminasi-category-checkbox')
+                            .forEach(function(checkbox) {
+                                checkbox.checked = false;
+                            });
+
+                    }
+
+                }
+
+                getRuleRows(header).forEach(function(row) {
+
+                    row.classList.toggle('is-digital-lamination', isDigital);
+
+                    const percentage = row.querySelector('.markup-laminasi-percentage');
+                    const rounding = row.querySelector('.markup-laminasi-rounding');
+                    const digitalFields = row.querySelector('.markup-laminasi-digital-fields');
+                    const printType = row.querySelector('.markup-laminasi-print-type');
+                    const priceType = row.querySelector('.markup-laminasi-price-type');
+                    const plainOption = priceType ?
+                        priceType.querySelector('option[value="plain"]') :
+                        null;
+
+                    [percentage, rounding].forEach(function(input) {
+
+                        if (!input) {
+                            return;
+                        }
+
+                        input.closest('.markup-field').style.display =
+                            isDigital ? 'none' : '';
+
+                        input.disabled = isDigital;
+
+                    });
+
+                    if (digitalFields) {
+                        digitalFields.style.display = isDigital ? '' : 'none';
+                    }
+
+                    if (printType) {
+                        printType.disabled = !isDigital;
+                    }
+
+                    row.querySelectorAll(
+                        '.digital-lam-tier-percentage, .digital-lam-tier-rounding'
+                    ).forEach(function(input) {
+                        input.disabled = !isDigital;
+                    });
+
+                    if (plainOption) {
+
+                        plainOption.disabled = isDigital;
+                        plainOption.hidden = isDigital;
+
+                        if (isDigital && priceType.value === 'plain') {
+
+                            priceType.value = '';
+
+                            $(priceType).trigger('change.select2');
+
+                        }
+
+                    }
+
+                });
 
             }
 
@@ -2346,10 +2946,14 @@
         `;
 
 
+                installDigitalLaminationFields(row, index);
+
                 ruleContainer.appendChild(row);
 
 
                 initSelect2(row);
+
+                updateLaminationBody(header);
 
                 syncHeaderValues(header);
 
@@ -2563,7 +3167,7 @@
 
                     <!-- KATEGORI -->
 
-                    <div class="markup-field">
+                    <div class="markup-field markup-laminasi-category-field">
 
                         <label class="category-label">
                             Kategori
@@ -2585,6 +3189,29 @@
                             @endforeach
 
                         </select>
+
+                    </div>
+
+                    <div class="markup-field markup-laminasi-category-checkbox-field"
+                        style="display: none;">
+
+                        <label class="category-label">
+                            Kategori
+                        </label>
+
+                        <div class="digital-lam-category-group category-checkboxes">
+                            @foreach ($categories as $category)
+                                @continue(in_array(strtolower(preg_replace('/[\s\/]+/', '', trim($category->name))), ['indoor&outdoor', 'indooroutdoor'], true))
+                                <label class="category-checkbox">
+                                    <input type="checkbox" class="markup-laminasi-category-checkbox"
+                                        value="{{ $category->id }}">
+                                    <span class="category-checkbox-box">
+                                        <span class="category-checkbox-check">✓</span>
+                                        <span class="category-checkbox-label">{{ $category->name }}</span>
+                                    </span>
+                                </label>
+                            @endforeach
+                        </div>
 
                     </div>
 
@@ -2762,6 +3389,18 @@
         `;
 
 
+                const firstRuleRow = header.querySelector('.markup-rule-row');
+
+                if (firstRuleRow) {
+
+                    installDigitalLaminationFields(
+                        firstRuleRow,
+                        firstRuleRow.dataset.ruleIndex
+                    );
+
+                }
+
+
                 headerContainer.appendChild(header);
 
 
@@ -2801,6 +3440,15 @@
                         syncHeaderValues(header);
 
                         clearFieldError(engine);
+
+                    }
+                );
+
+                $(engine).on(
+                    'change select2:select select2:clear',
+                    function() {
+
+                        updateLaminationBody(header);
 
                     }
                 );
@@ -2877,6 +3525,15 @@
                         syncHeaderValues(header);
 
                         clearFieldError(category);
+
+                    }
+                );
+
+                $(category).on(
+                    'change select2:select select2:clear',
+                    function() {
+
+                        updateLaminationBody(header);
 
                     }
                 );
@@ -3036,17 +3693,7 @@
 
                         if (btnRemove) {
 
-                            if (headers.length <= 1) {
-
-                                btnRemove.style.display =
-                                    'none';
-
-                            } else {
-
-                                btnRemove.style.display =
-                                    '';
-
-                            }
+                            btnRemove.style.display = '';
 
                         }
 
@@ -3114,6 +3761,37 @@
                     }
 
 
+                    /* ROUNDING DIGITAL */
+
+                    if (
+                        target.classList.contains(
+                            'digital-lam-tier-rounding'
+                        )
+                    ) {
+
+                        target.value =
+                            formatRupiah(
+                                unformatRupiah(
+                                    target.value
+                                )
+                            );
+
+                        clearFieldError(target);
+
+                    }
+
+
+                    if (
+                        target.classList.contains(
+                            'digital-lam-tier-percentage'
+                        )
+                    ) {
+
+                        clearFieldError(target);
+
+                    }
+
+
                     /* ROUNDING */
 
                     if (
@@ -3147,6 +3825,25 @@
                 function(e) {
 
                     const target = e.target;
+
+
+                    if (target.classList.contains('markup-laminasi-category-checkbox')) {
+
+                        const checkboxHeader = target.closest('.markup-header-group');
+
+                        if (checkboxHeader) {
+
+                            syncHeaderValues(checkboxHeader);
+
+                            const group = checkboxHeader.querySelector('.digital-lam-category-group');
+
+                            if (group) {
+                                group.classList.remove('is-invalid');
+                            }
+
+                        }
+
+                    }
 
 
                     if (
@@ -3184,24 +3881,42 @@
                     }
 
 
+                    const digitalModes = Array.from(getHeaderGroups())
+                        .map(isDigitalLaminationHeader);
+
+                    if (digitalModes.some(Boolean) && !digitalModes.every(Boolean)) {
+
+                        if (typeof showToast === 'function') {
+
+                            showToast(
+                                'error',
+                                'Pisahkan konfigurasi Digital Print A3+ dan mesin lain ke submit yang berbeda.'
+                            );
+
+                        }
+
+                        return;
+
+                    }
+
+                    const submitUrl = digitalModes.every(Boolean) ?
+                        "{{ route('admin_store_digital_lamination_pricing_rule') }}" :
+                        "{{ route('admin_store_lamination_pricing_rule') }}";
+
+
                     syncAllHeaderValues();
 
                     reindexRuleRows();
 
-
-                    /*
-                     * Unformat semua rounding sebelum dikirim
-                     */
-
                     form.querySelectorAll(
-                        '.markup-laminasi-rounding'
+                        '.markup-laminasi-rounding, .digital-lam-tier-rounding'
                     ).forEach(
                         function(input) {
 
-                            input.value =
-                                unformatRupiah(
-                                    input.value
-                                );
+                           input.value =
+                               unformatRupiah(
+                                   input.value
+                               );
 
                         }
                     );
@@ -3220,7 +3935,7 @@
 
                         const response =
                             await fetch(
-                                form.action, {
+                                submitUrl, {
                                     method: 'POST',
 
                                     headers: {
@@ -3283,6 +3998,17 @@
 
 
                         if (
+                            typeof laminationPricingRuleTable !==
+                            'undefined' &&
+                            laminationPricingRuleTable
+                        ) {
+
+                            laminationPricingRuleTable.ajax.reload(
+                                null,
+                                false
+                            );
+
+                        } else if (
                             typeof pricingRuleLaminasiTable !==
                             'undefined' &&
                             pricingRuleLaminasiTable
@@ -5109,6 +5835,105 @@
             }
 
 
+            function renderDigitalDetailMarkup(pricingRules) {
+
+                detailMarkupContent.innerHTML = '';
+
+                [
+                    ['general', 'single'],
+                    ['general', 'double'],
+                    ['division', 'single'],
+                    ['division', 'double']
+                ].forEach(function([priceType, printType]) {
+
+                    const groupRules = pricingRules.filter(function(rule) {
+                        return rule.price_type === priceType &&
+                            rule.print_type === printType;
+                    });
+
+                    if (!groupRules.length) {
+                        return;
+                    }
+
+                    const section = document.createElement('section');
+
+                    section.style.cssText = `
+                        border: 1px solid var(--border);
+                        border-radius: 10px;
+                        overflow: hidden;
+                        background: var(--bg-card);
+                    `;
+
+                    section.innerHTML = `
+                        <div style="
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: center;
+                            gap: 12px;
+                            padding: 12px 16px;
+                            background: var(--bg-muted);
+                            border-bottom: 1px solid var(--border);
+                        ">
+                            <strong>${getPriceTypeLabel(priceType)}</strong>
+                            <span class="badge">${printType === 'single' ? '1 Muka' : '2 Muka'}</span>
+                        </div>
+                    `;
+
+                    const tableWrapper = document.createElement('div');
+                    tableWrapper.classList.add('details-table-wrapper');
+
+                    const table = document.createElement('table');
+                    table.classList.add('details-table');
+
+                    table.innerHTML = `
+                        <thead>
+                            <tr class="details-table-group-header">
+                                <th>Jumlah Lembar</th>
+                                <th>Markup</th>
+                                <th style="text-align: center;">Pembulatan (Rp)</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    `;
+
+                    const tbody = table.querySelector('tbody');
+
+                    groupRules.forEach(function(rule) {
+
+                        const statusClass = rule.status === 'Active' ?
+                            'details-status-active' :
+                            'details-status-inactive';
+
+                        const maximumQuantity = rule.maximum_quantity === null ?
+                            '+' :
+                            rule.minimum_quantity === rule.maximum_quantity ?
+                            '' :
+                            ` - ${rule.maximum_quantity}`;
+
+                        const tr = document.createElement('tr');
+
+                        tr.innerHTML = `
+                            <td>${rule.minimum_quantity}${maximumQuantity} lbr</td>
+                            <td class="details-money">${rule.markup_percentage ?? '-'}%</td>
+                            <td class="details-money" style="text-align: center;">
+                                ${formatRupiah(rule.rounding_value)}
+                            </td>
+                            <td>
+                                <span class="${statusClass}">${rule.status ?? '-'}</span>
+                            </td>
+                        `;
+
+                        tbody.appendChild(tr);
+                    });
+
+                    tableWrapper.appendChild(table);
+                    section.appendChild(tableWrapper);
+                    detailMarkupContent.appendChild(section);
+                });
+            }
+
+
             /* =========================================================
              * TOMBOL DETAIL DATATABLE
              * ========================================================= */
@@ -5144,15 +5969,39 @@
                         detailButton.dataset.categoryId;
 
 
+                    const pricingRuleSource =
+                        detailButton.dataset.pricingRuleSource;
+
+                    const digitalPricingRuleId =
+                        detailButton.dataset.digitalPricingRuleId;
+
+                    const isDigitalDetail =
+                        pricingRuleSource === 'digital';
+
+
                     /* =================================================
                      * VALIDASI DATA
                      * ================================================= */
 
+                    if (isDigitalDetail && !digitalPricingRuleId) {
+
+                        showToast(
+                            'error',
+                            'Data markup laminasi Digital Print tidak ditemukan.'
+                        );
+
+                        return;
+
+                    }
+
                     if (
-                        !engineId ||
-                        !locationId ||
-                        !vendorId ||
-                        !categoryId
+                        !isDigitalDetail &&
+                        (
+                            !engineId ||
+                            !locationId ||
+                            !vendorId ||
+                            !categoryId
+                        )
                     ) {
 
                         showToast(
@@ -5217,7 +6066,8 @@
                      * URL DETAIL
                      * ================================================= */
 
-                    const detailUrl =
+                    const detailUrl = isDigitalDetail ?
+                        `{{ url('/admin/lamination-pricing-rules/digital') }}/${digitalPricingRuleId}/details` :
                         `{{ url('/admin/lamination-pricing-rules') }}/${engineId}/${locationId}/${vendorId}/${categoryId}/details`;
 
 
@@ -5332,9 +6182,19 @@
                              * RENDER DETAIL
                              * ================================================= */
 
-                            renderDetailMarkup(
-                                pricingRules
-                            );
+                            if (isDigitalDetail) {
+
+                                renderDigitalDetailMarkup(
+                                    pricingRules
+                                );
+
+                            } else {
+
+                                renderDetailMarkup(
+                                    pricingRules
+                                );
+
+                            }
 
                         })
 
@@ -6004,6 +6864,12 @@
                             fileImportLaminationPricingRules.files[0]
                         );
 
+                        formData.append(
+                            'pricing_engine',
+                            $('#laminationPricingRuleEngineFilter').val() ||
+                            'large_format'
+                        );
+
 
                         /*
                          * CSRF Token
@@ -6139,6 +7005,453 @@
 
                 }
             );
+
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+
+            const tierLabels = [
+                ['tier_1', '1 lbr'],
+                ['tier_2_5', '2 - 5 lbr'],
+                ['tier_6_50', '6 - 50 lbr'],
+                ['tier_100', '51 - 100 lbr'],
+                ['tier_300', '101 - 300 lbr'],
+                ['tier_500', '301 - 500 lbr']
+            ];
+
+            const ruleGroups = [
+                ['general', 'single'],
+                ['general', 'double'],
+                ['division', 'single'],
+                ['division', 'double']
+            ];
+
+            const priceTypeLabel = (type) =>
+                type === 'general' ? 'Harga Umum' : 'Harga Divisi';
+
+            const printTypeLabel = (type) =>
+                type === 'single' ? '1 Muka' : '2 Muka';
+
+            const escapeHtml = (value) =>
+                String(value ?? '').replace(/[&<>"']/g, (char) => ({
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#39;'
+                } [char]));
+
+            function formatRp(value) {
+                const raw = String(value ?? '').trim();
+
+                if (raw === '') {
+                    return '';
+                }
+
+                const number = /^rp/i.test(raw) ?
+                    Number(raw.replace(/^rp\s*/i, '').replace(/\./g, '').replace(',', '.')) :
+                    (/^\d+(\.\d{1,2})?$/.test(raw) ?
+                        Number(raw) :
+                        Number(raw.replace(/\./g, '').replace(',', '.')));
+
+                return Number.isFinite(number) ?
+                    'Rp ' + number.toLocaleString('id-ID', {
+                        maximumFractionDigits: 2
+                    }) :
+                    '';
+            }
+
+            function unformatRp(value) {
+                const raw = String(value ?? '').replace(/^rp\s*/i, '').trim();
+
+                if (!raw) {
+                    return '';
+                }
+
+                if (raw.includes(',')) {
+                    return raw.replace(/\./g, '').replace(',', '.');
+                }
+
+                return /^\d+\.\d{1,2}$/.test(raw) ? raw : raw.replace(/\./g, '');
+            }
+
+            document.body.insertAdjacentHTML('beforeend', `
+                <div class="modal-overlay" id="modalEditDigitalLamination">
+                    <div class="modal-dialog modal-dialog--wide">
+                        <form id="formEditDigitalLamination" novalidate>
+                            <div class="modal-header">
+                                <div>
+                                    <span class="eyebrow">MARKUP HARGA · LAMINASI</span>
+                                    <br>
+                                    <span class="eyebrow">Edit Markup Laminasi Digital Print A3+</span>
+                                </div>
+                                <button type="button" class="modal-close" data-close-digital-lam-edit
+                                    aria-label="Tutup">
+                                    <svg viewBox="0 0 24 24">
+                                        <path d="M18 6 6 18" />
+                                        <path d="m6 6 12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="markup-row" style="margin-bottom: 20px;">
+                                    <div class="markup-row-top" id="digitalLamEditHeader"></div>
+                                </div>
+                                <div id="digitalLamEditRules"
+                                    style="display: flex; flex-direction: column; gap: 20px;"></div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn--ghost" data-close-digital-lam-edit>
+                                    Batal
+                                </button>
+                                <button type="submit" class="btn btn--primary">
+                                    <svg viewBox="0 0 24 24">
+                                        <path d="M5 12l4 4L19 6" />
+                                    </svg>
+                                    Simpan
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            `);
+
+            const modal = document.getElementById('modalEditDigitalLamination');
+            const form = document.getElementById('formEditDigitalLamination');
+            const header = document.getElementById('digitalLamEditHeader');
+            const rulesContainer = document.getElementById('digitalLamEditRules');
+
+            function closeModal() {
+                modal.classList.remove('is-open');
+                form.reset();
+                form.action = '';
+                header.innerHTML = '';
+                rulesContainer.innerHTML = '';
+            }
+
+            function toast(type, message) {
+                if (typeof showToast === 'function') {
+                    showToast(type, message);
+                }
+            }
+
+            function renderHeader(rule) {
+                header.innerHTML = [
+                    ['Mesin', rule.engine_name],
+                    ['Lokasi', rule.location_name],
+                    ['Vendor', rule.vendor_name || '-'],
+                    ['Kategori', rule.category_name]
+                ].map(([label, value]) => `
+                    <div class="markup-field">
+                        <label class="category-label">${label}</label>
+                        <div class="input">${escapeHtml(value || '-')}</div>
+                    </div>
+                `).join('');
+            }
+
+            function renderRuleGroup(index, priceType, printType, rules) {
+                const groupRules = rules.filter((rule) =>
+                    rule.price_type === priceType && rule.print_type === printType
+                );
+
+                if (!groupRules.length) {
+                    return '';
+                }
+
+                const byTier = groupRules.reduce((result, rule) => {
+                    result[rule.quantity_tier] = rule;
+                    return result;
+                }, {});
+
+                const first = groupRules[0];
+
+                return `
+                    <section style="border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: var(--bg-card);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 16px; background: var(--bg-muted); border-bottom: 1px solid var(--border);">
+                            <strong>${priceTypeLabel(priceType)}</strong>
+                            <span class="badge">${printTypeLabel(printType)}</span>
+                        </div>
+                        <div style="padding: 16px;">
+                            <input type="hidden" name="pricing_rules[${index}][detail_id]" value="${first.detail_id}">
+                            <input type="hidden" name="pricing_rules[${index}][price_type]" value="${priceType}">
+                            <input type="hidden" name="pricing_rules[${index}][print_type]" value="${printType}">
+                            <div class="markup-field" style="max-width: 220px; margin-bottom: 16px;">
+                                <label class="category-label">Status</label>
+                                <select name="pricing_rules[${index}][status]" class="select" required>
+                                    <option value="Active" ${first.status === 'Active' ? 'selected' : ''}>Active</option>
+                                    <option value="Inactive" ${first.status === 'Inactive' ? 'selected' : ''}>Inactive</option>
+                                </select>
+                            </div>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px;">
+                                ${tierLabels.map(([tier, label]) => {
+                                    const tierRule = byTier[tier];
+                                    return `
+                                        <div style="min-width: 0; padding: 12px; border: 1px solid var(--border); border-radius: 10px;">
+                                            <label class="category-label">${label}</label>
+                                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-top: 10px;">
+                                                <div class="markup-field">
+                                                    <label class="category-label">Markup (%)</label>
+                                                    <input type="number"
+                                                        name="pricing_rules[${index}][${tier}_markup_percentage]"
+                                                        class="input"
+                                                        value="${tierRule ? tierRule.markup_percentage : ''}"
+                                                        min="0" max="999999.99" step="0.01" required>
+                                                </div>
+                                                <div class="markup-field">
+                                                    <label class="category-label">Pembulatan (Rp)</label>
+                                                    <input type="text"
+                                                        name="pricing_rules[${index}][${tier}_rounding_value]"
+                                                        class="input digital-lam-edit-rounding"
+                                                        value="${tierRule && tierRule.rounding_value !== null ? formatRp(tierRule.rounding_value) : ''}"
+                                                        inputmode="numeric" autocomplete="off">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+                    </section>
+                `;
+            }
+
+            document.addEventListener('click', function(event) {
+                const editButton =
+                    event.target.closest('.btn-edit-digital-lamination-pricing-rule');
+
+                if (!editButton) {
+                    return;
+                }
+
+                const ruleId = editButton.dataset.digitalPricingRuleId;
+
+                if (!ruleId) {
+                    toast('error', 'Data markup laminasi Digital Print tidak ditemukan.');
+                    return;
+                }
+
+                header.innerHTML = '<div class="input">Memuat data...</div>';
+                rulesContainer.innerHTML = '';
+                modal.classList.add('is-open');
+
+                fetch(`{{ url('/admin/lamination-pricing-rules/digital') }}/${ruleId}/details`, {
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(async (response) => {
+                        const data = await response.json();
+
+                        if (!response.ok || !data.success || !data.data.length) {
+                            throw new Error(
+                                data.message ||
+                                'Data markup laminasi Digital Print gagal dimuat.'
+                            );
+                        }
+
+                        return data.data;
+                    })
+                    .then((rules) => {
+                        renderHeader(rules[0]);
+
+                        rulesContainer.innerHTML = ruleGroups.map(
+                            ([priceType, printType], index) =>
+                            renderRuleGroup(index, priceType, printType, rules)
+                        ).join('');
+
+                        form.action =
+                            `{{ url('/admin/lamination-pricing-rules/digital') }}/${ruleId}`;
+                    })
+                    .catch((error) => {
+                        closeModal();
+                        toast(
+                            'error',
+                            error.message ||
+                            'Terjadi kesalahan saat memuat markup laminasi Digital Print.'
+                        );
+                    });
+            });
+
+            form.addEventListener('submit', async function(event) {
+                event.preventDefault();
+
+                if (!form.checkValidity()) {
+                    form.reportValidity();
+                    return;
+                }
+
+                const submitButton = form.querySelector('button[type="submit"]');
+                const originalHtml = submitButton.innerHTML;
+
+                submitButton.disabled = true;
+                submitButton.innerHTML = 'Menyimpan...';
+
+                try {
+                    const formData = new FormData(form);
+
+                    form.querySelectorAll('.digital-lam-edit-rounding').forEach((input) => {
+                        formData.set(input.name, unformatRp(input.value));
+                    });
+
+                    formData.append('_method', 'PUT');
+
+                    const response = await fetch(form.action, {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector(
+                                'meta[name="csrf-token"]'
+                            ).getAttribute('content')
+                        },
+                        body: formData
+                    });
+
+                    const data = await response.json();
+
+                    if (!response.ok || !data.success) {
+                        const firstError = data.errors ?
+                            Object.values(data.errors)[0][0] :
+                            null;
+
+                        throw new Error(
+                            firstError ||
+                            data.message ||
+                            'Markup laminasi Digital Print gagal diperbarui.'
+                        );
+                    }
+
+                    closeModal();
+                    toast('success', data.message);
+
+                    if (typeof laminationPricingRuleTable !== 'undefined' && laminationPricingRuleTable) {
+                        laminationPricingRuleTable.ajax.reload(null, false);
+                    }
+                } catch (error) {
+                    toast(
+                        'error',
+                        error.message ||
+                        'Terjadi kesalahan saat memperbarui markup laminasi Digital Print.'
+                    );
+                } finally {
+                    submitButton.disabled = false;
+                    submitButton.innerHTML = originalHtml;
+                }
+            });
+
+            form.addEventListener('input', function(event) {
+                if (event.target.matches('.digital-lam-edit-rounding')) {
+                    event.target.value = formatRp(event.target.value);
+                }
+            });
+
+            modal.addEventListener('click', function(event) {
+                if (
+                    event.target === modal ||
+                    event.target.closest('[data-close-digital-lam-edit]')
+                ) {
+                    closeModal();
+                }
+            });
+
+            document.addEventListener('keydown', function(event) {
+                if (event.key === 'Escape' && modal.classList.contains('is-open')) {
+                    closeModal();
+                }
+            });
+
+            /* DELETE Digital: memakai modal delete laminasi yang sama */
+
+            const deleteModal = document.getElementById('modalDeleteMarkupLaminasi');
+            const btnConfirmDelete = document.getElementById('btnConfirmDeleteMarkupLaminasi');
+            let digitalLamIdToDelete = null;
+
+            function closeDigitalDelete() {
+                digitalLamIdToDelete = null;
+                deleteModal.classList.remove('is-open');
+            }
+
+            document.addEventListener('click', function(event) {
+                const deleteButton =
+                    event.target.closest('.btn-delete-digital-lamination-pricing-rule');
+
+                if (!deleteButton) {
+                    return;
+                }
+
+                digitalLamIdToDelete = deleteButton.dataset.digitalPricingRuleId || null;
+
+                if (!digitalLamIdToDelete) {
+                    toast('error', 'Data markup laminasi Digital Print tidak ditemukan.');
+                    return;
+                }
+
+                deleteModal.classList.add('is-open');
+            });
+
+            ['btnTutupDeleteMarkupLaminasi', 'btnBatalDeleteMarkupLaminasi'].forEach(function(id) {
+                document.getElementById(id).addEventListener('click', function() {
+                    digitalLamIdToDelete = null;
+                });
+            });
+
+            deleteModal.addEventListener('click', function(event) {
+                if (event.target === deleteModal) {
+                    digitalLamIdToDelete = null;
+                }
+            });
+
+            document.addEventListener('keydown', function(event) {
+                if (event.key === 'Escape') {
+                    digitalLamIdToDelete = null;
+                }
+            });
+
+            btnConfirmDelete.addEventListener('click', async function() {
+                if (!digitalLamIdToDelete) {
+                    return;
+                }
+
+                const id = digitalLamIdToDelete;
+
+                try {
+                    const response = await fetch(
+                        `{{ url('/admin/lamination-pricing-rules/digital') }}/${id}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'X-CSRF-TOKEN': document.querySelector(
+                                    'meta[name="csrf-token"]'
+                                ).getAttribute('content'),
+                                'Accept': 'application/json'
+                            }
+                        }
+                    );
+
+                    const result = await response.json();
+
+                    if (response.ok && result.success) {
+                        closeDigitalDelete();
+
+                        if (typeof laminationPricingRuleTable !== 'undefined' && laminationPricingRuleTable) {
+                            laminationPricingRuleTable.ajax.reload(null, false);
+                        }
+
+                        toast('success', result.message);
+                    } else {
+                        toast(
+                            'error',
+                            result.message ||
+                            'Markup laminasi Digital Print gagal dihapus.'
+                        );
+                    }
+                } catch (error) {
+                    console.error(error);
+                    toast(
+                        'error',
+                        'Terjadi kesalahan saat menghapus markup laminasi Digital Print.'
+                    );
+                }
+            });
 
         });
     </script>

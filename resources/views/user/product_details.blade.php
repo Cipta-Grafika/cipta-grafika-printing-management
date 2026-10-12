@@ -990,6 +990,7 @@
                                     </h4>
                                 </div>
 
+                                {{-- Pilihan lokasi disembunyikan sementara, estimator dikunci ke lokasi Purwakarta.
                                 <div>
                                     <label for="location_id"
                                         class="block text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1.5">
@@ -1006,6 +1007,26 @@
                                                 {{ $location->name }}
                                             </option>
                                         @endforeach
+                                    </select>
+                                </div>
+                                --}}
+
+                                @php
+                                    $estimatorLocation = collect($locations ?? [])->first(
+                                        fn($location) => strtolower(trim($location->name)) === 'purwakarta'
+                                    );
+                                @endphp
+
+                                <div hidden>
+                                    <select id="location_id" name="location_id" required
+                                        class="estimator-choice-source">
+                                        @if ($estimatorLocation)
+                                            <option value="{{ $estimatorLocation->id }}" selected>
+                                                {{ $estimatorLocation->name }}
+                                            </option>
+                                        @else
+                                            <option value="">Pilih lokasi...</option>
+                                        @endif
                                     </select>
                                 </div>
 
@@ -3867,6 +3888,13 @@
             toggleVendorField();
 
             toggleDisplayFields();
+
+            // Lokasi sudah terpilih otomatis (Purwakarta), jadi material & laminasi langsung dimuat
+            if (locationSelect.val()) {
+                loadMaterials();
+
+                loadLaminations();
+            }
 
         });
 

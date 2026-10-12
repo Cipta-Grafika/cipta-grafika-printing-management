@@ -222,6 +222,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/admin/pricing-rules', [PricingRulesCT::class, 'index'])->name('admin_pricing_rules');
     Route::get('/admin/pricing-rules/data', [PricingRulesCT::class, 'data'])->name('admin_data_pricing_rule');
     Route::post('/admin/pricing-rules/create', [PricingRulesCT::class, 'store'])->name('admin_store_pricing_rule');
+    Route::post('/admin/pricing-rules/digital/create', [PricingRulesCT::class, 'storeDigital'])->name('admin_store_digital_pricing_rule');
+    Route::get('/admin/pricing-rules/digital/{id}/details', [PricingRulesCT::class, 'detailsDigital'])->name('admin_digital_pricing_rule_details');
+    Route::put('/admin/pricing-rules/digital/{id}', [PricingRulesCT::class, 'updateDigital'])->name('admin_update_digital_pricing_rule');
+    Route::delete('/admin/pricing-rules/digital/{id}', [PricingRulesCT::class, 'destroyDigital'])->name('admin_delete_digital_pricing_rule');
     Route::get('/admin/pricing-rules/{engine_id}/{location_id}/{vendor_id}/{category_id}/edit', [PricingRulesCT::class, 'edit'])->name('admin_edit_pricing_rule');
     Route::put('/admin/pricing-rules/{engine_id}/{location_id}/{vendor_id}/{category_id}/edit', [PricingRulesCT::class, 'update'])->name('admin_update_pricing_rule');
     Route::get('/admin/pricing-rules/{engine_id}/{location_id}/{vendor_id}/{category_id}/details', [PricingRulesCT::class, 'details'])->name('admin_pricing_rule_details');
@@ -242,6 +246,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/admin/lamination-pricing-rules', [LaminationPricingRuleCT::class, 'index'])->name('admin_lamination_pricing_rules');
     Route::get('/admin/lamination-pricing-rules/data', [LaminationPricingRuleCT::class, 'data'])->name('admin_data_lamination_pricing_rule');
     Route::post('/admin/lamination-pricing-rules/create', [LaminationPricingRuleCT::class, 'store'])->name('admin_store_lamination_pricing_rule');
+    Route::post('/admin/lamination-pricing-rules/digital/create', [LaminationPricingRuleCT::class, 'storeDigital'])->name('admin_store_digital_lamination_pricing_rule');
+    Route::get('/admin/lamination-pricing-rules/digital/{id}/details', [LaminationPricingRuleCT::class, 'detailsDigital'])->name('admin_digital_lamination_pricing_rule_details');
+    Route::put('/admin/lamination-pricing-rules/digital/{id}', [LaminationPricingRuleCT::class, 'updateDigital'])->name('admin_update_digital_lamination_pricing_rule');
+    Route::delete('/admin/lamination-pricing-rules/digital/{id}', [LaminationPricingRuleCT::class, 'destroyDigital'])->name('admin_delete_digital_lamination_pricing_rule');
     Route::get('/admin/lamination-pricing-rules/{engine_id}/{location_id}/{vendor_id}/{category_id}/edit', [LaminationPricingRuleCT::class, 'edit'])->name('admin_edit_lamination_pricing_rule');
     Route::put('/admin/lamination-pricing-rules/{engine_id}/{location_id}/{vendor_id}/{category_id}/update', [LaminationPricingRuleCT::class, 'update'])->name('admin_update_lamination_pricing_rule');
     Route::get('/admin/lamination-pricing-rules/{engine_id}/{location_id}/{vendor_id}/{category_id}/details', [LaminationPricingRuleCT::class, 'details'])->name('admin_lamination_pricing_rule_details');

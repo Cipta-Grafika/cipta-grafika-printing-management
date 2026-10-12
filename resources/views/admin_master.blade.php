@@ -329,6 +329,10 @@
             'active' => 'displays',
             'crumbs' => 'Master Data | Display',
         ],
+        'admin_edit_display' => [
+            'active' => 'displays',
+            'crumbs' => 'Master Data | Display',
+        ],
         'admin_display_details' => [
             'active' => 'displays',
             'crumbs' => 'Master Data | Display',

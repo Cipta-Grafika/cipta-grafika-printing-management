@@ -60,7 +60,7 @@
                         </div>
 
 
-                        {{-- TOOLBAR: PENCARIAN + FILTER --}}
+                        {{-- TOOLBAR: PENCARIAN + STATUS --}}
 
                         <div id="displayToolbar"
                             style="
@@ -74,15 +74,6 @@
                             <div style="flex: 1; min-width: 220px;">
                                 <input type="text" id="filterSearch" class="input"
                                     placeholder="Cari display atau kategori" autocomplete="off">
-                            </div>
-
-                            <div style="flex: 1; width: 220px;">
-                                <select id="filterCategory" class="select select2">
-                                    <option value="">Semua Kategori</option>
-                                    @foreach ($categories as $category)
-                                        <option value="{{ $category->id }}"> {{ $category->name }} </option>
-                                    @endforeach
-                                </select>
                             </div>
 
                             <div style="flex: 1; width: 180px;">
@@ -342,12 +333,6 @@
 
 @section('scripts')
     <script>
-        $('#filterCategory').select2({
-            placeholder: 'Semua Kategori',
-            allowClear: false,
-            width: '100%'
-        });
-
         $('#filterStatus').select2({
             placeholder: 'Semua Status',
             allowClear: false,
@@ -425,15 +410,10 @@
                 params.set('page', currentPage);
 
                 const search = filterSearch.value.trim();
-                const categoryId = $('#filterCategory').val();
                 const status = $('#filterStatus').val();
 
                 if (search) {
                     params.set('search', search);
-                }
-
-                if (categoryId) {
-                    params.set('category_id', categoryId);
                 }
 
                 if (status) {
@@ -858,7 +838,7 @@
             });
 
             /* select2 memicu event jQuery, bukan event native */
-            $('#filterCategory, #filterStatus').on('change', function() {
+            $('#filterStatus').on('change', function() {
 
                 currentPage = 1;
 
