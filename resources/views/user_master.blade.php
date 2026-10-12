@@ -1148,7 +1148,7 @@
                         </svg>
                     </button>
                     <!-- hire me -->
-                    <a href="https://wa.me/6282213290760" target="_blank"
+                    <a href="https://wa.me/6285212821022" target="_blank"
                         class="hidden md:inline-flex items-center gap-2 shimmer bg-accent text-white text-sm font-medium px-5 py-2 rounded-full hover:bg-accent-light transition-colors">
                         <i class="bi bi-whatsapp"></i> Chat Admin
                     </a>
@@ -1221,7 +1221,7 @@
                                 d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z" />
                         </svg>
                     </button>
-                    <a href="https://wa.me/6282213290760" target="_blank"
+                    <a href="https://wa.me/6285212821022" target="_blank"
                         class="hidden md:inline-flex items-center gap-2 btn-primary bg-accent text-white text-sm font-medium px-5 py-2 rounded-full hover:bg-accent-light transition-colors"><i
                             class="bi bi-whatsapp"></i> Chat Admin</a>
                     <button @click="mm=!mm"
@@ -1261,7 +1261,7 @@
                             class="block text-zinc-700 dark:text-zinc-300 hover:text-accent transition-colors">Pertanyaan
                             Umum</a></li>
                     <li class="pt-2 border-t border-zinc-100 dark:border-zinc-900">
-                        <a href="https://wa.me/6282213290760" target="_blank" @click="mm=false"
+                        <a href="https://wa.me/6285212821022" target="_blank" @click="mm=false"
                             class="inline-flex shimmer bg-accent text-white font-medium text-sm px-5 py-2.5 rounded-full"><i
                                 class="bi bi-whatsapp" style="margin-right: 10px;"></i> Chat Admin</a>
                     </li>
@@ -1282,7 +1282,7 @@
                             class="block text-zinc-700 dark:text-zinc-300 hover:text-accent transition-colors">Pertanyaan
                             Umum</a></li>
                     <li class="pt-2 border-t border-zinc-100 dark:border-zinc-900">
-                        <a href="https://wa.me/6282213290760" target="_blank" @click="mm=false"
+                        <a href="https://wa.me/6285212821022" target="_blank" @click="mm=false"
                             class="inline-flex shimmer bg-accent text-white font-medium text-sm px-5 py-2.5 rounded-full"><i
                                 class="bi bi-whatsapp" style="margin-right: 10px;"></i> Chat Admin</a>
                     </li>

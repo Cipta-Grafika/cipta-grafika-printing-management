@@ -2266,7 +2266,7 @@
 
             const continueOrderButton =
                 document.getElementById('continueOrderButton');
-            const whatsappPhoneNumber = '6282213290760';
+            const whatsappPhoneNumber = '6285212821022';
 
             function setContinueOrderAvailable(isAvailable) {
                 continueOrderButton.disabled = !isAvailable;

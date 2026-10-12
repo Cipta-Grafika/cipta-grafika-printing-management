@@ -502,7 +502,7 @@
                             Cipta Grafika siap membantu.
                         </p>
 
-                        <a href="https://wa.me/6282213290760" target="_blank"
+                        <a href="https://wa.me/6285212821022" target="_blank"
                             class="inline-flex items-center gap-2
                                 btn-primary
                                 bg-accent text-white
