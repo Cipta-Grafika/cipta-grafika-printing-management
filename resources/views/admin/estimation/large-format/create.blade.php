@@ -1503,6 +1503,23 @@
 
                 if (isCustom) {
 
+                    const priceSizeInput = isMaterial ?
+                        materialPriceSizeInput :
+                        laminationPriceSizeInput;
+                    const referenceOptions = select.find('option').filter(function() {
+                        return this.value && this.value !== '__custom__';
+                    });
+                    const currentReferenceId = priceSizeInput.val();
+                    const hasCurrentReference = referenceOptions.toArray().some(function(option) {
+                        return option.value === currentReferenceId;
+                    });
+
+                    priceSizeInput.val(
+                        hasCurrentReference ?
+                        currentReferenceId :
+                        (referenceOptions.first().val() || '')
+                    );
+
                     input
                         .prop('disabled', false)
                         .prop('required', true)
@@ -2616,6 +2633,8 @@
                     selectedValue !== '__custom__'
                 ) {
                     materialPriceSizeInput.val(selectedValue);
+                } else if (!selectedValue) {
+                    materialPriceSizeInput.val('');
                 }
 
                 toggleCustomWidth('material');
@@ -2647,6 +2666,8 @@
                     selectedValue !== '__custom__'
                 ) {
                     laminationPriceSizeInput.val(selectedValue);
+                } else if (!selectedValue) {
+                    laminationPriceSizeInput.val('');
                 }
 
                 toggleCustomWidth('lamination');
