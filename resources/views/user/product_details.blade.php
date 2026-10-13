@@ -980,16 +980,6 @@
 
                             <div class="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-5">
 
-                                <!-- =========================
-                                                                                                    INFORMASI
-                                                                                                ========================= -->
-
-                                <div class="sm:col-span-2">
-                                    <h4 class="text-sm font-semibold text-zinc-900 dark:text-white mb-3">
-                                        Informasi
-                                    </h4>
-                                </div>
-
                                 {{-- Pilihan lokasi disembunyikan sementara, estimator dikunci ke lokasi Purwakarta.
                                 <div>
                                     <label for="location_id"
@@ -1048,18 +1038,10 @@
                                     </select>
                                 </div>
 
-                                <div>
-                                    <label for="price_type"
-                                        class="block text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1.5">
-                                        Jenis Harga
-                                        <span class="text-red-500">*</span>
-                                    </label>
-
+                                <div hidden>
                                     <select id="price_type" name="price_type" required
                                         class="estimator-choice-source">
-                                        <option value="">Pilih jenis harga...</option>
-                                        <option value="general">Harga Umum</option>
-                                        <option value="division">Harga Divisi</option>
+                                        <option value="general" selected>Harga Umum</option>
                                     </select>
                                 </div>
 
@@ -2045,7 +2027,6 @@
             [
                 locationSelect,
                 vendorSelect,
-                $('#price_type'),
                 materialSelect,
                 materialSizeSelect,
                 laminationSelect,
