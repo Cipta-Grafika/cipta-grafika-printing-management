@@ -1082,6 +1082,58 @@
                 width: 100%;
             }
         }
+        .nav-action {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            width: 40px;
+            height: 40px;
+            border: 1px solid rgba(161, 161, 170, .25);
+            border-radius: 14px;
+            background: rgba(255, 255, 255, .8);
+            color: #52525b;
+            box-shadow: 0 2px 8px rgba(15, 23, 42, .05);
+            transition: background-color .2s, border-color .2s, color .2s, box-shadow .2s, transform .2s;
+        }
+
+        .dark .nav-action {
+            background: rgba(255, 255, 255, .06);
+            border-color: rgba(255, 255, 255, .16);
+            color: #e2e8f0;
+        }
+
+        .nav-action:hover,
+        .nav-action:focus-visible {
+            background: rgba(194, 168, 87, .12);
+            border-color: #c2a857;
+            color: #9f873f;
+            box-shadow: 0 4px 12px rgba(194, 168, 87, .15);
+        }
+
+        .dark .nav-action:hover,
+        .dark .nav-action:focus-visible {
+            color: #e3cc85;
+        }
+
+        .nav-action:focus-visible {
+            outline: 2px solid #c2a857;
+            outline-offset: 3px;
+        }
+
+        .nav-action:active {
+            transform: scale(.95);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .nav-action {
+                transition: none;
+            }
+
+            .nav-action:active {
+                transform: none;
+            }
+        }
     </style>
 </head>
 
@@ -1113,28 +1165,23 @@
                 <div class="flex items-center gap-3">
                     <!-- CART -->
                     <a href="{{ route('user_baskets') }}"
-                        class="relative
-                  w-9 h-9
-                  flex items-center justify-center
-                  rounded-full
-                  border border-zinc-200
-                  dark:border-zinc-800
-                  text-zinc-700
-                  dark:text-zinc-300
-                  hover:bg-zinc-100
-                  dark:hover:bg-zinc-900
-                  hover:text-zinc-900
-                  dark:hover:text-white
-                  transition-colors"
-                        aria-label="Keranjang">
+                        class="nav-action"
+                        aria-label="Keranjang" title="Keranjang">
 
-                        <i class="bi bi-cart"></i>
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M3 3h2l2.4 12h11.2l2-8H6M9 19h.01M17 19h.01" />
+                            <circle cx="9" cy="19" r="1.5" />
+                            <circle cx="17" cy="19" r="1.5" />
+                        </svg>
 
                     </a>
 
                     <!-- dark toggle -->
-                    <button @click="dark=!dark"
-                        class="w-9 h-9 flex items-center justify-center rounded-full border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors"
+                    <button type="button" @click="dark=!dark"
+                        class="nav-action"
+                        :title="dark ? 'Aktifkan tema terang' : 'Aktifkan tema gelap'"
                         :aria-label="dark ? 'Light mode' : 'Dark mode'">
                         <svg x-show="!dark" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor" aria-hidden="true">
@@ -1188,27 +1235,22 @@
                 <div class="flex items-center gap-3">
                     <!-- CART -->
                     <a href="{{ route('user_baskets') }}"
-                        class="relative
-                  w-9 h-9
-                  flex items-center justify-center
-                  rounded-full
-                  border border-zinc-200
-                  dark:border-zinc-800
-                  text-zinc-700
-                  dark:text-zinc-300
-                  hover:bg-zinc-100
-                  dark:hover:bg-zinc-800
-                  hover:text-zinc-900
-                  dark:hover:text-white
-                  transition-colors"
-                        aria-label="Keranjang">
+                        class="nav-action"
+                        aria-label="Keranjang" title="Keranjang">
 
-                        <i class="bi bi-cart"></i>
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M3 3h2l2.4 12h11.2l2-8H6M9 19h.01M17 19h.01" />
+                            <circle cx="9" cy="19" r="1.5" />
+                            <circle cx="17" cy="19" r="1.5" />
+                        </svg>
 
                     </a>
 
-                    <button @click="dark=!dark"
-                        class="w-9 h-9 flex items-center justify-center rounded-full border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+                    <button type="button" @click="dark=!dark"
+                        class="nav-action"
+                        :title="dark ? 'Aktifkan tema terang' : 'Aktifkan tema gelap'"
                         :aria-label="dark ? 'Light mode' : 'Dark mode'">
                         <svg x-show="!dark" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none"
                             viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">

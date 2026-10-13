@@ -182,10 +182,16 @@
                                 rounded-2xl
                                 overflow-hidden
                                 border
-                                border-zinc-200
+                                border-zinc-200/80
                                 dark:border-zinc-800
                                 bg-white
-                                dark:bg-zinc-950
+                                dark:bg-zinc-900
+                                shadow-sm
+                                hover:-translate-y-1
+                                hover:border-accent
+                                hover:shadow-xl
+                                hover:shadow-zinc-900/10
+                                dark:hover:shadow-black/30
                                 transition-all
                                 duration-300">
 

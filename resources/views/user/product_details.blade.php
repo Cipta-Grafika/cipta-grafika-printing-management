@@ -538,7 +538,11 @@
 
                                             <span
                                                 class="w-11 h-11 rounded-full flex items-center justify-center bg-green-500 text-white font-bold">
-                                                WA
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6"
+                                                    viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                                    <path
+                                                        d="M20.52 3.48A11.9 11.9 0 0012.05 0C5.5 0 .17 5.33.17 11.88c0 2.09.55 4.13 1.59 5.93L.07 24l6.34-1.66a11.9 11.9 0 005.64 1.43h.01c6.55 0 11.88-5.33 11.88-11.88 0-3.17-1.24-6.15-3.42-8.41zM12.06 21.76a9.86 9.86 0 01-5.03-1.38l-.36-.21-3.76.99 1-3.66-.24-.38a9.85 9.85 0 01-1.51-5.24c0-5.44 4.43-9.87 9.9-9.87a9.8 9.8 0 016.98 2.9 9.8 9.8 0 012.9 6.98c0 5.45-4.43 9.87-9.88 9.87zm5.42-7.39c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.16-.17.2-.35.22-.65.07-.3-.15-1.25-.46-2.38-1.47-.88-.78-1.48-1.75-1.65-2.05-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.18.2-.3.3-.5.1-.2.05-.37-.03-.52-.07-.15-.67-1.61-.91-2.2-.24-.58-.48-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.06 2.88 1.21 3.08c.15.2 2.09 3.19 5.06 4.47.71.31 1.26.49 1.69.63.71.22 1.36.19 1.87.11.57-.08 1.76-.72 2.01-1.42.25-.69.25-1.29.17-1.41-.07-.13-.27-.2-.57-.35z" />
+                                                </svg>
                                             </span>
 
                                             <span>WhatsApp</span>
@@ -551,7 +555,11 @@
 
                                             <span
                                                 class="w-11 h-11 rounded-full flex items-center justify-center bg-blue-600 text-white text-xl font-bold">
-                                                f
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6"
+                                                    viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                                    <path
+                                                        d="M13.5 22v-9h3l.5-4h-3.5V6.5c0-1.16.32-1.95 2-1.95h1.75V1.2A23.3 23.3 0 0014.7 1C11.9 1 10 2.7 10 5.8V9H7v4h3v9h3.5z" />
+                                                </svg>
                                             </span>
 
                                             <span>Facebook</span>
@@ -564,7 +572,11 @@
 
                                             <span
                                                 class="w-11 h-11 rounded-full flex items-center justify-center bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 font-bold text-lg">
-                                                X
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5"
+                                                    viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                                    <path
+                                                        d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.64 7.584H.47l8.6-9.835L0 1.154h7.594l5.243 6.932 6.064-6.933zm-1.29 19.49h2.039L6.487 3.24H4.3l13.31 17.403z" />
+                                                </svg>
                                             </span>
 
                                             <span>X</span>
@@ -577,7 +589,11 @@
 
                                             <span
                                                 class="w-11 h-11 rounded-full flex items-center justify-center bg-sky-500 text-white text-xl">
-                                                ✈
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6"
+                                                    viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                                    <path
+                                                        d="M21.8 2.6L2.4 10.1c-1.3.5-1.3 1.2-.2 1.6l5 1.6 1.9 5.8c.2.6.1.8.7.8.5 0 .7-.2 1-.5l2.4-2.3 5 3.7c.9.5 1.5.3 1.7-.8l3.2-15.2c.3-1.4-.5-2-1.3-1.7zM8 12.9l11.6-7.3c.6-.4 1.1-.2.7.2L10.7 14l-.4 4.2L8 12.9z" />
+                                                </svg>
                                             </span>
 
                                             <span>Telegram</span>
@@ -590,7 +606,14 @@
 
                                             <span
                                                 class="w-11 h-11 rounded-full flex items-center justify-center bg-green-600 text-white font-bold text-xl">
-                                                L
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7"
+                                                    viewBox="0 0 24 24" aria-hidden="true">
+                                                    <path fill="currentColor"
+                                                        d="M12 2C5.9 2 1 5.8 1 10.5c0 4.2 3.9 7.7 9.1 8.4.4.1.9.3 1 .6.1.3.1.7 0 1l-.2 1.2c-.1.4-.3 1.5 1.1.9 1.5-.6 8-4.7 10-8.1 1.3-2 1-3.3 1-4C23 5.8 18.1 2 12 2z" />
+                                                    <path fill="none" stroke="#16a34a" stroke-width="1.2"
+                                                        stroke-linecap="round" stroke-linejoin="round"
+                                                        d="M5.5 7.8v4.4h2.3m1.8-4.4v4.4m2.1 0V7.8l3 4.4V7.8m4.1 0h-2v4.4h2m-2-2.2h1.7" />
+                                                </svg>
                                             </span>
 
                                             <span>LINE</span>
@@ -603,7 +626,11 @@
 
                                             <span
                                                 class="w-11 h-11 rounded-full flex items-center justify-center bg-red-600 text-white font-bold text-lg">
-                                                P
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6"
+                                                    viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                                    <path
+                                                        d="M12 0a12 12 0 00-4.37 23.18c-.06-1.02-.01-2.24.25-3.4l1.54-6.52s-.38-.77-.38-1.9c0-1.78 1.03-3.11 2.31-3.11 1.09 0 1.61.82 1.61 1.8 0 1.1-.7 2.74-1.06 4.26-.3 1.27.64 2.31 1.89 2.31 2.27 0 4.02-2.4 4.02-5.86 0-3.06-2.2-5.2-5.34-5.2-3.64 0-5.78 2.73-5.78 5.55 0 1.1.42 2.28.95 2.92.1.13.12.24.09.37l-.35 1.37c-.06.22-.18.27-.42.16-1.57-.73-2.55-3.01-2.55-4.84 0-3.94 2.86-7.56 8.26-7.56 4.33 0 7.7 3.09 7.7 7.22 0 4.3-2.71 7.76-6.48 7.76-1.26 0-2.45-.66-2.86-1.43l-.78 2.98c-.28 1.09-1.05 2.45-1.56 3.28A12 12 0 1012 0z" />
+                                                </svg>
                                             </span>
 
                                             <span>Pinterest</span>
@@ -616,7 +643,13 @@
 
                                             <span
                                                 class="w-11 h-11 rounded-full flex items-center justify-center bg-red-500 text-white font-bold">
-                                                &#64;
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6"
+                                                    viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                    stroke-width="1.8" aria-hidden="true">
+                                                    <rect x="3" y="5" width="18" height="14" rx="2" />
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        d="m3 7 9 6 9-6" />
+                                                </svg>
                                             </span>
 
                                             <span>Email</span>
