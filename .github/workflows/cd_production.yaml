@@ -1,0 +1,98 @@
+name: Continuous Deployment Production
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+# Cegah dua deploy berjalan bersamaan jika ada push beruntun
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to VPS (pwk.ciptaoffice.com)
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          port: 22
+          command_timeout: 20m
+          script: |
+            # Hentikan eksekusi script jika ada perintah yang error
+            set -e
+
+            APP_DIR=/var/www/cipta-grafika-printing-management
+            PHP=/usr/bin/php8.2
+            COMPOSER="$(command -v composer)"
+
+            echo "Memulai proses deployment ke server..."
+            cd "$APP_DIR"
+
+            # Perbaiki error Git "dubious ownership"
+            git config --global --add safe.directory "$APP_DIR"
+
+            # 0. Mode maintenance selama deploy
+            $PHP artisan down --retry=15 || true
+
+            # Pastikan aplikasi kembali online walaupun deploy gagal di tengah jalan
+            trap '$PHP artisan up || true' EXIT
+
+            # 1. Tarik pembaruan kode terbaru dari branch main
+            # Catatan: reset --hard tidak menghapus file untracked (gambar upload di public/images aman),
+            # tetapi akan MENIMPA perubahan kode yang diedit langsung di VPS.
+            echo "Pulling latest code from main..."
+            git checkout main
+            git fetch origin main
+            git reset --hard origin/main
+
+            # 2. Install dependensi PHP (Composer) secara eksplisit dengan PHP 8.2
+            echo "Installing composer dependencies..."
+            $PHP "$COMPOSER" install --no-interaction --prefer-dist --optimize-autoloader --no-dev
+
+            # 3. Setup NVM & build aset frontend (hanya jika project memakai npm/Vite)
+            if [ -f package.json ]; then
+              echo "Installing npm dependencies & building assets..."
+              export NVM_DIR="$HOME/.nvm"
+              [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+              export PATH=$PATH:/usr/local/bin:/usr/bin
+
+              if [ -f package-lock.json ]; then npm ci; else npm install; fi
+              npm run build
+            fi
+
+            # 4. Jalankan migrasi database
+            # --force hanya melewati konfirmasi "Are you sure?" di production, TIDAK me-reset database.
+            echo "Running database migrations..."
+            $PHP artisan migrate --force --no-interaction
+
+            # 5. Bersihkan dan bangun ulang cache Laravel
+            echo "Optimizing Laravel cache..."
+            $PHP artisan optimize:clear
+            $PHP artisan optimize
+
+            # 6. Kembalikan permission (artisan dijalankan sebagai root, file baru harus bisa ditulis www-data)
+            echo "Fixing permissions..."
+            mkdir -p public/images/display public/images/gallery-samples public/temporary-files
+            chgrp -R www-data storage bootstrap/cache public/images public/temporary-files
+            find storage bootstrap/cache -type d -exec chmod 2770 {} \;
+            find storage bootstrap/cache -type f -exec chmod 660 {} \;
+            chmod -R 775 public/images public/temporary-files
+
+            # 7. Clear PHP OPcache (hanya PHP 8.2 — jangan reload versi lain)
+            echo "Reloading PHP-FPM to clear OPcache..."
+            systemctl reload php8.2-fpm
+
+            # 8. Queue worker (aktifkan jika nanti project memakai PM2 worker)
+            # pm2 restart cipta-grafika-worker || true
+
+            # 9. Keluar dari mode maintenance (juga dijamin oleh trap EXIT di atas)
+            $PHP artisan up
+
+            echo "Deployment completed successfully!"
