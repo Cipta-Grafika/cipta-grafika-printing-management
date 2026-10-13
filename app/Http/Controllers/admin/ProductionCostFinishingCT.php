@@ -8,8 +8,10 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use App\Exports\ProductionCostFinishingsExport;
+use App\Exports\DigitalProductionCostsExport;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\ProductionCostFinishingsImport;
+use App\Support\ProductionCostFinishingMarkup;
 use Exception;
 
 class ProductionCostFinishingCT extends Controller
@@ -619,6 +621,14 @@ class ProductionCostFinishingCT extends Controller
 
     public function data(Request $request)
     {
+        $validated = $request->validate([
+            'pricing_engine' => ['nullable', 'in:large_format,digital_print_a3'],
+        ]);
+
+        if (($validated['pricing_engine'] ?? 'large_format') === 'digital_print_a3') {
+            return $this->dataDigital($request);
+        }
+
         /*
     |--------------------------------------------------------------------------
     | TOTAL SEMUA ENGINE
@@ -756,11 +766,215 @@ class ProductionCostFinishingCT extends Controller
         ]);
     }
 
+    private function dataDigital(Request $request)
+    {
+        $query = DB::table('m_digital_production_costs as pc')
+            ->join('m_engines as e', 'e.id', '=', 'pc.engine_id')
+            ->join('m_locations as l', 'l.id', '=', 'pc.location_id')
+            ->leftJoin('m_vendors as v', 'v.id', '=', 'pc.vendor_id')
+            ->leftJoin('m_digital_production_cost_details as pcd', 'pcd.digital_production_cost_id', '=', 'pc.id')
+            ->whereRaw('LOWER(TRIM(e.name)) = ?', ['digital print a3+'])
+            ->select(
+                'pc.id as digital_production_cost_id',
+                'e.id as engine_id',
+                'e.name as engine_name',
+                'l.name as location_names',
+                'v.name as vendor_name',
+                DB::raw('COUNT(DISTINCT pcd.material_id) as material_count'),
+                DB::raw("'digital_print_a3' as pricing_engine")
+            )
+            ->groupBy('pc.id', 'e.id', 'e.name', 'l.name', 'v.name');
+
+        $totalRecords = (clone $query)->get()->count();
+
+        $search = $request->input('search.value');
+
+        if (!empty($search)) {
+            $search = '%' . strtolower($search) . '%';
+
+            $query->where(function ($q) use ($search) {
+                $q->whereRaw('LOWER(e.name) LIKE ?', [$search])
+                    ->orWhereRaw('LOWER(l.name) LIKE ?', [$search])
+                    ->orWhereRaw('LOWER(v.name) LIKE ?', [$search]);
+            });
+        }
+
+        $totalFiltered = (clone $query)->get()->count();
+
+        $data = $query
+            ->orderBy('e.name', 'asc')
+            ->orderBy('l.name', 'asc')
+            ->orderBy('v.name', 'asc')
+            ->offset((int) $request->input('start', 0))
+            ->limit((int) $request->input('length', 10))
+            ->get();
+
+        return response()->json([
+            'draw' => (int) $request->input('draw'),
+            'recordsTotal' => $totalRecords,
+            'recordsFiltered' => $totalFiltered,
+            'data' => $data,
+        ]);
+    }
+
+    public function detailsDigital($id)
+    {
+        $productionCostId = base64_decode($id, true);
+
+        if ($productionCostId === false || !ctype_digit($productionCostId)) {
+            abort(404);
+        }
+
+        $productionCost = DB::table('m_digital_production_costs as pc')
+            ->join('m_engines as e', 'e.id', '=', 'pc.engine_id')
+            ->join('m_locations as l', 'l.id', '=', 'pc.location_id')
+            ->leftJoin('m_vendors as v', 'v.id', '=', 'pc.vendor_id')
+            ->where('pc.id', (int) $productionCostId)
+            ->whereRaw('LOWER(TRIM(e.name)) = ?', ['digital print a3+'])
+            ->select(
+                'pc.id',
+                'e.name as engine_name',
+                'l.name as location_name',
+                'v.name as vendor_name'
+            )
+            ->first();
+
+        if (!$productionCost) {
+            abort(404);
+        }
+
+        $details = DB::table('m_digital_production_cost_details as d')
+            ->join('m_materials as m', 'm.id', '=', 'd.material_id')
+            ->join('m_categories as c', 'c.id', '=', 'm.category_id')
+            ->where('d.digital_production_cost_id', $productionCost->id)
+            ->select(
+                'd.id',
+                'd.material_id',
+                'm.material_name',
+                'c.id as category_id',
+                'c.name as category_name',
+                'd.paper_cost',
+                'd.click_cost',
+                'd.single_print_cost',
+                'd.double_print_cost'
+            )
+            ->orderBy('c.name')
+            ->orderBy('m.material_name')
+            ->get();
+
+        $prices = DB::table('m_digital_production_cost_prices')
+            ->whereIn('digital_production_cost_detail_id', $details->pluck('id'))
+            ->select(
+                'digital_production_cost_detail_id',
+                'price_type',
+                'print_type',
+                'quantity_tier',
+                'markup_percentage',
+                'selling_price'
+            )
+            ->get()
+            ->groupBy('digital_production_cost_detail_id');
+
+        $tierLabels = [
+            'tier_1' => '1 lbr',
+            'tier_2_5' => '2-5 lbr',
+            'tier_6_50' => '6-50 lbr',
+            'tier_100' => '100 lbr',
+            'tier_300' => '300 lbr',
+            'tier_500' => '500 lbr',
+        ];
+
+        $priceGroups = [
+            'general_single' => ['general', 'single', 'Harga Umum · Print 1 Muka'],
+            'general_double' => ['general', 'double', 'Harga Umum · Print 2 Muka'],
+            'division_single' => ['division', 'single', 'Harga Divisi · Print 1 Muka'],
+            'division_double' => ['division', 'double', 'Harga Divisi · Print 2 Muka'],
+        ];
+
+        $materialSizes = DB::table('m_material_sizes')
+            ->whereIn('material_id', $details->pluck('material_id')->unique()->values())
+            ->orderBy('id')
+            ->get()
+            ->groupBy('material_id');
+
+        $formatNumber = function ($value) {
+            return rtrim(rtrim(number_format((float) $value, 2, '.', ''), '0'), '.');
+        };
+
+        $details->each(function ($detail) use ($prices, $priceGroups, $tierLabels, $materialSizes, $formatNumber) {
+            $detailPrices = ($prices->get($detail->id) ?? collect())->keyBy(function ($price) {
+                return $price->price_type . '|' . $price->print_type . '|' . $price->quantity_tier;
+            });
+
+            $detail->size_label = ($materialSizes->get($detail->material_id) ?? collect())
+                ->map(function ($size) use ($formatNumber) {
+                    return $formatNumber($size->width) . ' x ' . $formatNumber($size->length) . ' ' . $size->unit;
+                })
+                ->implode(', ');
+
+            $detail->prices = [];
+
+            foreach ($priceGroups as $groupKey => [$priceType, $printType]) {
+                foreach (array_keys($tierLabels) as $tier) {
+                    $detail->prices[$groupKey][$tier] = $detailPrices->get($priceType . '|' . $printType . '|' . $tier);
+                }
+            }
+        });
+
+        $data['productionCost'] = $productionCost;
+        $data['tierLabels'] = $tierLabels;
+        $data['priceGroups'] = collect($priceGroups)->map(function ($group) {
+            return $group[2];
+        });
+        $data['categories'] = $details
+            ->groupBy('category_id')
+            ->map(function ($categoryDetails) use ($priceGroups, $tierLabels, $formatNumber) {
+                // Markup per tier sama untuk satu kategori karena berasal dari pricing rule yang sama.
+                $markups = [];
+
+                foreach (array_keys($priceGroups) as $groupKey) {
+                    foreach (array_keys($tierLabels) as $tier) {
+                        $price = $categoryDetails
+                            ->map(function ($detail) use ($groupKey, $tier) {
+                                return $detail->prices[$groupKey][$tier];
+                            })
+                            ->filter()
+                            ->first();
+
+                        $markups[$groupKey][$tier] = $price ? $formatNumber($price->markup_percentage) . '%' : '-';
+                    }
+                }
+
+                return (object) [
+                    'category_name' => $categoryDetails->first()->category_name,
+                    'markups' => $markups,
+                    'details' => $categoryDetails->values(),
+                ];
+            })
+            ->values();
+
+        return view('admin.production-cost-finishing.details-digital')->with($data);
+    }
+
     public function create()
     {
         $data['engines'] = DB::table('m_engines')->where('status', 'Active')->orderBy('name')->get();
         $data['locations'] = DB::table('m_locations')->where('status', 'Active')->orderBy('name')->get();
-        $data['materials'] = DB::table('m_materials as a')
+        $pricingCategories = DB::table('m_pricing_rules as pr')
+            ->join('m_engines as e', 'pr.engine_id', '=', 'e.id')
+            ->whereRaw('LOWER(TRIM(e.name)) = ?', ['large format'])
+            ->select('pr.engine_id', 'pr.category_id')
+            ->union(
+                DB::table('m_digital_pricing_rules as pr')
+                    ->join('m_engines as e', 'pr.engine_id', '=', 'e.id')
+                    ->whereRaw('LOWER(TRIM(e.name)) = ?', ['digital print a3+'])
+                    ->select('pr.engine_id', 'pr.category_id')
+            );
+
+        $data['materialsByEngine'] = DB::table('m_materials as a')
+            ->joinSub($pricingCategories, 'pricing_categories', function ($join) {
+                $join->on('a.category_id', '=', 'pricing_categories.category_id');
+            })
             ->leftJoin(
                 'm_categories as b',
                 'a.category_id',
@@ -768,6 +982,7 @@ class ProductionCostFinishingCT extends Controller
                 'b.id'
             )
             ->select(
+                'pricing_categories.engine_id',
                 'a.id',
                 'a.material_name',
                 'b.name as category_name'
@@ -775,7 +990,8 @@ class ProductionCostFinishingCT extends Controller
             ->distinct()
             ->where('a.status', 'Active')
             ->orderBy('a.material_name')
-            ->get();
+            ->get()
+            ->groupBy('engine_id');
 
         $data['vendors'] = DB::table('m_vendors')
             ->where('status', 'Active')
@@ -787,6 +1003,11 @@ class ProductionCostFinishingCT extends Controller
 
     public function store(Request $request)
     {
+        // Digital Print A3+ memiliki alur penyimpanan sendiri agar logika Large Format tidak tersentuh.
+        if ($this->hasDigitalPrintConfiguration($request)) {
+            return $this->storeDigital($request);
+        }
+
         $request->validate([
             'configurations' => 'required|array|min:1',
             'configurations.*.engine_id' =>
@@ -1438,7 +1659,13 @@ class ProductionCostFinishingCT extends Controller
                             */
 
                             $generalMarkup =
-                                (float) $generalRule->markup_percentage;
+                                ProductionCostFinishingMarkup::general(
+                                    $engines->get($engineId)->name,
+                                    $locations->get($locationId)->name,
+                                    $material->category_name,
+                                    $material->material_name,
+                                    (float) $generalRule->markup_percentage
+                                );
 
                             $generalRounding =
                                 $generalRule->rounding_value;
@@ -1667,7 +1894,13 @@ class ProductionCostFinishingCT extends Controller
                             */
 
                             $generalMarkup =
-                                (float) $generalRule->markup_percentage;
+                                ProductionCostFinishingMarkup::general(
+                                    $engines->get($engineId)->name,
+                                    $locations->get($locationId)->name,
+                                    $material->category_name,
+                                    $material->material_name,
+                                    (float) $generalRule->markup_percentage
+                                );
 
                             $generalRounding =
                                 $generalRule->rounding_value;
@@ -2160,6 +2393,861 @@ class ProductionCostFinishingCT extends Controller
         }
     }
 
+    private function hasDigitalPrintConfiguration(Request $request)
+    {
+        $configurations = $request->input('configurations');
+
+        if (!is_array($configurations)) {
+            return false;
+        }
+
+        $engineIds = collect($configurations)
+            ->map(function ($configuration) {
+                return is_array($configuration) ? ($configuration['engine_id'] ?? null) : null;
+            })
+            ->filter(function ($engineId) {
+                return is_numeric($engineId);
+            })
+            ->map(function ($engineId) {
+                return (int) $engineId;
+            })
+            ->unique()
+            ->values();
+
+        if ($engineIds->isEmpty()) {
+            return false;
+        }
+
+        return DB::table('m_engines')
+            ->whereIn('id', $engineIds)
+            ->whereRaw('LOWER(TRIM(name)) = ?', ['digital print a3+'])
+            ->exists();
+    }
+
+    private function storeDigital(Request $request)
+    {
+        $nonDigitalEngineExists = DB::table('m_engines')
+            ->whereIn('id', collect($request->input('configurations'))
+                ->pluck('engine_id')
+                ->filter(function ($engineId) {
+                    return is_numeric($engineId);
+                })
+                ->map(function ($engineId) {
+                    return (int) $engineId;
+                })
+                ->unique()
+                ->values())
+            ->whereRaw('LOWER(TRIM(name)) != ?', ['digital print a3+'])
+            ->exists();
+
+        if ($nonDigitalEngineExists) {
+            return response()->json([
+                'success' => false,
+                'type' => 'warning',
+                'message' => 'Konfigurasi Digital Print A3+ harus disimpan terpisah dari konfigurasi mesin lain.'
+            ], 422);
+        }
+
+        $request->validate([
+            'configurations' => 'required|array|min:1',
+            'configurations.*.engine_id' => 'required|integer|exists:m_engines,id',
+            'configurations.*.location_ids' => 'required|array|min:1',
+            'configurations.*.location_ids.*' => 'required|integer|exists:m_locations,id',
+            'configurations.*.vendor_id' => 'nullable|integer|exists:m_vendors,id',
+            'configurations.*.items' => 'required|array|min:1',
+            'configurations.*.items.*.material_id' => 'required|integer|exists:m_materials,id',
+            'configurations.*.items.*.unit_price' => 'required|string|max:20',
+            'configurations.*.items.*.click_price' => 'required|string|max:20',
+        ], [
+            'configurations.*.items.*.unit_price.required' => 'Harga Satuan wajib diisi.',
+            'configurations.*.items.*.click_price.required' => 'Harga Klik wajib diisi.',
+        ]);
+
+        $parseRupiah = function ($value) {
+            $digits = preg_replace('/\D/', '', (string) $value);
+
+            return $digits === '' ? null : (float) $digits;
+        };
+
+        // Dibulatkan ke 6 desimal dahulu untuk menghindari error floating point sebelum ceil.
+        $ceilToInteger = function ($value) {
+            return ceil(round($value, 6));
+        };
+
+        $roundUpToMultiple = function ($value, $rounding) {
+            if ($rounding === null || (float) $rounding <= 0) {
+                return $value;
+            }
+
+            $rounding = (float) $rounding;
+
+            return ceil(round($value / $rounding, 6)) * $rounding;
+        };
+
+        $priceTypes = ['general', 'division'];
+        $printTypes = ['single', 'double'];
+        $quantityTiers = ['tier_1', 'tier_2_5', 'tier_6_50', 'tier_100', 'tier_300', 'tier_500'];
+
+        $engines = DB::table('m_engines')->get()->keyBy('id');
+        $locations = DB::table('m_locations')->get()->keyBy('id');
+        $vendors = DB::table('m_vendors')->where('status', 'Active')->get()->keyBy('id');
+        $materials = DB::table('m_materials as m')
+            ->join('m_categories as c', 'm.category_id', '=', 'c.id')
+            ->select('m.id', 'm.category_id', 'm.material_name', 'c.name as category_name')
+            ->get()
+            ->keyBy('id');
+
+        $userName = Auth::user()->name;
+        $headers = [];
+        $usedKeys = [];
+
+        foreach ($request->input('configurations') as $configurationIndex => $configuration) {
+            $prefix = 'configurations.' . $configurationIndex;
+            $engineId = (int) $configuration['engine_id'];
+            $engine = $engines->get($engineId);
+
+            if (!$engine || strtolower(trim($engine->name)) !== 'digital print a3+') {
+                throw ValidationException::withMessages([
+                    $prefix . '.engine_id' =>
+                    'Konfigurasi Digital Print A3+ harus disimpan terpisah dari konfigurasi mesin lain.'
+                ]);
+            }
+
+            $locationIds = array_map('intval', $configuration['location_ids']);
+
+            if (count($locationIds) !== count(array_unique($locationIds))) {
+                throw ValidationException::withMessages([
+                    $prefix . '.location_ids' => 'Lokasi tidak boleh dipilih lebih dari satu kali.'
+                ]);
+            }
+
+            $isOutsourcing = collect($locationIds)->contains(function ($locationId) use ($locations) {
+                return strtolower(trim($locations->get($locationId)->name)) === 'outsourcing';
+            });
+
+            if ($isOutsourcing && count($locationIds) > 1) {
+                throw ValidationException::withMessages([
+                    $prefix . '.location_ids' =>
+                    'Lokasi Outsourcing tidak dapat digabung dengan lokasi lain.'
+                ]);
+            }
+
+            $vendorId = null;
+
+            if ($isOutsourcing) {
+                $vendorId = $configuration['vendor_id'] ?? null;
+
+                if ($vendorId === null || $vendorId === '') {
+                    throw ValidationException::withMessages([
+                        $prefix . '.vendor_id' =>
+                        'Master Vendor wajib dipilih untuk lokasi Outsourcing.'
+                    ]);
+                }
+
+                $vendorId = (int) $vendorId;
+
+                if (!$vendors->has($vendorId)) {
+                    throw ValidationException::withMessages([
+                        $prefix . '.vendor_id' =>
+                        'Master Vendor tidak ditemukan atau tidak aktif.'
+                    ]);
+                }
+            }
+
+            foreach ($locationIds as $locationId) {
+                $location = $locations->get($locationId);
+                $vendorName = $vendorId ? ' - ' . $vendors->get($vendorId)->name : '';
+                $scopeLabel = $location->name . $vendorName;
+                $headerKey = $engineId . '|' . $locationId . '|' . ($vendorId ?? 'null');
+
+                if (!isset($headers[$headerKey])) {
+                    $headers[$headerKey] = [
+                        'engine_id' => $engineId,
+                        'location_id' => $locationId,
+                        'vendor_id' => $vendorId,
+                        'details' => [],
+                    ];
+                }
+
+                foreach ($configuration['items'] as $itemIndex => $item) {
+                    $itemPrefix = $prefix . '.items.' . $itemIndex;
+                    $material = $materials->get((int) $item['material_id']);
+
+                    if (!$material) {
+                        throw ValidationException::withMessages([
+                            $itemPrefix . '.material_id' => 'Material tidak ditemukan.'
+                        ]);
+                    }
+
+                    $materialKey = $headerKey . '|' . $material->id;
+
+                    if (isset($usedKeys[$materialKey])) {
+                        throw ValidationException::withMessages([
+                            $itemPrefix . '.material_id' =>
+                            'Material "' . $material->material_name . '" dipilih lebih dari satu kali untuk lokasi ' .
+                                $scopeLabel . '.'
+                        ]);
+                    }
+
+                    $usedKeys[$materialKey] = true;
+
+                    $paperCost = $parseRupiah($item['unit_price']);
+                    $clickCost = $parseRupiah($item['click_price']);
+
+                    if ($paperCost === null || $paperCost <= 0) {
+                        throw ValidationException::withMessages([
+                            $itemPrefix . '.unit_price' =>
+                            'Harga Satuan material "' . $material->material_name . '" harus berupa angka lebih dari 0.'
+                        ]);
+                    }
+
+                    if ($clickCost === null || $clickCost <= 0) {
+                        throw ValidationException::withMessages([
+                            $itemPrefix . '.click_price' =>
+                            'Harga Klik material "' . $material->material_name . '" harus berupa angka lebih dari 0.'
+                        ]);
+                    }
+
+                    if ($paperCost > 9999999999.99 || $clickCost > 9999999999.99) {
+                        throw ValidationException::withMessages([
+                            $itemPrefix . '.unit_price' =>
+                            'Harga material "' . $material->material_name . '" melebihi batas maksimum.'
+                        ]);
+                    }
+
+                    $existingDetail = DB::table('m_digital_production_cost_details as d')
+                        ->join('m_digital_production_costs as h', 'd.digital_production_cost_id', '=', 'h.id')
+                        ->where('h.engine_id', $engineId)
+                        ->where('h.location_id', $locationId)
+                        ->where(function ($query) use ($vendorId) {
+                            if ($vendorId === null) {
+                                $query->whereNull('h.vendor_id');
+                            } else {
+                                $query->where('h.vendor_id', $vendorId);
+                            }
+                        })
+                        ->where('d.material_id', $material->id)
+                        ->exists();
+
+                    if ($existingDetail) {
+                        throw ValidationException::withMessages([
+                            $itemPrefix . '.material_id' =>
+                            'Ongkos produksi material "' . $material->material_name . '" untuk lokasi ' .
+                                $scopeLabel . ' sudah ada.'
+                        ]);
+                    }
+
+                    $pricingRuleDetails = DB::table('m_digital_pricing_rules as r')
+                        ->join('m_digital_pricing_rule_details as d', 'd.digital_pricing_rule_id', '=', 'r.id')
+                        ->where('r.engine_id', $engineId)
+                        ->where('r.location_id', $locationId)
+                        ->where('r.category_id', $material->category_id)
+                        ->where(function ($query) use ($vendorId) {
+                            if ($vendorId === null) {
+                                $query->whereNull('r.vendor_id');
+                            } else {
+                                $query->where('r.vendor_id', $vendorId);
+                            }
+                        })
+                        ->where('d.status', 'Active')
+                        ->select(
+                            'd.id',
+                            'd.price_type',
+                            'd.print_type',
+                            'd.quantity_tier',
+                            'd.minimum_quantity',
+                            'd.maximum_quantity',
+                            'd.markup_percentage',
+                            'd.rounding_value'
+                        )
+                        ->get()
+                        ->keyBy(function ($detail) {
+                            return $detail->price_type . '|' . $detail->print_type . '|' . $detail->quantity_tier;
+                        });
+
+                    $missingRules = [];
+
+                    foreach ($priceTypes as $priceType) {
+                        foreach ($printTypes as $printType) {
+                            foreach ($quantityTiers as $quantityTier) {
+                                if (!$pricingRuleDetails->has($priceType . '|' . $printType . '|' . $quantityTier)) {
+                                    $missingRules[] = $priceType . ' ' . $printType . ' ' . $quantityTier;
+                                }
+                            }
+                        }
+                    }
+
+                    if (!empty($missingRules)) {
+                        throw ValidationException::withMessages([
+                            $itemPrefix . '.material_id' =>
+                            'Pricing rule Digital Print A3+ untuk kategori "' . $material->category_name .
+                                '" di lokasi ' . $scopeLabel . ' belum ada atau belum lengkap (' .
+                                (24 - count($missingRules)) . '/24 tier aktif).'
+                        ]);
+                    }
+
+                    $singlePrintCost = $paperCost + $clickCost;
+                    $doublePrintCost = $clickCost + $singlePrintCost;
+                    $costs = [
+                        'single' => $singlePrintCost,
+                        'double' => $doublePrintCost,
+                    ];
+
+                    $prices = [];
+
+                    foreach ($printTypes as $printType) {
+                        foreach ($quantityTiers as $quantityTier) {
+                            $generalRule = $pricingRuleDetails->get('general|' . $printType . '|' . $quantityTier);
+                            $divisionRule = $pricingRuleDetails->get('division|' . $printType . '|' . $quantityTier);
+                            $cost = $costs[$printType];
+
+                            $generalPrice = $roundUpToMultiple(
+                                $ceilToInteger(((float) $generalRule->markup_percentage / 100) * $cost) + $cost,
+                                $generalRule->rounding_value
+                            );
+
+                            $divisionPrice = $roundUpToMultiple(
+                                round($generalPrice * ((float) $divisionRule->markup_percentage / 100), 2),
+                                $divisionRule->rounding_value
+                            );
+
+                            $prices[] = [$generalRule, $generalPrice];
+                            $prices[] = [$divisionRule, $divisionPrice];
+                        }
+                    }
+
+                    $headers[$headerKey]['details'][] = [
+                        'material_id' => $material->id,
+                        'paper_cost' => $paperCost,
+                        'click_cost' => $clickCost,
+                        'single_print_cost' => $singlePrintCost,
+                        'double_print_cost' => $doublePrintCost,
+                        'prices' => $prices,
+                    ];
+                }
+            }
+        }
+
+        DB::beginTransaction();
+
+        try {
+            foreach ($headers as $header) {
+                if (empty($header['details'])) {
+                    continue;
+                }
+
+                $productionCost = DB::table('m_digital_production_costs')
+                    ->where('engine_id', $header['engine_id'])
+                    ->where('location_id', $header['location_id'])
+                    ->where(function ($query) use ($header) {
+                        if ($header['vendor_id'] === null) {
+                            $query->whereNull('vendor_id');
+                        } else {
+                            $query->where('vendor_id', $header['vendor_id']);
+                        }
+                    })
+                    ->lockForUpdate()
+                    ->first();
+
+                if ($productionCost) {
+                    $productionCostId = $productionCost->id;
+
+                    DB::table('m_digital_production_costs')
+                        ->where('id', $productionCostId)
+                        ->update([
+                            'updated_by' => $userName,
+                            'updated_at' => now(),
+                        ]);
+                } else {
+                    $productionCostId = DB::table('m_digital_production_costs')->insertGetId([
+                        'engine_id' => $header['engine_id'],
+                        'location_id' => $header['location_id'],
+                        'vendor_id' => $header['vendor_id'],
+                        'created_by' => $userName,
+                        'created_at' => now(),
+                        'updated_by' => $userName,
+                        'updated_at' => now(),
+                    ]);
+                }
+
+                foreach ($header['details'] as $detail) {
+                    $detailId = DB::table('m_digital_production_cost_details')->insertGetId([
+                        'digital_production_cost_id' => $productionCostId,
+                        'material_id' => $detail['material_id'],
+                        'paper_cost' => $detail['paper_cost'],
+                        'click_cost' => $detail['click_cost'],
+                        'single_print_cost' => $detail['single_print_cost'],
+                        'double_print_cost' => $detail['double_print_cost'],
+                        'created_by' => $userName,
+                        'created_at' => now(),
+                        'updated_by' => $userName,
+                        'updated_at' => now(),
+                    ]);
+
+                    $priceRows = [];
+
+                    foreach ($detail['prices'] as [$rule, $sellingPrice]) {
+                        $priceRows[] = [
+                            'digital_production_cost_detail_id' => $detailId,
+                            'digital_pricing_rule_detail_id' => $rule->id,
+                            'price_type' => $rule->price_type,
+                            'print_type' => $rule->print_type,
+                            'quantity_tier' => $rule->quantity_tier,
+                            'minimum_quantity' => $rule->minimum_quantity,
+                            'maximum_quantity' => $rule->maximum_quantity,
+                            'markup_percentage' => $rule->markup_percentage,
+                            'rounding_value' => $rule->rounding_value,
+                            'selling_price' => $sellingPrice,
+                            'created_by' => $userName,
+                            'created_at' => now(),
+                            'updated_by' => $userName,
+                            'updated_at' => now(),
+                        ];
+                    }
+
+                    DB::table('m_digital_production_cost_prices')->insert($priceRows);
+                }
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Production Cost Digital Print A3+ berhasil disimpan.'
+            ]);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    private function findDigitalProductionCost($id)
+    {
+        $productionCostId = base64_decode($id, true);
+
+        if ($productionCostId === false || !ctype_digit($productionCostId)) {
+            abort(404);
+        }
+
+        $productionCost = DB::table('m_digital_production_costs as pc')
+            ->join('m_engines as e', 'e.id', '=', 'pc.engine_id')
+            ->join('m_locations as l', 'l.id', '=', 'pc.location_id')
+            ->leftJoin('m_vendors as v', 'v.id', '=', 'pc.vendor_id')
+            ->where('pc.id', (int) $productionCostId)
+            ->whereRaw('LOWER(TRIM(e.name)) = ?', ['digital print a3+'])
+            ->select(
+                'pc.id',
+                'pc.engine_id',
+                'pc.location_id',
+                'pc.vendor_id',
+                'e.name as engine_name',
+                'l.name as location_name',
+                'v.name as vendor_name'
+            )
+            ->first();
+
+        if (!$productionCost) {
+            abort(404);
+        }
+
+        return $productionCost;
+    }
+
+    public function editDigital($id)
+    {
+        $productionCost = $this->findDigitalProductionCost($id);
+
+        $details = DB::table('m_digital_production_cost_details as d')
+            ->join('m_materials as m', 'm.id', '=', 'd.material_id')
+            ->join('m_categories as c', 'c.id', '=', 'm.category_id')
+            ->where('d.digital_production_cost_id', $productionCost->id)
+            ->select(
+                'd.material_id',
+                'd.paper_cost',
+                'd.click_cost'
+            )
+            ->orderBy('c.name')
+            ->orderBy('m.material_name')
+            ->get();
+
+        $savedMaterialIds = $details->pluck('material_id')->all();
+
+        // Material tersimpan tetap ditampilkan walaupun sudah nonaktif agar pilihan lama tidak hilang.
+        $data['materials'] = DB::table('m_materials as m')
+            ->join('m_categories as c', 'c.id', '=', 'm.category_id')
+            ->whereExists(function ($query) use ($productionCost) {
+                $query->selectRaw('1')
+                    ->from('m_digital_pricing_rules as pr')
+                    ->whereColumn('pr.category_id', 'm.category_id')
+                    ->where('pr.engine_id', $productionCost->engine_id);
+            })
+            ->where(function ($query) use ($savedMaterialIds) {
+                $query->where('m.status', 'Active');
+
+                if (!empty($savedMaterialIds)) {
+                    $query->orWhereIn('m.id', $savedMaterialIds);
+                }
+            })
+            ->select('m.id', 'm.material_name', 'c.name as category_name')
+            ->orderBy('m.material_name')
+            ->get();
+
+        $data['productionCost'] = $productionCost;
+        $data['details'] = $details->map(function ($detail) {
+            return [
+                'material_id' => (string) $detail->material_id,
+                'unit_price' => number_format((float) $detail->paper_cost, 0, ',', '.'),
+                'click_price' => number_format((float) $detail->click_cost, 0, ',', '.'),
+            ];
+        })->values();
+
+        return view('admin.production-cost-finishing.edit-digital')->with($data);
+    }
+
+    public function updateDigital(Request $request, $id)
+    {
+        $productionCost = $this->findDigitalProductionCost($id);
+
+        $request->validate([
+            'items' => 'required|array|min:1',
+            'items.*.material_id' => 'required|integer|exists:m_materials,id',
+            'items.*.unit_price' => 'required|string|max:20',
+            'items.*.click_price' => 'required|string|max:20',
+        ], [
+            'items.required' => 'Minimal harus ada 1 material.',
+            'items.min' => 'Minimal harus ada 1 material.',
+            'items.*.material_id.required' => 'Material wajib dipilih.',
+            'items.*.unit_price.required' => 'Harga Satuan wajib diisi.',
+            'items.*.click_price.required' => 'Harga Klik wajib diisi.',
+        ]);
+
+        $parseRupiah = function ($value) {
+            $digits = preg_replace('/\D/', '', (string) $value);
+
+            return $digits === '' ? null : (float) $digits;
+        };
+
+        // Dibulatkan ke 6 desimal dahulu untuk menghindari error floating point sebelum ceil.
+        $ceilToInteger = function ($value) {
+            return ceil(round($value, 6));
+        };
+
+        $roundUpToMultiple = function ($value, $rounding) {
+            if ($rounding === null || (float) $rounding <= 0) {
+                return $value;
+            }
+
+            $rounding = (float) $rounding;
+
+            return ceil(round($value / $rounding, 6)) * $rounding;
+        };
+
+        $priceTypes = ['general', 'division'];
+        $printTypes = ['single', 'double'];
+        $quantityTiers = ['tier_1', 'tier_2_5', 'tier_6_50', 'tier_100', 'tier_300', 'tier_500'];
+
+        $scopeLabel = $productionCost->location_name .
+            ($productionCost->vendor_name ? ' - ' . $productionCost->vendor_name : '');
+
+        $savedMaterialIds = DB::table('m_digital_production_cost_details')
+            ->where('digital_production_cost_id', $productionCost->id)
+            ->pluck('material_id')
+            ->map(function ($materialId) {
+                return (int) $materialId;
+            })
+            ->all();
+
+        $materials = DB::table('m_materials as m')
+            ->join('m_categories as c', 'm.category_id', '=', 'c.id')
+            ->select('m.id', 'm.category_id', 'm.material_name', 'm.status', 'c.name as category_name')
+            ->get()
+            ->keyBy('id');
+
+        $details = [];
+        $usedMaterialIds = [];
+
+        foreach ($request->input('items') as $itemIndex => $item) {
+            $itemPrefix = 'items.' . $itemIndex;
+            $material = $materials->get((int) $item['material_id']);
+
+            if (!$material) {
+                throw ValidationException::withMessages([
+                    $itemPrefix . '.material_id' => 'Material tidak ditemukan.'
+                ]);
+            }
+
+            if ($material->status !== 'Active' && !in_array($material->id, $savedMaterialIds, true)) {
+                throw ValidationException::withMessages([
+                    $itemPrefix . '.material_id' =>
+                    'Material "' . $material->material_name . '" sudah tidak aktif.'
+                ]);
+            }
+
+            if (isset($usedMaterialIds[$material->id])) {
+                throw ValidationException::withMessages([
+                    $itemPrefix . '.material_id' =>
+                    'Material "' . $material->material_name . '" dipilih lebih dari satu kali untuk lokasi ' .
+                        $scopeLabel . '.'
+                ]);
+            }
+
+            $usedMaterialIds[$material->id] = true;
+
+            $paperCost = $parseRupiah($item['unit_price']);
+            $clickCost = $parseRupiah($item['click_price']);
+
+            if ($paperCost === null || $paperCost <= 0) {
+                throw ValidationException::withMessages([
+                    $itemPrefix . '.unit_price' =>
+                    'Harga Satuan material "' . $material->material_name . '" harus berupa angka lebih dari 0.'
+                ]);
+            }
+
+            if ($clickCost === null || $clickCost <= 0) {
+                throw ValidationException::withMessages([
+                    $itemPrefix . '.click_price' =>
+                    'Harga Klik material "' . $material->material_name . '" harus berupa angka lebih dari 0.'
+                ]);
+            }
+
+            if ($paperCost > 9999999999.99 || $clickCost > 9999999999.99) {
+                throw ValidationException::withMessages([
+                    $itemPrefix . '.unit_price' =>
+                    'Harga material "' . $material->material_name . '" melebihi batas maksimum.'
+                ]);
+            }
+
+            $pricingRuleDetails = DB::table('m_digital_pricing_rules as r')
+                ->join('m_digital_pricing_rule_details as d', 'd.digital_pricing_rule_id', '=', 'r.id')
+                ->where('r.engine_id', $productionCost->engine_id)
+                ->where('r.location_id', $productionCost->location_id)
+                ->where('r.category_id', $material->category_id)
+                ->where(function ($query) use ($productionCost) {
+                    if ($productionCost->vendor_id === null) {
+                        $query->whereNull('r.vendor_id');
+                    } else {
+                        $query->where('r.vendor_id', $productionCost->vendor_id);
+                    }
+                })
+                ->where('d.status', 'Active')
+                ->select(
+                    'd.id',
+                    'd.price_type',
+                    'd.print_type',
+                    'd.quantity_tier',
+                    'd.minimum_quantity',
+                    'd.maximum_quantity',
+                    'd.markup_percentage',
+                    'd.rounding_value'
+                )
+                ->get()
+                ->keyBy(function ($detail) {
+                    return $detail->price_type . '|' . $detail->print_type . '|' . $detail->quantity_tier;
+                });
+
+            $missingRuleCount = 0;
+
+            foreach ($priceTypes as $priceType) {
+                foreach ($printTypes as $printType) {
+                    foreach ($quantityTiers as $quantityTier) {
+                        if (!$pricingRuleDetails->has($priceType . '|' . $printType . '|' . $quantityTier)) {
+                            $missingRuleCount++;
+                        }
+                    }
+                }
+            }
+
+            if ($missingRuleCount > 0) {
+                throw ValidationException::withMessages([
+                    $itemPrefix . '.material_id' =>
+                    'Pricing rule Digital Print A3+ untuk kategori "' . $material->category_name .
+                        '" di lokasi ' . $scopeLabel . ' belum ada atau belum lengkap (' .
+                        (24 - $missingRuleCount) . '/24 tier aktif).'
+                ]);
+            }
+
+            $singlePrintCost = $paperCost + $clickCost;
+            $doublePrintCost = $clickCost + $singlePrintCost;
+            $costs = [
+                'single' => $singlePrintCost,
+                'double' => $doublePrintCost,
+            ];
+
+            $prices = [];
+
+            foreach ($printTypes as $printType) {
+                foreach ($quantityTiers as $quantityTier) {
+                    $generalRule = $pricingRuleDetails->get('general|' . $printType . '|' . $quantityTier);
+                    $divisionRule = $pricingRuleDetails->get('division|' . $printType . '|' . $quantityTier);
+                    $cost = $costs[$printType];
+
+                    $generalPrice = $roundUpToMultiple(
+                        $ceilToInteger(((float) $generalRule->markup_percentage / 100) * $cost) + $cost,
+                        $generalRule->rounding_value
+                    );
+
+                    $divisionPrice = $roundUpToMultiple(
+                        round($generalPrice * ((float) $divisionRule->markup_percentage / 100), 2),
+                        $divisionRule->rounding_value
+                    );
+
+                    $prices[] = [$generalRule, $generalPrice];
+                    $prices[] = [$divisionRule, $divisionPrice];
+                }
+            }
+
+            $details[] = [
+                'material_id' => $material->id,
+                'paper_cost' => $paperCost,
+                'click_cost' => $clickCost,
+                'single_print_cost' => $singlePrintCost,
+                'double_print_cost' => $doublePrintCost,
+                'prices' => $prices,
+            ];
+        }
+
+        $userName = Auth::user()->name;
+
+        DB::beginTransaction();
+
+        try {
+            DB::table('m_digital_production_costs')
+                ->where('id', $productionCost->id)
+                ->lockForUpdate()
+                ->first();
+
+            // Data pembuat material lama dipertahankan saat detail disusun ulang.
+            $existingDetails = DB::table('m_digital_production_cost_details')
+                ->where('digital_production_cost_id', $productionCost->id)
+                ->get(['material_id', 'created_by', 'created_at'])
+                ->keyBy('material_id');
+
+            // Harga per tier ikut terhapus melalui foreign key cascade.
+            DB::table('m_digital_production_cost_details')
+                ->where('digital_production_cost_id', $productionCost->id)
+                ->delete();
+
+            foreach ($details as $detail) {
+                $existingDetail = $existingDetails->get($detail['material_id']);
+
+                $detailId = DB::table('m_digital_production_cost_details')->insertGetId([
+                    'digital_production_cost_id' => $productionCost->id,
+                    'material_id' => $detail['material_id'],
+                    'paper_cost' => $detail['paper_cost'],
+                    'click_cost' => $detail['click_cost'],
+                    'single_print_cost' => $detail['single_print_cost'],
+                    'double_print_cost' => $detail['double_print_cost'],
+                    'created_by' => $existingDetail ? $existingDetail->created_by : $userName,
+                    'created_at' => $existingDetail ? $existingDetail->created_at : now(),
+                    'updated_by' => $userName,
+                    'updated_at' => now(),
+                ]);
+
+                $priceRows = [];
+
+                foreach ($detail['prices'] as [$rule, $sellingPrice]) {
+                    $priceRows[] = [
+                        'digital_production_cost_detail_id' => $detailId,
+                        'digital_pricing_rule_detail_id' => $rule->id,
+                        'price_type' => $rule->price_type,
+                        'print_type' => $rule->print_type,
+                        'quantity_tier' => $rule->quantity_tier,
+                        'minimum_quantity' => $rule->minimum_quantity,
+                        'maximum_quantity' => $rule->maximum_quantity,
+                        'markup_percentage' => $rule->markup_percentage,
+                        'rounding_value' => $rule->rounding_value,
+                        'selling_price' => $sellingPrice,
+                        'created_by' => $userName,
+                        'created_at' => now(),
+                        'updated_by' => $userName,
+                        'updated_at' => now(),
+                    ];
+                }
+
+                DB::table('m_digital_production_cost_prices')->insert($priceRows);
+            }
+
+            DB::table('m_digital_production_costs')
+                ->where('id', $productionCost->id)
+                ->update([
+                    'updated_by' => $userName,
+                    'updated_at' => now(),
+                ]);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Production Cost Digital Print A3+ berhasil diperbarui.'
+            ]);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+    public function destroyDigital($id)
+    {
+        $productionCost = $this->findDigitalProductionCost($id);
+
+        DB::beginTransaction();
+
+        try {
+            $lockedProductionCost = DB::table('m_digital_production_costs')
+                ->where('id', $productionCost->id)
+                ->where('engine_id', $productionCost->engine_id)
+                ->lockForUpdate()
+                ->first();
+
+            if (!$lockedProductionCost) {
+                DB::rollBack();
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Data production cost Digital Print A3+ tidak ditemukan.'
+                ], 404);
+            }
+
+            // FK cascade hanya menghapus detail & harga tier milik header ini.
+            $deleted = DB::table('m_digital_production_costs')
+                ->where('id', $lockedProductionCost->id)
+                ->delete();
+
+            if ($deleted !== 1) {
+                DB::rollBack();
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Production cost Digital Print A3+ gagal dihapus.'
+                ], 409);
+            }
+
+            DB::commit();
+
+            $scopeLabel = $productionCost->location_name .
+                ($productionCost->vendor_name ? ' - ' . $productionCost->vendor_name : '');
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Production cost Digital Print A3+ lokasi ' . $scopeLabel . ' berhasil dihapus.'
+            ]);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
 
     public function edit($id)
     {
@@ -2235,6 +3323,10 @@ class ProductionCostFinishingCT extends Controller
     |--------------------------------------------------------------------------
     */
 
+        $pricingRuleTable = strtolower(trim($data['engine']->name)) === 'digital print a3+'
+            ? 'm_digital_pricing_rules'
+            : 'm_pricing_rules';
+
         $data['materials'] = DB::table('m_materials as m')
             ->join(
                 'm_categories as c',
@@ -2243,6 +3335,12 @@ class ProductionCostFinishingCT extends Controller
                 'm.category_id'
             )
             ->where('m.status', 'Active')
+            ->whereExists(function ($query) use ($data, $pricingRuleTable) {
+                $query->selectRaw('1')
+                    ->from($pricingRuleTable . ' as pr')
+                    ->whereColumn('pr.category_id', 'm.category_id')
+                    ->where('pr.engine_id', $data['engineId']);
+            })
             ->select(
                 'm.id',
                 'm.material_name',
@@ -3449,7 +4547,13 @@ class ProductionCostFinishingCT extends Controller
                 |--------------------------------------------------------------------------
                 */
                         $generalMarkup =
-                            (float) $generalRule->markup_percentage;
+                            ProductionCostFinishingMarkup::general(
+                                $engine->name,
+                                $location->name,
+                                $material->category_name,
+                                $material->name,
+                                (float) $generalRule->markup_percentage
+                            );
 
                         $generalRounding =
                             $generalRule->rounding_value !== null
@@ -3646,7 +4750,13 @@ class ProductionCostFinishingCT extends Controller
                             $finishingCost;
 
                         $generalMarkup =
-                            (float) $generalRule->markup_percentage;
+                            ProductionCostFinishingMarkup::general(
+                                $engine->name,
+                                $location->name,
+                                $material->category_name,
+                                $material->name,
+                                (float) $generalRule->markup_percentage
+                            );
 
                         $generalRounding =
                             $generalRule->rounding_value !== null
@@ -4195,8 +5305,16 @@ class ProductionCostFinishingCT extends Controller
         ]);
     }
 
-    public function export()
+    public function export(Request $request)
     {
+        // Export mengikuti filter mesin aktif di halaman index.
+        if ($request->query('pricing_engine') === 'digital_print_a3') {
+            return Excel::download(
+                new DigitalProductionCostsExport(),
+                'production_cost_digital_print_a3.xlsx'
+            );
+        }
+
         return Excel::download(
             new ProductionCostFinishingsExport(),
             'production_cost_finishings.xlsx'

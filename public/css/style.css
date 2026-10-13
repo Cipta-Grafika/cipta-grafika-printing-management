@@ -10314,6 +10314,7 @@ PROFIT
 
     .material-hero-actions > #btnExportPricingRules,
     .material-hero-actions > #btnExportLaminationPricingRules,
+    .material-hero-actions > #btnExportProductionCost,
     .material-hero-actions > .material-category-filter {
         grid-column: auto;
         width: 100%;
@@ -10326,7 +10327,7 @@ PROFIT
     .material-hero-actions
         > .btn:not(#btnExportMaterial):not(#btnExportPricingRules):not(
             #btnExportLaminationPricingRules
-        ),
+        ):not(#btnExportProductionCost),
     .material-hero-actions > .material-category-filter ~ .btn {
         grid-column: 1 / -1;
     }
@@ -16592,4 +16593,201 @@ html[data-theme="dark"] .brand-logo-light {
     #modalTambahMarkupLaminasi .digital-lam-category-group {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
+}
+
+/* =========================================================
+   DETAIL ONGKOS PRODUKSI DIGITAL PRINT A3+
+   ========================================================= */
+
+.details-digital-table-wrapper {
+    width: 100%;
+    max-width: 100%;
+    overflow: auto;
+    max-height: 70vh;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--bg-card);
+    -webkit-overflow-scrolling: touch;
+}
+
+.details-digital-table {
+    width: max-content;
+    min-width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 12.5px;
+    color: var(--t-base);
+}
+
+.details-digital-table th,
+.details-digital-table td {
+    padding: 8px 12px;
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    background-color: var(--bg-card);
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+.details-digital-table thead th {
+    position: sticky;
+    z-index: 2;
+    font-weight: 600;
+    text-align: center;
+    background-color: var(--bg-muted);
+}
+
+.details-digital-table thead tr:nth-child(1) th {
+    top: 0;
+}
+
+.details-digital-table thead tr:nth-child(2) th {
+    top: 34px;
+}
+
+.details-digital-table thead tr:nth-child(3) th {
+    top: 68px;
+}
+
+.details-digital-table .details-digital-group-row th,
+.details-digital-table .details-digital-tier-row th,
+.details-digital-table .details-digital-markup-row th {
+    height: 34px;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.details-digital-table .details-digital-group {
+    font-size: 12px;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
+.details-digital-table .details-digital-markup-row th {
+    font-weight: 500;
+    font-size: 11.5px;
+    color: var(--t-muted);
+}
+
+.details-digital-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.details-digital-table tr > :last-child {
+    border-right: 0;
+}
+
+.details-digital-table tbody tr:hover td {
+    background-image: linear-gradient(var(--primary-ring), var(--primary-ring));
+}
+
+/* Kolom No & Item tetap terlihat saat tabel di-scroll ke samping */
+.details-digital-table .details-digital-sticky {
+    position: sticky;
+    z-index: 1;
+}
+
+.details-digital-table thead .details-digital-sticky {
+    z-index: 3;
+}
+
+.details-digital-table .details-digital-col-no {
+    left: 0;
+    width: 44px;
+    min-width: 44px;
+    text-align: center;
+}
+
+.details-digital-table .details-digital-col-material {
+    left: 44px;
+    min-width: 200px;
+    max-width: 260px;
+    white-space: normal;
+    text-align: left;
+    font-weight: 600;
+    box-shadow: inset -1px 0 0 var(--border), 4px 0 6px -4px rgba(15, 23, 42, 0.18);
+}
+
+.details-digital-table .details-digital-size {
+    text-align: center;
+    color: var(--t-muted);
+}
+
+.details-digital-table .details-digital-cost,
+.details-digital-table .details-digital-price {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+.details-digital-table thead .details-digital-cost {
+    text-align: center;
+}
+
+.details-digital-table .details-digital-cost-total {
+    font-weight: 600;
+}
+
+.details-digital-table .details-digital-group--general_single,
+.details-digital-table .details-digital-group--general_double {
+    background-image: linear-gradient(rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.1));
+}
+
+.details-digital-table .details-digital-group--division_single,
+.details-digital-table .details-digital-group--division_double {
+    background-image: linear-gradient(rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.1));
+}
+
+.details-digital-table thead .details-digital-group--general_single,
+.details-digital-table thead .details-digital-group--general_double {
+    background-image: linear-gradient(rgba(245, 158, 11, 0.22), rgba(245, 158, 11, 0.22));
+}
+
+.details-digital-table thead .details-digital-group--division_single,
+.details-digital-table thead .details-digital-group--division_double {
+    background-image: linear-gradient(rgba(16, 185, 129, 0.22), rgba(16, 185, 129, 0.22));
+}
+
+/* Pemisah tebal antar kelompok harga (tiap 6 tier) */
+.details-digital-table .details-digital-group,
+.details-digital-table .details-digital-tier-row th:nth-child(6n + 1),
+.details-digital-table .details-digital-markup-row th:nth-child(6n + 1),
+.details-digital-table tbody td:nth-child(6n + 2) {
+    border-left: 2px solid var(--border);
+}
+
+.details-digital-table tbody td:nth-child(2) {
+    border-left: 0;
+}
+
+@media (max-width: 768px) {
+    .details-digital-table-wrapper {
+        max-height: 65vh;
+    }
+
+    .details-digital-table {
+        font-size: 11.5px;
+    }
+
+    .details-digital-table th,
+    .details-digital-table td {
+        padding: 6px 8px;
+    }
+
+    .details-digital-table .details-digital-col-no {
+        width: 34px;
+        min-width: 34px;
+    }
+
+    .details-digital-table .details-digital-col-material {
+        left: 34px;
+        min-width: 120px;
+        max-width: 150px;
+    }
+}
+
+/* Edit ongkos produksi Digital Print A3+: lokasi, engine & vendor hanya ditampilkan */
+.input.digital-edit-readonly[readonly] {
+    color: var(--t-muted);
+    background: var(--bg-muted);
+    cursor: not-allowed;
 }

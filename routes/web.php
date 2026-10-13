@@ -216,6 +216,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/admin/production-cost-finishings/{id}/edit', [ProductionCostFinishingCT::class, 'edit'])->name('admin_edit_pc_finishing');
     Route::put('/admin/production-cost-finishings/{id}/edit', [ProductionCostFinishingCT::class, 'update'])->name('admin_update_pc_finishing');
     Route::get('/admin/production-cost-finishings/{id}/details', [ProductionCostFinishingCT::class, 'details'])->name('admin_pc_finishing_details');
+    Route::get('/admin/production-cost-finishings/digital/{id}/details', [ProductionCostFinishingCT::class, 'detailsDigital'])->name('admin_pc_finishing_digital_details');
+    Route::get('/admin/production-cost-finishings/digital/{id}/edit', [ProductionCostFinishingCT::class, 'editDigital'])->name('admin_edit_pc_finishing_digital');
+    Route::put('/admin/production-cost-finishings/digital/{id}/edit', [ProductionCostFinishingCT::class, 'updateDigital'])->name('admin_update_pc_finishing_digital');
+    Route::delete('/admin/production-cost-finishings/digital/{id}/delete', [ProductionCostFinishingCT::class, 'destroyDigital'])->name('admin_delete_pc_finishing_digital');
     Route::get('/admin/production-cost-finishings/export', [ProductionCostFinishingCT::class, 'export'])->name('admin_export_pc_finishings');
     Route::post('/admin/production-cost-finishing/import', [ProductionCostFinishingCT::class, 'import'])->name('admin_import_pc_finishing');
 

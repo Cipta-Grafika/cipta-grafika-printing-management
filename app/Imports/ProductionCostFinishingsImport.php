@@ -8,6 +8,7 @@ use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Exception;
 use Illuminate\Support\Facades\Auth;
+use App\Support\ProductionCostFinishingMarkup;
 
 class ProductionCostFinishingsImport implements
     ToCollection,
@@ -648,7 +649,13 @@ class ProductionCostFinishingsImport implements
             */
 
             $generalMarkup =
-                ((float) $generalRule->markup_percentage)
+                ProductionCostFinishingMarkup::general(
+                    $engine->name,
+                    $location->name,
+                    $material->category_name,
+                    $material->material_name,
+                    (float) $generalRule->markup_percentage
+                )
                 / 100;
 
             $divisionMarkup =
@@ -2140,7 +2147,13 @@ class ProductionCostFinishingsImport implements
             */
 
             $generalMarkup =
-                (float) $generalRule->markup_percentage;
+                ProductionCostFinishingMarkup::general(
+                    $engine->name,
+                    $location->name,
+                    $material->category_name,
+                    $material->material_name,
+                    (float) $generalRule->markup_percentage
+                );
 
             $generalRounding =
                 $generalRule->rounding_value !== null

@@ -123,6 +123,46 @@
 
             let configurationIndex = 0;
 
+            const materialsByEngine = @json($materialsByEngine);
+
+            function isDigitalPrintConfiguration(configuration) {
+                const engine = configuration.querySelector('.engine-select');
+                const option = engine.options[engine.selectedIndex];
+
+                return option && option.textContent.trim().toLowerCase() === 'digital print a3+';
+            }
+
+            function filterMaterialsByEngine(configuration, rows) {
+                const engineId = $(configuration).find('.engine-select').val();
+                const materials = materialsByEngine[engineId] || [];
+
+                $(rows).find('.material-select').each(function() {
+                    const select = $(this);
+                    const previousValue = select.val();
+
+                    select.empty().append(new Option('Pilih Material', ''));
+
+                    materials.forEach(function(material) {
+                        select.append(new Option(
+                            `${material.material_name} (${material.category_name})`,
+                            material.id
+                        ));
+                    });
+
+                    const stillAvailable = materials.some(function(material) {
+                        return String(material.id) === previousValue;
+                    });
+
+                    select.val(stillAvailable ? previousValue : '');
+
+                    if (previousValue && !stillAvailable) {
+                        select.trigger('change');
+                    } else {
+                        select.trigger('change.select2');
+                    }
+                });
+            }
+
             function initSelect2(element) {
                 $(element)
                     .find('.select2')
@@ -205,7 +245,7 @@
 
                         widthSelect.empty();
 
-                        if (!materialId) {
+                        if (!materialId || isDigitalPrintConfiguration(row.closest('.configuration-card'))) {
                             widthSelect.trigger('change');
                             return;
                         }
@@ -323,16 +363,10 @@
                                 Pilih Material
                             </option>
 
-                            @foreach ($materials as $material)
-                                <option value="{{ $material->id }}">
-                                    {{ $material->material_name }}
-                                    ({{ $material->category_name }})
-                                </option>
-                            @endforeach
                         </select>
                     </td>
 
-                    <td>
+                    <td class="width-cell">
                         <select
                             name="configurations[${configIndex}][items][${materialIndex}][width_ids][]"
                             class="select select2 width-select"
@@ -397,6 +431,30 @@
                         >
                     </td>
 
+                    <td class="digital-price-cell" style="display: none;">
+                        <input
+                            type="text"
+                            name="configurations[${configIndex}][items][${materialIndex}][unit_price]"
+                            class="input rupiah-input"
+                            inputmode="numeric"
+                            autocomplete="off"
+                            placeholder="Contoh: 5.000"
+                            disabled
+                        >
+                    </td>
+
+                    <td class="digital-price-cell" style="display: none;">
+                        <input
+                            type="text"
+                            name="configurations[${configIndex}][items][${materialIndex}][click_price]"
+                            class="input rupiah-input"
+                            inputmode="numeric"
+                            autocomplete="off"
+                            placeholder="Contoh: 1.000"
+                            disabled
+                        >
+                    </td>
+
                     <td class="text-center">
                         <button
                             type="button"
@@ -413,10 +471,13 @@
                 initSelect2(row);
 
                 loadMaterialSizes(row);
+
+                filterMaterialsByEngine(configuration, row);
             }
 
             function updateMaterialForm(configuration) {
 
+                const isDigital = isDigitalPrintConfiguration(configuration);
                 const locationSelect =
                     configuration.querySelector('.location-select');
 
@@ -464,6 +525,44 @@
 
                 const vendorPriceHeaders =
                     table.querySelectorAll('.vendor-price-header');
+
+                table.querySelectorAll('.width-header, .width-cell').forEach(function(element) {
+                    element.style.display = isDigital ? 'none' : '';
+                });
+
+                table.querySelectorAll('.width-select').forEach(function(select) {
+                    select.disabled = isDigital;
+                    select.required = !isDigital;
+                });
+
+                table.querySelectorAll('.digital-price-header, .digital-price-cell').forEach(function(element) {
+                    element.style.display = isDigital ? '' : 'none';
+                });
+
+                table.querySelectorAll('.digital-price-cell input').forEach(function(input) {
+                    input.disabled = !isDigital;
+                    input.required = isDigital;
+                });
+
+                if (isDigital) {
+                    table.querySelectorAll(
+                        '.price-per-meter-header, .production-cost-header, .finishing-cost-header, ' +
+                        '.vendor-price-header, .price-per-meter-cell, .production-cost-cell, ' +
+                        '.finishing-cost-cell, .vendor-price-cell'
+                    ).forEach(function(element) {
+                        element.style.display = 'none';
+                    });
+
+                    table.querySelectorAll(
+                        '.price-per-meter-input, .production-cost-input, ' +
+                        '.finishing-cost-input, .vendor-price-input'
+                    ).forEach(function(input) {
+                        input.disabled = true;
+                        input.required = false;
+                    });
+
+                    return;
+                }
 
                 /*
                 |--------------------------------------------------------------------------
@@ -754,7 +853,7 @@
                                         <tr>
                                             <th>Material</th>
 
-                                            <th>Lebar Dipakai</th>
+                                            <th class="width-header">Lebar Dipakai</th>
 
                                             <th class="price-per-meter-header">
                                                 Harga Permeter (Rp)
@@ -773,6 +872,14 @@
                                                 style="display: none;"
                                             >
                                                 Harga Vendor (Rp)
+                                            </th>
+
+                                            <th class="digital-price-header" style="display: none;">
+                                                Harga Satuan (Rp)
+                                            </th>
+
+                                            <th class="digital-price-header" style="display: none;">
+                                                Harga Klik (Rp)
                                             </th>
 
                                             <th style="width: 80px;">
@@ -921,24 +1028,12 @@
 
                 $(engineSelect).on('change.digitalPrint', function() {
 
-                    const selectedOption =
-                        this.options[this.selectedIndex];
+                    updateMaterialForm(configuration);
 
-                    const engineName = selectedOption ?
-                        selectedOption.textContent.trim().toLowerCase() :
-                        '';
-
-                    if (engineName === 'digital print a3+') {
-
-                        showToast(
-                            'error',
-                            'Form Biaya Material untuk tipe mesin Digital Print A3+ belum tersedia.'
-                        );
-
-                        $(this)
-                            .val('')
-                            .trigger('change.select2');
-                    }
+                    filterMaterialsByEngine(
+                        configuration,
+                        configuration.querySelectorAll('.configuration-material-body tr')
+                    );
                 });
 
                 updateConfigurationNumbers();

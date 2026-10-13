@@ -11,12 +11,20 @@
                         <p class="hero-sub">Kelola biaya material dan finishing yang digunakan sebagai dasar perhitungan
                             biaya serta estimasi harga produk.</p>
                     </div>
-                    <div class="hero-actions"><a href="{{ route('admin_export_pc_finishings') }}" class="btn btn--ghost"><svg
+                    <div class="hero-actions material-hero-actions"><a id="btnExportProductionCost"
+                            href="{{ route('admin_export_pc_finishings') }}" class="btn btn--ghost"><svg
                                 viewBox="0 0 24 24">
                                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                                 <path d="M7 10l5 5 5-5" />
                                 <path d="M12 15V3" />
                             </svg> Export</a>
+                        <div class="material-category-filter">
+                            <select id="productionCostEngineFilter" class="select select2"
+                                aria-label="Filter mesin ongkos produksi">
+                                <option value="large_format" selected>Large Format</option>
+                                <option value="digital_print_a3">Digital Print A3+</option>
+                            </select>
+                        </div>
                         <button type="button" class="btn btn--ghost" id="btnDownloadTemplateFinishingService">
                             <svg viewBox="0 0 24 24">
                                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -241,6 +249,79 @@
                 </button>
 
                 <button type="button" class="btn btn--danger" id="btnConfirmDeleteProductionCost">
+                    <i class="bi bi-trash3-fill"></i>
+                    Hapus
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- MODAL DELETE PRODUCTION COST DIGITAL PRINT A3+ -->
+    <div class="modal-overlay" id="modalDeleteDigitalProductionCost">
+
+        <div class="modal-dialog modal-delete">
+
+            <div class="modal-header">
+
+                <div>
+                    <span class="eyebrow">
+                        HARGA & TARIF · PRODUCTION COST
+                    </span>
+                    <br>
+                    <span class="eyebrow">
+                        Hapus Production Cost Digital Print A3+
+                    </span>
+                </div>
+
+                <button type="button" class="modal-close" id="btnTutupDeleteDigitalProductionCost"
+                    aria-label="Tutup">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M18 6L6 18" />
+                        <path d="M6 6L18 18" />
+                    </svg>
+                </button>
+
+            </div>
+
+            <div class="modal-body">
+
+                <div class="delete-confirmation">
+
+                    <div class="delete-icon">
+                        <i class="bi bi-trash3-fill"></i>
+                    </div>
+
+                    <div class="delete-content">
+
+                        <h3>
+                            Hapus production cost?
+                        </h3>
+
+                        <p>
+                            Ongkos produksi Digital Print A3+ untuk lokasi
+                            <strong id="deleteDigitalLocation"></strong>
+                            beserta <strong id="deleteDigitalMaterialCount"></strong> material dan seluruh harga
+                            per tier-nya akan dihapus. Data lokasi lain dan mesin Large Format tidak ikut terhapus.
+                            Data yang sudah dihapus tidak dapat dikembalikan.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+
+                <button type="button" class="btn btn--ghost" id="btnBatalDeleteDigitalProductionCost">
+                    Batal
+                </button>
+
+                <button type="button" class="btn btn--danger" id="btnConfirmDeleteDigitalProductionCost">
                     <i class="bi bi-trash3-fill"></i>
                     Hapus
                 </button>
@@ -694,6 +775,25 @@
 
         document.addEventListener('DOMContentLoaded', function() {
 
+            const engineFilter = document.getElementById('productionCostEngineFilter');
+
+            function isDigitalPrintFilter() {
+                return engineFilter.value === 'digital_print_a3';
+            }
+
+            function escapeDigitalHtml(value) {
+                return String(value ?? '')
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#39;');
+            }
+
+            $('#productionCostEngineFilter').select2({
+                width: '100%'
+            });
+
             productionCostTable = new DataTable('#productionCostTable', {
                 processing: true,
                 serverSide: true,
@@ -702,6 +802,9 @@
                 ajax: {
                     url: "{{ route('admin_data_pc_finishings') }}",
                     type: 'GET',
+                    data: function(data) {
+                        data.pricing_engine = engineFilter.value;
+                    },
                 },
 
                 responsive: {
@@ -735,6 +838,11 @@
                     {
                         data: 'location_names',
                         defaultContent: '-',
+                        render: function(data, type, row) {
+                            const location = data ?? '-';
+
+                            return row.vendor_name ? `${location} (${row.vendor_name})` : location;
+                        },
                     },
 
                     {
@@ -746,8 +854,9 @@
 
                     {
                         data: 'width_count',
+                        defaultContent: '-',
                         render: function(data) {
-                            return `${data} Lebar`;
+                            return data === undefined || data === null ? '-' : `${data} Lebar`;
                         },
                     },
 
@@ -757,6 +866,30 @@
                         searchable: false,
                         className: 'action-column',
                         render: function(data, type, row) {
+                            if (row.pricing_engine === 'digital_print_a3') {
+                                return `
+                                    <div class="data-cell-actions"
+                                        style="display: flex; align-items: center; justify-content: center; gap: 5px;">
+                                        <button type="button" class="btn--icon btn-detail-digital-production-cost"
+                                            data-id="${row.digital_production_cost_id}" aria-label="View">
+                                            <i class="bi bi-arrows-fullscreen"></i>
+                                        </button>
+                                        <button type="button" class="btn--icon btn-edit-digital-production-cost"
+                                            data-id="${row.digital_production_cost_id}" aria-label="Edit">
+                                            <i class="bi bi-pen"></i>
+                                        </button>
+                                        <button type="button" class="btn--icon btn-delete-digital-production-cost"
+                                            data-id="${row.digital_production_cost_id}"
+                                            data-location="${escapeDigitalHtml(row.location_names)}"
+                                            data-vendor="${escapeDigitalHtml(row.vendor_name)}"
+                                            data-material-count="${Number(row.material_count) || 0}"
+                                            aria-label="Hapus">
+                                            <i class="bi bi-trash3-fill"></i>
+                                        </button>
+                                    </div>
+                                `;
+                            }
+
                             return `
                                 <div class="data-cell-actions"
                                     style="display: flex; align-items: center; justify-content: center; gap: 5px;">
@@ -831,6 +964,161 @@
                         searchInput.style.border = '1px solid #e2e8f0';
                     }
                 },
+            });
+
+            $('#productionCostEngineFilter').on('change', function() {
+                productionCostTable.column(5).visible(!isDigitalPrintFilter(), false);
+                productionCostTable.columns.adjust();
+                productionCostTable.ajax.reload(null, true);
+                updateExportProductionCostLink();
+            });
+
+            function updateExportProductionCostLink() {
+                const exportUrl = "{{ route('admin_export_pc_finishings') }}";
+
+                document.getElementById('btnExportProductionCost').href = isDigitalPrintFilter() ?
+                    exportUrl + '?pricing_engine=digital_print_a3' :
+                    exportUrl;
+            }
+
+            updateExportProductionCostLink();
+
+            document.addEventListener('click', function(event) {
+                const detailDigitalButton = event.target.closest('.btn-detail-digital-production-cost');
+
+                if (detailDigitalButton && detailDigitalButton.dataset.id) {
+                    window.location.href =
+                        "{{ route('admin_pc_finishing_digital_details', ':id') }}"
+                        .replace(':id', btoa(String(detailDigitalButton.dataset.id)));
+
+                    return;
+                }
+
+                const editDigitalButton = event.target.closest('.btn-edit-digital-production-cost');
+
+                if (editDigitalButton && editDigitalButton.dataset.id) {
+                    window.location.href =
+                        "{{ route('admin_edit_pc_finishing_digital', ':id') }}"
+                        .replace(':id', btoa(String(editDigitalButton.dataset.id)));
+
+                    return;
+                }
+
+                const pendingButton = event.target.closest('.btn-digital-production-cost-pending');
+
+                if (!pendingButton) {
+                    return;
+                }
+
+                showToast(
+                    'warning',
+                    `Fitur ${pendingButton.dataset.action} ongkos produksi Digital Print A3+ belum tersedia.`
+                );
+            });
+
+            /*
+            |--------------------------------------------------------------------------
+            | DELETE PRODUCTION COST DIGITAL PRINT A3+
+            |--------------------------------------------------------------------------
+            */
+
+            const modalDeleteDigital = document.getElementById('modalDeleteDigitalProductionCost');
+            const btnConfirmDeleteDigital = document.getElementById('btnConfirmDeleteDigitalProductionCost');
+            let digitalProductionCostIdToDelete = null;
+
+            function closeDeleteDigitalModal() {
+                if (btnConfirmDeleteDigital.disabled) {
+                    return;
+                }
+
+                modalDeleteDigital.classList.remove('is-open');
+                digitalProductionCostIdToDelete = null;
+            }
+
+            document.addEventListener('click', function(event) {
+                const deleteDigitalButton = event.target.closest('.btn-delete-digital-production-cost');
+
+                if (!deleteDigitalButton || !deleteDigitalButton.dataset.id) {
+                    return;
+                }
+
+                const vendorName = deleteDigitalButton.dataset.vendor;
+
+                digitalProductionCostIdToDelete = deleteDigitalButton.dataset.id;
+
+                document.getElementById('deleteDigitalLocation').textContent =
+                    deleteDigitalButton.dataset.location + (vendorName ? ' - ' + vendorName : '');
+                document.getElementById('deleteDigitalMaterialCount').textContent =
+                    deleteDigitalButton.dataset.materialCount;
+
+                modalDeleteDigital.classList.add('is-open');
+            });
+
+            document.getElementById('btnTutupDeleteDigitalProductionCost')
+                .addEventListener('click', closeDeleteDigitalModal);
+            document.getElementById('btnBatalDeleteDigitalProductionCost')
+                .addEventListener('click', closeDeleteDigitalModal);
+
+            modalDeleteDigital.addEventListener('click', function(event) {
+                if (event.target === modalDeleteDigital) {
+                    closeDeleteDigitalModal();
+                }
+            });
+
+            document.addEventListener('keydown', function(event) {
+                if (event.key === 'Escape' && modalDeleteDigital.classList.contains('is-open')) {
+                    closeDeleteDigitalModal();
+                }
+            });
+
+            btnConfirmDeleteDigital.addEventListener('click', async function() {
+                if (!digitalProductionCostIdToDelete) {
+                    return;
+                }
+
+                const originalText = btnConfirmDeleteDigital.innerHTML;
+
+                btnConfirmDeleteDigital.disabled = true;
+                btnConfirmDeleteDigital.innerHTML = 'Menghapus...';
+
+                try {
+                    const response = await fetch(
+                        "{{ route('admin_delete_pc_finishing_digital', ':id') }}"
+                        .replace(':id', btoa(String(digitalProductionCostIdToDelete))), {
+                            method: 'DELETE',
+                            headers: {
+                                'X-CSRF-TOKEN': document
+                                    .querySelector('meta[name="csrf-token"]')
+                                    .getAttribute('content'),
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Accept': 'application/json'
+                            }
+                        }
+                    );
+
+                    const result = await response.json();
+
+                    btnConfirmDeleteDigital.disabled = false;
+
+                    if (response.ok && result.success) {
+                        closeDeleteDigitalModal();
+                        productionCostTable.ajax.reload(null, false);
+                        showToast('success', result.message);
+                        return;
+                    }
+
+                    showToast(
+                        'error',
+                        result.message || 'Production cost Digital Print A3+ gagal dihapus.'
+                    );
+                } catch (error) {
+                    console.error(error);
+
+                    showToast('error', 'Terjadi kesalahan saat menghapus production cost Digital Print A3+.');
+                } finally {
+                    btnConfirmDeleteDigital.disabled = false;
+                    btnConfirmDeleteDigital.innerHTML = originalText;
+                }
             });
 
         });

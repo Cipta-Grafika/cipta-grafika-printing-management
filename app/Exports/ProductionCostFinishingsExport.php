@@ -3,10 +3,9 @@
 namespace App\Exports;
 
 use Illuminate\Support\Facades\DB;
-use Maatwebsite\Excel\Concerns\Export;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 
-class ProductionCostFinishingsExport implements Export, WithMultipleSheets
+class ProductionCostFinishingsExport implements WithMultipleSheets
 {
     public function sheets(): array
     {
