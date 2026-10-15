@@ -4,6 +4,7 @@ use App\Http\Controllers\admin\CalculationRuleCT;
 use App\Http\Controllers\admin\CategoryCT;
 use App\Http\Controllers\admin\CompatibilityMaterialCT;
 use App\Http\Controllers\admin\DashboardCT;
+use App\Http\Controllers\admin\DiscountCT;
 use App\Http\Controllers\admin\DisplayCT;
 use App\Http\Controllers\admin\DisplayPricingRuleCT;
 use App\Http\Controllers\admin\EngineCT;
@@ -265,6 +266,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/admin/production-cost-finishing-laminations/create', [ProductionCostFinishingLaminationCT::class, 'create'])->name('admin_create_pc_finishing_lamination');
     Route::post('/admin/production-cost-finishing-laminations/create', [ProductionCostFinishingLaminationCT::class, 'store'])->name('admin_store_lamination_pc_finishing');
     Route::get('/admin/production-cost-finishing-laminations/data', [ProductionCostFinishingLaminationCT::class, 'data'])->name('admin_data_pc_finishing_lamination');
+    Route::get('/admin/production-cost-finishing-laminations/digital/{id}/edit', [ProductionCostFinishingLaminationCT::class, 'editDigital'])->name('admin_edit_pc_finishing_lamination_digital');
+    Route::get('/admin/production-cost-finishing-laminations/digital/{id}/details', [ProductionCostFinishingLaminationCT::class, 'detailsDigital'])->name('admin_details_pc_finishing_lamination_digital');
+    Route::delete('/admin/production-cost-finishing-laminations/digital/{id}/delete', [ProductionCostFinishingLaminationCT::class, 'destroyDigital'])->name('admin_delete_pc_finishing_lamination_digital');
+    Route::put('/admin/production-cost-finishing-laminations/digital/{id}/update', [ProductionCostFinishingLaminationCT::class, 'updateDigital'])->name('admin_update_pc_finishing_lamination_digital');
     Route::delete('/admin/production-cost-finishing-laminations/{id}/delete', [ProductionCostFinishingLaminationCT::class, 'destroy'])->name('admin_delete_pc_finishing_lamination');
     Route::get('/admin/production-cost-finishing-laminations/{id}/edit', [ProductionCostFinishingLaminationCT::class, 'edit'])->name('admin_edit_pc_finishing_lamination');
     Route::put('/admin/production-cost-finishing-laminations/{id}/update', [ProductionCostFinishingLaminationCT::class, 'update'])->name('admin_update_pc_finishing_lamination');
@@ -316,4 +321,12 @@ Route::middleware('auth')->group(function () {
     Route::delete('/admin/gallery-samples/temporary/clean', [GallerySampleCT::class, 'cleanTemporary'])->name('admin_gallery_sample_clean_temporary');
     Route::put('/admin/gallery-samples/{engine_id}/{category_id}', [GallerySampleCT::class, 'update'])->name('admin_gallery_samples_update');
     Route::get('/admin/gallery-samples/{engine_id}/{category_id}/details', [GallerySampleCT::class, 'details'])->name('admin_gallery_samples_details');
+
+    Route::get('/admin/discounts', [DiscountCT::class, 'index'])->name('admin_discounts');
+    Route::get('/admin/discounts/data', [DiscountCT::class, 'data'])->name('admin_data_discounts');
+    Route::post('/admin/discounts/create', [DiscountCT::class, 'store'])->name('admin_store_discount');
+    Route::get('/admin/discounts/{id}/edit', [DiscountCT::class, 'edit'])->name('admin_edit_discount');
+    Route::get('/admin/discounts/{id}/details', [DiscountCT::class, 'details'])->name('admin_discount_details');
+    Route::put('/admin/discounts/{id}/update', [DiscountCT::class, 'update'])->name('admin_update_discount');
+    Route::delete('/admin/discounts/{id}/delete', [DiscountCT::class, 'destroy'])->name('admin_destroy_discount');
 });

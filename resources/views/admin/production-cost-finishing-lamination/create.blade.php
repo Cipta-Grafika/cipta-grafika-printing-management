@@ -187,6 +187,8 @@
             }
 
 
+            @include('admin.production-cost-finishing-lamination._digital-rupiah-input')
+
             function formatRupiah(value) {
 
                 if (value === '') {
@@ -271,10 +273,18 @@
             |--------------------------------------------------------------------------
             */
 
+            function isDigitalPrintConfiguration(configuration) {
+                const select = configuration.querySelector('.engine-select');
+                const option = select.options[select.selectedIndex];
+
+                return option && option.textContent.trim().toLowerCase() === 'digital print a3+';
+            }
+
             function updateLaminationForm(
                 configuration
             ) {
 
+                const isDigital = isDigitalPrintConfiguration(configuration);
                 const locationSelect =
                     configuration.querySelector(
                         '.location-select'
@@ -332,6 +342,44 @@
                 | DETAIL TABLE
                 |--------------------------------------------------------------------------
                 */
+
+                configuration.querySelector('.digital-form-notice').hidden = !isDigital;
+
+                configuration.querySelectorAll('.th-width, .td-width').forEach(function(element) {
+                    element.style.display = isDigital ? 'none' : '';
+                });
+
+                configuration.querySelectorAll('.width-select').forEach(function(select) {
+                    select.disabled = isDigital;
+                    select.required = !isDigital;
+                });
+
+                configuration.querySelectorAll('.digital-price-header, .digital-price-cell').forEach(function(element) {
+                    element.style.display = isDigital ? '' : 'none';
+                });
+
+                configuration.querySelectorAll('.digital-price-cell input').forEach(function(input) {
+                    input.disabled = !isDigital;
+                    input.required = isDigital;
+                });
+
+                if (isDigital) {
+                    configuration.querySelectorAll(
+                        '.th-price-per-meter, .th-production-cost, .th-finishing-cost, .th-vendor-price, ' +
+                        '.td-price-per-meter, .td-production-cost, .td-finishing-cost, .td-vendor-price'
+                    ).forEach(function(element) {
+                        element.style.display = 'none';
+                    });
+
+                    configuration.querySelectorAll(
+                        '.price-per-meter-input, .production-cost-input, .finishing-cost-input, .vendor-price-input'
+                    ).forEach(function(input) {
+                        input.disabled = true;
+                        input.required = false;
+                    });
+
+                    return;
+                }
 
                 const pricePerMeterHeaders =
                     configuration.querySelectorAll(
@@ -592,7 +640,10 @@
                             widthSelect.empty();
 
 
-                            if (!laminationId) {
+                            if (
+                                !laminationId ||
+                                isDigitalPrintConfiguration(row.closest('.configuration-card'))
+                            ) {
 
                                 widthSelect.trigger(
                                     'change'
@@ -813,7 +864,7 @@
                 </td>
 
 
-                <td>
+                <td class="td-width">
 
                     <select
                         name="configurations[${configIndex}][items][${laminationIndex}][size_ids][]"
@@ -895,6 +946,34 @@
 
                 </td>
 
+
+                <td class="digital-price-cell" style="display: none;">
+                    <input
+                        type="text"
+                        name="configurations[${configIndex}][items][${laminationIndex}][unit_price]"
+                        class="input rupiah-input"
+                        inputmode="decimal"
+                        maxlength="20"
+                        pattern="(?:[0-9]+|[0-9]{1,3}(?:[.][0-9]{3})+)(?:,[0-9]{1,2})?"
+                        autocomplete="off"
+                        placeholder="Contoh: 316,70"
+                        disabled
+                    >
+                </td>
+
+                <td class="digital-price-cell" style="display: none;">
+                    <input
+                        type="text"
+                        name="configurations[${configIndex}][items][${laminationIndex}][click_price]"
+                        class="input rupiah-input"
+                        inputmode="decimal"
+                        maxlength="20"
+                        pattern="(?:[0-9]+|[0-9]{1,3}(?:[.][0-9]{3})+)(?:,[0-9]{1,2})?"
+                        autocomplete="off"
+                        placeholder="Contoh: 1.500,00"
+                        disabled
+                    >
+                </td>
 
                 <td class="text-center">
 
@@ -1231,6 +1310,13 @@
                         </div>
 
 
+                        <p class="field-help digital-form-notice" hidden>
+                            Ukuran laminasi mengikuti master dan tidak dipilih ulang di form ini.
+                            Harga dihitung per kategori, sisi, dan tier dari master pricing rules laminasi Digital Print A3+.
+                            Format harga: titik untuk ribuan dan koma untuk desimal, maksimal 2 angka desimal
+                            (contoh: 316,70 atau 1.500,00).
+                        </p>
+
                         <div class="table-responsive">
 
                             <table class="display data-table">
@@ -1244,7 +1330,7 @@
                                         </th>
 
 
-                                        <th>
+                                        <th class="th-width">
                                             Lebar Dipakai
                                         </th>
 
@@ -1271,6 +1357,14 @@
                                             Harga Vendor (Rp)
                                         </th>
 
+
+                                        <th class="digital-price-header" style="display: none;">
+                                            Harga Satuan (Rp)
+                                        </th>
+
+                                        <th class="digital-price-header" style="display: none;">
+                                            Harga Klik (Rp)
+                                        </th>
 
                                         <th style="width: 80px;">
                                             Aksi
@@ -1404,42 +1498,7 @@
                         'change.laminationEngine',
                         function() {
 
-                            const selectedOption =
-                                this.options[
-                                    this.selectedIndex
-                                ];
-
-
-                            if (!selectedOption) {
-                                return;
-                            }
-
-
-                            const engineName =
-                                selectedOption.text
-                                .trim()
-                                .toLowerCase();
-
-
-                            if (
-                                engineName ===
-                                'digital print a3+'
-                            ) {
-
-                                showToast(
-                                    'error',
-                                    'Engine Digital Print A3+ tidak dapat digunakan untuk Production Cost Laminasi.'
-                                );
-
-
-                                $(this).val('');
-
-
-                                $(this).trigger(
-                                    'change.select2'
-                                );
-
-                            }
+                            updateLaminationForm(configuration);
 
                         }
                     );
@@ -1603,8 +1662,13 @@
                     const input =
                         event.target;
 
+                    const regroup = event.inputType &&
+                        (event.inputType.startsWith('delete') ||
+                            (event.inputType === 'insertText' && /^[0-9,]+$/.test(event.data || '')));
 
                     input.value =
+                        input.closest('.digital-price-cell') ?
+                        formatDigitalRupiahInput(input, false, regroup) :
                         formatNumberInput(
                             input.value
                         );
@@ -1654,6 +1718,8 @@
 
 
                     input.value =
+                        input.closest('.digital-price-cell') ?
+                        formatDigitalRupiahInput(input, true) :
                         formatRupiah(
                             input.value
                         );
@@ -1784,7 +1850,6 @@
                         const configuration =
                             configurations[i];
 
-
                         const checkedCategories =
                             configuration.querySelectorAll(
                                 '.category-checkbox input:checked'
@@ -1893,7 +1958,7 @@
 
                         showToast(
                             data.type || 'error',
-                            data.message ||
+                            (data.errors ? Object.values(data.errors).flat().join(' ') : data.message) ||
                             'Terjadi kesalahan saat menyimpan Production Cost Laminasi.'
                         );
 

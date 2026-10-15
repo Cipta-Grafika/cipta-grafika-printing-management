@@ -11,7 +11,7 @@
                         <p class="hero-sub">Kelola biaya material dan finishing yang digunakan sebagai dasar perhitungan
                             biaya serta estimasi harga produk.</p>
                     </div>
-                    <div class="hero-actions">
+                    <div class="hero-actions" style="display: flex; justify-content: right;">
                         <a href="{{ route('admin_create_pc_finishing_display') }}" class="btn btn--primary"><svg
                                 viewBox="0 0 24 24">
                                 <path d="M12 5v14M5 12h14" />
@@ -351,10 +351,10 @@
                                             ">
                                         ${parts.map(function (part) {
                                         return `
-                                                                                    <span class="badge">
-                                                                                        ${escapeHtml(part)}
-                                                                                    </span>
-                                                                            `;
+                                                                                        <span class="badge">
+                                                                                            ${escapeHtml(part)}
+                                                                                        </span>
+                                                                                `;
                                         }).join('')}
                                     </div>
                                 `;

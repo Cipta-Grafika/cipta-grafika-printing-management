@@ -11,12 +11,20 @@
                         <p class="hero-sub">Kelola biaya material dan finishing yang digunakan sebagai dasar perhitungan
                             biaya serta estimasi harga produk.</p>
                     </div>
-                    <div class="hero-actions"><a href="{{ route('admin_export_pc_finishing_laminations') }}"
+                    <div class="hero-actions material-hero-actions"><a id="btnExportProductionCostLamination"
+                            href="{{ route('admin_export_pc_finishing_laminations') }}"
                             class="btn btn--ghost"><svg viewBox="0 0 24 24">
                                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                                 <path d="M7 10l5 5 5-5" />
                                 <path d="M12 15V3" />
                             </svg> Export</a>
+                        <div class="material-category-filter">
+                            <select id="productionCostLaminationEngineFilter" class="select select2"
+                                aria-label="Filter mesin ongkos produksi laminasi">
+                                <option value="large_format" selected>Large Format</option>
+                                <option value="digital_print_a3">Digital Print A3+</option>
+                            </select>
+                        </div>
                         <button type="button" class="btn btn--ghost" id="btnDownloadTemplateLamination">
                             <svg viewBox="0 0 24 24">
                                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -40,6 +48,9 @@
                 <div class="grid">
                     <section class="col-12 card">
 
+                        <p id="digitalLaminationListNotice" class="field-help" hidden>
+                            Template dan import Digital Print A3+ belum tersedia.
+                        </p>
                         <table id="productionCostLaminationTable" class="data-table">
                             <thead>
                                 <tr>
@@ -47,8 +58,8 @@
                                     <th>No</th>
                                     <th>Mesin</th>
                                     <th>Lokasi</th>
-                                    <th>Kategori</th>
-                                    <th>Laminasi</th>
+                                    <th class="text-center">Kategori</th>
+                                    <th class="text-center">Laminasi</th>
                                     <th>Ukuran</th>
                                     <th class="action-column">Aksi</th>
                                 </tr>
@@ -108,9 +119,15 @@
                             Hapus production cost laminasi?
                         </h3>
 
-                        <p>
+                        <p id="largeFormatLaminationDeleteMessage">
                             Apakah kamu yakin ingin menghapus seluruh
                             konfigurasi production cost laminasi untuk mesin ini?
+                            Data yang sudah dihapus tidak dapat dikembalikan.
+                        </p>
+                        <p id="digitalLaminationDeleteMessage" hidden>
+                            Hapus konfigurasi ongkos laminasi Digital Print A3+ untuk
+                            <strong id="digitalLaminationDeleteScope"></strong> beserta seluruh kategori, detail laminasi,
+                            dan harga tier pada baris ini? Master dan ongkos material tidak ikut dihapus.
                             Data yang sudah dihapus tidak dapat dikembalikan.
                         </p>
 
@@ -328,6 +345,25 @@
         let productionCostLaminationTable;
 
         document.addEventListener('DOMContentLoaded', function() {
+            const engineFilter = document.getElementById('productionCostLaminationEngineFilter');
+            const exportButton = document.getElementById('btnExportProductionCostLamination');
+            const exportUrl = exportButton.href;
+            const escapeHtml = DataTable.render.text().display;
+
+            function isDigitalFilter() {
+                return engineFilter.value === 'digital_print_a3';
+            }
+
+            $('#productionCostLaminationEngineFilter').select2({ width: '100%' });
+
+            function updateExportLaminationLink() {
+                const url = new URL(exportUrl);
+                url.searchParams.set('pricing_engine', engineFilter.value);
+                exportButton.href = url.toString();
+            }
+
+            updateExportLaminationLink();
+
             productionCostLaminationTable = new DataTable(
                 '#productionCostLaminationTable', {
                     processing: true,
@@ -337,6 +373,9 @@
                     ajax: {
                         url: "{{ route('admin_data_pc_finishing_lamination') }}",
                         type: 'GET',
+                        data: function(data) {
+                            data.pricing_engine = engineFilter.value;
+                        },
                     },
 
                     responsive: {
@@ -364,17 +403,31 @@
                         {
                             data: 'engine_name',
                             defaultContent: '-',
+                            render: DataTable.render.text(),
                         },
                         {
                             data: 'location_names',
                             defaultContent: '-',
+                            render: function(data, type, row) {
+                                const label = row.vendor_name ? `${data} (${row.vendor_name})` : (data || '-');
+                                return type === 'display' ? escapeHtml(label) : label;
+                            },
                         },
                         {
                             data: 'category_names',
+                            className: 'text-center',
                             defaultContent: '-',
+                            render: function(data, type, row) {
+                                if (row.pricing_engine === 'digital_print_a3') {
+                                    return type === 'display' ? `${row.category_count} Kategori` : row.category_count;
+                                }
+
+                                return type === 'display' ? escapeHtml(data || '-') : data;
+                            },
                         },
                         {
                             data: 'lamination_count',
+                            className: 'text-center',
                             defaultContent: 0,
                             render: function(data) {
                                 return `${data} Laminasi`;
@@ -393,6 +446,29 @@
                             searchable: false,
                             className: 'action-column',
                             render: function(data, type, row) {
+                                if (row.pricing_engine === 'digital_print_a3') {
+                                    const editUrl = @json(route('admin_edit_pc_finishing_lamination_digital', ['id' => '__ID__']));
+                                    const detailUrl = @json(route('admin_details_pc_finishing_lamination_digital', ['id' => '__ID__']));
+                                    return `<div class="data-cell-actions digital-lamination-actions">
+                                        <a class="btn--icon"
+                                            href="${detailUrl.replace('__ID__', btoa(String(row.digital_lamination_production_cost_id)))}"
+                                            aria-label="View" title="Detail ongkos produksi laminasi Digital">
+                                            <i class="bi bi-arrows-fullscreen"></i>
+                                        </a>
+                                        <a class="btn--icon"
+                                            href="${editUrl.replace('__ID__', btoa(String(row.digital_lamination_production_cost_id)))}"
+                                            aria-label="Edit" title="Edit ongkos produksi laminasi Digital">
+                                            <i class="bi bi-pen"></i>
+                                        </a>
+                                        <button type="button" class="btn--icon btn-delete-production-cost-lamination"
+                                            data-id="${btoa(String(row.digital_lamination_production_cost_id))}"
+                                            data-pricing-engine="digital_print_a3"
+                                            data-scope="${encodeURIComponent(row.vendor_name ? `${row.location_names} (${row.vendor_name})` : row.location_names)}"
+                                            aria-label="Hapus" title="Hapus ongkos produksi laminasi Digital">
+                                            <i class="bi bi-trash3-fill"></i>
+                                        </button>
+                                    </div>`;
+                                }
                                 return `
                             <div
                                 class="data-cell-actions"
@@ -478,6 +554,18 @@
                     },
                 }
             );
+
+            $('#productionCostLaminationEngineFilter').on('change', function() {
+                const digital = isDigitalFilter();
+                productionCostLaminationTable.column(6).visible(!digital, false);
+                productionCostLaminationTable.columns.adjust();
+                productionCostLaminationTable.responsive.recalc();
+                productionCostLaminationTable.ajax.reload(null, true);
+                document.getElementById('digitalLaminationListNotice').hidden = !digital;
+                document.getElementById('btnDownloadTemplateLamination').disabled = digital;
+                document.getElementById('btnImportFinishingLamination').disabled = digital;
+                updateExportLaminationLink();
+            });
         });
 
         document.addEventListener('DOMContentLoaded', function() {
@@ -489,6 +577,7 @@
             */
 
             let productionCostLaminationIdToDelete = null;
+            let productionCostLaminationIsDigitalToDelete = false;
 
             const modalDeleteProductionCostLamination =
                 document.getElementById(
@@ -526,6 +615,9 @@
                 if (!deleteButton) {
                     return;
                 }
+                if (btnConfirmDeleteProductionCostLamination.disabled) {
+                    return;
+                }
 
                 /*
                 |--------------------------------------------------------------------------
@@ -535,6 +627,11 @@
 
                 productionCostLaminationIdToDelete =
                     deleteButton.dataset.id;
+                productionCostLaminationIsDigitalToDelete = deleteButton.dataset.pricingEngine === 'digital_print_a3';
+                document.getElementById('largeFormatLaminationDeleteMessage').hidden = productionCostLaminationIsDigitalToDelete;
+                document.getElementById('digitalLaminationDeleteMessage').hidden = !productionCostLaminationIsDigitalToDelete;
+                document.getElementById('digitalLaminationDeleteScope').textContent =
+                    productionCostLaminationIsDigitalToDelete ? decodeURIComponent(deleteButton.dataset.scope) : '';
 
                 modalDeleteProductionCostLamination.classList.add(
                     'is-open'
@@ -555,6 +652,7 @@
                 );
 
                 productionCostLaminationIdToDelete = null;
+                productionCostLaminationIsDigitalToDelete = false;
             }
 
 
@@ -629,10 +727,15 @@
                     |--------------------------------------------------------------------------
                     */
 
-                    if (!productionCostLaminationIdToDelete) {
+                    if (!productionCostLaminationIdToDelete || btnConfirmDeleteProductionCostLamination.disabled) {
                         return;
                     }
 
+                    const digitalDeleteUrl = @json(route('admin_delete_pc_finishing_lamination_digital', ['id' => '__ID__']));
+                    const deleteUrl = productionCostLaminationIsDigitalToDelete ?
+                        digitalDeleteUrl.replace('__ID__', productionCostLaminationIdToDelete) :
+                        `/admin/production-cost-finishing-laminations/${productionCostLaminationIdToDelete}/delete`;
+                    btnConfirmDeleteProductionCostLamination.disabled = true;
 
                     try {
 
@@ -643,7 +746,7 @@
                         */
 
                         const response = await fetch(
-                            `/admin/production-cost-finishing-laminations/${productionCostLaminationIdToDelete}/delete`, {
+                            deleteUrl, {
                                 method: 'DELETE',
 
                                 headers: {
@@ -742,6 +845,8 @@
                             'error',
                             'Terjadi kesalahan saat menghapus production cost laminasi.'
                         );
+                    } finally {
+                        btnConfirmDeleteProductionCostLamination.disabled = false;
                     }
 
                 }

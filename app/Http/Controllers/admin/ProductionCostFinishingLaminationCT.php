@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\ProductionCostFinishingLaminationsExport;
+use App\Exports\DigitalLaminationProductionCostsExport;
+use App\Support\DigitalLaminationConfiguration;
 use App\Imports\ProductionCostFinishingLaminationsImport;
 use Carbon\Carbon;
 
@@ -21,6 +23,14 @@ class ProductionCostFinishingLaminationCT extends Controller
 
     public function data(Request $request)
     {
+        $validated = $request->validate([
+            'pricing_engine' => ['nullable', 'in:large_format,digital_print_a3'],
+        ]);
+
+        if (($validated['pricing_engine'] ?? 'large_format') === 'digital_print_a3') {
+            return $this->dataDigital($request);
+        }
+
         /*
     |--------------------------------------------------------------------------
     | TOTAL SEMUA DATA
@@ -61,6 +71,7 @@ class ProductionCostFinishingLaminationCT extends Controller
                 '=',
                 'pc.engine_id'
             )
+            ->whereRaw('LOWER(TRIM(e.name)) = ?', ['large format'])
             ->distinct()
             ->count('e.id');
 
@@ -122,6 +133,7 @@ class ProductionCostFinishingLaminationCT extends Controller
                 '=',
                 'lpcd.id'
             )
+            ->whereRaw('LOWER(TRIM(e.name)) = ?', ['large format'])
             ->select(
                 'e.id as engine_id',
                 'e.name as engine_name',
@@ -228,6 +240,81 @@ class ProductionCostFinishingLaminationCT extends Controller
         ]);
     }
 
+    private function dataDigital(Request $request)
+    {
+        $query = DB::table('m_digital_lamination_production_costs as pc')
+            ->join('m_engines as e', 'e.id', '=', 'pc.engine_id')
+            ->join('m_locations as l', 'l.id', '=', 'pc.location_id')
+            ->leftJoin('m_vendors as v', 'v.id', '=', 'pc.vendor_id')
+            ->leftJoin('m_digital_lamination_production_cost_details as d', 'd.digital_lamination_production_cost_id', '=', 'pc.id')
+            ->whereRaw('LOWER(TRIM(e.name)) = ?', ['digital print a3+'])
+            ->select(
+                'pc.id as digital_lamination_production_cost_id',
+                'e.id as engine_id',
+                'e.name as engine_name',
+                'l.name as location_names',
+                'v.name as vendor_name',
+                DB::raw('COUNT(DISTINCT d.lamination_id) as lamination_count'),
+                DB::raw("'digital_print_a3' as pricing_engine")
+            )
+            ->groupBy('pc.id', 'e.id', 'e.name', 'l.name', 'v.name');
+
+        $totalRecords = (clone $query)->get()->count();
+        $search = $request->input('search.value');
+
+        if (!empty($search)) {
+            $search = '%' . strtolower($search) . '%';
+            $query->where(function ($q) use ($search) {
+                $q->whereRaw('LOWER(e.name) LIKE ?', [$search])
+                    ->orWhereRaw('LOWER(l.name) LIKE ?', [$search])
+                    ->orWhereRaw('LOWER(v.name) LIKE ?', [$search])
+                    ->orWhereExists(function ($categories) use ($search) {
+                        $categories->selectRaw('1')
+                            ->from('m_digital_lamination_production_cost_details as cd')
+                            ->join('m_categories as c', 'c.id', '=', 'cd.category_id')
+                            ->whereColumn('cd.digital_lamination_production_cost_id', 'pc.id')
+                            ->whereRaw('LOWER(c.name) LIKE ?', [$search]);
+                    });
+            });
+        }
+
+        $totalFiltered = (clone $query)->get()->count();
+        $data = $query
+            ->orderBy('e.name')
+            ->orderBy('l.name')
+            ->orderBy('v.name')
+            ->orderBy('pc.id')
+            ->offset((int) $request->input('start', 0))
+            ->limit((int) $request->input('length', 10))
+            ->get();
+
+        $categoryNames = DB::table('m_digital_lamination_production_cost_details as d')
+            ->join('m_categories as c', 'c.id', '=', 'd.category_id')
+            ->whereIn('d.digital_lamination_production_cost_id', $data->pluck('digital_lamination_production_cost_id'))
+            ->select('d.digital_lamination_production_cost_id', 'c.id as category_id', 'c.name')
+            ->distinct()
+            ->orderBy('c.name')
+            ->get()
+            ->groupBy('digital_lamination_production_cost_id');
+
+        $data->each(function ($row) use ($categoryNames) {
+            $row->category_count = $categoryNames
+                ->get($row->digital_lamination_production_cost_id, collect())
+                ->count();
+            $row->category_names = $categoryNames
+                ->get($row->digital_lamination_production_cost_id, collect())
+                ->pluck('name')
+                ->implode(', ');
+        });
+
+        return response()->json([
+            'draw' => (int) $request->input('draw'),
+            'recordsTotal' => $totalRecords,
+            'recordsFiltered' => $totalFiltered,
+            'data' => $data,
+        ]);
+    }
+
     public function create()
     {
         $data['engines'] = DB::table('m_engines')
@@ -260,6 +347,10 @@ class ProductionCostFinishingLaminationCT extends Controller
 
     public function store(Request $request)
     {
+        if ($this->hasDigitalPrintConfiguration($request)) {
+            return $this->storeDigital($request);
+        }
+
         $request->validate([
             'configurations' => 'required|array|min:1',
 
@@ -1177,6 +1268,562 @@ class ProductionCostFinishingLaminationCT extends Controller
                 'status' => 'error',
                 'message' => 'Terjadi kesalahan saat menyimpan Production Cost Laminasi.',
                 'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    private function hasDigitalPrintConfiguration(Request $request): bool
+    {
+        $configurations = $request->input('configurations');
+
+        if (!is_array($configurations)) {
+            return false;
+        }
+
+        $engineIds = collect($configurations)
+            ->filter(fn($configuration) => is_array($configuration))
+            ->pluck('engine_id')
+            ->filter(fn($id) => is_numeric($id))
+            ->map(fn($id) => (int) $id)
+            ->unique();
+
+        return DB::table('m_engines')
+            ->whereIn('id', $engineIds)
+            ->whereRaw('LOWER(TRIM(name)) = ?', ['digital print a3+'])
+            ->exists();
+    }
+
+    private function storeDigital(Request $request)
+    {
+        return $this->saveDigital($request);
+    }
+
+    private function findDigitalProductionCost($id)
+    {
+        $decodedId = base64_decode($id, true);
+        if ($decodedId === false || !ctype_digit($decodedId) || (int) $decodedId <= 0) {
+            abort(404);
+        }
+
+        $productionCost = DB::table('m_digital_lamination_production_costs as pc')
+            ->join('m_engines as e', 'e.id', '=', 'pc.engine_id')
+            ->join('m_locations as l', 'l.id', '=', 'pc.location_id')
+            ->leftJoin('m_vendors as v', 'v.id', '=', 'pc.vendor_id')
+            ->where('pc.id', $decodedId)
+            ->whereRaw('LOWER(TRIM(e.name)) = ?', ['digital print a3+'])
+            ->select('pc.*', 'e.name as engine_name', 'l.name as location_name', 'v.name as vendor_name')
+            ->first();
+
+        abort_unless($productionCost, 404);
+
+        return $productionCost;
+    }
+
+    public function detailsDigital($id)
+    {
+        $productionCost = $this->findDigitalProductionCost($id);
+        $details = DB::table('m_digital_lamination_production_cost_details as d')
+            ->join('m_laminations as l', 'l.id', '=', 'd.lamination_id')
+            ->join('m_categories as c', 'c.id', '=', 'd.category_id')
+            ->where('d.digital_lamination_production_cost_id', $productionCost->id)
+            ->select('d.*', 'l.name as lamination_name', 'c.name as category_name')
+            ->orderBy('c.name')
+            ->orderBy('l.name')
+            ->orderBy('d.id')
+            ->get();
+        $prices = DB::table('m_digital_lamination_production_cost_prices')
+            ->whereIn('digital_lamination_production_cost_detail_id', $details->pluck('id'))
+            ->get()
+            ->groupBy('digital_lamination_production_cost_detail_id');
+
+        $tierLabels = [
+            'tier_1' => '1 lbr',
+            'tier_2_5' => '2-5 lbr',
+            'tier_6_50' => '6-50 lbr',
+            'tier_100' => '100 lbr',
+            'tier_300' => '300 lbr',
+            'tier_500' => '500 lbr',
+        ];
+        $priceGroups = [
+            'general_single' => ['general', 'single', 'Harga Umum · Laminasi 1 Muka'],
+            'general_double' => ['general', 'double', 'Harga Umum · Laminasi 2 Muka'],
+            'division_single' => ['division', 'single', 'Harga Divisi · Laminasi 1 Muka'],
+            'division_double' => ['division', 'double', 'Harga Divisi · Laminasi 2 Muka'],
+        ];
+
+        $details->each(function ($detail) use ($prices, $priceGroups, $tierLabels) {
+            $detailPrices = ($prices->get($detail->id) ?? collect())->keyBy(
+                fn($price) => $price->price_type . '|' . $price->print_type . '|' . $price->quantity_tier
+            );
+            $detail->prices = [];
+            foreach ($priceGroups as $groupKey => [$priceType, $printType]) {
+                foreach (array_keys($tierLabels) as $tier) {
+                    $detail->prices[$groupKey][$tier] = $detailPrices->get($priceType . '|' . $printType . '|' . $tier);
+                }
+            }
+        });
+
+        $categories = $details->groupBy('category_id')->map(function ($categoryDetails) use ($priceGroups, $tierLabels) {
+            $markups = [];
+            foreach (array_keys($priceGroups) as $groupKey) {
+                foreach (array_keys($tierLabels) as $tier) {
+                    // Append dapat menyimpan snapshot markup berbeda dalam kategori yang sama.
+                    $values = $categoryDetails
+                        ->map(fn($detail) => $detail->prices[$groupKey][$tier])
+                        ->filter()
+                        ->map(fn($price) => rtrim(rtrim(number_format((float) $price->markup_percentage, 2, ',', ''), '0'), ',') . '%')
+                        ->unique()->values();
+                    $markups[$groupKey][$tier] = $values->isEmpty() ? '-' : $values->implode(' / ');
+                }
+            }
+
+            return (object) [
+                'category_name' => $categoryDetails->first()->category_name,
+                'markups' => $markups,
+                'details' => $categoryDetails->values(),
+            ];
+        })->values();
+        $categories = $categories->groupBy(
+            fn($category) => DigitalLaminationConfiguration::signature($category->details, $prices)
+        )->map(function ($sameCategories) {
+            $category = $sameCategories->first();
+            $category->category_names = $sameCategories->pluck('category_name')->values();
+
+            return $category;
+        })->values();
+        $priceGroups = collect($priceGroups)->map(fn($group) => $group[2]);
+
+        return view('admin.production-cost-finishing-lamination.details-digital', compact(
+            'productionCost', 'categories', 'tierLabels', 'priceGroups'
+        ));
+    }
+
+    public function editDigital($id)
+    {
+        $productionCost = $this->findDigitalProductionCost($id);
+        $details = DB::table('m_digital_lamination_production_cost_details')
+            ->where('digital_lamination_production_cost_id', $productionCost->id)
+            ->orderBy('lamination_id')
+            ->orderBy('id')
+            ->get();
+
+        // Gabungkan kategori hanya jika seluruh item dan biaya sama; data berbeda tetap terpisah.
+        $groups = $details->groupBy('category_id')
+            ->map(function ($categoryDetails, $categoryId) {
+                return [
+                    'category_ids' => [(int) $categoryId],
+                    'items' => $categoryDetails->map(fn($detail) => [
+                        'lamination_id' => (int) $detail->lamination_id,
+                        'unit_price' => number_format((float) $detail->paper_cost, 2, ',', '.'),
+                        'click_price' => number_format((float) $detail->click_cost, 2, ',', '.'),
+                    ])->values()->all(),
+                ];
+            })
+            ->groupBy(fn($group) => json_encode($group['items']))
+            ->map(fn($sameGroups) => [
+                'category_ids' => $sameGroups->pluck('category_ids')->flatten()->values()->all(),
+                'items' => $sameGroups->first()['items'],
+            ])
+            ->values();
+
+        $laminations = DB::table('m_laminations')
+            ->where(function ($query) use ($details) {
+                $query->where('status', 'Active')->orWhereIn('id', $details->pluck('lamination_id'));
+            })
+            ->orderBy('name')
+            ->get(['id', 'name', 'status']);
+        $categories = DB::table('m_categories')->orderBy('name')->get(['id', 'name']);
+
+        return view('admin.production-cost-finishing-lamination.edit-digital', compact(
+            'productionCost', 'groups', 'laminations', 'categories'
+        ));
+    }
+
+    public function updateDigital(Request $request, $id)
+    {
+        $productionCost = $this->findDigitalProductionCost($id);
+        $request->validate([
+            'configurations' => 'required|array|min:1',
+            'configurations.*' => 'required|array',
+        ]);
+
+        $configurations = array_map(function ($configuration) use ($productionCost) {
+            $configuration['engine_id'] = $productionCost->engine_id;
+            $configuration['location_ids'] = [$productionCost->location_id];
+            $configuration['vendor_id'] = $productionCost->vendor_id;
+
+            return $configuration;
+        }, $request->input('configurations'));
+        $request->merge(['configurations' => $configurations]);
+
+        return $this->saveDigital($request, (int) $productionCost->id);
+    }
+
+    private function saveDigital(Request $request, ?int $editingId = null)
+    {
+        $moneyRules = ['required', 'string', 'max:20', 'regex:/^(?:[0-9]+|[0-9]{1,3}(?:\.[0-9]{3})+)(?:,[0-9]{1,2})?$/'];
+
+        $request->validate([
+            'configurations' => 'required|array|min:1',
+            'configurations.*' => 'required|array',
+            'configurations.*.engine_id' => 'required|integer|exists:m_engines,id',
+            'configurations.*.location_ids' => 'required|array|min:1',
+            'configurations.*.location_ids.*' => 'required|integer|exists:m_locations,id',
+            'configurations.*.category_ids' => 'required|array|min:1',
+            'configurations.*.category_ids.*' => 'required|integer|exists:m_categories,id',
+            'configurations.*.vendor_id' => 'nullable|integer|exists:m_vendors,id',
+            'configurations.*.items' => 'required|array|min:1',
+            'configurations.*.items.*' => 'required|array',
+            'configurations.*.items.*.lamination_id' => 'required|integer|exists:m_laminations,id',
+            'configurations.*.items.*.unit_price' => $moneyRules,
+            'configurations.*.items.*.click_price' => $moneyRules,
+        ], [
+            'configurations.*.category_ids.required' => 'Minimal pilih satu kategori.',
+            'configurations.*.items.*.unit_price.required' => 'Harga Satuan wajib diisi.',
+            'configurations.*.items.*.click_price.required' => 'Harga Klik wajib diisi.',
+            'configurations.*.items.*.unit_price.regex' => 'Harga Satuan harus memakai titik untuk ribuan dan koma untuk desimal, maksimal 2 angka desimal.',
+            'configurations.*.items.*.click_price.regex' => 'Harga Klik harus memakai titik untuk ribuan dan koma untuk desimal, maksimal 2 angka desimal.',
+        ]);
+
+        $roundUpToMultiple = function ($value, $rounding) {
+            if ($rounding === null || (float) $rounding <= 0) {
+                return $value;
+            }
+
+            return ceil(round($value / (float) $rounding, 6)) * (float) $rounding;
+        };
+
+        $tiers = ['tier_1', 'tier_2_5', 'tier_6_50', 'tier_100', 'tier_300', 'tier_500'];
+        $maximumAmount = 9999999999.99;
+        $userName = Auth::user()->name;
+
+        try {
+            DB::transaction(function () use ($request, $roundUpToMultiple, $tiers, $maximumAmount, $userName, $editingId) {
+                // Serialisasi penyimpanan per mesin agar request bersamaan tidak membuat duplikasi.
+                $engines = DB::table('m_engines')
+                    ->whereIn('id', collect($request->input('configurations'))->pluck('engine_id')->unique())
+                    ->orderBy('id')
+                    ->lockForUpdate()
+                    ->get()
+                    ->keyBy('id');
+                $locations = DB::table('m_locations')->get()->keyBy('id');
+                $categories = DB::table('m_categories')->get()->keyBy('id');
+                $vendors = DB::table('m_vendors')->where('status', 'Active')->get()->keyBy('id');
+                $savedLaminationIds = collect();
+                if ($editingId !== null) {
+                    $editingHeader = DB::table('m_digital_lamination_production_costs')
+                        ->where('id', $editingId)->lockForUpdate()->first();
+                    abort_unless($editingHeader, 404);
+                    $configuration = $request->input('configurations')[array_key_first($request->input('configurations'))];
+                    if (
+                        (int) $editingHeader->engine_id !== (int) $configuration['engine_id'] ||
+                        (int) $editingHeader->location_id !== (int) $configuration['location_ids'][0] ||
+                        $editingHeader->vendor_id != $configuration['vendor_id']
+                    ) {
+                        throw ValidationException::withMessages([
+                            'configurations' => 'Konfigurasi telah berubah. Muat ulang halaman edit.'
+                        ]);
+                    }
+                    $savedLaminationIds = DB::table('m_digital_lamination_production_cost_details')
+                        ->where('digital_lamination_production_cost_id', $editingId)->pluck('lamination_id');
+                    DB::table('m_digital_lamination_production_cost_details')
+                        ->where('digital_lamination_production_cost_id', $editingId)->delete();
+                }
+                $laminations = DB::table('m_laminations')
+                    ->where(function ($query) use ($savedLaminationIds) {
+                        $query->where('status', 'Active')->orWhereIn('id', $savedLaminationIds);
+                    })
+                    ->get()->keyBy('id');
+                $usedKeys = [];
+
+                foreach ($request->input('configurations') as $configurationIndex => $configuration) {
+                    $prefix = 'configurations.' . $configurationIndex;
+                    $engineId = (int) $configuration['engine_id'];
+                    $engine = $engines->get($engineId);
+
+                    if (!$engine || strtolower(trim($engine->name)) !== 'digital print a3+') {
+                        throw ValidationException::withMessages([
+                            $prefix . '.engine_id' =>
+                            'Konfigurasi Digital Print A3+ harus disimpan terpisah dari konfigurasi mesin lain.'
+                        ]);
+                    }
+
+                    if (strtolower(trim($engine->status)) !== 'active') {
+                        throw ValidationException::withMessages([
+                            $prefix . '.engine_id' => 'Mesin Digital Print A3+ tidak aktif.'
+                        ]);
+                    }
+
+                    $locationIds = array_map('intval', $configuration['location_ids']);
+                    $categoryIds = array_map('intval', $configuration['category_ids']);
+
+                    foreach (['location_ids' => $locationIds, 'category_ids' => $categoryIds] as $field => $ids) {
+                        if (count($ids) !== count(array_unique($ids))) {
+                            throw ValidationException::withMessages([
+                                $prefix . '.' . $field => 'Lokasi atau kategori tidak boleh dipilih lebih dari satu kali.'
+                            ]);
+                        }
+                    }
+
+                    $isOutsourcing = false;
+                    foreach ($locationIds as $locationId) {
+                        $location = $locations->get($locationId);
+                        if (!$location || strtolower(trim($location->status)) !== 'active') {
+                            throw ValidationException::withMessages([
+                                $prefix . '.location_ids' => 'Lokasi tidak ditemukan atau tidak aktif.'
+                            ]);
+                        }
+                        $isOutsourcing = $isOutsourcing || strtolower(trim($location->name)) === 'outsourcing';
+                    }
+
+                    if ($isOutsourcing && count($locationIds) > 1) {
+                        throw ValidationException::withMessages([
+                            $prefix . '.location_ids' => 'Lokasi Outsourcing tidak dapat digabung dengan lokasi lain.'
+                        ]);
+                    }
+
+                    $vendorId = null;
+                    if ($isOutsourcing) {
+                        $vendorId = (int) ($configuration['vendor_id'] ?? 0);
+                        if (!$vendors->has($vendorId)) {
+                            throw ValidationException::withMessages([
+                                $prefix . '.vendor_id' => 'Master Vendor wajib dipilih dan harus aktif untuk lokasi Outsourcing.'
+                            ]);
+                        }
+                    }
+
+                    foreach ($locationIds as $locationId) {
+                        $scopeLabel = $locations->get($locationId)->name .
+                            ($vendorId === null ? '' : ' - ' . $vendors->get($vendorId)->name);
+                        $headerQuery = DB::table('m_digital_lamination_production_costs')
+                            ->where('engine_id', $engineId)
+                            ->where('location_id', $locationId)
+                            ->where('vendor_id', $vendorId);
+                        if ($editingId !== null) {
+                            $headerQuery->where('id', $editingId);
+                        }
+                        $header = $headerQuery->lockForUpdate()->first();
+                        $audit = ['updated_by' => $userName, 'updated_at' => now()];
+                        if ($header) {
+                            $headerId = $header->id;
+                            DB::table('m_digital_lamination_production_costs')->where('id', $headerId)->update($audit);
+                        } else {
+                            $headerId = DB::table('m_digital_lamination_production_costs')->insertGetId([
+                                'engine_id' => $engineId,
+                                'location_id' => $locationId,
+                                'vendor_id' => $vendorId,
+                                'created_by' => $userName,
+                                'created_at' => now(),
+                            ] + $audit);
+                        }
+
+                        foreach ($categoryIds as $categoryId) {
+                            $category = $categories->get($categoryId);
+                            if (!$category) {
+                                throw ValidationException::withMessages([
+                                    $prefix . '.category_ids' => 'Kategori tidak ditemukan.'
+                                ]);
+                            }
+
+                            $ruleGroups = DB::table('m_digital_lamination_pricing_rules as r')
+                                ->join('m_digital_lamination_pricing_rule_details as d', 'd.digital_lamination_pricing_rule_id', '=', 'r.id')
+                                ->where('r.engine_id', $engineId)
+                                ->where('r.location_id', $locationId)
+                                ->where('r.vendor_id', $vendorId)
+                                ->where('r.category_id', $categoryId)
+                                ->where('d.status', 'Active')
+                                ->select('d.*')
+                                ->get()
+                                ->groupBy(fn($rule) => $rule->price_type . '|' . $rule->print_type . '|' . $rule->quantity_tier);
+
+                            foreach (['general', 'division'] as $priceType) {
+                                foreach (['single', 'double'] as $printType) {
+                                    foreach ($tiers as $tier) {
+                                        $rules = $ruleGroups->get($priceType . '|' . $printType . '|' . $tier);
+                                        if (!$rules || $rules->count() !== 1) {
+                                            throw ValidationException::withMessages([
+                                                $prefix . '.category_ids' =>
+                                                'Pricing rule laminasi Digital Print A3+ untuk kategori "' . $category->name .
+                                                '" di lokasi ' . $scopeLabel .
+                                                ' harus memiliki 24 tier aktif lengkap tanpa duplikasi (' .
+                                                $priceType . ' ' . $printType . ' ' . $tier . ').'
+                                            ]);
+                                        }
+                                    }
+                                }
+                            }
+
+                            foreach ($configuration['items'] as $itemIndex => $item) {
+                                $itemPrefix = $prefix . '.items.' . $itemIndex;
+                                $laminationId = (int) $item['lamination_id'];
+                                $lamination = $laminations->get($laminationId);
+                                if (!$lamination) {
+                                    throw ValidationException::withMessages([
+                                        $itemPrefix . '.lamination_id' => 'Laminasi tidak ditemukan atau tidak aktif.'
+                                    ]);
+                                }
+
+                                $key = $engineId . '|' . $locationId . '|' . ($vendorId ?? 'null') . '|' . $categoryId . '|' . $laminationId;
+                                $exists = DB::table('m_digital_lamination_production_cost_details as d')
+                                    ->join('m_digital_lamination_production_costs as h', 'd.digital_lamination_production_cost_id', '=', 'h.id')
+                                    ->where('h.engine_id', $engineId)
+                                    ->where('h.location_id', $locationId)
+                                    ->where('h.vendor_id', $vendorId)
+                                    ->where('d.category_id', $categoryId)
+                                    ->where('d.lamination_id', $laminationId)
+                                    ->exists();
+                                if (isset($usedKeys[$key]) || $exists) {
+                                    throw ValidationException::withMessages([
+                                        $itemPrefix . '.lamination_id' =>
+                                        'Ongkos produksi laminasi "' . $lamination->name . '" untuk kategori "' .
+                                        $category->name . '" di lokasi ' . $scopeLabel . ' sudah ada atau duplikat dalam input.'
+                                    ]);
+                                }
+                                $usedKeys[$key] = true;
+
+                                $paperCost = (float) str_replace(',', '.', str_replace('.', '', $item['unit_price']));
+                                $clickCost = (float) str_replace(',', '.', str_replace('.', '', $item['click_price']));
+                                foreach (['unit_price' => $paperCost, 'click_price' => $clickCost] as $field => $amount) {
+                                    if ($amount <= 0 || $amount > $maximumAmount) {
+                                        throw ValidationException::withMessages([
+                                            $itemPrefix . '.' . $field => 'Harga harus lebih dari 0 dan tidak melebihi 9.999.999.999,99.'
+                                        ]);
+                                    }
+                                }
+
+                                $singleCost = round($paperCost + $clickCost, 2);
+                                $doubleCost = round($singleCost * 2, 2);
+                                if ($doubleCost > $maximumAmount) {
+                                    throw ValidationException::withMessages([
+                                        $itemPrefix . '.click_price' => 'Hasil cost print melebihi batas maksimum penyimpanan.'
+                                    ]);
+                                }
+                                $priceRows = [];
+                                foreach (['single' => $singleCost, 'double' => $doubleCost] as $printType => $cost) {
+                                    foreach ($tiers as $tier) {
+                                        $generalRule = $ruleGroups->get('general|' . $printType . '|' . $tier)->first();
+                                        $divisionRule = $ruleGroups->get('division|' . $printType . '|' . $tier)->first();
+                                        $generalPrice = $roundUpToMultiple(
+                                            ceil(round(((float) $generalRule->markup_percentage / 100) * $cost, 6)) + $cost,
+                                            $generalRule->rounding_value
+                                        );
+                                        $divisionPrice = $roundUpToMultiple(
+                                            round($generalPrice * ((float) $divisionRule->markup_percentage / 100), 2),
+                                            $divisionRule->rounding_value
+                                        );
+                                        foreach ([[$generalRule, $generalPrice], [$divisionRule, $divisionPrice]] as [$rule, $price]) {
+                                            if (!is_finite($price) || $price < 0 || $price > $maximumAmount) {
+                                                throw ValidationException::withMessages([
+                                                    $itemPrefix . '.unit_price' =>
+                                                    'Hasil harga laminasi untuk kategori "' . $category->name . '" melebihi batas penyimpanan atau tidak valid.'
+                                                ]);
+                                            }
+                                            $priceRows[] = [
+                                                'digital_lamination_pricing_rule_detail_id' => $rule->id,
+                                                'price_type' => $rule->price_type,
+                                                'print_type' => $rule->print_type,
+                                                'quantity_tier' => $rule->quantity_tier,
+                                                'minimum_quantity' => $rule->minimum_quantity,
+                                                'maximum_quantity' => $rule->maximum_quantity,
+                                                'markup_percentage' => $rule->markup_percentage,
+                                                'rounding_value' => $rule->rounding_value,
+                                                'selling_price' => $price,
+                                                'created_by' => $userName,
+                                                'created_at' => now(),
+                                            ] + $audit;
+                                        }
+                                    }
+                                }
+
+                                $detailId = DB::table('m_digital_lamination_production_cost_details')->insertGetId([
+                                    'digital_lamination_production_cost_id' => $headerId,
+                                    'lamination_id' => $laminationId,
+                                    'category_id' => $categoryId,
+                                    'paper_cost' => $paperCost,
+                                    'click_cost' => $clickCost,
+                                    'single_print_cost' => $singleCost,
+                                    'double_print_cost' => $doubleCost,
+                                    'created_by' => $userName,
+                                    'created_at' => now(),
+                                ] + $audit);
+                                foreach ($priceRows as &$priceRow) {
+                                    $priceRow['digital_lamination_production_cost_detail_id'] = $detailId;
+                                }
+                                unset($priceRow);
+                                DB::table('m_digital_lamination_production_cost_prices')->insert($priceRows);
+                            }
+                        }
+                    }
+                }
+            });
+
+            return response()->json([
+                'status' => 'success',
+                'message' => $editingId === null ?
+                    'Production Cost Laminasi Digital Print A3+ berhasil disimpan.' :
+                    'Production Cost Laminasi Digital Print A3+ berhasil diperbarui.'
+            ]);
+        } catch (ValidationException $e) {
+            throw $e;
+        } catch (\Symfony\Component\HttpKernel\Exception\HttpException $e) {
+            throw $e;
+        } catch (\Throwable $e) {
+            report($e);
+
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan saat menyimpan Production Cost Laminasi Digital Print A3+.'
+            ], 500);
+        }
+    }
+
+    public function destroyDigital($id)
+    {
+        $productionCost = $this->findDigitalProductionCost($id);
+
+        try {
+            return DB::transaction(function () use ($productionCost) {
+                // Urutan lock sama dengan store/update Digital.
+                $engine = DB::table('m_engines')
+                    ->where('id', $productionCost->engine_id)
+                    ->whereRaw('LOWER(TRIM(name)) = ?', ['digital print a3+'])
+                    ->lockForUpdate()->first();
+                abort_unless($engine, 404);
+
+                $header = DB::table('m_digital_lamination_production_costs')
+                    ->where('id', $productionCost->id)
+                    ->where('engine_id', $productionCost->engine_id)
+                    ->where('location_id', $productionCost->location_id)
+                    ->where('vendor_id', $productionCost->vendor_id)
+                    ->lockForUpdate()->first();
+                abort_unless($header, 404);
+
+                // Cascade hanya menghapus detail dan harga milik header laminasi ini.
+                $deleted = DB::table('m_digital_lamination_production_costs')
+                    ->where('id', $header->id)->delete();
+                if ($deleted !== 1) {
+                    abort(response()->json([
+                        'success' => false,
+                        'message' => 'Production cost laminasi Digital Print A3+ gagal dihapus.'
+                    ], 409));
+                }
+
+                $scopeLabel = $productionCost->location_name .
+                    ($productionCost->vendor_name ? ' - ' . $productionCost->vendor_name : '');
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Production cost laminasi Digital Print A3+ lokasi ' . $scopeLabel . ' berhasil dihapus.'
+                ]);
+            });
+        } catch (\Symfony\Component\HttpKernel\Exception\HttpException $e) {
+            throw $e;
+        } catch (\Throwable $e) {
+            report($e);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat menghapus production cost laminasi Digital Print A3+.'
             ], 500);
         }
     }
@@ -4138,8 +4785,16 @@ class ProductionCostFinishingLaminationCT extends Controller
         )->with($data);
     }
 
-    public function export()
+    public function export(Request $request)
     {
+        $request->validate(['pricing_engine' => 'nullable|in:large_format,digital_print_a3']);
+        if ($request->query('pricing_engine') === 'digital_print_a3') {
+            return Excel::download(
+                new DigitalLaminationProductionCostsExport(),
+                'production_cost_lamination_digital_print_a3.xlsx'
+            );
+        }
+
         return Excel::download(
             new ProductionCostFinishingLaminationsExport(),
             'production_cost_finishing_laminations.xlsx'

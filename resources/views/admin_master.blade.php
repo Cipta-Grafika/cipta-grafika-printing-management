@@ -274,6 +274,14 @@
             'active' => 'production-costs-finishig',
             'crumbs' => 'Konfigurasi | Biaya',
         ],
+        'admin_pc_finishing_digital_details' => [
+            'active' => 'production-costs-finishig',
+            'crumbs' => 'Konfigurasi | Biaya',
+        ],
+        'admin_edit_pc_finishing_digital' => [
+            'active' => 'production-costs-finishig',
+            'crumbs' => 'Konfigurasi | Biaya',
+        ],
         'admin_edit_pc_finishing' => [
             'active' => 'production-costs-finishig',
             'crumbs' => 'Konfigurasi | Biaya',
@@ -284,6 +292,14 @@
         ],
 
         'admin_pc_finishing_laminations' => [
+            'active' => 'production-costs-finishig-lamination',
+            'crumbs' => 'Konfigurasi | Biaya',
+        ],
+        'admin_details_pc_finishing_lamination_digital' => [
+            'active' => 'production-costs-finishig-lamination',
+            'crumbs' => 'Konfigurasi | Biaya',
+        ],
+        'admin_edit_pc_finishing_lamination_digital' => [
             'active' => 'production-costs-finishig-lamination',
             'crumbs' => 'Konfigurasi | Biaya',
         ],
@@ -345,6 +361,23 @@
         'admin_create_gallery_samples' => [
             'active' => 'gallery-sample',
             'crumbs' => 'Master Data | Galeri Sampel',
+        ],
+        'admin_gallery_samples_details' => [
+            'active' => 'gallery-sample',
+            'crumbs' => 'Master Data | Galeri Sampel',
+        ],
+        'admin_gallery_samples_edit' => [
+            'active' => 'gallery-sample',
+            'crumbs' => 'Master Data | Galeri Sampel',
+        ],
+
+        'admin_discounts' => [
+            'active' => 'discount',
+            'crumbs' => 'Konfigurasi | Diskon',
+        ],
+        'admin_discount_details' => [
+            'active' => 'discount',
+            'crumbs' => 'Konfigurasi | Diskon',
         ],
         /*
         |--------------------------------------------------------------------------
@@ -487,7 +520,8 @@
             admin_display: "{{ route('admin_display') }}",
             display_pricing_rules: "{{ route('admin_display_pricing_rules') }}",
             pc_finishing_displays: "{{ route('admin_pc_finishing_displays') }}",
-            gallery_samples: "{{ route('admin_gallery_samples') }}"
+            gallery_samples: "{{ route('admin_gallery_samples') }}",
+            discounts: "{{ route('admin_discounts') }}"
         };
 
         window.appData = {

@@ -97,3 +97,27 @@ composer test
 
 - Jangan unggah file `.env` ke GitHub. File tersebut dibuat lokal dari `.env.example`, yang memang disimpan di repository sebagai template.
 - `composer run setup` menjalankan migrasi secara otomatis. Untuk instalasi PostgreSQL baru, ikuti langkah di atas agar `.env` dan database PostgreSQL sudah dikonfigurasi sebelum migrasi dijalankan.
+
+## Kode master diskon
+
+Form create dan edit diskon mewajibkan kode unik sepanjang 3-30 karakter.
+Kode hanya boleh berisi huruf ASCII, angka, tanda hubung (`-`), atau garis bawah (`_`), tanpa spasi.
+Spasi di awal/akhir dibuang dan kode disimpan dalam huruf besar. Duplikasi dicek tanpa membedakan huruf besar/kecil;
+saat edit, kode milik diskon itu sendiri tetap diizinkan. Kode ini merupakan identitas master, bukan perubahan aturan penerapan diskon.
+Halaman detail diskon menampilkan kode tersebut sebagai **Kode Promo**, di bawah nama diskon.
+
+Detail produk web user menampilkan nama, kode, persentase, dan periode WIB promo yang berstatus Active,
+sedang berlaku, serta cocok dengan pasangan mesin-kategori produk. Galeri tanpa pilihan mesin tidak menampilkan promo;
+produk display tanpa konfigurasi mesin menggunakan mesin Large Format jika master tersebut tersedia.
+Estimator web user menggunakan input **Kode Promo** (Terapkan/Hapus), menggantikan diskon manual user.
+Server mengecek ulang status, periode WIB, dan pasangan mesin-kategori pada setiap perhitungan;
+persentase hanya diambil dari master, bukan nilai kiriman client. Potongan dihitung dari subtotal
+(material, laminasi, dan komponen tambahan), dibulatkan ke 2 desimal, lalu dikurangkan dari total.
+Rincian estimasi dan pesan pesanan mencantumkan kode, persentase, serta nominal potongan.
+Khusus estimasi yang menggunakan promo, total setelah diskon dibulatkan ke atas ke kelipatan Rp 1.000.
+Selisih pembulatan ditampilkan terpisah dalam rincian dan pesan pesanan; nominal diskon tetap sesuai master.
+Total yang sudah kelipatan Rp 1.000 atau nol tidak ditambah lagi. Estimasi tanpa promo tidak berubah.
+Jika estimasi dasar tanpa promo sudah melakukan pembulatan, selisih antara subtotal dan total akhir
+juga ditampilkan sebagai pembulatan dalam rincian dan pesan pesanan, tanpa menghitung ulang total.
+Kode tidak valid menampilkan error dan menonaktifkan kelanjutan pesanan sampai diperbaiki/dihapus.
+Diskon manual pada estimator admin tetap tidak berubah.

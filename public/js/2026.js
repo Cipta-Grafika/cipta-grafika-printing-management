@@ -31,9 +31,9 @@
                             text: "Lokasi",
                             href: window.adminRoutes.locations,
                             icon: `
-                                <path d="M12 21.5c-4-3.8-6.5-7.5-6.5-11.2a6.5 6.5 0 1 1 13 0c0 3.7-2.5 7.4-6.5 11.2Z" stroke-linejoin="round"/>
-                                <circle cx="12" cy="10.3" r="2.4"/>
-                                <ellipse cx="12" cy="21.5" rx="3" ry="0.7" opacity="0.15" fill="currentColor" stroke="none"/>
+                                <path d="M14.11 5.55a2 2 0 0 0 1.78 0l3.66-1.83A1 1 0 0 1 21 4.62v12.76a1 1 0 0 1-.55.9l-4.56 2.27a2 2 0 0 1-1.78 0l-4.22-2.1a2 2 0 0 0-1.78 0l-3.66 1.83A1 1 0 0 1 3 19.38V6.62a1 1 0 0 1 .55-.9l4.56-2.27a2 2 0 0 1 1.78 0Z"/>
+                                <path d="M15 5.76v15"/>
+                                <path d="M9 3.24v15"/>
                             `,
                         },
                         {
@@ -149,6 +149,15 @@
                                         .pc_finishing_displays,
                                 },
                             ],
+                        },
+                        {
+                            key: "discount",
+                            text: "Diskon",
+                            href: window.adminRoutes.discounts,
+                            icon: `
+                                <path d="M12.59 2.59A2 2 0 0 0 11.17 2H4a2 2 0 0 0-2 2v7.17a2 2 0 0 0 .59 1.42l8.7 8.7a2.43 2.43 0 0 0 3.42 0l6.58-6.58a2.43 2.43 0 0 0 0-3.42Z"/>
+                                <circle cx="7.5" cy="7.5" r="1.5"/>
+                            `,
                         },
                     ],
                 },

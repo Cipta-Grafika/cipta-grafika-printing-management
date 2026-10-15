@@ -4,9 +4,12 @@ namespace App\Http\Controllers\user;
 
 use App\Http\Controllers\admin\EstimationCT;
 use App\Http\Controllers\Controller;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 
 class CatalogCT extends Controller
 {
@@ -577,6 +580,9 @@ class CatalogCT extends Controller
                 ->first();
 
             $engineName = $displayEngine->name ?? 'Large Format';
+            $discountEngineId = $displayEngine->id ?? DB::table('m_engines')
+                ->whereRaw('LOWER(TRIM(name)) = ?', ['large format'])
+                ->value('id');
 
             $product = [
                 'type'   => 'display',
@@ -623,6 +629,10 @@ class CatalogCT extends Controller
                 'estimator' => $estimator,
                 'locations' => $locations,
                 'vendors'   => $vendors,
+                'activeDiscounts' => $this->activeProductDiscounts(
+                    $discountEngineId ? (int) $discountEngineId : null,
+                    (int) $displayProduct->category_id
+                ),
             ]);
         }
 
@@ -718,17 +728,54 @@ class CatalogCT extends Controller
             'product'   => $product,
             'estimator' => $estimator,
             'locations' => $locations,
-            'vendors' => $vendors
+            'vendors' => $vendors,
+            'activeDiscounts' => $this->activeProductDiscounts($engineId ? (int) $engineId : null, (int) $categoryId),
         ]);
+    }
+
+    private function activeProductDiscounts(?int $engineId, int $categoryId): Collection
+    {
+        // Galeri tanpa mesin tertentu tidak boleh menampilkan promo dari mesin lain sebagai promo produk ini.
+        if ($engineId === null) {
+            return collect();
+        }
+
+        $now = Carbon::now('Asia/Jakarta')->format('Y-m-d H:i:s');
+
+        return DB::table('m_discounts')
+            ->where('status', 'Active')
+            ->where('starts_at', '<=', $now)
+            ->where('ends_at', '>=', $now)
+            ->whereExists(function ($query) use ($engineId, $categoryId) {
+                $query->selectRaw('1')
+                    ->from('m_discount_scopes')
+                    ->whereColumn('m_discount_scopes.discount_id', 'm_discounts.id')
+                    ->where('engine_id', $engineId)
+                    ->where('category_id', $categoryId);
+            })
+            ->orderBy('ends_at')
+            ->orderBy('id')
+            ->get(['id', 'name', 'code', 'discount_percentage', 'starts_at', 'ends_at']);
     }
 
     public function previewUserLFEstimation(Request $request)
     {
         $productQuantity = (int) $request->input('qty', 0);
 
+        $promoCode = $request->input('promo_code');
+        if (is_string($promoCode)) {
+            $request->merge(['promo_code' => strtoupper(trim($promoCode))]);
+        }
+
         $request->validate([
+            'promo_code' => ['bail', 'nullable', 'string', 'min:3', 'max:30', 'regex:/\A[A-Z0-9_-]+\z/'],
             'additional_components' => ['nullable', 'array'],
             'additional_components.*' => ['array'],
+        ], [
+            'promo_code.string' => 'Kode promo harus berupa teks.',
+            'promo_code.min' => 'Kode promo minimal 3 karakter.',
+            'promo_code.max' => 'Kode promo maksimal 30 karakter.',
+            'promo_code.regex' => 'Kode promo hanya boleh berisi huruf, angka, tanda hubung (-), dan garis bawah (_).',
         ]);
 
         $components = $request->input('additional_components', []);
@@ -773,17 +820,10 @@ class CatalogCT extends Controller
 
         $request->merge([
             'additional_components' => $components,
+            // Diskon manual tidak diterima dari web user; nilai promo dihitung dari master setelah estimasi berhasil.
+            'discount_type' => 'none',
+            'discount_value' => 0,
         ]);
-
-        if ($request->input('discount_type') === 'nominal') {
-            $request->merge([
-                'discount_value' => preg_replace(
-                    '/\D/',
-                    '',
-                    (string) $request->input('discount_value', '')
-                ),
-            ]);
-        }
 
         $calculationResponse = app(EstimationCT::class)->storeLF($request);
         $calculation = $calculationResponse->getData(true);
@@ -798,6 +838,36 @@ class CatalogCT extends Controller
         $data = $calculation['data'];
         $lamination = $data['lamination'] ?? null;
         $additionalComponents = $data['additional_components'] ?? [];
+        $promo = null;
+        $discountAmount = 0.0;
+        $grandTotal = (float) $data['grand_total'];
+        $roundingAmount = round($grandTotal - (float) $data['subtotal'], 2);
+
+        if (filled($request->input('promo_code'))) {
+            // Gunakan konfigurasi yang sudah lolos perhitungan, bukan engine_id kiriman client.
+            $engineId = isset($data['display_configuration_id'])
+                ? DB::table('m_display_product_configurations')
+                    ->where('id', $data['display_configuration_id'])->value('engine_id')
+                : DB::table('m_engines')
+                    ->whereRaw('LOWER(TRIM(name)) = ?', ['large format'])
+                    ->whereRaw('LOWER(TRIM(status)) = ?', ['active'])->value('id');
+
+            $promo = $this->activeProductDiscounts(
+                $engineId ? (int) $engineId : null,
+                (int) $request->input('category_id')
+            )->first(fn ($discount) => strtoupper($discount->code) === $request->input('promo_code'));
+
+            if ($promo === null) {
+                throw ValidationException::withMessages([
+                    'promo_code' => 'Kode promo tidak valid, belum/sudah tidak berlaku, atau tidak sesuai dengan produk yang dipilih.',
+                ]);
+            }
+
+            $discountAmount = round((float) $data['subtotal'] * (float) $promo->discount_percentage / 100, 2);
+            $totalAfterDiscount = round(max(0, (float) $data['subtotal'] - $discountAmount), 2);
+            $grandTotal = ceil($totalAfterDiscount / 1000) * 1000;
+            $roundingAmount = round($grandTotal - $totalAfterDiscount, 2);
+        }
 
         return response()->json([
             'success' => true,
@@ -832,9 +902,15 @@ class CatalogCT extends Controller
                 'additional_components_subtotal' => (float) array_sum(
                     array_column($additionalComponents, 'subtotal')
                 ),
-                'discount_amount' => (float) ($data['discount_amount'] ?? 0),
+                'promo' => $promo ? [
+                    'code' => $promo->code,
+                    'name' => $promo->name,
+                    'percentage' => (float) $promo->discount_percentage,
+                ] : null,
+                'discount_amount' => $discountAmount,
+                'rounding_amount' => $roundingAmount,
                 'subtotal' => (float) ($data['subtotal'] ?? 0),
-                'grand_total' => (float) ($data['grand_total'] ?? 0),
+                'grand_total' => $grandTotal,
                 'qty' => $productQuantity,
             ],
         ]);

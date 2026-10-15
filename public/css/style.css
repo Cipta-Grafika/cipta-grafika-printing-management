@@ -9056,6 +9056,11 @@ table.dataTable tbody tr:last-child td {
     text-align: center;
 }
 
+#productionCostLaminationTable th.text-center,
+#productionCostLaminationTable td.text-center {
+    text-align: center;
+}
+
 .text-end {
     text-align: right;
 }
@@ -10315,6 +10320,7 @@ PROFIT
     .material-hero-actions > #btnExportPricingRules,
     .material-hero-actions > #btnExportLaminationPricingRules,
     .material-hero-actions > #btnExportProductionCost,
+    .material-hero-actions > #btnExportProductionCostLamination,
     .material-hero-actions > .material-category-filter {
         grid-column: auto;
         width: 100%;
@@ -10327,7 +10333,7 @@ PROFIT
     .material-hero-actions
         > .btn:not(#btnExportMaterial):not(#btnExportPricingRules):not(
             #btnExportLaminationPricingRules
-        ):not(#btnExportProductionCost),
+        ):not(#btnExportProductionCost):not(#btnExportProductionCostLamination),
     .material-hero-actions > .material-category-filter ~ .btn {
         grid-column: 1 / -1;
     }
@@ -16759,6 +16765,52 @@ html[data-theme="dark"] .brand-logo-light {
     border-left: 0;
 }
 
+#productionCostLaminationTable .digital-lamination-actions {
+    justify-content: center;
+}
+
+.details-lamination-category .details-category-info {
+    flex: 1;
+    gap: 8px;
+}
+
+.details-lamination-category .details-category-header {
+    gap: 16px;
+    padding: 16px;
+}
+
+.details-lamination-category .details-category-icon {
+    flex-shrink: 0;
+}
+
+.details-lamination-category-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.details-lamination-category-chip {
+    display: inline-flex;
+    max-width: 100%;
+    padding: 6px 12px;
+    border: 1px solid var(--primary-ring);
+    border-radius: 999px;
+    background: var(--primary-soft);
+    color: var(--primary);
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+.details-digital-lamination-table tbody td {
+    border-left: 0;
+}
+
+.details-digital-lamination-table tbody td:nth-child(n + 7):nth-child(6n + 1) {
+    border-left: 2px solid var(--border);
+}
+
 @media (max-width: 768px) {
     .details-digital-table-wrapper {
         max-height: 65vh;
@@ -16790,4 +16842,526 @@ html[data-theme="dark"] .brand-logo-light {
     color: var(--t-muted);
     background: var(--bg-muted);
     cursor: not-allowed;
+}
+
+/* Master Diskon - datatable */
+#discountTable .discount-name {
+    font-weight: 600;
+}
+
+#discountTable .discount-description {
+    margin-top: 4px;
+    font-size: 12px;
+    line-height: 1.45;
+    color: var(--t-muted);
+}
+
+#discountTable .discount-percentage {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 58px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(59, 130, 246, 0.14);
+    color: #3b82f6;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+#discountTable .discount-period {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    font-size: 12.5px;
+    white-space: nowrap;
+}
+
+#discountTable .discount-period-separator {
+    font-size: 11px;
+    color: var(--t-muted);
+}
+
+#discountTable .discount-scope-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px;
+}
+
+#discountTable .discount-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+
+#discountTable th.text-center,
+#discountTable td.text-center {
+    text-align: center;
+}
+
+#discountTable th.text-center .dt-column-header {
+    justify-content: center;
+}
+
+#discountTable .discount-scope-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    border-radius: 999px;
+    background: var(--bg-muted);
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+    cursor: default;
+}
+
+#discountTable .discount-scope-chip small {
+    padding: 1px 7px;
+    border-radius: 999px;
+    background: rgba(148, 163, 184, 0.22);
+    color: var(--t-muted);
+    font-size: 11px;
+}
+
+#discountTable .discount-scope-empty {
+    font-size: 12px;
+    color: var(--t-muted);
+    font-style: italic;
+}
+
+/* Master Diskon - modal tambah */
+.modal-dialog--wide.discount-modal {
+    width: min(820px, calc(100vw - 32px)) !important;
+    max-width: 820px !important;
+}
+
+.discount-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px 18px;
+}
+
+.discount-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+}
+
+.discount-field--full {
+    grid-column: 1 / -1;
+}
+
+.discount-field .field-error:empty {
+    display: none;
+}
+
+.discount-optional {
+    color: var(--t-muted);
+    font-weight: 400;
+}
+
+.discount-percentage-input {
+    position: relative;
+}
+
+.discount-percentage-input .input {
+    padding-right: 38px;
+}
+
+.discount-percentage-input span {
+    position: absolute;
+    top: 50%;
+    right: 14px;
+    transform: translateY(-50%);
+    color: var(--t-muted);
+    font-weight: 600;
+    pointer-events: none;
+}
+
+:root[data-theme="dark"] .discount-modal input[type="datetime-local"] {
+    color-scheme: dark;
+}
+
+.discount-scope-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.discount-scope-total {
+    flex-shrink: 0;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: var(--bg-muted);
+    color: var(--t-muted);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.discount-scope-total.is-active {
+    background: var(--primary-soft);
+    color: var(--primary);
+}
+
+.discount-scope-picker {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 2px;
+    border-radius: 12px;
+}
+
+.discount-scope-picker.is-invalid {
+    box-shadow: 0 0 0 1px var(--danger);
+}
+
+.discount-scope-group {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--bg-card);
+    transition: border-color 0.18s;
+}
+
+.discount-scope-group.has-selection {
+    border-color: var(--primary);
+}
+
+.discount-scope-group-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-muted);
+    border-radius: 12px 12px 0 0;
+}
+
+.discount-scope-all {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.discount-scope-all input {
+    appearance: none;
+    -webkit-appearance: none;
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    border: 1.5px solid var(--t-light);
+    border-radius: 4px;
+    background: transparent center / 11px no-repeat;
+    cursor: pointer;
+    transition:
+        border-color 0.18s,
+        background-color 0.18s;
+}
+
+.discount-scope-all:hover input {
+    border-color: var(--primary);
+}
+
+.discount-scope-all input:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--primary-ring);
+}
+
+.discount-scope-all input:checked {
+    border-color: var(--primary);
+    background-color: var(--primary);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E");
+}
+
+.discount-scope-all input:indeterminate {
+    border-color: var(--primary);
+    background-color: var(--primary);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round'%3E%3Cpath d='M6 12h12'/%3E%3C/svg%3E");
+}
+
+.discount-scope-group-count {
+    color: var(--t-muted);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+}
+
+.discount-scope-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 14px;
+}
+
+.discount-scope-option {
+    position: relative;
+    cursor: pointer;
+}
+
+.discount-scope-option input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.discount-scope-option span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--bg-card);
+    color: var(--t-base);
+    font-size: 12.5px;
+    font-weight: 500;
+    transition:
+        border-color 0.18s,
+        background 0.18s,
+        color 0.18s;
+}
+
+.discount-scope-option span::before {
+    content: "";
+    width: 14px;
+    height: 14px;
+    border: 1.5px solid var(--t-light);
+    border-radius: 4px;
+    background: transparent center / 10px no-repeat;
+    transition:
+        border-color 0.18s,
+        background-color 0.18s;
+}
+
+.discount-scope-option:hover span {
+    border-color: var(--primary);
+}
+
+.discount-scope-option input:focus-visible + span {
+    box-shadow: 0 0 0 3px var(--primary-ring);
+}
+
+.discount-scope-option input:checked + span {
+    border-color: var(--primary);
+    background: var(--primary-soft);
+    color: var(--primary);
+}
+
+.discount-scope-option input:checked + span::before {
+    border-color: var(--primary);
+    background-color: var(--primary);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E");
+}
+
+.discount-scope-legacy {
+    margin-top: 10px;
+    padding: 10px 14px;
+    border: 1px dashed var(--border);
+    border-radius: 10px;
+    background: var(--bg-muted);
+    color: var(--t-muted);
+    font-size: 12.5px;
+}
+
+.discount-scope-legacy[hidden] {
+    display: none;
+}
+
+.discount-scope-empty-state {
+    margin: 0;
+    padding: 16px;
+    border: 1px dashed var(--border);
+    border-radius: 12px;
+    color: var(--t-muted);
+    font-size: 13px;
+    text-align: center;
+}
+
+@media (max-width: 640px) {
+    .discount-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .discount-scope-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}
+
+/* =========================
+   DISCOUNT DETAILS
+   ========================= */
+.discount-details-hero {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    padding: 4px 0 20px;
+    border-bottom: 1px solid var(--border);
+}
+.discount-details-percentage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    min-width: 116px;
+    padding: 16px 18px;
+    border-radius: 14px;
+    background: var(--primary-soft);
+    color: var(--primary);
+    border: 1px solid var(--primary-ring);
+}
+.discount-details-percentage span {
+    font-size: 30px;
+    font-weight: 700;
+    line-height: 1.1;
+}
+.discount-details-percentage small {
+    margin-top: 4px;
+    font-size: 11px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+.discount-details-heading {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+}
+.discount-details-name {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--t-base);
+    overflow-wrap: anywhere;
+}
+.discount-details-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.discount-details-description {
+    margin: 0;
+    color: var(--t-muted);
+    line-height: 1.6;
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+}
+.discount-details-description.is-empty {
+    font-style: italic;
+    color: var(--t-light);
+}
+.discount-details-stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    padding: 20px 0;
+}
+.discount-details-stat,
+.discount-details-audit-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 14px 16px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--bg-muted);
+}
+.discount-details-stat-label {
+    font-size: 12px;
+    color: var(--t-muted);
+}
+.discount-details-stat-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--t-base);
+}
+.discount-details-stat-hint {
+    font-size: 12px;
+    color: var(--t-light);
+}
+.discount-details-section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 20px 0 0;
+}
+.discount-details-engine {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+}
+.discount-details-engine-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--bg-muted);
+    border-bottom: 1px solid var(--border);
+}
+.discount-details-engine-name {
+    font-weight: 600;
+    color: var(--t-base);
+}
+.discount-details-engine-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--t-muted);
+}
+.discount-details-categories {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 14px 16px;
+}
+.discount-details-category {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--primary-ring);
+    background: var(--primary-soft);
+    color: var(--primary);
+    font-size: 13px;
+}
+.discount-details-category.is-unavailable {
+    border-style: dashed;
+    border-color: var(--border);
+    background: transparent;
+    color: var(--t-light);
+}
+.discount-details-audit {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+.discount-details .form-actions {
+    margin-top: 24px;
+}
+@media (max-width: 992px) {
+    .discount-details-stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+@media (max-width: 576px) {
+    .discount-details-hero {
+        flex-direction: column;
+    }
+    .discount-details-stats,
+    .discount-details-audit {
+        grid-template-columns: 1fr;
+    }
 }

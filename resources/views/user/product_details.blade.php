@@ -4,9 +4,14 @@
     $productDescription =
         'Pilih ukuran, bahan, sisi cetak, dan finishing sesuai kebutuhan Anda, lalu lihat estimasi harganya langsung di halaman ini.';
     $shareTitle = $product['title'] . ' | Cipta Grafika';
-    $shareDescription = $product['type'] === 'gallery'
-        ? 'Lihat contoh hasil cetak ' . $product['title'] . ' dengan ' . $product['label'] . ' dari Cipta Grafika.'
-        : 'Lihat produk ' . $product['title'] . ' (' . $product['label'] . ') dan hitung estimasi harga cetaknya di Cipta Grafika.';
+    $shareDescription =
+        $product['type'] === 'gallery'
+            ? 'Lihat contoh hasil cetak ' . $product['title'] . ' dengan ' . $product['label'] . ' dari Cipta Grafika.'
+            : 'Lihat produk ' .
+                $product['title'] .
+                ' (' .
+                $product['label'] .
+                ') dan hitung estimasi harga cetaknya di Cipta Grafika.';
 @endphp
 
 @section('meta_title', $shareTitle)
@@ -88,8 +93,8 @@
             <header class="pt-32 pb-10 max-w-4xl mx-auto px-6">
 
                 <!-- =========================
-                                                                                                                                                                BACK LINK
-                                                                                                                                                            ========================== -->
+                                                                                                                                                                            BACK LINK
+                                                                                                                                                                        ========================== -->
                 <a href="{{ route('user_products') }}"
                     class="inline-flex items-center gap-2
                        text-sm
@@ -112,14 +117,14 @@
 
 
                 <!-- =========================
-                                                                                                                                                                PRODUCT HEADER
-                                                                                                                                                            ========================== -->
+                                                                                                                                                                            PRODUCT HEADER
+                                                                                                                                                                        ========================== -->
                 <div class="grid md:grid-cols-2 gap-6">
 
 
                     <!-- =========================
-                                                                                                                                                                    PRODUCT IMAGE GALLERY
-                                                                                                                                                                ========================== -->
+                                                                                                                                                                                PRODUCT IMAGE GALLERY
+                                                                                                                                                                            ========================== -->
                     <div x-data='{
                         title: @json($product['title'], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS),
                         images: @json($product['images'], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS),
@@ -133,8 +138,8 @@
 
 
                         <!-- =========================
-                                                                                                                                                                        MAIN IMAGE
-                                                                                                                                                                    ========================== -->
+                                                                                                                                                                                    MAIN IMAGE
+                                                                                                                                                                                ========================== -->
                         <div
                             class="pf
                                w-full
@@ -177,8 +182,8 @@
 
 
                         <!-- =========================
-                                                                                                                                                                        THUMBNAIL GALLERY
-                                                                                                                                                                    ========================== -->
+                                                                                                                                                                                    THUMBNAIL GALLERY
+                                                                                                                                                                                ========================== -->
                         <div x-show="images.length > 1"
                             class="thumbnail-scroll
                                flex
@@ -271,8 +276,8 @@
 
 
                     <!-- =========================
-                                                                                                                                                                    PRODUCT INFORMATION
-                                                                                                                                                                ========================== -->
+                                                                                                                                                                                PRODUCT INFORMATION
+                                                                                                                                                                            ========================== -->
                     <div class="flex flex-col gap-3">
 
 
@@ -327,10 +332,41 @@
 
                         </p>
 
+                        @if ($activeDiscounts->isNotEmpty())
+                            <section class="reveal d1 mt-6 space-y-3" aria-label="Promo aktif produk">
+                                @foreach ($activeDiscounts as $promo)
+                                    <div class="rounded-xl border border-accent/40 bg-accent/10 p-4 dark:border-accent/50">
+                                        <div class="flex flex-wrap items-center justify-between gap-2">
+                                            <span class="text-sm font-bold text-zinc-900 dark:text-white">
+                                                {{ $promo->name }}
+                                            </span>
+                                            <span class="rounded-lg bg-accent px-3 py-1 text-sm text-white">
+                                                Diskon
+                                                {{ rtrim(rtrim(number_format((float) $promo->discount_percentage, 2, ',', '.'), '0'), ',') }}%
+                                            </span>
+                                        </div>
+                                        <p class="mt-2 text-sm text-zinc-700 dark:text-zinc-300">
+                                            Kode Promo: <strong class="font-mono">{{ $promo->code }}</strong>
+                                        </p>
+                                        <p class="mt-1 text-xs text-zinc-600 dark:text-zinc-400">
+                                            Berlaku
+                                            {{ \Carbon\Carbon::parse($promo->starts_at)->locale('id')->translatedFormat('d M Y, H:i') }}
+                                            &ndash;
+                                            {{ \Carbon\Carbon::parse($promo->ends_at)->locale('id')->translatedFormat('d M Y, H:i') }}
+                                            WIB
+                                        </p>
+                                    </div>
+                                @endforeach
+                                <p class="text-xs text-zinc-500 dark:text-zinc-400">
+                                    Masukkan kode promo pada estimator untuk menerapkan diskon sesuai ketentuan.
+                                </p>
+                            </section>
+                        @endif
+
 
                         <!-- =========================
-                                                                                                                                                                        SHARE PRODUCT
-                                                                                                                                                                    ========================== -->
+                                                                                                                                                                                    SHARE PRODUCT
+                                                                                                                                                                                ========================== -->
                         <div x-data='shareProduct(
                             @json($shareTitle, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS),
                             @json($shareDescription, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS)
@@ -396,8 +432,8 @@
 
 
                             <!-- =========================
-                                                                                                                                                                            SHARE MODAL
-                                                                                                                                                                        ========================== -->
+                                                                                                                                                                                        SHARE MODAL
+                                                                                                                                                                                    ========================== -->
                             <div x-show="open" x-transition.opacity @keydown.escape.window="open = false"
                                 class="fixed
                                    inset-0
@@ -524,8 +560,8 @@
 
 
                                     <!-- =========================
-                                                                                                                                                                                    SHARE OPTIONS
-                                                                                                                                                                                ========================== -->
+                                                                                                                                                                                                SHARE OPTIONS
+                                                                                                                                                                                            ========================== -->
                                     <div
                                         class="grid
                                            grid-cols-1
@@ -684,8 +720,8 @@
 
 
                                     <!-- =========================
-                                                                                                                                                                                    OTHER APPS
-                                                                                                                                                                                ========================== -->
+                                                                                                                                                                                                OTHER APPS
+                                                                                                                                                                                            ========================== -->
                                     <button type="button" @click="shareNative()"
                                         class="share-option
                                            w-full
@@ -965,8 +1001,8 @@
 
 
                         <!-- =========================
-                                                                                                                            HEADER
-                                                                                                                        ========================== -->
+                                                                                                                                        HEADER
+                                                                                                                                    ========================== -->
 
                         <div>
 
@@ -996,8 +1032,8 @@
 
 
                         <!-- =========================
-                                                                                                                            ESTIMATOR FORM
-                                                                                                                        ========================== -->
+                                                                                                                                        ESTIMATOR FORM
+                                                                                                                                    ========================== -->
 
                         <div
                             class="grid
@@ -1008,8 +1044,8 @@
 
 
                             <!-- =========================
-                                                                                                LEFT FORM
-                                                                                            ========================== -->
+                                                                                                            LEFT FORM
+                                                                                                        ========================== -->
 
                             <div class="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-5">
 
@@ -1036,13 +1072,12 @@
 
                                 @php
                                     $estimatorLocation = collect($locations ?? [])->first(
-                                        fn($location) => strtolower(trim($location->name)) === 'purwakarta'
+                                        fn($location) => strtolower(trim($location->name)) === 'purwakarta',
                                     );
                                 @endphp
 
                                 <div hidden>
-                                    <select id="location_id" name="location_id" required
-                                        class="estimator-choice-source">
+                                    <select id="location_id" name="location_id" required class="estimator-choice-source">
                                         @if ($estimatorLocation)
                                             <option value="{{ $estimatorLocation->id }}" selected>
                                                 {{ $estimatorLocation->name }}
@@ -1059,8 +1094,7 @@
                                         Vendor
                                     </label>
 
-                                    <select id="vendor_id" name="vendor_id"
-                                        class="estimator-choice-source">
+                                    <select id="vendor_id" name="vendor_id" class="estimator-choice-source">
                                         <option value="">Pilih vendor...</option>
 
                                         @foreach ($vendors ?? [] as $vendor)
@@ -1072,16 +1106,15 @@
                                 </div>
 
                                 <div hidden>
-                                    <select id="price_type" name="price_type" required
-                                        class="estimator-choice-source">
+                                    <select id="price_type" name="price_type" required class="estimator-choice-source">
                                         <option value="general" selected>Harga Umum</option>
                                     </select>
                                 </div>
 
 
                                 <!-- =========================
-                                                                                                    SPESIFIKASI CETAK
-                                                                                                ========================= -->
+                                                                                                                SPESIFIKASI CETAK
+                                                                                                            ========================= -->
 
                                 <div class="sm:col-span-2 mt-2">
                                     <h4 class="text-sm font-semibold text-zinc-900 dark:text-white mb-3">
@@ -1096,8 +1129,7 @@
                                         <span class="text-red-500">*</span>
                                     </label>
 
-                                    <select id="material_id" name="material_id" required
-                                        class="estimator-choice-source">
+                                    <select id="material_id" name="material_id" required class="estimator-choice-source">
                                         <option value="">Pilih material...</option>
                                     </select>
                                 </div>
@@ -1167,8 +1199,7 @@
                                         Laminasi
                                     </label>
 
-                                    <select id="lamination_id" name="lamination_id"
-                                        class="estimator-choice-source">
+                                    <select id="lamination_id" name="lamination_id" class="estimator-choice-source">
                                         <option value="none">Tanpa Laminasi</option>
                                     </select>
                                 </div>
@@ -1187,8 +1218,8 @@
 
 
                                 <!-- =========================
-                                                                                                    HIDDEN DISPLAY IDENTITY
-                                                                                                ========================= -->
+                                                                                                                HIDDEN DISPLAY IDENTITY
+                                                                                                            ========================= -->
 
                                 <input type="hidden" id="category_id" name="category_id"
                                     value="{{ $estimator['categoryId'] ?? '' }}"
@@ -1205,8 +1236,8 @@
 
 
                                 <!-- =========================
-                                                                                                    KOMPONEN TAMBAHAN
-                                                                                                ========================= -->
+                                                                                                                KOMPONEN TAMBAHAN
+                                                                                                            ========================= -->
 
                                 <div class="sm:col-span-2 mt-2" hidden>
 
@@ -1230,8 +1261,8 @@
 
 
                                 <!-- =========================
-                                            HARGA MATERIAL
-                                        ========================= -->
+                                                        HARGA MATERIAL
+                                                    ========================= -->
 
                                 {{-- <div class="sm:col-span-2">
 
@@ -1247,69 +1278,27 @@
 
 
                                 <!-- =========================
-                                                                                                    DISKON
-                                                                                                ========================= -->
+                                                                                                                DISKON
+                                                                                                            ========================= -->
 
-                                <div class="sm:col-span-2" hidden>
-
-                                    <label class="block text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-2">
-                                        Diskon
-                                    </label>
-
-                                    <div class="discount-options grid grid-cols-1 sm:grid-cols-3 gap-3">
-
-                                        <label class="discount-option-card">
-                                            <input type="radio" name="discount_type" value="none" checked>
-                                            <span class="discount-option-icon">
-                                                <i class="bi bi-tag" aria-hidden="true"></i>
-                                            </span>
-                                            <span class="discount-option-copy">
-                                                <span class="discount-option-title">Tanpa Diskon</span>
-                                            </span>
-                                        </label>
-
-                                        <label class="discount-option-card">
-                                            <input type="radio" name="discount_type" value="percentage">
-                                            <span class="discount-option-icon">
-                                                <i class="bi bi-percent" aria-hidden="true"></i>
-                                            </span>
-                                            <span class="discount-option-copy">
-                                                <span class="discount-option-title">Diskon Persen</span>
-                                            </span>
-                                        </label>
-
-                                        <label class="discount-option-card">
-                                            <input type="radio" name="discount_type" value="nominal">
-                                            <span class="discount-option-icon">
-                                                <i class="bi bi-cash" aria-hidden="true"></i>
-                                            </span>
-                                            <span class="discount-option-copy">
-                                                <span class="discount-option-title">Diskon Nominal</span>
-                                            </span>
-                                        </label>
-
-                                    </div>
-
-                                </div>
-
-                                <div id="discountValueField" class="sm:col-span-2" style="display: none;" hidden>
-
-                                    <label id="discountValueLabel" for="discount_value"
+                                <div class="sm:col-span-2">
+                                    <label for="promo_code"
                                         class="block text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1.5">
-                                        Nilai Diskon
+                                        Kode Promo <span class="font-normal">(opsional)</span>
                                     </label>
-
-                                    <div id="discountInputWrapper" class="relative">
-
-                                        <input type="text" id="discount_value" name="discount_value" disabled
-                                            class="w-full bg-zinc-850 border border-zinc-700 text-white text-sm rounded-xl px-4 py-3">
-
-                                        <span id="discountSuffix"
-                                            class="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-zinc-500">
-                                        </span>
-
+                                    <div class="flex flex-wrap gap-2">
+                                        <input type="text" id="promo_code" name="promo_code" maxlength="30"
+                                            autocomplete="off" autocapitalize="characters" spellcheck="false"
+                                            placeholder="Masukkan kode promo" aria-describedby="promoCodeStatus"
+                                            class="min-w-0 flex-1 bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-white text-sm rounded-xl px-4 py-3">
+                                        <button type="button" id="applyPromoCode"
+                                            class="rounded-xl bg-accent px-4 py-3 text-sm font-medium text-white">Terapkan</button>
+                                        <button type="button" id="removePromoCode"
+                                            class="rounded-xl border border-zinc-300 dark:border-zinc-700 px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300"
+                                            hidden>Hapus</button>
                                     </div>
-
+                                    <p id="promoCodeStatus" class="mt-2 text-xs text-zinc-500 dark:text-zinc-400"
+                                        aria-live="polite">Diskon dihitung dari master promo setelah kode diterapkan.</p>
                                 </div>
 
 
@@ -1318,8 +1307,8 @@
 
 
                             <!-- =========================
-                                                                                                    PRICE SUMMARY
-                                                                                                ========================== -->
+                                                                                                                PRICE SUMMARY
+                                                                                                            ========================== -->
 
                             <div
                                 class="h-fit
@@ -1413,11 +1402,19 @@
                                     </div>
 
                                     <div id="estimateDiscountRow" class="flex justify-between gap-4" hidden>
-                                        <span class="text-sm text-zinc-500 dark:text-zinc-400">
+                                        <span id="estimateDiscountLabel" class="text-sm text-zinc-500 dark:text-zinc-400">
                                             Diskon
                                         </span>
                                         <span id="estimateDiscountAmount"
                                             class="text-sm text-zinc-700 dark:text-zinc-200">
+                                            Rp 0
+                                        </span>
+                                    </div>
+                                    <div id="estimateRoundingRow" class="flex justify-between gap-4" hidden>
+                                        <span class="text-sm text-zinc-500 dark:text-zinc-400">
+                                            Pembulatan ke atas (Rp 1.000)
+                                        </span>
+                                        <span id="estimateRoundingAmount" class="text-sm text-zinc-700 dark:text-zinc-200">
                                             Rp 0
                                         </span>
                                     </div>
@@ -1487,8 +1484,8 @@
                                 </button>
 
                                 <!-- =========================
-                                                                                                    ADD TO BASKET BUTTON
-                                                                                                ========================= -->
+                                                                                                                ADD TO BASKET BUTTON
+                                                                                                            ========================= -->
 
                                 <button type="button"
                                     @click="
@@ -1561,8 +1558,8 @@
 
 
                         <!-- =========================
-                                                                                                                            INFORMATION
-                                                                                                                        ========================== -->
+                                                                                                                                        INFORMATION
+                                                                                                                                    ========================== -->
 
                         <p
                             class="text-xs
@@ -1590,8 +1587,8 @@
 @section('scripts')
     <script>
         /* =========================
-                                                                    SHARE PRODUCT
-                                                                    ========================== */
+                                                                                SHARE PRODUCT
+                                                                                ========================== */
 
         function shareProduct(title = '', description = '') {
 
@@ -2174,6 +2171,14 @@
                 "{{ route('user_preview_lf_estimation') }}";
 
             const csrfToken = @json(csrf_token());
+            let appliedPromoCode = '';
+            const promoCodeInput = $('#promo_code');
+
+            function setPromoStatus(message, isError = false) {
+                $('#promoCodeStatus').text(message)
+                    .toggleClass('text-red-600 dark:text-red-400', isError);
+                promoCodeInput.attr('aria-invalid', isError ? 'true' : 'false');
+            }
 
 
             const engineName = 'Large Format';
@@ -2448,11 +2453,6 @@
                         }
                     });
 
-                const discountType = document.querySelector(
-                    'input[name="discount_type"]:checked'
-                )?.value || 'none';
-                const discountValue = $('#discount_value').val() || '';
-
                 return {
                     payload: {
                         location_id: locationId,
@@ -2479,9 +2479,7 @@
                         display_product_id: displayProductInput.val() || '',
                         display_component_id: displayComponentInput.val() || '',
                         display_component_type: displayComponentTypeInput.val() || '',
-                        discount_type: discountType,
-                        discount_value: discountType === 'nominal' ?
-                            discountValue.replace(/\D/g, '') : discountValue,
+                        promo_code: appliedPromoCode,
                         additional_components: additionalComponents,
                         _token: csrfToken
                     }
@@ -2565,10 +2563,21 @@
                 $('#estimateDiscountAmount').text(
                     '-' + formatCurrencyResult(discountAmount)
                 );
+                $('#estimateDiscountLabel').text(data.promo ?
+                    'Diskon ' + formatNumberResult(data.promo.percentage) + '% (' + data.promo.code + ')' :
+                    'Diskon');
+                setPromoStatus(data.promo ?
+                    'Promo ' + data.promo.code + ' diterapkan: diskon ' +
+                    formatNumberResult(data.promo.percentage) + '%.' :
+                    (promoCodeInput.val() ? 'Klik Terapkan untuk memeriksa kode promo.' :
+                        'Diskon dihitung dari master promo setelah kode diterapkan.'));
                 $('#estimateDiscountRow').prop(
                     'hidden',
-                    discountAmount <= 0
+                    !data.promo
                 );
+                const roundingAmount = Number(data.rounding_amount) || 0;
+                $('#estimateRoundingAmount').text('+' + formatCurrencyResult(roundingAmount));
+                $('#estimateRoundingRow').prop('hidden', roundingAmount <= 0);
 
                 $('#estimateBreakdown').prop('hidden', false);
                 $('#estimateGrandTotal').text(
@@ -2585,13 +2594,13 @@
                     'Produk: ' + productTitle,
                     'Kategori: ' + categoryName,
                     'Lokasi: ' + locationName,
-                    ...(locationName.toLowerCase() === 'outsourcing' && vendorSelect.val() ?
-                        ['Vendor: ' + vendorName] :
-                        []),
+                    ...(locationName.toLowerCase() === 'outsourcing' && vendorSelect.val() ? ['Vendor: ' +
+                        vendorName
+                    ] : []),
                     'Jenis harga: ' + priceTypeLabel,
-                    ...(!isDisplayCategory() ?
-                        ['Ukuran: ' + $('#length').val() + ' × ' + $('#width').val() + ' cm'] :
-                        []),
+                    ...(!isDisplayCategory() ? ['Ukuran: ' + $('#length').val() + ' × ' + $('#width').val() +
+                        ' cm'
+                    ] : []),
                     '',
                     'Rincian estimasi:',
                     '• ' + (data.material_name || 'Material') + ': ' +
@@ -2623,7 +2632,12 @@
                 });
 
                 if (discountAmount > 0) {
+                    orderLines.push('Promo: ' + data.promo.code + ' (' + formatNumberResult(data.promo.percentage) +
+                        '%)');
                     orderLines.push('Diskon: -' + formatCurrencyResult(discountAmount));
+                }
+                if (roundingAmount > 0) {
+                    orderLines.push('Pembulatan ke atas (Rp 1.000): +' + formatCurrencyResult(roundingAmount));
                 }
 
                 orderLines.push(
@@ -2647,6 +2661,10 @@
 
                 if (!result.payload) {
                     resetEstimationPreview(result.message);
+                    if (appliedPromoCode) {
+                        setPromoStatus(result.message + ' Kode promo akan dicek setelah spesifikasi lengkap.',
+                            true);
+                    }
                     return;
                 }
 
@@ -2668,6 +2686,9 @@
                         }
 
                         if (!response.success || !response.data) {
+                            if (appliedPromoCode) {
+                                setPromoStatus(getErrorMessage(response, 'Gagal memeriksa kode promo.'), true);
+                            }
                             resetEstimationPreview(
                                 getErrorMessage(
                                     response,
@@ -2688,6 +2709,13 @@
                             return;
                         }
 
+                        if (xhr.responseJSON?.errors?.promo_code) {
+                            setPromoStatus(xhr.responseJSON.errors.promo_code[0], true);
+                        } else if (appliedPromoCode) {
+                            setPromoStatus(getErrorMessage(xhr.responseJSON, 'Gagal memeriksa kode promo.'),
+                                true);
+                        }
+
                         resetEstimationPreview(
                             getErrorMessage(
                                 xhr.responseJSON,
@@ -2701,8 +2729,7 @@
             function scheduleEstimationPreview() {
                 estimationPreviewSequence++;
                 window.clearTimeout(estimationPreviewTimer);
-                setContinueOrderAvailable(false);
-                setEstimationStatus('Memperbarui estimasi...', false);
+                resetEstimationPreview('Memperbarui estimasi...', false);
                 estimationPreviewTimer = window.setTimeout(
                     updateEstimationPreview,
                     300
@@ -3659,91 +3686,47 @@
              * DISKON
              * ========================================================= */
 
-            const discountTypeInputs =
-                document.querySelectorAll('input[name="discount_type"]');
-
-            const discountValueField =
-                document.getElementById('discountValueField');
-
-            const discountValueInput =
-                document.getElementById('discount_value');
-
-            const discountValueLabel =
-                document.getElementById('discountValueLabel');
-
-            const discountSuffix =
-                document.getElementById('discountSuffix');
-
-            discountTypeInputs.forEach(function(input) {
-                input.addEventListener('change', function() {
-                    const type = this.value;
-
-                    if (type === 'none') {
-                        discountValueField.style.display = 'none';
-
-                        discountValueInput.disabled = true;
-                        discountValueInput.value = '';
-
-                        discountSuffix.textContent = '';
-
-                        return;
-                    }
-
-                    discountValueField.style.display = 'block';
-                    discountValueInput.disabled = false;
-
-                    if (type === 'percentage') {
-                        discountValueLabel.textContent = 'Persentase Diskon';
-
-                        discountValueInput.placeholder = 'Contoh: 10';
-
-                        discountSuffix.textContent = '%';
-                    }
-
-                    if (type === 'nominal') {
-                        discountValueLabel.textContent = 'Nominal Diskon';
-
-                        discountValueInput.placeholder = 'Contoh: 25.000';
-
-                        discountSuffix.textContent = 'Rp';
-                    }
-                });
+            promoCodeInput.on('input', function() {
+                const start = this.selectionStart;
+                const end = this.selectionEnd;
+                this.value = this.value.toUpperCase();
+                this.setSelectionRange(start, end);
+                appliedPromoCode = '';
+                $('#removePromoCode').prop('hidden', !this.value);
+                setPromoStatus('Klik Terapkan untuk memeriksa kode promo.');
+                scheduleEstimationPreview();
             });
 
-            if (discountValueInput) {
-                discountValueInput.addEventListener('input', function() {
-                    const selectedType =
-                        document.querySelector(
-                            'input[name="discount_type"]:checked'
-                        )?.value;
+            $('#applyPromoCode').on('click', function() {
+                const code = promoCodeInput.val().trim().toUpperCase();
+                if (!/^[A-Z0-9_-]{3,30}$/.test(code)) {
+                    setPromoStatus(
+                        'Masukkan kode promo 3–30 karakter: huruf, angka, - atau _, tanpa spasi.', true);
+                    promoCodeInput.trigger('focus');
+                    return;
+                }
 
-                    if (selectedType === 'percentage') {
-                        let value = this.value.replace(/[^0-9.]/g, '');
+                promoCodeInput.val(code);
+                appliedPromoCode = code;
+                $('#removePromoCode').prop('hidden', false);
+                setPromoStatus('Memeriksa kode promo...');
+                scheduleEstimationPreview();
+            });
 
-                        const parts = value.split('.');
+            promoCodeInput.on('keydown', function(event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    $('#applyPromoCode').trigger('click');
+                }
+            });
 
-                        if (parts.length > 2) {
-                            value =
-                                parts[0] +
-                                '.' +
-                                parts.slice(1).join('');
-                        }
-
-                        this.value = value;
-                    }
-
-                    if (selectedType === 'nominal') {
-                        const rawValue =
-                            this.value.replace(/\D/g, '');
-
-                        this.value = rawValue ?
-                            new Intl.NumberFormat('id-ID', {
-                                maximumFractionDigits: 0
-                            }).format(Number(rawValue)) :
-                            '';
-                    }
-                });
-            }
+            $('#removePromoCode').on('click', function() {
+                promoCodeInput.val('');
+                appliedPromoCode = '';
+                $(this).prop('hidden', true);
+                setPromoStatus('Kode promo dihapus.');
+                scheduleEstimationPreview();
+            });
 
             /* =========================
                EVENT
@@ -3890,7 +3873,7 @@
 
             $(document).on(
                 'input change',
-                '#location_id, #vendor_id, #price_type, #material_id, #length, #width, #qty, #material_size_id, #lamination_id, #lamination_size_id, #material_custom_width, #lamination_custom_width, #discount_value, input[name="discount_type"], .additional-component-type, .additional-component-name, .additional-component-qty, .additional-component-price-type, .additional-component-unit-price, .additional-component-hpp, .additional-component-margin',
+                '#location_id, #vendor_id, #price_type, #material_id, #length, #width, #qty, #material_size_id, #lamination_id, #lamination_size_id, #material_custom_width, #lamination_custom_width, .additional-component-type, .additional-component-name, .additional-component-qty, .additional-component-price-type, .additional-component-unit-price, .additional-component-hpp, .additional-component-margin',
                 scheduleEstimationPreview
             );
 
