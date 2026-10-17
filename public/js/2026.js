@@ -41,8 +41,9 @@
                             text: "Mesin",
                             href: window.adminRoutes.engines,
                             icon: `
-                                <path d="M19.43 12.98c.04-.32.07-.65.07-.98s-.02-.66-.07-.98l2.11-1.65-2-3.46-2.49 1a7.15 7.15 0 0 0-1.69-.98L15 3h-3l-.36 2.94c-.61.25-1.18.58-1.69.98l-2.49-1-2 3.46 2.11 1.65c-.04.32-.08.65-.08.98s.03.66.08.98l-2.11 1.65 2 3.46 2.49-1c.51.4 1.08.73 1.69.98L12 21h3l.36-2.94c.61-.25 1.18-.58 1.69-.98l2.49 1 2-3.46-2.11-1.64Z"/>
-                                <circle cx="12" cy="12" r="3"/>
+                                <polyline points="6 9 6 2 18 2 18 9"/>
+                                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+                                <rect x="6" y="14" width="12" height="8"/>
                             `,
                         },
                         {
@@ -1110,13 +1111,39 @@
                           ).join("");
             }
             function P(e) {
-                ((N = T.map((t) => ({ item: t, s: $(t, e) }))
-                    .filter((e) => e.s > 0)
-                    .sort((e, t) => t.s - e.s)
-                    .slice(0, 12)
-                    .map((e) => e.item)),
-                    (V = 0),
-                    B());
+                const isQueryEmpty = !e || !e.trim();
+                const matched = T.map((t) => ({ item: t, s: $(t, e) }))
+                    .filter((t) => t.s > 0)
+                    .sort((t, a) => a.s - t.s);
+
+                if (isQueryEmpty) {
+                    N = matched.map((t) => t.item);
+                    const activeKey =
+                        document.body.getAttribute("data-active") || "";
+                    const currentPath = window.location.pathname;
+                    const activeIndex = N.findIndex((item) => {
+                        if (activeKey && item.key === activeKey) return true;
+                        if (item.href) {
+                            try {
+                                const itemPath = new URL(
+                                    item.href,
+                                    window.location.origin,
+                                ).pathname;
+                                return itemPath === currentPath;
+                            } catch {
+                                return false;
+                            }
+                        }
+                        return false;
+                    });
+                    V = activeIndex !== -1 ? activeIndex : 0;
+                } else {
+                    N = matched.slice(0, 12).map((t) => t.item);
+                    V = 0;
+                }
+
+                B();
+                R();
             }
             function H(e) {
                 e &&
@@ -1177,18 +1204,20 @@
                             for (const t of n)
                                 for (const a of t.items)
                                     if (a.children)
-                                        for (const n of a.children)
+                                        for (const c of a.children)
                                             e.push({
+                                                key: c.key,
                                                 kind: "page",
-                                                label: n.text,
+                                                label: c.text,
                                                 section: `${t.label} › ${a.text}`,
-                                                href: n.href,
-                                                icon: a.icon,
+                                                href: c.href,
+                                                icon: c.icon || a.icon,
                                             });
                                     else
                                         a.href &&
                                             "#" !== a.href &&
                                             e.push({
+                                                key: a.key,
                                                 kind: "page",
                                                 label: a.text,
                                                 section: t.label,
@@ -1221,31 +1250,34 @@
                                         a && a.click();
                                     },
                                     icon: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>',
-                                }),
-                                e.push({
-                                    kind: "link",
-                                    label: "View on GitHub",
-                                    section: "External",
-                                    href: "https://github.com/puikinsh/Adminator-admin-dashboard",
-                                    target: "_blank",
-                                    icon: '<path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/>',
-                                }),
-                                e.push({
-                                    kind: "link",
-                                    label: "Documentation",
-                                    section: "External",
-                                    href: "https://puikinsh.github.io/Adminator-admin-dashboard/",
-                                    target: "_blank",
-                                    icon: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/>',
-                                }),
-                                e
-                            );
-                        })()),
-                    (S.value = ""),
-                    P(""),
-                    document.body.classList.add("has-palette-open"),
-                    setTimeout(() => S.focus(), 0));
-            }
+                                 }),
+                                 e.push({
+                                     kind: "link",
+                                     label: "View on GitHub",
+                                     section: "External",
+                                     href: "https://github.com/puikinsh/Adminator-admin-dashboard",
+                                     target: "_blank",
+                                     icon: '<path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/>',
+                                 }),
+                                 e.push({
+                                     kind: "link",
+                                     label: "Documentation",
+                                     section: "External",
+                                     href: "https://puikinsh.github.io/Adminator-admin-dashboard/",
+                                     target: "_blank",
+                                     icon: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/>',
+                                 }),
+                                 e
+                             );
+                         })()),
+                     (S.value = ""),
+                     P(""),
+                     document.body.classList.add("has-palette-open"),
+                     setTimeout(() => {
+                         S.focus();
+                         R();
+                     }, 0));
+             }
             function I() {
                 C && document.body.classList.remove("has-palette-open");
             }

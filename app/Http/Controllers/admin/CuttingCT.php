@@ -126,7 +126,7 @@ class CuttingCT extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $request->validate([
+        $rules = [
             'cuttings' => [
                 'required',
                 'array',
@@ -143,31 +143,62 @@ class CuttingCT extends Controller
                 'required',
                 'in:Active,Inactive',
             ],
+        ];
 
-            'cuttings.*.sizes' => [
-                'required',
-                'array',
-                'min:1',
-            ],
+        foreach ($request->input('cuttings', []) as $index => $cutting) {
+            $isPotong = strtolower(trim($cutting['name'] ?? '')) === 'potong';
 
-            'cuttings.*.sizes.*.width' => [
-                'required',
-                'numeric',
-                'gt:0',
-            ],
+            if (!$isPotong) {
+                $rules["cuttings.{$index}.sizes"] = [
+                    'required',
+                    'array',
+                    'min:1',
+                ];
 
-            'cuttings.*.sizes.*.length' => [
-                'nullable',
-                'numeric',
-                'gt:0',
-            ],
+                $rules["cuttings.{$index}.sizes.*.width"] = [
+                    'required',
+                    'numeric',
+                    'gt:0',
+                ];
 
-            'cuttings.*.sizes.*.unit' => [
-                'required',
-                'string',
-                'max:255',
-            ],
-        ]);
+                $rules["cuttings.{$index}.sizes.*.length"] = [
+                    'nullable',
+                    'numeric',
+                    'gt:0',
+                ];
+
+                $rules["cuttings.{$index}.sizes.*.unit"] = [
+                    'required',
+                    'string',
+                    'max:255',
+                ];
+            } else {
+                $rules["cuttings.{$index}.sizes"] = [
+                    'nullable',
+                    'array',
+                ];
+
+                $rules["cuttings.{$index}.sizes.*.width"] = [
+                    'nullable',
+                    'numeric',
+                    'gt:0',
+                ];
+
+                $rules["cuttings.{$index}.sizes.*.length"] = [
+                    'nullable',
+                    'numeric',
+                    'gt:0',
+                ];
+
+                $rules["cuttings.{$index}.sizes.*.unit"] = [
+                    'nullable',
+                    'string',
+                    'max:255',
+                ];
+            }
+        }
+
+        $request->validate($rules);
 
         /*
         |--------------------------------------------------------------------------
@@ -248,33 +279,40 @@ class CuttingCT extends Controller
                 |--------------------------------------------------------------------------
                 */
                 $preparedSizes = [];
+                $isPotong = ($normalizedName === 'potong');
 
-                foreach ($cutting['sizes'] as $size) {
-                    $width = $size['width'];
-                    $length = isset($size['length']) && $size['length'] !== '' ? $size['length'] : null;
-                    $unit = trim($size['unit']);
-                    $normalizedUnit = strtolower($unit);
+                if (!$isPotong || (!empty($cutting['sizes']) && is_array($cutting['sizes']))) {
+                    foreach ($cutting['sizes'] ?? [] as $size) {
+                        if ($isPotong && (empty($size['width']) || empty($size['unit']))) {
+                            continue;
+                        }
 
-                    /*
-                    |--------------------------------------------------------------------------
-                    | BUAT IDENTITAS UKURAN
-                    |--------------------------------------------------------------------------
-                    */
-                    $sizeKey = $width . '|' . ($length ?? 'NULL') . '|' . $normalizedUnit;
+                        $width = $size['width'];
+                        $length = isset($size['length']) && $size['length'] !== '' ? $size['length'] : null;
+                        $unit = trim($size['unit']);
+                        $normalizedUnit = strtolower($unit);
 
-                    if (in_array($sizeKey, $requestSizes, true)) {
-                        throw ValidationException::withMessages([
-                            'sizes' => "Ukuran {$width}" . ($length !== null ? " × {$length}" : '') . " {$unit} untuk Jasa Potong \"{$cuttingName}\" terduplikat.",
-                        ]);
+                        /*
+                        |--------------------------------------------------------------------------
+                        | BUAT IDENTITAS UKURAN
+                        |--------------------------------------------------------------------------
+                        */
+                        $sizeKey = $width . '|' . ($length ?? 'NULL') . '|' . $normalizedUnit;
+
+                        if (in_array($sizeKey, $requestSizes, true)) {
+                            throw ValidationException::withMessages([
+                                'sizes' => "Ukuran {$width}" . ($length !== null ? " × {$length}" : '') . " {$unit} untuk Jasa Potong \"{$cuttingName}\" terduplikat.",
+                            ]);
+                        }
+
+                        $requestSizes[] = $sizeKey;
+
+                        $preparedSizes[] = [
+                            'width' => $width,
+                            'length' => $length,
+                            'unit' => $unit,
+                        ];
                     }
-
-                    $requestSizes[] = $sizeKey;
-
-                    $preparedSizes[] = [
-                        'width' => $width,
-                        'length' => $length,
-                        'unit' => $unit,
-                    ];
                 }
 
                 $preparedCuttings[] = [
@@ -372,16 +410,28 @@ class CuttingCT extends Controller
 
     public function update(Request $request, $id)
     {
-        $request->validate([
+        $isPotong = strtolower(trim($request->name ?? '')) === 'potong';
+
+        $rules = [
             'name' => ['required', 'string', 'max:255'],
             'status' => ['required', 'in:Active,Inactive'],
+        ];
 
-            'sizes' => ['required', 'array', 'min:1'],
-            'sizes.*.id' => ['nullable', 'integer'],
-            'sizes.*.width' => ['required', 'numeric', 'gt:0'],
-            'sizes.*.length' => ['nullable', 'numeric', 'gt:0'],
-            'sizes.*.unit' => ['required', 'string', 'max:255'],
-        ]);
+        if (!$isPotong) {
+            $rules['sizes'] = ['required', 'array', 'min:1'];
+            $rules['sizes.*.id'] = ['nullable', 'integer'];
+            $rules['sizes.*.width'] = ['required', 'numeric', 'gt:0'];
+            $rules['sizes.*.length'] = ['nullable', 'numeric', 'gt:0'];
+            $rules['sizes.*.unit'] = ['required', 'string', 'max:255'];
+        } else {
+            $rules['sizes'] = ['nullable', 'array'];
+            $rules['sizes.*.id'] = ['nullable', 'integer'];
+            $rules['sizes.*.width'] = ['nullable', 'numeric', 'gt:0'];
+            $rules['sizes.*.length'] = ['nullable', 'numeric', 'gt:0'];
+            $rules['sizes.*.unit'] = ['nullable', 'string', 'max:255'];
+        }
+
+        $request->validate($rules);
 
         DB::beginTransaction();
 
@@ -441,67 +491,73 @@ class CuttingCT extends Controller
             $submittedSizeIds = [];
             $sizeKeys = [];
 
-            foreach ($request->sizes as $size) {
-                $sizeId = !empty($size['id'])
-                    ? (int) $size['id']
-                    : null;
+            if (!$isPotong || (!empty($request->sizes) && is_array($request->sizes))) {
+                foreach ($request->sizes ?? [] as $size) {
+                    if ($isPotong && (empty($size['width']) || empty($size['unit']))) {
+                        continue;
+                    }
 
-                $width = $size['width'];
+                    $sizeId = !empty($size['id'])
+                        ? (int) $size['id']
+                        : null;
 
-                $length = isset($size['length']) && $size['length'] !== ''
-                    ? $size['length']
-                    : null;
+                    $width = $size['width'];
 
-                $unit = trim($size['unit']);
-                $normalizedUnit = strtolower($unit);
+                    $length = isset($size['length']) && $size['length'] !== ''
+                        ? $size['length']
+                        : null;
 
-                /*
-                |--------------------------------------------------------------------------
-                | 4a. Jika ada ID ukuran, pastikan ukuran tersebut milik cutting ini
-                |--------------------------------------------------------------------------
-                */
-                if ($sizeId !== null) {
-                    $existingSize = DB::table('m_cutting_sizes')
-                        ->where('id', $sizeId)
-                        ->where('cutting_id', $id)
-                        ->first();
+                    $unit = trim($size['unit']);
+                    $normalizedUnit = strtolower($unit);
 
-                    if (!$existingSize) {
+                    /*
+                    |--------------------------------------------------------------------------
+                    | 4a. Jika ada ID ukuran, pastikan ukuran tersebut milik cutting ini
+                    |--------------------------------------------------------------------------
+                    */
+                    if ($sizeId !== null) {
+                        $existingSize = DB::table('m_cutting_sizes')
+                            ->where('id', $sizeId)
+                            ->where('cutting_id', $id)
+                            ->first();
+
+                        if (!$existingSize) {
+                            throw ValidationException::withMessages([
+                                'sizes' => 'Data ukuran jasa potong tidak valid.'
+                            ]);
+                        }
+
+                        if (in_array($sizeId, $submittedSizeIds, true)) {
+                            throw ValidationException::withMessages([
+                                'sizes' => "Ukuran jasa potong dengan ID {$sizeId} dikirim lebih dari satu kali."
+                            ]);
+                        }
+
+                        $submittedSizeIds[] = $sizeId;
+                    }
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | 4b. Cek duplikat ukuran dalam request
+                    |--------------------------------------------------------------------------
+                    */
+                    $sizeKey = $width . '|' . ($length ?? 'NULL') . '|' . $normalizedUnit;
+
+                    if (in_array($sizeKey, $sizeKeys, true)) {
                         throw ValidationException::withMessages([
-                            'sizes' => 'Data ukuran jasa potong tidak valid.'
+                            'sizes' => "Ukuran {$width}" . ($length !== null ? " × {$length}" : '') . " {$unit} untuk Jasa Potong \"{$cuttingName}\" terduplikat."
                         ]);
                     }
 
-                    if (in_array($sizeId, $submittedSizeIds, true)) {
-                        throw ValidationException::withMessages([
-                            'sizes' => "Ukuran jasa potong dengan ID {$sizeId} dikirim lebih dari satu kali."
-                        ]);
-                    }
+                    $sizeKeys[] = $sizeKey;
 
-                    $submittedSizeIds[] = $sizeId;
+                    $preparedSizes[] = [
+                        'id' => $sizeId,
+                        'width' => $width,
+                        'length' => $length,
+                        'unit' => $unit,
+                    ];
                 }
-
-                /*
-                |--------------------------------------------------------------------------
-                | 4b. Cek duplikat ukuran dalam request
-                |--------------------------------------------------------------------------
-                */
-                $sizeKey = $width . '|' . ($length ?? 'NULL') . '|' . $normalizedUnit;
-
-                if (in_array($sizeKey, $sizeKeys, true)) {
-                    throw ValidationException::withMessages([
-                        'sizes' => "Ukuran {$width}" . ($length !== null ? " × {$length}" : '') . " {$unit} untuk Jasa Potong \"{$cuttingName}\" terduplikat."
-                    ]);
-                }
-
-                $sizeKeys[] = $sizeKey;
-
-                $preparedSizes[] = [
-                    'id' => $sizeId,
-                    'width' => $width,
-                    'length' => $length,
-                    'unit' => $unit,
-                ];
             }
 
             /*
@@ -753,7 +809,7 @@ class CuttingCT extends Controller
             return response()->json([
                 'success' => true,
                 'message' =>
-                    $import->importedCuttings .
+                $import->importedCuttings .
                     ' jasa potong dan ' .
                     $import->importedSizes .
                     ' ukuran berhasil diimport.',

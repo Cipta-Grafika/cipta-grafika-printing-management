@@ -1092,6 +1092,68 @@
             initSelect2(cuttingRows);
 
             /* =========================================================
+               TOGGLE UKURAN UNTUK JASA POTONG "POTONG" (TAMBAH)
+            ========================================================= */
+            function checkPotongRow(row) {
+                if (!row) return;
+                const nameInput = row.querySelector('input[name*="[name]"]');
+                const sizesSection = row.querySelector('.material-sizes');
+                if (!nameInput || !sizesSection) return;
+
+                const isPotong = nameInput.value.trim().toLowerCase() === 'potong';
+                const inputs = sizesSection.querySelectorAll('input, select, button');
+
+                if (isPotong) {
+                    sizesSection.style.display = 'none';
+                    inputs.forEach(function(el) {
+                        el.disabled = true;
+                        if (el.hasAttribute('required')) {
+                            el.dataset.wasRequired = 'true';
+                            el.removeAttribute('required');
+                        }
+                        if (typeof $ !== 'undefined' && $(el).hasClass('select2-hidden-accessible')) {
+                            $(el).prop('disabled', true);
+                        }
+                    });
+                } else {
+                    sizesSection.style.display = '';
+                    inputs.forEach(function(el) {
+                        el.disabled = false;
+                        if (el.dataset.wasRequired === 'true' || el.name?.includes('[width]') || el.name?.includes('[unit]')) {
+                            el.setAttribute('required', 'required');
+                        }
+                        if (typeof $ !== 'undefined' && $(el).hasClass('select2-hidden-accessible')) {
+                            $(el).prop('disabled', false);
+                        }
+                    });
+                }
+            }
+
+            cuttingRows.addEventListener('input', function(event) {
+                const target = event.target;
+                if (target && target.matches('input[name*="[name]"]')) {
+                    const row = target.closest('.material-row');
+                    if (row) {
+                        checkPotongRow(row);
+                    }
+                }
+            });
+
+            cuttingRows.addEventListener('change', function(event) {
+                const target = event.target;
+                if (target && target.matches('input[name*="[name]"]')) {
+                    const row = target.closest('.material-row');
+                    if (row) {
+                        checkPotongRow(row);
+                    }
+                }
+            });
+
+            cuttingRows.querySelectorAll('.material-row').forEach(function(row) {
+                checkPotongRow(row);
+            });
+
+            /* =========================================================
                VALIDASI FORM
             ========================================================= */
             form.addEventListener('submit', function(event) {
@@ -1107,6 +1169,10 @@
 
                 requiredFields.forEach(function(field) {
                     if (firstInvalid) {
+                        return;
+                    }
+
+                    if (field.disabled || field.closest('.material-sizes[style*="display: none"]')) {
                         return;
                     }
 
@@ -1352,6 +1418,7 @@
 
                     cuttingRows.appendChild(row);
                     initSelect2(row);
+                    checkPotongRow(row);
 
                     const nameInput = row.querySelector('input[name*="[name]"]');
                     if (nameInput) {
@@ -1501,6 +1568,7 @@
                     });
 
                     cuttingRow.dataset.sizeIndex = 1;
+                    checkPotongRow(cuttingRow);
                     if (name) {
                         name.focus();
                     }
@@ -1761,6 +1829,53 @@
                 });
             }
 
+            /* =========================================================
+               TOGGLE UKURAN UNTUK JASA POTONG "POTONG" (EDIT)
+            ========================================================= */
+            function checkPotongEdit() {
+                const sizesSection = editCuttingRows ? editCuttingRows.querySelector('.material-sizes') : null;
+                if (!editCuttingName || !sizesSection) return;
+
+                const isPotong = editCuttingName.value.trim().toLowerCase() === 'potong';
+                const inputs = sizesSection.querySelectorAll('input, select, button');
+
+                if (isPotong) {
+                    sizesSection.style.display = 'none';
+                    inputs.forEach(function(el) {
+                        el.disabled = true;
+                        if (el.hasAttribute('required')) {
+                            el.dataset.wasRequired = 'true';
+                            el.removeAttribute('required');
+                        }
+                        if (typeof $ !== 'undefined' && $(el).hasClass('select2-hidden-accessible')) {
+                            $(el).prop('disabled', true);
+                        }
+                    });
+                } else {
+                    sizesSection.style.display = '';
+                    inputs.forEach(function(el) {
+                        el.disabled = false;
+                        if (el.dataset.wasRequired === 'true' || el.name?.includes('[width]') || el.name?.includes('[unit]')) {
+                            el.setAttribute('required', 'required');
+                        }
+                        if (typeof $ !== 'undefined' && $(el).hasClass('select2-hidden-accessible')) {
+                            $(el).prop('disabled', false);
+                        }
+                    });
+
+                    const currentRows = editCuttingRows.querySelectorAll('.material-size-row');
+                    if (currentRows.length === 0) {
+                        createEditSizeRow({}, editSizeIndex);
+                        editSizeIndex++;
+                    }
+                }
+            }
+
+            if (editCuttingName) {
+                editCuttingName.addEventListener('input', checkPotongEdit);
+                editCuttingName.addEventListener('change', checkPotongEdit);
+            }
+
             /* BUKA MODAL EDIT DARI TOMBOL AKSI DATATABLE */
             document.addEventListener('click', function(event) {
                 const button = event.target.closest('.btn-edit-cutting');
@@ -1827,6 +1942,8 @@
                             editSizeIndex++;
                         }
 
+                        checkPotongEdit();
+
                         modalEdit.classList.add('is-open');
                     })
                     .catch(function(error) {
@@ -1849,6 +1966,11 @@
                         $('#editCuttingStatus').select2('open');
                     }
                     return false;
+                }
+
+                const isPotong = editCuttingName.value.trim().toLowerCase() === 'potong';
+                if (isPotong) {
+                    return true;
                 }
 
                 const sizeRows = editCuttingRows.querySelectorAll('.material-size-row');
@@ -2192,7 +2314,7 @@
                 });
             }
 
-            function renderDetailSizes(sizes) {
+            function renderDetailSizes(sizes, cuttingName = '') {
                 const sizeBody = document.getElementById('detailCuttingSizes');
                 if (!sizeBody) {
                     return;
@@ -2200,10 +2322,14 @@
                 sizeBody.innerHTML = '';
 
                 if (!sizes || sizes.length === 0) {
+                    const emptyText = (cuttingName && cuttingName.trim().toLowerCase() === 'potong')
+                        ? 'Jasa potong ini tidak memerlukan ukuran khusus.'
+                        : 'Belum ada ukuran.';
+
                     sizeBody.innerHTML = `
                         <tr>
                             <td colspan="3" class="cutting-detail-empty">
-                                Belum ada ukuran.
+                                ${emptyText}
                             </td>
                         </tr>
                     `;
@@ -2280,7 +2406,7 @@
 
                         setDetailValue('detailCuttingName', cutting.name);
                         setDetailStatus(cutting.status);
-                        renderDetailSizes(cutting.sizes);
+                        renderDetailSizes(cutting.sizes, cutting.name);
 
                         setDetailValue('detailCreatedBy', cutting.created_by);
                         setDetailValue('detailCreatedAt', formatDateTime(cutting.created_at));
