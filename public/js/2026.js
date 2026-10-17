@@ -65,6 +65,11 @@
                                     href: window.adminRoutes.laminations,
                                 },
                                 {
+                                    key: "cuttings",
+                                    text: "Jasa Potong",
+                                    href: window.adminRoutes.cuttings,
+                                },
+                                {
                                     key: "displays",
                                     text: "Display",
                                     href: window.adminRoutes.admin_display,
@@ -141,6 +146,12 @@
                                     text: "Laminasi",
                                     href: window.adminRoutes
                                         .pc_finishing_laminations,
+                                },
+                                {
+                                    key: "production-costs-finishig-cutting",
+                                    text: "Jasa Potong",
+                                    href: window.adminRoutes
+                                        .pc_finishing_cuttings,
                                 },
                                 {
                                     key: "production-costs-finishig-display",

@@ -183,6 +183,10 @@
             'active' => 'laminations',
             'crumbs' => 'Master Data | Laminasi',
         ],
+        'admin_cuttings' => [
+            'active' => 'cuttings',
+            'crumbs' => 'Master Data | Jasa Potong',
+        ],
         /*
         |--------------------------------------------------------------------------
         | HARGA & TARIF - DAFTAR HARGA
@@ -313,6 +317,31 @@
         ],
         'admin_details_pc_finishing_lamination' => [
             'active' => 'production-costs-finishig-lamination',
+            'crumbs' => 'Konfigurasi | Biaya',
+        ],
+
+        'admin_production_cost_finishing_cuttings' => [
+            'active' => 'production-costs-finishig-cutting',
+            'crumbs' => 'Konfigurasi | Biaya',
+        ],
+        'admin_create_pc_finishing_cutting' => [
+            'active' => 'production-costs-finishig-cutting',
+            'crumbs' => 'Konfigurasi | Biaya',
+        ],
+        'admin_edit_pc_finishing_cutting' => [
+            'active' => 'production-costs-finishig-cutting',
+            'crumbs' => 'Konfigurasi | Biaya',
+        ],
+        'admin_details_pc_finishing_cutting' => [
+            'active' => 'production-costs-finishig-cutting',
+            'crumbs' => 'Konfigurasi | Biaya',
+        ],
+        'admin_details_pc_finishing_potong' => [
+            'active' => 'production-costs-finishig-cutting',
+            'crumbs' => 'Konfigurasi | Biaya',
+        ],
+        'admin_edit_pc_finishing_potong' => [
+            'active' => 'production-costs-finishig-cutting',
             'crumbs' => 'Konfigurasi | Biaya',
         ],
 
@@ -521,7 +550,9 @@
             display_pricing_rules: "{{ route('admin_display_pricing_rules') }}",
             pc_finishing_displays: "{{ route('admin_pc_finishing_displays') }}",
             gallery_samples: "{{ route('admin_gallery_samples') }}",
-            discounts: "{{ route('admin_discounts') }}"
+            discounts: "{{ route('admin_discounts') }}",
+            cuttings: "{{ route('admin_cuttings') }}",
+            pc_finishing_cuttings: "{{ route('admin_production_cost_finishing_cuttings') }}"
         };
 
         window.appData = {

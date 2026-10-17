@@ -2807,7 +2807,737 @@ class EstimationCT extends Controller
 
     public function createA3plus()
     {
-        return view('admin.estimation.a3-plus.create');
+        $data['locations'] = DB::table('m_locations')
+            ->whereRaw('LOWER(TRIM(status)) = ?', ['active'])
+            ->orderBy('name', 'asc')
+            ->get();
+
+        $data['vendors'] = DB::table('m_vendors')
+            ->where('status', 'Active')
+            ->orderBy('name', 'asc')
+            ->get();
+
+        // Kategori material untuk mesin Digital Print A3+
+        $digitalCategories = [225, 226, 227, 228, 229, 231, 232, 233];
+
+        $data['materials'] = DB::table('m_materials as m')
+            ->join('m_categories as c', 'c.id', '=', 'm.category_id')
+            ->leftJoin('m_digital_production_cost_details as d', 'd.material_id', '=', 'm.id')
+            ->leftJoin('m_digital_production_costs as pc', 'pc.id', '=', 'd.digital_production_cost_id')
+            ->whereIn('m.category_id', $digitalCategories)
+            ->where('m.status', 'Active')
+            ->select(
+                'm.id',
+                'm.material_name as name',
+                'c.id as category_id',
+                'c.name as category_name',
+                'd.paper_cost',
+                'd.click_cost',
+                'd.single_print_cost',
+                'd.double_print_cost',
+                'pc.location_id'
+            )
+            ->distinct()
+            ->orderBy('c.name', 'asc')
+            ->orderBy('m.material_name', 'asc')
+            ->get()
+            ->groupBy('category_name');
+
+        $data['laminations'] = DB::table('m_laminations as l')
+            ->leftJoin('m_digital_lamination_production_cost_details as d', 'd.lamination_id', '=', 'l.id')
+            ->leftJoin('m_digital_lamination_production_costs as pc', 'pc.id', '=', 'd.digital_lamination_production_cost_id')
+            ->where('l.status', 'Active')
+            ->where(function ($q) {
+                $q->whereRaw('LOWER(l.name) LIKE ?', ['%a3+%'])
+                    ->orWhereNotNull('d.id');
+            })
+            ->select(
+                'l.id',
+                'l.name',
+                'd.paper_cost',
+                'd.click_cost',
+                'd.single_print_cost',
+                'd.double_print_cost',
+                'pc.location_id'
+            )
+            ->distinct()
+            ->orderBy('l.name', 'asc')
+            ->get();
+
+        $data['cuttings'] = DB::table('m_cuttings')
+            ->where('status', 'Active')
+            ->orderBy('name', 'asc')
+            ->get();
+
+        return view('admin.estimation.a3-plus.create')->with($data);
+    }
+
+    /**
+     * Mengambil daftar material aktif untuk Digital Print A3+ berdasarkan Lokasi dan Warna Cetak
+     */
+    public function getMaterialsA3plus(Request $request)
+    {
+        $validated = $request->validate([
+            'location_id' => 'required|integer|exists:m_locations,id',
+            'print_color' => 'nullable|in:fc,bw',
+        ]);
+
+        try {
+            $query = DB::table('m_materials as m')
+                ->join('m_categories as c', 'c.id', '=', 'm.category_id')
+                ->join('m_digital_production_cost_details as d', 'd.material_id', '=', 'm.id')
+                ->join('m_digital_production_costs as pc', 'pc.id', '=', 'd.digital_production_cost_id')
+                ->where('pc.location_id', $validated['location_id'])
+                ->where('m.status', 'Active');
+
+            if (!empty($validated['print_color'])) {
+                if ($validated['print_color'] === 'bw') {
+                    $query->whereRaw('LOWER(TRIM(c.name)) = ?', ['bw']);
+                } else {
+                    $query->whereRaw('LOWER(TRIM(c.name)) != ?', ['bw']);
+                }
+            }
+
+            $materials = $query->select(
+                'm.id',
+                'm.material_name as name',
+                'c.id as category_id',
+                'c.name as category_name',
+                'd.paper_cost',
+                'd.click_cost',
+                'd.single_print_cost',
+                'd.double_print_cost'
+            )
+            ->distinct()
+            ->orderBy('c.name', 'asc')
+            ->orderBy('m.material_name', 'asc')
+            ->get();
+
+            return response()->json([
+                'success' => true,
+                'data' => $materials,
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengambil data material Digital Print A3+: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Hitung Estimasi Digital Print A3+ (Tanpa Insert ke DB)
+     */
+    public function storeA3plus(Request $request)
+    {
+        // Filter & sanitasi komponen tambahan
+        $additionalComponents = $request->input('additional_components', []);
+        if (is_array($additionalComponents)) {
+            $additionalComponents = array_values(
+                array_filter(
+                    $additionalComponents,
+                    function ($component) {
+                        return !empty($component['type']) ||
+                            !empty($component['name']) ||
+                            !empty($component['qty']) ||
+                            !empty($component['unit_price']) ||
+                            !empty($component['hpp']);
+                    }
+                )
+            );
+            foreach ($additionalComponents as &$comp) {
+                if (isset($comp['unit_price'])) {
+                    $comp['unit_price'] = str_replace(['.', ','], '', (string) $comp['unit_price']);
+                }
+                if (isset($comp['hpp'])) {
+                    $comp['hpp'] = str_replace(['.', ','], '', (string) $comp['hpp']);
+                }
+            }
+            unset($comp);
+            $request->merge([
+                'additional_components' => $additionalComponents ?: null,
+            ]);
+        }
+
+        $validated = $request->validate([
+            'location_id' => 'required|integer|exists:m_locations,id',
+            'vendor_id' => 'nullable|integer|exists:m_vendors,id',
+            'price_type' => 'required|in:general,division',
+            'production_mode' => 'required|in:layout,direct',
+            'material_id' => 'required|integer|exists:m_materials,id',
+            'print_color' => 'required|in:fc,bw',
+            'print_side' => 'required|in:1,2',
+            'length' => 'nullable|numeric|min:0.1',
+            'width' => 'nullable|numeric|min:0.1',
+            'qty' => 'nullable|integer|min:1',
+            'sheet_qty' => 'nullable|integer|min:1',
+            'lamination_type' => 'nullable|string',
+            'cutting_type' => 'nullable|string',
+            'potong_size_override' => 'nullable|string',
+            'discount_type' => 'required|in:none,percentage,nominal',
+            'discount_value' => 'nullable',
+            'estimation_time' => 'required|integer|min:1',
+            'additional_components' => 'nullable|array',
+            'additional_components.*.type' => 'required|string',
+            'additional_components.*.name' => 'required|string',
+            'additional_components.*.qty' => 'required|integer|min:1',
+            'additional_components.*.price_type' => 'required|in:unit_price,hpp_margin',
+            'additional_components.*.unit_price' => 'nullable|numeric|min:0|required_if:additional_components.*.price_type,unit_price',
+            'additional_components.*.hpp' => 'nullable|numeric|min:0|required_if:additional_components.*.price_type,hpp_margin',
+            'additional_components.*.margin' => 'nullable|numeric|min:0|max:99.99|required_if:additional_components.*.price_type,hpp_margin',
+        ]);
+
+        try {
+            // 1. ENGINE & LOKASI
+            $engine = DB::table('m_engines')
+                ->whereRaw('LOWER(TRIM(name)) = ?', ['digital print a3+'])
+                ->first();
+
+            $location = DB::table('m_locations')->where('id', $validated['location_id'])->first();
+            $vendorName = null;
+            if (!empty($validated['vendor_id'])) {
+                $vendorName = DB::table('m_vendors')->where('id', $validated['vendor_id'])->value('name');
+            }
+
+            // 2. MATERIAL & HPP DASAR
+            $material = DB::table('m_materials as m')
+                ->join('m_categories as c', 'c.id', '=', 'm.category_id')
+                ->where('m.id', $validated['material_id'])
+                ->select('m.*', 'c.name as category_name')
+                ->first();
+
+            $costDetail = DB::table('m_digital_production_cost_details as d')
+                ->join('m_digital_production_costs as pc', 'pc.id', '=', 'd.digital_production_cost_id')
+                ->where('d.material_id', $validated['material_id'])
+                ->where('pc.location_id', $validated['location_id'])
+                ->select('d.*')
+                ->first();
+
+            if (!$costDetail) {
+                $costDetail = DB::table('m_digital_production_cost_details')
+                    ->where('material_id', $validated['material_id'])
+                    ->first();
+            }
+
+            $paperCost = $costDetail ? (float) $costDetail->paper_cost : 800.0;
+            $clickCost = $costDetail ? (float) $costDetail->click_cost : 1500.0;
+            $isDouble = ($validated['print_side'] == '2');
+            $printCostUnit = $paperCost + ($clickCost * ($isDouble ? 2 : 1));
+
+            // 3. IMPOSISI LAYOUT & TOTAL LEMBAR CETAK
+            $mode = $validated['production_mode'];
+            $sheetPrintableL = 47.5; // cm (Area cetak efektif A3+)
+            $sheetPrintableW = 31.5; // cm
+
+            if ($mode === 'layout') {
+                $productLength = (float) ($validated['length'] ?? 9.0);
+                $productWidth = (float) ($validated['width'] ?? 5.5);
+                $qty = (int) ($validated['qty'] ?? 1);
+
+                $upNormal = floor($sheetPrintableL / $productLength) * floor($sheetPrintableW / $productWidth);
+                $upRotated = floor($sheetPrintableL / $productWidth) * floor($sheetPrintableW / $productLength);
+                $upCount = max(1, (int) max($upNormal, $upRotated));
+                $orientation = ($upRotated > $upNormal) ? 'Rotated' : 'Normal';
+
+                $totalSheets = (int) ceil($qty / $upCount);
+                $finishedSize = $productLength . ' × ' . $productWidth . ' cm';
+            } else {
+                $totalSheets = (int) ($validated['sheet_qty'] ?? 1);
+                $qty = $totalSheets;
+                $upCount = 1;
+                $orientation = 'Direct Sheet';
+                $productLength = 48.5;
+                $productWidth = 32.5;
+                $finishedSize = 'Direct Sheet (32.5 × 48.5 cm)';
+            }
+
+            // 4. DETERMINASI TIER KUANTITI
+            $tier = 'tier_1';
+            if ($totalSheets >= 301) {
+                $tier = 'tier_500';
+            } elseif ($totalSheets >= 101) {
+                $tier = 'tier_300';
+            } elseif ($totalSheets >= 51) {
+                $tier = 'tier_100';
+            } elseif ($totalSheets >= 6) {
+                $tier = 'tier_6_50';
+            } elseif ($totalSheets >= 2) {
+                $tier = 'tier_2_5';
+            }
+
+            // 5. HARGA JUAL CETAK (PRINT SELLING PRICE DARI MASTER TIER)
+            $printType = $isDouble ? 'double' : 'single';
+            $priceType = $validated['price_type']; // general | division
+
+            $sellingPriceRow = null;
+            if ($costDetail) {
+                $sellingPriceRow = DB::table('m_digital_production_cost_prices')
+                    ->where('digital_production_cost_detail_id', $costDetail->id)
+                    ->where('price_type', $priceType)
+                    ->where('print_type', $printType)
+                    ->where('quantity_tier', $tier)
+                    ->first();
+            }
+
+            if ($sellingPriceRow) {
+                $printUnitPrice = (float) $sellingPriceRow->selling_price;
+            } else {
+                // Fallback jika tier belum digenerate di master
+                $basePrice = 4000;
+                if ($totalSheets >= 50) $basePrice = 3500;
+                if ($totalSheets >= 100) $basePrice = 3000;
+                if ($totalSheets >= 300) $basePrice = 2500;
+                if ($isDouble) $basePrice *= 1.8;
+                if ($priceType === 'division') $basePrice *= 0.8;
+                $printUnitPrice = $basePrice;
+            }
+
+            $printSubtotal = $printUnitPrice * $totalSheets;
+            $printTotalHpp = $printCostUnit * $totalSheets;
+
+            // 6. FINISHING LAMINASI (DARI MASTER LAMINASI DIGITAL A3+)
+            $laminationVal = $validated['lamination_type'] ?? 'none';
+            $laminationData = null;
+            $laminationSubtotal = 0.0;
+            $laminationTotalHpp = 0.0;
+
+            if ($laminationVal && $laminationVal !== 'none') {
+                $parts = explode('_', $laminationVal);
+                $lamId = (int) $parts[0];
+                $lamSide = (isset($parts[1]) && $parts[1] === '2') ? 'double' : 'single';
+
+                $lamMaster = DB::table('m_laminations')->where('id', $lamId)->first();
+                $lamName = $lamMaster ? $lamMaster->name : 'Laminasi A3+';
+                $lamLabel = $lamName . ' (' . ($lamSide === 'double' ? '2 Sisi' : '1 Sisi') . ')';
+
+                $lamDetail = DB::table('m_digital_lamination_production_cost_details as d')
+                    ->join('m_digital_lamination_production_costs as pc', 'pc.id', '=', 'd.digital_lamination_production_cost_id')
+                    ->where('d.lamination_id', $lamId)
+                    ->where('pc.location_id', $validated['location_id'])
+                    ->select('d.*')
+                    ->first();
+
+                if (!$lamDetail) {
+                    $lamDetail = DB::table('m_digital_lamination_production_cost_details')
+                        ->where('lamination_id', $lamId)
+                        ->first();
+                }
+
+                $lamHppUnit = 0.0;
+                if ($lamDetail) {
+                    $lamHppUnit = ($lamSide === 'double') ? (float) $lamDetail->double_print_cost : (float) $lamDetail->single_print_cost;
+                } else {
+                    $lamHppUnit = ($lamSide === 'double') ? 1200.0 : 700.0;
+                }
+
+                $lamPriceRow = null;
+                if ($lamDetail) {
+                    $lamPriceRow = DB::table('m_digital_lamination_production_cost_prices')
+                        ->where('digital_lamination_production_cost_detail_id', $lamDetail->id)
+                        ->where('price_type', $priceType)
+                        ->where('print_type', $lamSide)
+                        ->where('quantity_tier', $tier)
+                        ->first();
+                }
+
+                if ($lamPriceRow) {
+                    $lamUnitPrice = (float) $lamPriceRow->selling_price;
+                } else {
+                    $lamUnitPrice = ($lamSide === 'double') ? 2000.0 : 1200.0;
+                    if ($priceType === 'division') $lamUnitPrice *= 0.8;
+                }
+
+                $laminationSubtotal = $lamUnitPrice * $totalSheets;
+                $laminationTotalHpp = $lamHppUnit * $totalSheets;
+
+                $laminationData = [
+                    'name' => $lamLabel,
+                    'unit_price' => $lamUnitPrice,
+                    'subtotal' => $laminationSubtotal,
+                    'hpp_unit' => $lamHppUnit,
+                    'total_hpp' => $laminationTotalHpp,
+                ];
+            }
+
+            // 7. FINISHING CUTTING
+            $cuttingVal = $validated['cutting_type'] ?? 'none';
+            $cuttingData = null;
+            $cuttingSubtotal = 0.0;
+            $cuttingTotalHpp = 0.0;
+
+            if ($cuttingVal && $cuttingVal !== 'none') {
+                $cuttingUnitPrice = 0.0;
+                $cuttingHppUnit = 0.0;
+                $cuttingName = 'Tanpa Cutting';
+
+                if ($cuttingVal === 'potong') {
+                    // Opsi Potong Guillotine (Menggunakan Master Ongkos Potong Minimal)
+                    // 1. Tentukan Kelas Ukuran Jadi (A3, A4, A5, <=A6)
+                    $potongOverride = trim((string) ($validated['potong_size_override'] ?? ''));
+                    $potongSizeClass = null;
+
+                    // Support format standar (A3, A4, A5, <=A6) dan format legacy (LARGE, MEDIUM, SMALL)
+                    if (in_array(strtoupper($potongOverride), ['A3', 'A4', 'A5', '<=A6'], true)) {
+                        $potongSizeClass = strtoupper($potongOverride);
+                        if ($potongOverride === '<=a6' || $potongOverride === '<=A6') {
+                            $potongSizeClass = '<=A6';
+                        }
+                    } elseif (strtoupper($potongOverride) === 'LARGE') {
+                        $potongSizeClass = 'A4';
+                    } elseif (strtoupper($potongOverride) === 'MEDIUM') {
+                        $potongSizeClass = 'A5';
+                    } elseif (strtoupper($potongOverride) === 'SMALL') {
+                        $potongSizeClass = '<=A6';
+                    }
+
+                    // Jika otomatis (atau belum ditentukan), hitung dari luas produk jadi (P x L dalam cm)
+                    if (!$potongSizeClass) {
+                        $areaCm2 = (float) $productLength * (float) $productWidth;
+                        if ($areaCm2 > 623.7) {
+                            $potongSizeClass = 'A3';
+                        } elseif ($areaCm2 > 310.8) {
+                            $potongSizeClass = 'A4';
+                        } elseif ($areaCm2 > 155.4) {
+                            $potongSizeClass = 'A5';
+                        } else {
+                            $potongSizeClass = '<=A6';
+                        }
+                    }
+
+                    $sizeLabel = match ($potongSizeClass) {
+                        'A3' => 'A3',
+                        'A4' => 'A4',
+                        'A5' => 'A5',
+                        '<=A6' => '≤ A6',
+                        default => $potongSizeClass
+                    };
+
+                    $cuttingName = 'Potong Guillotine (' . $sizeLabel . ')';
+
+                    // 2. Cari Header Master Ongkos Potong berdasarkan lokasi & engine Digital Print A3+
+                    $potongHeader = DB::table('m_digital_potong_production_costs')
+                        ->where('location_id', $validated['location_id'])
+                        ->where('engine_id', $engine->id)
+                        ->first();
+
+                    if (!$potongHeader) {
+                        $potongHeader = DB::table('m_digital_potong_production_costs')
+                            ->where('engine_id', $engine->id)
+                            ->first();
+                    }
+
+                    $potongCat = null;
+                    if ($potongHeader && $material && !empty($material->category_id)) {
+                        $potongCat = DB::table('m_digital_potong_production_cost_categories')
+                            ->where('digital_potong_production_cost_id', $potongHeader->id)
+                            ->where('category_id', $material->category_id)
+                            ->first();
+                    }
+
+                    if ($potongHeader && !$potongCat) {
+                        $potongCat = DB::table('m_digital_potong_production_cost_categories')
+                            ->where('digital_potong_production_cost_id', $potongHeader->id)
+                            ->first();
+                    }
+
+                    $potongPriceRow = null;
+                    $potongDivRow = null;
+
+                    if ($potongCat) {
+                        $potongPriceRow = DB::table('m_digital_potong_production_cost_prices')
+                            ->where('digital_potong_production_cost_category_id', $potongCat->id)
+                            ->where('size_class', $potongSizeClass)
+                            ->where('price_type', $priceType)
+                            ->first();
+
+                        $potongDivRow = DB::table('m_digital_potong_production_cost_prices')
+                            ->where('digital_potong_production_cost_category_id', $potongCat->id)
+                            ->where('size_class', $potongSizeClass)
+                            ->where('price_type', 'division')
+                            ->first();
+                    }
+
+                    if ($potongPriceRow) {
+                        $minPriceSelling = (float) $potongPriceRow->min_price;
+                    } else {
+                        $minPriceSelling = match ($potongSizeClass) {
+                            'A3' => 15000.0,
+                            'A4' => 20000.0,
+                            'A5' => 25000.0,
+                            '<=A6' => 35000.0,
+                            default => 20000.0
+                        };
+                        if ($priceType === 'division') {
+                            $minPriceSelling *= 0.8;
+                        }
+                    }
+
+                    // HPP Potong: di sample app harga jual = HPP (cost-only), atau tarif internal divisi
+                    $minPriceHpp = $potongDivRow ? (float) $potongDivRow->min_price : $minPriceSelling;
+
+                    $cuttingSubtotal = $minPriceSelling;
+                    $cuttingTotalHpp = $minPriceHpp;
+                    $cuttingUnitPrice = $totalSheets > 0 ? ($cuttingSubtotal / $totalSheets) : $cuttingSubtotal;
+                    $cuttingHppUnit = $totalSheets > 0 ? ($cuttingTotalHpp / $totalSheets) : $cuttingTotalHpp;
+                } else {
+                    // Jasa Potong Dinamis dari Master Production Cost Finishing Cutting
+                    $cuttingObj = null;
+                    if (is_numeric($cuttingVal)) {
+                        $cuttingObj = DB::table('m_cuttings')->where('id', (int) $cuttingVal)->first();
+                    } else {
+                        // Kompatibilitas dengan string bawaan (kiss, die, perforasi)
+                        if ($cuttingVal === 'kiss') {
+                            $cuttingObj = DB::table('m_cuttings')->whereRaw('LOWER(name) LIKE ?', ['%kiss%'])->first();
+                        } elseif ($cuttingVal === 'die') {
+                            $cuttingObj = DB::table('m_cuttings')->whereRaw('LOWER(name) LIKE ?', ['%die%'])->first();
+                        } elseif ($cuttingVal === 'perforasi') {
+                            $cuttingObj = DB::table('m_cuttings')->whereRaw('LOWER(name) LIKE ?', ['%perforasi%'])->first();
+                        } else {
+                            $cuttingObj = DB::table('m_cuttings')->whereRaw('LOWER(name) = ?', [strtolower(trim($cuttingVal))])->first();
+                        }
+                    }
+
+                    if ($cuttingObj) {
+                        $cuttingName = $cuttingObj->name;
+
+                        // 1. Cari detail ongkos potong di master berdasarkan cutting_id, lokasi, dan kategori material
+                        $cutDetail = null;
+                        if ($material && !empty($material->category_id)) {
+                            $cutDetail = DB::table('m_digital_cutting_production_cost_details as d')
+                                ->join('m_digital_cutting_production_costs as pc', 'pc.id', '=', 'd.digital_cutting_production_cost_id')
+                                ->where('d.cutting_id', $cuttingObj->id)
+                                ->where('pc.location_id', $validated['location_id'])
+                                ->where('d.category_id', $material->category_id)
+                                ->select('d.*')
+                                ->first();
+                        }
+
+                        // Fallback 1: Cari berdasarkan cutting_id & location_id (apabila kategori material ini belum spesifik)
+                        if (!$cutDetail) {
+                            $cutDetail = DB::table('m_digital_cutting_production_cost_details as d')
+                                ->join('m_digital_cutting_production_costs as pc', 'pc.id', '=', 'd.digital_cutting_production_cost_id')
+                                ->where('d.cutting_id', $cuttingObj->id)
+                                ->where('pc.location_id', $validated['location_id'])
+                                ->select('d.*')
+                                ->first();
+                        }
+
+                        // Fallback 2: Cari detail cutting di master mana saja
+                        if (!$cutDetail) {
+                            $cutDetail = DB::table('m_digital_cutting_production_cost_details as d')
+                                ->where('d.cutting_id', $cuttingObj->id)
+                                ->select('d.*')
+                                ->first();
+                        }
+
+                        // 2. Ambil harga dari tabel harga berdasarkan tier kuantiti dan price_type (general / division)
+                        $cutPriceRow = null;
+                        if ($cutDetail) {
+                            $cutPriceRow = DB::table('m_digital_cutting_production_cost_prices')
+                                ->where('digital_cutting_production_cost_detail_id', $cutDetail->id)
+                                ->where('price_type', $priceType)
+                                ->where('quantity_tier', $tier)
+                                ->first();
+                        }
+
+                        if ($cutPriceRow) {
+                            $cuttingUnitPrice = (float) $cutPriceRow->price;
+                        } else {
+                            // Fallback tarif jika belum diset di master
+                            if (stripos($cuttingName, 'kiss') !== false) {
+                                $cuttingUnitPrice = 2500.0;
+                            } elseif (stripos($cuttingName, 'die') !== false) {
+                                $cuttingUnitPrice = 3000.0;
+                            } elseif (stripos($cuttingName, 'perforasi') !== false) {
+                                $cuttingUnitPrice = 1500.0;
+                            } else {
+                                $cuttingUnitPrice = 2000.0;
+                            }
+                            if ($priceType === 'division') {
+                                $cuttingUnitPrice *= 0.8;
+                            }
+                        }
+
+                        // HPP mesin potong terstandarisasi Rp 1.000 / lembar A3+ (sesuai referensi perhitungan)
+                        $cuttingHppUnit = 1000.0;
+
+                        $cuttingSubtotal = $cuttingUnitPrice * $totalSheets;
+                        $cuttingTotalHpp = $cuttingHppUnit * $totalSheets;
+                    }
+                }
+
+                $cuttingData = [
+                    'name' => $cuttingName,
+                    'unit_price' => $cuttingUnitPrice,
+                    'subtotal' => $cuttingSubtotal,
+                    'hpp_unit' => $cuttingHppUnit,
+                    'total_hpp' => $cuttingTotalHpp,
+                    'is_potong' => ($cuttingVal === 'potong'),
+                ];
+            }
+
+            // 8. KOMPONEN TAMBAHAN
+            $additionalComponents = $validated['additional_components'] ?? [];
+            $extraSubtotal = 0.0;
+            $extraTotalHpp = 0.0;
+            $formattedAdditionalComponents = [];
+
+            if (is_array($additionalComponents)) {
+                foreach ($additionalComponents as $comp) {
+                    $cType = $comp['type'] ?? 'Material';
+                    $cName = trim((string) ($comp['name'] ?? ''));
+                    $cQty = (int) ($comp['qty'] ?? 1);
+                    $priceType = $comp['price_type'] ?? 'unit_price';
+
+                    if (empty($cName) || $cQty <= 0) {
+                        continue;
+                    }
+
+                    $unitPrice = 0.0;
+                    $hppPerUnit = 0.0;
+                    $componentMargin = 0.0;
+                    $salePricePerUnit = 0.0;
+                    $componentSubtotal = 0.0;
+                    $componentTotalHpp = 0.0;
+                    $componentProfit = 0.0;
+                    $marginPercentage = 0.0;
+
+                    if ($priceType === 'unit_price') {
+                        $unitPrice = (float) str_replace(['.', ','], '', (string) ($comp['unit_price'] ?? 0));
+                        $salePricePerUnit = $unitPrice;
+                        $componentSubtotal = $cQty * $salePricePerUnit;
+                        $componentTotalHpp = 0.0;
+                        $componentProfit = $componentSubtotal;
+                        $marginPercentage = $componentSubtotal > 0 ? 100.0 : 0.0;
+                    } elseif ($priceType === 'hpp_margin') {
+                        $hppPerUnit = (float) str_replace(['.', ','], '', (string) ($comp['hpp'] ?? 0));
+                        $componentMargin = (float) ($comp['margin'] ?? 0);
+
+                        if ($componentMargin >= 100) {
+                            return response()->json([
+                                'success' => false,
+                                'message' => 'Margin komponen tambahan tidak boleh 100% atau lebih.'
+                            ], 422);
+                        }
+
+                        $divisor = 1 - ($componentMargin / 100);
+                        $salePricePerUnit = $divisor > 0 ? ($hppPerUnit / $divisor) : 0.0;
+                        $componentSubtotal = $cQty * $salePricePerUnit;
+                        $componentTotalHpp = $cQty * $hppPerUnit;
+                        $componentProfit = $componentSubtotal - $componentTotalHpp;
+                        $marginPercentage = $componentSubtotal > 0
+                            ? ($componentProfit / $componentSubtotal) * 100
+                            : 0.0;
+
+                        $extraTotalHpp += $componentTotalHpp;
+                    }
+
+                    $extraSubtotal += $componentSubtotal;
+
+                    $formattedAdditionalComponents[] = [
+                        'type' => $cType,
+                        'name' => $cName,
+                        'qty' => $cQty,
+                        'price_type' => $priceType,
+                        'unit_price' => $unitPrice,
+                        'hpp_per_unit' => $hppPerUnit,
+                        'margin' => $componentMargin,
+                        'sale_price_per_unit' => $salePricePerUnit,
+                        'subtotal' => $componentSubtotal,
+                        'total_hpp' => $componentTotalHpp,
+                        'profit' => $componentProfit,
+                        'margin_percentage' => $marginPercentage,
+                    ];
+                }
+            }
+
+            // 9. FINANCIAL SUMMARY
+            $subtotal = $printSubtotal + $laminationSubtotal + $cuttingSubtotal + $extraSubtotal;
+
+            $discountType = $validated['discount_type'];
+            $discountRaw = (string) ($validated['discount_value'] ?? '0');
+            $discountValue = (float) str_replace(['.', ','], '', $discountRaw);
+            $discountAmount = 0.0;
+
+            if ($discountType === 'percentage') {
+                $discountAmount = $subtotal * ($discountValue / 100);
+            } elseif ($discountType === 'nominal') {
+                $discountAmount = $discountValue;
+            }
+
+            $grandTotal = max(0.0, $subtotal - $discountAmount);
+            $totalHpp = $printTotalHpp + $laminationTotalHpp + $cuttingTotalHpp + $extraTotalHpp;
+
+            $profit = $grandTotal - $totalHpp;
+            $margin = $grandTotal > 0 ? ($profit / $grandTotal) * 100 : 0.0;
+            $markup = $totalHpp > 0 ? ($profit / $totalHpp) * 100 : 0.0;
+            $pricePerPcs = $qty > 0 ? ($grandTotal / $qty) : 0.0;
+
+            $finishingParts = [];
+            if ($laminationData) $finishingParts[] = $laminationData['name'];
+            if ($cuttingData) $finishingParts[] = $cuttingData['name'];
+            $finishingSummary = count($finishingParts) > 0 ? implode(' · ', $finishingParts) : 'Tanpa Finishing';
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'engine_name' => 'Digital Print A3+',
+                    'location_name' => $location ? $location->name : '-',
+                    'vendor_name' => $vendorName,
+                    'price_type' => $priceType === 'division' ? 'Harga Divisi' : 'Harga Umum',
+                    'material_name' => $material ? $material->material_name : '-',
+                    'category_name' => $material ? $material->category_name : '-',
+                    'print_color' => $validated['print_color'] === 'fc' ? 'Full Color' : 'Hitam Putih',
+                    'print_side' => $isDouble ? '2 Sisi' : '1 Sisi',
+                    'color_side' => ($validated['print_color'] === 'fc' ? 'Full Color' : 'Hitam Putih') . ' · ' . ($isDouble ? '2 Sisi' : '1 Sisi'),
+                    'production_mode' => $mode === 'layout' ? 'Hitung Layout' : 'Direct Sheet',
+                    'finished_size' => $finishedSize,
+                    'imposition_info' => $mode === 'layout' ? ($upCount . ' pcs (' . $orientation . ')') : 'Direct Sheet',
+                    'up_count' => $upCount,
+                    'orientation' => $orientation,
+                    'qty' => $qty,
+                    'total_sheets' => $totalSheets,
+                    'quantity_tier' => $tier,
+                    'unit_price_sheet' => $printUnitPrice,
+                    'print_subtotal' => $printSubtotal,
+                    'print_cost_unit' => $printCostUnit,
+                    'print_total_hpp' => $printTotalHpp,
+                    'print_hpp' => $printTotalHpp,
+                    'lamination' => $laminationData,
+                    'lamination_name' => $laminationData ? $laminationData['name'] : 'Tanpa Laminasi',
+                    'lamination_unit_price' => $laminationData ? $laminationData['unit_price'] : 0,
+                    'lamination_subtotal' => $laminationSubtotal,
+                    'lamination_hpp' => $laminationTotalHpp,
+                    'cutting' => $cuttingData,
+                    'cutting_name' => $cuttingData ? $cuttingData['name'] : 'Tanpa Cutting',
+                    'cutting_unit_price' => $cuttingData ? $cuttingData['unit_price'] : 0,
+                    'cutting_subtotal' => $cuttingSubtotal,
+                    'cutting_hpp' => $cuttingTotalHpp,
+                    'is_potong' => ($cuttingVal === 'potong'),
+                    'finishing_summary' => $finishingSummary,
+                    'additional_components' => $formattedAdditionalComponents,
+                    'extra_subtotal' => $extraSubtotal,
+                    'extra_total_hpp' => $extraTotalHpp,
+                    'discount_type' => $discountType,
+                    'discount_value' => $discountValue,
+                    'discount_amount' => $discountAmount,
+                    'subtotal' => $subtotal,
+                    'grand_total' => $grandTotal,
+                    'price_per_pcs' => $pricePerPcs,
+                    'total_hpp' => $totalHpp,
+                    'profit' => $profit,
+                    'margin' => $margin,
+                    'markup' => $markup,
+                    'lead_time' => ($validated['estimation_time'] ?? 1) . ' hari kerja',
+                    'estimation_time' => $validated['estimation_time'] ?? 1,
+                ]
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghitung estimasi Digital Print A3+: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
     public function getLaminations(Request $request)

@@ -8,6 +8,7 @@ use App\Http\Controllers\admin\DiscountCT;
 use App\Http\Controllers\admin\DisplayCT;
 use App\Http\Controllers\admin\DisplayPricingRuleCT;
 use App\Http\Controllers\admin\EngineCT;
+use App\Http\Controllers\admin\CuttingCT;
 use App\Http\Controllers\admin\EngineRateCT;
 use App\Http\Controllers\admin\EstimationCT;
 use App\Http\Controllers\admin\EstimatorCT;
@@ -23,6 +24,7 @@ use App\Http\Controllers\admin\PricingCT;
 use App\Http\Controllers\admin\PricingPolicyCT;
 use App\Http\Controllers\admin\PricingRulesCT;
 use App\Http\Controllers\admin\ProductionCostCT;
+use App\Http\Controllers\admin\ProductionCostFinishingCuttingCT;
 use App\Http\Controllers\admin\ProductionCostFinishingCT;
 use App\Http\Controllers\admin\ProductionCostFinishingDisplayCT;
 use App\Http\Controllers\admin\ProductionCostFinishingLaminationCT;
@@ -202,6 +204,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/admin/estimation/create-lf/get-materials', [EstimationCT::class, 'getMaterials'])->name('admin_get_materials');
     Route::post('/admin/estimation/create-lf', [EstimationCT::class, 'storeLF'])->name('admin_store_lf');
     Route::get('/admin/estimations/create-a3plus', [EstimationCT::class, 'createA3plus'])->name('admin_create_a3plus_estimation');
+    Route::get('/admin/estimation/create-a3plus/get-materials', [EstimationCT::class, 'getMaterialsA3plus'])->name('admin_get_materials_a3plus');
+    Route::post('/admin/estimation/create-a3plus', [EstimationCT::class, 'storeA3plus'])->name('admin_store_a3plus');
     Route::get('/admin/estimation/create-lf/get-material-sizes', [EstimationCT::class, 'getMaterialSizes'])->name('admin_get_material_sizes');
     Route::get('/admin/estimation/create-lf/get-laminations', [EstimationCT::class, 'getLaminations'])->name('admin_get_laminations');
     Route::get('/admin/estimation/create-lf/get-lamination-sizes', [EstimationCT::class, 'getLaminationSizes'])->name('admin_get_laminations_sizes');
@@ -247,6 +251,16 @@ Route::middleware('auth')->group(function () {
     Route::delete('/admin/laminations/{id}/delete', [LaminationCT::class, 'destroy'])->name('admin_destroy_lamination');
     Route::get('/admin/laminations/export', [LaminationCT::class, 'export'])->name('admin_export_laminations');
     Route::post('/admin/laminations/import', [LaminationCT::class, 'import'])->name('admin_import_laminations');
+
+    Route::get('/admin/cuttings', [CuttingCT::class, 'index'])->name('admin_cuttings');
+    Route::get('/admin/cuttings/data', [CuttingCT::class, 'data'])->name('admin_data_cuttings');
+    Route::get('/admin/cuttings/export', [CuttingCT::class, 'export'])->name('admin_export_cuttings');
+    Route::post('/admin/cuttings/import', [CuttingCT::class, 'import'])->name('admin_import_cuttings');
+    Route::post('/admin/cuttings/create', [CuttingCT::class, 'store'])->name('admin_store_cutting');
+    Route::get('/admin/cuttings/{id}/edit', [CuttingCT::class, 'edit'])->name('admin_edit_cutting');
+    Route::put('/admin/cuttings/{id}/update', [CuttingCT::class, 'update'])->name('admin_update_cutting');
+    Route::get('/admin/cuttings/{id}/details', [CuttingCT::class, 'details'])->name('admin_cutting_details');
+    Route::delete('/admin/cuttings/{id}/delete', [CuttingCT::class, 'destroy'])->name('admin_destroy_cutting');
 
     Route::get('/admin/lamination-pricing-rules', [LaminationPricingRuleCT::class, 'index'])->name('admin_lamination_pricing_rules');
     Route::get('/admin/lamination-pricing-rules/data', [LaminationPricingRuleCT::class, 'data'])->name('admin_data_lamination_pricing_rule');
@@ -329,4 +343,20 @@ Route::middleware('auth')->group(function () {
     Route::get('/admin/discounts/{id}/details', [DiscountCT::class, 'details'])->name('admin_discount_details');
     Route::put('/admin/discounts/{id}/update', [DiscountCT::class, 'update'])->name('admin_update_discount');
     Route::delete('/admin/discounts/{id}/delete', [DiscountCT::class, 'destroy'])->name('admin_destroy_discount');
+
+    Route::get('/admin/production-cost-finishing-cuttings', [ProductionCostFinishingCuttingCT::class, 'index'])->name('admin_production_cost_finishing_cuttings');
+    Route::get('/admin/production-cost-finishing-cuttings/data', [ProductionCostFinishingCuttingCT::class, 'data'])->name('admin_data_pc_finishing_cuttings');
+    Route::get('/admin/production-cost-finishing-cuttings/create', [ProductionCostFinishingCuttingCT::class, 'create'])->name('admin_create_pc_finishing_cutting');
+    Route::post('/admin/production-cost-finishing-cuttings/create', [ProductionCostFinishingCuttingCT::class, 'store'])->name('admin_store_pc_finishing_cutting');
+    Route::get('/admin/production-cost-finishing-cuttings/{id}/edit', [ProductionCostFinishingCuttingCT::class, 'edit'])->name('admin_edit_pc_finishing_cutting');
+    Route::put('/admin/production-cost-finishing-cuttings/{id}/update', [ProductionCostFinishingCuttingCT::class, 'update'])->name('admin_update_pc_finishing_cutting');
+    Route::get('/admin/production-cost-finishing-cuttings/{id}/details', [ProductionCostFinishingCuttingCT::class, 'details'])->name('admin_details_pc_finishing_cutting');
+    Route::delete('/admin/production-cost-finishing-cuttings/{id}/delete', [ProductionCostFinishingCuttingCT::class, 'destroy'])->name('admin_destroy_pc_finishing_cutting');
+
+    Route::get('/admin/production-cost-finishing-potong/create', [ProductionCostFinishingCuttingCT::class, 'createPotong'])->name('admin_create_pc_finishing_potong');
+    Route::post('/admin/production-cost-finishing-potong/create', [ProductionCostFinishingCuttingCT::class, 'storePotong'])->name('admin_store_pc_finishing_potong');
+    Route::get('/admin/production-cost-finishing-potong/{id}/edit', [ProductionCostFinishingCuttingCT::class, 'editPotong'])->name('admin_edit_pc_finishing_potong');
+    Route::put('/admin/production-cost-finishing-potong/{id}/update', [ProductionCostFinishingCuttingCT::class, 'updatePotong'])->name('admin_update_pc_finishing_potong');
+    Route::get('/admin/production-cost-finishing-potong/{id}/details', [ProductionCostFinishingCuttingCT::class, 'detailsPotong'])->name('admin_details_pc_finishing_potong');
+    Route::delete('/admin/production-cost-finishing-potong/{id}/delete', [ProductionCostFinishingCuttingCT::class, 'destroyPotong'])->name('admin_destroy_pc_finishing_potong');
 });
