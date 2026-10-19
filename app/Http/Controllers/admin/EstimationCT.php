@@ -3465,7 +3465,9 @@ class EstimationCT extends Controller
                 $discountAmount = $discountValue;
             }
 
-            $grandTotal = max(0.0, $subtotal - $discountAmount);
+            $grandTotal = $this->roundGrandTotalUpToThousand(
+                max(0.0, $subtotal - $discountAmount)
+            );
             $totalHpp = $printTotalHpp + $laminationTotalHpp + $cuttingTotalHpp + $extraTotalHpp;
 
             $profit = $grandTotal - $totalHpp;

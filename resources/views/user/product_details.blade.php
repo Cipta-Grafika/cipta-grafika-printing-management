@@ -786,7 +786,9 @@
                     </div>
                 </div>
 
-                @if ($product['label'] === 'Display' || $product['label'] === 'Large Format')
+                @if (!empty($estimator['isA3Plus']))
+                    @include('user.partials.a3_plus_estimator')
+                @elseif ($product['label'] === 'Display' || $product['label'] === 'Large Format' || !empty($estimator['isLargeFormat']))
                     <div x-data="{
                         /* =========================================
                          * MASTER DATA
@@ -1961,6 +1963,9 @@
             }
         );
 
+        @if (!empty($estimator['isA3Plus']))
+            @include('user.partials.a3_plus_estimator_scripts')
+        @else
         document.addEventListener('DOMContentLoaded', function() {
 
             /* =========================
@@ -3894,6 +3899,7 @@
             }
 
         });
+        @endif
 
         $(document).on('wheel', 'input[type="number"]', function() {
             this.blur();

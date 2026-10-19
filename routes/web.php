@@ -57,6 +57,9 @@ Route::get('/estimation/create-lf/get-lamination-sizes', [CatalogCT::class, 'get
 
 Route::get('/estimation/create-lf/get-categories', [CatalogCT::class, 'getUserLFCategories'])->name('user_get_lf_categories');
 
+Route::post('/estimation/preview-a3plus', [CatalogCT::class, 'previewUserA3PlusEstimation'])->name('user_preview_a3plus_estimation');
+Route::get('/estimation/create-a3plus/get-materials', [CatalogCT::class, 'getUserMaterialsA3plus'])->name('user_get_materials_a3plus');
+
 // Route::get('/user/estimator/materials', [CatalogCT::class, 'estimatorMaterials'])
 //     ->middleware('throttle:60,1')->name('user_estimator_materials');
 // Route::get('/user/estimator/material-sizes', [CatalogCT::class, 'estimatorMaterialSizes'])

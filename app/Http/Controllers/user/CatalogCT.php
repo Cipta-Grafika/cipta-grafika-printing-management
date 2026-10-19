@@ -607,10 +607,14 @@ class CatalogCT extends Controller
                 ],
             ];
 
+            $isLargeFormat = strtolower(trim($engineName)) === 'large format';
+            $isA3Plus = strtolower(trim($engineName)) === 'digital print a3+';
+
             $estimator = [
                 'type'             => 'display',
                 'engineName'       => $engineName,
-                'isLargeFormat'    => strtolower(trim($engineName)) === 'large format',
+                'isLargeFormat'    => $isLargeFormat,
+                'isA3Plus'         => $isA3Plus,
                 'displayProductId' => (int) $displayProduct->id,
                 'categoryId'       => (int) $displayProduct->category_id,
             ];
@@ -624,7 +628,15 @@ class CatalogCT extends Controller
                 ->where('status', 'Active')
                 ->get();
 
-            return view('user.product_details', [
+            $a3Data = $isA3Plus
+                ? $this->getA3PlusMasterData((int) $displayProduct->category_id)
+                : [
+                    'a3Materials'   => collect(),
+                    'a3Laminations' => collect(),
+                    'a3Cuttings'    => collect(),
+                ];
+
+            return view('user.product_details', array_merge([
                 'product'   => $product,
                 'estimator' => $estimator,
                 'locations' => $locations,
@@ -633,7 +645,7 @@ class CatalogCT extends Controller
                     $discountEngineId ? (int) $discountEngineId : null,
                     (int) $displayProduct->category_id
                 ),
-            ]);
+            ], $a3Data));
         }
 
         /*
@@ -706,11 +718,16 @@ class CatalogCT extends Controller
             ],
         ];
 
+        $isLargeFormat = $engineName !== null
+            && strtolower(trim($engineName)) === 'large format';
+        $isA3Plus = $engineName !== null
+            && strtolower(trim($engineName)) === 'digital print a3+';
+
         $estimator = [
             'type'             => 'gallery',
             'engineName'       => $engineName,
-            'isLargeFormat'    => $engineName !== null
-                && strtolower(trim($engineName)) === 'large format',
+            'isLargeFormat'    => $isLargeFormat,
+            'isA3Plus'         => $isA3Plus,
             'displayProductId' => null,
             'categoryId'       => (int) $categoryId,
         ];
@@ -724,13 +741,21 @@ class CatalogCT extends Controller
             ->where('status', 'Active')
             ->get();
 
-        return view('user.product_details', [
+        $a3Data = $isA3Plus
+            ? $this->getA3PlusMasterData((int) $categoryId)
+            : [
+                'a3Materials'   => collect(),
+                'a3Laminations' => collect(),
+                'a3Cuttings'    => collect(),
+            ];
+
+        return view('user.product_details', array_merge([
             'product'   => $product,
             'estimator' => $estimator,
             'locations' => $locations,
-            'vendors' => $vendors,
+            'vendors'   => $vendors,
             'activeDiscounts' => $this->activeProductDiscounts($engineId ? (int) $engineId : null, (int) $categoryId),
-        ]);
+        ], $a3Data));
     }
 
     private function activeProductDiscounts(?int $engineId, int $categoryId): Collection
@@ -914,6 +939,251 @@ class CatalogCT extends Controller
                 'qty' => $productQuantity,
             ],
         ]);
+    }
+
+    public function previewUserA3PlusEstimation(Request $request)
+    {
+        $promoCode = $request->input('promo_code');
+        if (is_string($promoCode)) {
+            $request->merge(['promo_code' => strtoupper(trim($promoCode))]);
+        }
+
+        $request->validate([
+            'promo_code' => ['bail', 'nullable', 'string', 'min:3', 'max:30', 'regex:/\A[A-Z0-9_-]+\z/'],
+            'production_mode' => ['required', 'in:layout,direct'],
+            'print_color' => ['required', 'in:fc,bw'],
+            'print_side' => ['required', 'in:1,2'],
+            'material_id' => ['required', 'integer', 'exists:m_materials,id'],
+            'length' => ['nullable', 'numeric', 'min:0.1'],
+            'width' => ['nullable', 'numeric', 'min:0.1'],
+            'qty' => ['nullable', 'integer', 'min:1'],
+            'sheet_qty' => ['nullable', 'integer', 'min:1'],
+            'lamination_type' => ['nullable', 'string'],
+            'cutting_type' => ['nullable', 'string'],
+            'potong_size_override' => ['nullable', 'string'],
+        ], [
+            'promo_code.string' => 'Kode promo harus berupa teks.',
+            'promo_code.min' => 'Kode promo minimal 3 karakter.',
+            'promo_code.max' => 'Kode promo maksimal 30 karakter.',
+            'promo_code.regex' => 'Kode promo hanya boleh berisi huruf, angka, tanda hubung (-), dan garis bawah (_).',
+        ]);
+
+        $purwakarta = DB::table('m_locations')
+            ->whereRaw('LOWER(TRIM(name)) = ?', ['purwakarta'])
+            ->first();
+        $locationId = $purwakarta ? $purwakarta->id : 54;
+
+        $request->merge([
+            'location_id' => $locationId,
+            'price_type' => 'general',
+            'vendor_id' => null,
+            'estimation_time' => 1,
+            'discount_type' => 'none',
+            'discount_value' => 0,
+            'additional_components' => null,
+        ]);
+
+        $calculationResponse = app(EstimationCT::class)->storeA3plus($request);
+        $calculation = $calculationResponse->getData(true);
+
+        if (
+            $calculationResponse->getStatusCode() >= 400
+            || !($calculation['success'] ?? false)
+        ) {
+            return $calculationResponse;
+        }
+
+        $data = $calculation['data'];
+        $promo = null;
+        $discountAmount = 0.0;
+        $grandTotal = (float) $data['grand_total'];
+        $subtotal = (float) ($data['subtotal'] ?? 0);
+        $roundingAmount = max(0.0, round($grandTotal - $subtotal, 2));
+
+        if (filled($request->input('promo_code'))) {
+            $engineId = DB::table('m_engines')
+                ->whereRaw('LOWER(TRIM(name)) = ?', ['digital print a3+'])
+                ->value('id');
+
+            $categoryId = (int) ($request->input('category_id') ?: ($data['category_id'] ?? 0));
+            if (!$categoryId && !empty($data['material_id'])) {
+                $categoryId = (int) DB::table('m_materials')->where('id', $data['material_id'])->value('category_id');
+            }
+
+            $promo = $this->activeProductDiscounts(
+                $engineId ? (int) $engineId : 70,
+                $categoryId
+            )->first(fn ($discount) => strtoupper($discount->code) === $request->input('promo_code'));
+
+            if ($promo === null) {
+                throw ValidationException::withMessages([
+                    'promo_code' => 'Kode promo tidak valid, belum/sudah tidak berlaku, atau tidak sesuai dengan produk yang dipilih.',
+                ]);
+            }
+
+            $subtotal = (float) $data['subtotal'];
+            $discountAmount = round($subtotal * (float) $promo->discount_percentage / 100, 2);
+            $totalAfterDiscount = max(0, $subtotal - $discountAmount);
+            $grandTotal = ceil(round($totalAfterDiscount, 2) / 1000) * 1000;
+            $roundingAmount = round($grandTotal - $totalAfterDiscount, 2);
+        }
+
+        $qty = (int) ($data['qty'] ?? 1);
+        $pricePerPcs = $qty > 0 ? round($grandTotal / $qty, 2) : 0.0;
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'engine_name' => 'Digital Print A3+',
+                'material_name' => $data['material_name'] ?? null,
+                'category_name' => $data['category_name'] ?? null,
+                'print_color' => $data['print_color'] ?? 'Full Color',
+                'print_side' => $data['print_side'] ?? '1 Sisi',
+                'color_side' => $data['color_side'] ?? null,
+                'production_mode' => $data['production_mode'] ?? 'Hitung Layout',
+                'finished_size' => $data['finished_size'] ?? null,
+                'imposition_info' => $data['imposition_info'] ?? null,
+                'up_count' => (int) ($data['up_count'] ?? 1),
+                'orientation' => $data['orientation'] ?? 'Normal',
+                'qty' => $qty,
+                'total_sheets' => (int) ($data['total_sheets'] ?? 1),
+                'unit_price_sheet' => (float) ($data['unit_price_sheet'] ?? 0),
+                'print_subtotal' => (float) ($data['print_subtotal'] ?? 0),
+                'lamination_name' => $data['lamination_name'] ?? 'Tanpa Laminasi',
+                'lamination_subtotal' => (float) ($data['lamination_subtotal'] ?? 0),
+                'cutting_name' => $data['cutting_name'] ?? 'Tanpa Cutting',
+                'cutting_subtotal' => (float) ($data['cutting_subtotal'] ?? 0),
+                'finishing_summary' => $data['finishing_summary'] ?? 'Tanpa Finishing',
+                'promo' => $promo ? [
+                    'code' => $promo->code,
+                    'name' => $promo->name,
+                    'percentage' => (float) $promo->discount_percentage,
+                ] : null,
+                'discount_amount' => (float) $discountAmount,
+                'rounding_amount' => (float) $roundingAmount,
+                'subtotal' => (float) ($data['subtotal'] ?? 0),
+                'grand_total' => (float) $grandTotal,
+                'price_per_pcs' => (float) $pricePerPcs,
+                'lead_time' => $data['lead_time'] ?? '1 hari kerja',
+            ],
+        ]);
+    }
+
+    public function getUserMaterialsA3plus(Request $request)
+    {
+        $purwakarta = DB::table('m_locations')
+            ->whereRaw('LOWER(TRIM(name)) = ?', ['purwakarta'])
+            ->first();
+        $locationId = $request->input('location_id') ?: ($purwakarta ? $purwakarta->id : 54);
+        $printColor = $request->input('print_color', 'fc');
+        $categoryId = $request->input('category_id');
+
+        $query = DB::table('m_materials as m')
+            ->join('m_categories as c', 'c.id', '=', 'm.category_id')
+            ->join('m_digital_production_cost_details as d', 'd.material_id', '=', 'm.id')
+            ->join('m_digital_production_costs as pc', 'pc.id', '=', 'd.digital_production_cost_id')
+            ->where('pc.location_id', $locationId)
+            ->where('m.status', 'Active');
+
+        if ($printColor === 'bw') {
+            $query->whereRaw('LOWER(TRIM(c.name)) = ?', ['bw']);
+        } else {
+            $query->whereRaw('LOWER(TRIM(c.name)) != ?', ['bw']);
+        }
+
+        if (!empty($categoryId)) {
+            $catQuery = clone $query;
+            $catMaterials = $catQuery->where('m.category_id', $categoryId)
+                ->select('m.id', 'm.material_name as name', 'c.id as category_id', 'c.name as category_name')
+                ->distinct()
+                ->orderBy('c.name', 'asc')
+                ->orderBy('m.material_name', 'asc')
+                ->get();
+
+            if ($catMaterials->isNotEmpty()) {
+                return response()->json([
+                    'success' => true,
+                    'data' => $catMaterials,
+                ]);
+            }
+        }
+
+        $materials = $query->select(
+            'm.id',
+            'm.material_name as name',
+            'c.id as category_id',
+            'c.name as category_name'
+        )
+        ->distinct()
+        ->orderBy('c.name', 'asc')
+        ->orderBy('m.material_name', 'asc')
+        ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $materials,
+        ]);
+    }
+
+    private function getA3PlusMasterData(?int $categoryId = null): array
+    {
+        $purwakarta = DB::table('m_locations')
+            ->whereRaw('LOWER(TRIM(name)) = ?', ['purwakarta'])
+            ->first();
+        $purwakartaId = $purwakarta ? $purwakarta->id : 54;
+
+        $materials = DB::table('m_materials as m')
+            ->join('m_categories as c', 'c.id', '=', 'm.category_id')
+            ->join('m_digital_production_cost_details as d', 'd.material_id', '=', 'm.id')
+            ->join('m_digital_production_costs as pc', 'pc.id', '=', 'd.digital_production_cost_id')
+            ->where('pc.location_id', $purwakartaId)
+            ->where('m.status', 'Active')
+            ->whereRaw('LOWER(TRIM(c.name)) != ?', ['bw'])
+            ->when($categoryId, fn ($q) => $q->where('m.category_id', $categoryId))
+            ->select('m.id', 'm.material_name as name', 'c.id as category_id', 'c.name as category_name')
+            ->distinct()
+            ->orderBy('c.name', 'asc')
+            ->orderBy('m.material_name', 'asc')
+            ->get();
+
+        if ($materials->isEmpty()) {
+            $materials = DB::table('m_materials as m')
+                ->join('m_categories as c', 'c.id', '=', 'm.category_id')
+                ->join('m_digital_production_cost_details as d', 'd.material_id', '=', 'm.id')
+                ->join('m_digital_production_costs as pc', 'pc.id', '=', 'd.digital_production_cost_id')
+                ->where('pc.location_id', $purwakartaId)
+                ->where('m.status', 'Active')
+                ->whereRaw('LOWER(TRIM(c.name)) != ?', ['bw'])
+                ->select('m.id', 'm.material_name as name', 'c.id as category_id', 'c.name as category_name')
+                ->distinct()
+                ->orderBy('c.name', 'asc')
+                ->orderBy('m.material_name', 'asc')
+                ->get();
+        }
+
+        $laminations = DB::table('m_laminations as l')
+            ->leftJoin('m_digital_lamination_production_cost_details as d', 'd.lamination_id', '=', 'l.id')
+            ->leftJoin('m_digital_lamination_production_costs as pc', 'pc.id', '=', 'd.digital_lamination_production_cost_id')
+            ->where('l.status', 'Active')
+            ->where(function ($q) {
+                $q->whereRaw('LOWER(l.name) LIKE ?', ['%a3+%'])
+                    ->orWhereNotNull('d.id');
+            })
+            ->select('l.id', 'l.name')
+            ->distinct()
+            ->orderBy('l.name', 'asc')
+            ->get();
+
+        $cuttings = DB::table('m_cuttings')
+            ->where('status', 'Active')
+            ->orderBy('name', 'asc')
+            ->get();
+
+        return [
+            'a3Materials'   => $materials,
+            'a3Laminations' => $laminations,
+            'a3Cuttings'    => $cuttings,
+        ];
     }
 
     public function getUserLFCategories()
