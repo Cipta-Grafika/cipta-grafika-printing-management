@@ -2665,10 +2665,21 @@ class ProductionCostFinishingCT extends Controller
                             return $detail->price_type . '|' . $detail->print_type . '|' . $detail->quantity_tier;
                         });
 
+                    // Cek apakah ada rule double (2 muka) pada pricing rule detail
+                    $hasDoubleRule = $pricingRuleDetails->contains(function ($detail) {
+                        return $detail->print_type === 'double';
+                    });
+
+                    // Bahan 1 muka (seperti Sticker) atau yang memang tidak memiliki rule double
+                    $isSingleSideOnly = (stripos($material->category_name, 'sticker') !== false) || !$hasDoubleRule;
+
+                    $applicablePrintTypes = $isSingleSideOnly ? ['single'] : ['single', 'double'];
+                    $expectedTiers = count($priceTypes) * count($applicablePrintTypes) * count($quantityTiers); // 12 atau 24
+
                     $missingRules = [];
 
                     foreach ($priceTypes as $priceType) {
-                        foreach ($printTypes as $printType) {
+                        foreach ($applicablePrintTypes as $printType) {
                             foreach ($quantityTiers as $quantityTier) {
                                 if (!$pricingRuleDetails->has($priceType . '|' . $printType . '|' . $quantityTier)) {
                                     $missingRules[] = $priceType . ' ' . $printType . ' ' . $quantityTier;
@@ -2682,12 +2693,12 @@ class ProductionCostFinishingCT extends Controller
                             $itemPrefix . '.material_id' =>
                             'Pricing rule Digital Print A3+ untuk kategori "' . $material->category_name .
                                 '" di lokasi ' . $scopeLabel . ' belum ada atau belum lengkap (' .
-                                (24 - count($missingRules)) . '/24 tier aktif).'
+                                ($expectedTiers - count($missingRules)) . '/' . $expectedTiers . ' tier aktif).'
                         ]);
                     }
 
                     $singlePrintCost = $paperCost + $clickCost;
-                    $doublePrintCost = $clickCost + $singlePrintCost;
+                    $doublePrintCost = $isSingleSideOnly ? 0.0 : ($clickCost + $singlePrintCost);
                     $costs = [
                         'single' => $singlePrintCost,
                         'double' => $doublePrintCost,
@@ -2695,7 +2706,7 @@ class ProductionCostFinishingCT extends Controller
 
                     $prices = [];
 
-                    foreach ($printTypes as $printType) {
+                    foreach ($applicablePrintTypes as $printType) {
                         foreach ($quantityTiers as $quantityTier) {
                             $generalRule = $pricingRuleDetails->get('general|' . $printType . '|' . $quantityTier);
                             $divisionRule = $pricingRuleDetails->get('division|' . $printType . '|' . $quantityTier);
@@ -3049,10 +3060,21 @@ class ProductionCostFinishingCT extends Controller
                     return $detail->price_type . '|' . $detail->print_type . '|' . $detail->quantity_tier;
                 });
 
+            // Cek apakah ada rule double (2 muka) pada pricing rule detail
+            $hasDoubleRule = $pricingRuleDetails->contains(function ($detail) {
+                return $detail->print_type === 'double';
+            });
+
+            // Bahan 1 muka (seperti Sticker) atau yang memang tidak memiliki rule double
+            $isSingleSideOnly = (stripos($material->category_name, 'sticker') !== false) || !$hasDoubleRule;
+
+            $applicablePrintTypes = $isSingleSideOnly ? ['single'] : ['single', 'double'];
+            $expectedTiers = count($priceTypes) * count($applicablePrintTypes) * count($quantityTiers); // 12 atau 24
+
             $missingRuleCount = 0;
 
             foreach ($priceTypes as $priceType) {
-                foreach ($printTypes as $printType) {
+                foreach ($applicablePrintTypes as $printType) {
                     foreach ($quantityTiers as $quantityTier) {
                         if (!$pricingRuleDetails->has($priceType . '|' . $printType . '|' . $quantityTier)) {
                             $missingRuleCount++;
@@ -3066,12 +3088,12 @@ class ProductionCostFinishingCT extends Controller
                     $itemPrefix . '.material_id' =>
                     'Pricing rule Digital Print A3+ untuk kategori "' . $material->category_name .
                         '" di lokasi ' . $scopeLabel . ' belum ada atau belum lengkap (' .
-                        (24 - $missingRuleCount) . '/24 tier aktif).'
+                        ($expectedTiers - $missingRuleCount) . '/' . $expectedTiers . ' tier aktif).'
                 ]);
             }
 
             $singlePrintCost = $paperCost + $clickCost;
-            $doublePrintCost = $clickCost + $singlePrintCost;
+            $doublePrintCost = $isSingleSideOnly ? 0.0 : ($clickCost + $singlePrintCost);
             $costs = [
                 'single' => $singlePrintCost,
                 'double' => $doublePrintCost,
@@ -3079,7 +3101,7 @@ class ProductionCostFinishingCT extends Controller
 
             $prices = [];
 
-            foreach ($printTypes as $printType) {
+            foreach ($applicablePrintTypes as $printType) {
                 foreach ($quantityTiers as $quantityTier) {
                     $generalRule = $pricingRuleDetails->get('general|' . $printType . '|' . $quantityTier);
                     $divisionRule = $pricingRuleDetails->get('division|' . $printType . '|' . $quantityTier);

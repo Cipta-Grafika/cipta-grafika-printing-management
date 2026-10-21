@@ -3,7 +3,7 @@
 @section('contents')
     @php
         $formatRupiah = function ($value) {
-            return $value === null ? '-' : 'Rp' . number_format((float) $value, 0, ',', '.');
+            return ($value === null || (float) $value <= 0) ? '-' : 'Rp' . number_format((float) $value, 0, ',', '.');
         };
     @endphp
 
