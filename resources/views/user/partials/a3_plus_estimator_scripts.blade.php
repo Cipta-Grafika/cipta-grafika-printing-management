@@ -219,35 +219,60 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         /* =====================================================================
-           PROMO CODE HANDLERS
+           PROMO CODE HANDLERS (KONSISTEN DENGAN LARGE FORMAT)
            ===================================================================== */
+        const promoCodeInput = $('#a3_promo_code');
+
+        promoCodeInput.on('input', function() {
+            const start = this.selectionStart;
+            const end = this.selectionEnd;
+            this.value = this.value.toUpperCase();
+            this.setSelectionRange(start, end);
+            appliedPromoCode = '';
+            if (this.value) {
+                $('#a3RemovePromoCode').removeAttr('hidden').prop('hidden', false).show();
+            } else {
+                $('#a3RemovePromoCode').attr('hidden', '').prop('hidden', true).hide();
+            }
+            setPromoStatus('Klik Terapkan untuk memeriksa kode promo.', false);
+            scheduleEstimation();
+        });
+
         $('#a3ApplyPromoCode').on('click', function() {
-            const code = $('#a3_promo_code').val().trim().toUpperCase();
-            if (!code) {
-                setPromoStatus('Masukkan kode promo terlebih dahulu.', true);
+            const code = promoCodeInput.val().trim().toUpperCase();
+            if (!/^[A-Z0-9_-]{3,30}$/.test(code)) {
+                setPromoStatus('Masukkan kode promo 3–30 karakter: huruf, angka, - atau _, tanpa spasi.', true);
+                promoCodeInput.trigger('focus');
                 return;
             }
+
+            promoCodeInput.val(code);
             appliedPromoCode = code;
-            $('#a3_promo_code').val(code);
-            $('#a3ApplyPromoCode').hide();
-            $('#a3RemovePromoCode').show();
-            setPromoStatus('Menerapkan kode promo ' + code + '...', false);
+            $('#a3RemovePromoCode').removeAttr('hidden').prop('hidden', false).show();
+            setPromoStatus('Memeriksa kode promo...', false);
             fetchA3Estimation();
         });
 
+        promoCodeInput.on('keydown', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                $('#a3ApplyPromoCode').trigger('click');
+            }
+        });
+
         $('#a3RemovePromoCode').on('click', function() {
+            promoCodeInput.val('');
             appliedPromoCode = '';
-            $('#a3_promo_code').val('');
-            $('#a3RemovePromoCode').hide();
-            $('#a3ApplyPromoCode').show();
+            $(this).attr('hidden', '').prop('hidden', true).hide();
             setPromoStatus('Kode promo dihapus.', false);
             fetchA3Estimation();
         });
 
         function setPromoStatus(msg, isError) {
             $('#a3PromoCodeStatus').text(msg)
-                .toggleClass('text-red-600 dark:text-red-400', isError)
-                .toggleClass('text-emerald-600 dark:text-emerald-400', !isError && appliedPromoCode);
+                .toggleClass('text-red-600 dark:text-red-400', Boolean(isError))
+                .toggleClass('text-emerald-600 dark:text-emerald-400', !isError && Boolean(appliedPromoCode));
+            promoCodeInput.attr('aria-invalid', isError ? 'true' : 'false');
         }
 
         /* =====================================================================
@@ -266,8 +291,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     let missing = [];
                     if (!side) missing.push('sisi cetak');
                     if (!materialId) missing.push('varian bahan');
-                    $('#a3EstimateStatus').text('Silakan pilih ' + missing.join(' dan ') + ' terlebih dahulu.').show();
-                    $('#a3EstimateBreakdown').hide();
+                    $('#a3EstimateStatus')
+                        .text('Silakan pilih ' + missing.join(' dan ') + ' untuk melihat estimasi.')
+                        .removeClass('text-red-500')
+                        .prop('hidden', false).show();
+                    $('#a3EstimateBreakdown').prop('hidden', true).hide();
                     $('#a3EstimateGrandTotal').text('—');
                     $('#a3EstimatePerPcs').text('');
                     $('#a3ContinueOrderButton').prop('disabled', true);
@@ -280,8 +308,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (!color) missing.push('warna cetak');
                     if (!side) missing.push('sisi cetak');
                     if (!materialId) missing.push('material');
-                    $('#a3EstimateStatus').text('Silakan pilih ' + missing.join(', ') + ' terlebih dahulu.').show();
-                    $('#a3EstimateBreakdown').hide();
+                    $('#a3EstimateStatus')
+                        .text('Silakan pilih ' + missing.join(', ') + ' untuk melihat estimasi.')
+                        .removeClass('text-red-500')
+                        .prop('hidden', false).show();
+                    $('#a3EstimateBreakdown').prop('hidden', true).hide();
                     $('#a3EstimateGrandTotal').text('—');
                     $('#a3EstimatePerPcs').text('');
                     $('#a3ContinueOrderButton').prop('disabled', true);
@@ -316,7 +347,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 previewRequest.abort();
             }
 
-            $('#a3EstimateStatus').text('Menghitung estimasi...').show();
+            $('#a3EstimateStatus')
+                .text('Memperbarui estimasi...')
+                .removeClass('text-red-500')
+                .prop('hidden', false).show();
 
             previewRequest = $.ajax({
                 url: previewUrl,
@@ -324,77 +358,112 @@ document.addEventListener('DOMContentLoaded', function() {
                 data: payload,
                 success: function(res) {
                     if (!res.success || !res.data) {
-                        $('#a3EstimateStatus').text(res.message || 'Gagal menghitung estimasi.').show();
-                        $('#a3EstimateBreakdown').hide();
+                        $('#a3EstimateStatus')
+                            .text(res.message || 'Gagal menghitung estimasi.')
+                            .addClass('text-red-500')
+                            .prop('hidden', false).show();
+                        $('#a3EstimateBreakdown').prop('hidden', true).hide();
+                        $('#a3EstimateGrandTotal').text('—');
+                        $('#a3EstimatePerPcs').text('');
                         $('#a3ContinueOrderButton').prop('disabled', true);
                         return;
                     }
 
                     const d = res.data;
-                    $('#a3EstimateStatus').hide();
-                    $('#a3EstimateBreakdown').show();
+                    $('#a3EstimateStatus')
+                        .text('Estimasi diperbarui otomatis berdasarkan konfigurasi saat ini.')
+                        .removeClass('text-red-500')
+                        .prop('hidden', false).show();
 
-                    // Cetak row
+                    $('#a3EstimateBreakdown').prop('hidden', false).show();
+
+                    // Cetak / Paket Display row
                     if (isDisplay) {
                         const pkgCount = parseInt(qty) || 1;
                         const unitName = @js($estimator['packageUnit'] ?? 'Box');
-                        $('#a3EstimatePrintLabel').text(d.production_mode || 'Paket Display');
-                        $('#a3EstimatePrintMeta').text(`${pkgCount} ${unitName} (${d.qty} pcs · ${d.total_sheets} lembar A3+)`);
+                        const unitPrice = d.unit_price_sheet || (pkgCount > 0 ? (d.print_subtotal / pkgCount) : 0);
+
+                        // Label informatif: Nama Produk / Varian Bahan + Sisi Cetak
+                        const itemLabel = d.material_name 
+                            ? (d.material_name + (d.print_side ? ` · ${d.print_side}` : ''))
+                            : (d.production_mode || 'Paket Display');
+                        $('#a3EstimatePrintLabel').text(itemLabel);
+
+                        // Meta rincian: Jumlah paket (pcs) x Harga satuan / paket
+                        $('#a3EstimatePrintMeta').text(`${pkgCount} ${unitName} (${d.qty} pcs) × ${formatRupiah(unitPrice)} / ${unitName}`);
                         $('#a3EstimatePrintAmount').text(formatRupiah(d.print_subtotal));
 
                         // Sembunyikan baris laminasi terpisah karena sudah include di paket
-                        $('#a3EstimateLaminationRow').hide();
+                        $('#a3EstimateLaminationRow').prop('hidden', true).hide();
+                        $('#a3EstimateCuttingRow').prop('hidden', true).hide();
 
-                        // Tampilkan baris finishing display
-                        $('#a3EstimateCuttingRow').show();
-                        $('#a3EstimateCuttingLabel').text('Finishing Paket (Termasuk)');
-                        $('#a3EstimateCuttingMeta').text(d.finishing_summary || 'Termasuk Box KN & Die Cut');
-                        $('#a3EstimateCuttingAmount').text('Gratis');
+                        // Baris Finishing Paket Display (Termasuk)
+                        if (d.finishing_summary) {
+                            $('#a3EstimateDisplayFinishingRow').prop('hidden', false).show();
+                            $('#a3EstimateDisplayFinishingLabel').text('Finishing Paket (Termasuk)');
+                            $('#a3EstimateDisplayFinishingMeta').text(d.finishing_summary);
+                            $('#a3EstimateDisplayFinishingAmount').text('Termasuk');
+                        } else {
+                            $('#a3EstimateDisplayFinishingRow').prop('hidden', true).hide();
+                        }
                     } else {
-                        $('#a3EstimatePrintLabel').text('Cetak Digital A3+');
-                        $('#a3EstimatePrintMeta').text(`${d.total_sheets} lembar @ ${formatRupiah(d.unit_price_sheet)} (${d.color_side})`);
+                        const colorSide = d.color_side || ((d.print_color || 'Full Color') + ' · ' + (d.print_side || '1 Sisi'));
+                        $('#a3EstimatePrintLabel').text((d.material_name || 'Cetak Digital A3+') + ` · ${colorSide}`);
+
+                        if (d.production_mode === 'Direct Sheet') {
+                            $('#a3EstimatePrintMeta').text(`${d.total_sheets} lembar × ${formatRupiah(d.unit_price_sheet)} / lembar`);
+                        } else {
+                            const impMeta = d.imposition_info ? ` · ${d.imposition_info}` : '';
+                            $('#a3EstimatePrintMeta').text(`${d.qty} pcs (${d.total_sheets} lembar A3+${impMeta}) × ${formatRupiah(d.unit_price_sheet)} / lembar`);
+                        }
                         $('#a3EstimatePrintAmount').text(formatRupiah(d.print_subtotal));
 
                         // Laminasi row
                         if (d.lamination_subtotal > 0) {
-                            $('#a3EstimateLaminationRow').show();
-                            $('#a3EstimateLaminationLabel').text(d.lamination_name);
-                            $('#a3EstimateLaminationMeta').text(`${d.total_sheets} lembar`);
+                            $('#a3EstimateLaminationRow').prop('hidden', false).show();
+                            $('#a3EstimateLaminationLabel').text(d.lamination_name || 'Laminasi');
+                            $('#a3EstimateLaminationMeta').text(`${d.total_sheets} lembar × ${formatRupiah(d.lamination_subtotal / d.total_sheets)} / lembar`);
                             $('#a3EstimateLaminationAmount').text(formatRupiah(d.lamination_subtotal));
                         } else {
-                            $('#a3EstimateLaminationRow').hide();
+                            $('#a3EstimateLaminationRow').prop('hidden', true).hide();
                         }
 
                         // Cutting row
                         if (d.cutting_subtotal > 0) {
-                            $('#a3EstimateCuttingRow').show();
-                            $('#a3EstimateCuttingLabel').text(d.cutting_name);
-                            $('#a3EstimateCuttingMeta').text(d.production_mode === 'Direct Sheet' ? `${d.total_sheets} lembar` : `${d.qty} pcs`);
+                            $('#a3EstimateCuttingRow').prop('hidden', false).show();
+                            $('#a3EstimateCuttingLabel').text(d.cutting_name || 'Cutting / Potong');
+                            const cutMeta = d.production_mode === 'Direct Sheet' ? `${d.total_sheets} lembar` : `${d.qty} pcs`;
+                            $('#a3EstimateCuttingMeta').text(cutMeta);
                             $('#a3EstimateCuttingAmount').text(formatRupiah(d.cutting_subtotal));
                         } else {
-                            $('#a3EstimateCuttingRow').hide();
+                            $('#a3EstimateCuttingRow').prop('hidden', true).hide();
                         }
+
+                        $('#a3EstimateDisplayFinishingRow').prop('hidden', true).hide();
                     }
 
-                    // Diskon row
+                    // Diskon row (Format: -Rp 21.750 konsisten dengan Large Format)
                     if (d.promo && d.discount_amount > 0) {
-                        $('#a3EstimateDiscountRow').show();
-                        $('#a3EstimateDiscountLabel').text(`Diskon Promo (${d.promo.code} - ${d.promo.percentage}%)`);
-                        $('#a3EstimateDiscountAmount').text(`- ${formatRupiah(d.discount_amount)}`);
-                        setPromoStatus(`Kode promo ${d.promo.code} (${d.promo.percentage}%) berhasil diterapkan.`, false);
+                        $('#a3EstimateDiscountRow').prop('hidden', false).show();
+                        $('#a3EstimateDiscountLabel').text(`Diskon ${d.promo.percentage}% (${d.promo.code})`);
+                        $('#a3EstimateDiscountAmount').text(`-${formatRupiah(d.discount_amount)}`);
+                        setPromoStatus(`Promo ${d.promo.code} diterapkan: diskon ${d.promo.percentage}%.`, false);
+                        $('#a3RemovePromoCode').removeAttr('hidden').prop('hidden', false).show();
                     } else {
-                        $('#a3EstimateDiscountRow').hide();
+                        $('#a3EstimateDiscountRow').prop('hidden', true).hide();
                         if (appliedPromoCode) {
                             setPromoStatus('Kode promo diterapkan.', false);
+                        } else {
+                            setPromoStatus(promoCodeInput.val() ? 'Klik Terapkan untuk memeriksa kode promo.' : 'Diskon dihitung dari master promo setelah kode diterapkan.', false);
                         }
                     }
 
-                    // Rounding row
+                    // Rounding row (Format: +Rp 750 konsisten dengan Large Format)
                     if (d.rounding_amount > 0) {
-                        $('#a3EstimateRoundingRow').show();
-                        $('#a3EstimateRoundingAmount').text(`+ ${formatRupiah(d.rounding_amount)}`);
+                        $('#a3EstimateRoundingRow').prop('hidden', false).show();
+                        $('#a3EstimateRoundingAmount').text(`+${formatRupiah(d.rounding_amount)}`);
                     } else {
-                        $('#a3EstimateRoundingRow').hide();
+                        $('#a3EstimateRoundingRow').prop('hidden', true).hide();
                     }
 
                     // Grand total

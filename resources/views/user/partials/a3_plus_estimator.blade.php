@@ -311,11 +311,11 @@
             </p>
 
             <p id="a3EstimateStatus" class="text-xs text-zinc-400 mt-4" aria-live="polite">
-                Menghitung estimasi...
+                {{ $isDisplayMode ? 'Pilih varian bahan dan sisi cetak untuk melihat estimasi.' : 'Pilih spesifikasi cetak dan material untuk melihat estimasi.' }}
             </p>
 
             <div id="a3EstimateBreakdown" class="mt-6 space-y-3" hidden>
-                <!-- Cetak A3+ -->
+                <!-- Cetak A3+ / Paket Display -->
                 <div class="flex justify-between gap-4">
                     <div class="min-w-0">
                         <span id="a3EstimatePrintLabel" class="block text-sm text-zinc-500 dark:text-zinc-400">
@@ -323,7 +323,7 @@
                         </span>
                         <span id="a3EstimatePrintMeta" class="block text-xs text-zinc-400 mt-1"></span>
                     </div>
-                    <span id="a3EstimatePrintAmount" class="shrink-0 text-sm text-zinc-700 dark:text-zinc-200 font-medium">
+                    <span id="a3EstimatePrintAmount" class="shrink-0 text-sm text-zinc-700 dark:text-zinc-200">
                         Rp 0
                     </span>
                 </div>
@@ -354,12 +354,25 @@
                     </span>
                 </div>
 
+                <!-- Finishing Paket Display -->
+                <div id="a3EstimateDisplayFinishingRow" class="flex justify-between gap-4" hidden>
+                    <div class="min-w-0">
+                        <span id="a3EstimateDisplayFinishingLabel" class="block text-sm text-zinc-500 dark:text-zinc-400">
+                            Finishing Paket (Termasuk)
+                        </span>
+                        <span id="a3EstimateDisplayFinishingMeta" class="block text-xs text-zinc-400 mt-1"></span>
+                    </div>
+                    <span id="a3EstimateDisplayFinishingAmount" class="shrink-0 text-sm text-zinc-700 dark:text-zinc-200">
+                        Termasuk
+                    </span>
+                </div>
+
                 <!-- Diskon Promo -->
                 <div id="a3EstimateDiscountRow" class="flex justify-between gap-4" hidden>
                     <span id="a3EstimateDiscountLabel" class="text-sm text-zinc-500 dark:text-zinc-400">
-                        Diskon Promo
+                        Diskon
                     </span>
-                    <span id="a3EstimateDiscountAmount" class="text-sm text-emerald-600 dark:text-emerald-400 font-medium">
+                    <span id="a3EstimateDiscountAmount" class="text-sm text-zinc-700 dark:text-zinc-200">
                         Rp 0
                     </span>
                 </div>
