@@ -1158,7 +1158,7 @@ class CatalogCT extends Controller
                     cpp.general_price_2_side,
                     cpp.division_price,
                     cpp.division_price_2_side,
-                    CONCAT(dp.display_name, ' — ', COALESCE(m.material_name, 'Material'), CASE WHEN lam.name IS NOT NULL THEN CONCAT(' + ', lam.name) ELSE ' (Tanpa Laminasi)' END) AS name
+                    CONCAT(dp.display_name, ' — ', COALESCE(m.material_name, 'Material'), CASE WHEN lam.name IS NOT NULL THEN CONCAT(' + ', CASE WHEN (lam.name ILIKE '%doff%' OR lam.name ILIKE '%glossy%') THEN 'Laminasi Doff / Glossy A3+' ELSE lam.name END) ELSE ' (Tanpa Laminasi)' END) AS name
                 ")
                 ->get();
 
@@ -1259,7 +1259,7 @@ class CatalogCT extends Controller
                     cpp.general_price_2_side,
                     cpp.division_price,
                     cpp.division_price_2_side,
-                    CONCAT(dp.display_name, ' — ', COALESCE(m.material_name, 'Material'), CASE WHEN lam.name IS NOT NULL THEN CONCAT(' + ', lam.name) ELSE ' (Tanpa Laminasi)' END) AS name
+                    CONCAT(dp.display_name, ' — ', COALESCE(m.material_name, 'Material'), CASE WHEN lam.name IS NOT NULL THEN CONCAT(' + ', CASE WHEN (lam.name ILIKE '%doff%' OR lam.name ILIKE '%glossy%') THEN 'Laminasi Doff / Glossy A3+' ELSE lam.name END) ELSE ' (Tanpa Laminasi)' END) AS name
                 ")
                 ->get();
         } else {

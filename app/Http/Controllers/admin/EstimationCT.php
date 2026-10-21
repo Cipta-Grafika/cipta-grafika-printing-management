@@ -2966,7 +2966,14 @@ class EstimationCT extends Controller
                             ' — ',
                             m.material_name,
                             CASE 
-                                WHEN lam.name IS NOT NULL THEN CONCAT(' + ', lam.name)
+                                WHEN lam.name IS NOT NULL THEN CONCAT(
+                                    ' + ',
+                                    CASE 
+                                        WHEN (lam.name ILIKE '%doff%' OR lam.name ILIKE '%glossy%')
+                                        THEN 'Laminasi Doff / Glossy A3+'
+                                        ELSE lam.name
+                                    END
+                                )
                                 ELSE ' (Tanpa Laminasi)'
                             END
                         ) AS name
@@ -3887,7 +3894,12 @@ class EstimationCT extends Controller
             $markup = $totalHpp > 0 ? ($profit / $totalHpp) * 100 : 0.0;
             $pricePerPcs = $totalPcs > 0 ? ($grandTotal / $totalPcs) : 0.0;
 
-            $displayNameFull = $comp->display_name . ' — ' . ($comp->material_name ?? 'Material') . ($comp->lamination_name ? ' + ' . $comp->lamination_name : ' (Tanpa Laminasi)');
+            $lamNameDisplay = $comp->lamination_name;
+            if ($lamNameDisplay && (stripos($lamNameDisplay, 'doff') !== false || stripos($lamNameDisplay, 'glossy') !== false)) {
+                $lamNameDisplay = 'Laminasi Doff / Glossy A3+';
+            }
+
+            $displayNameFull = $comp->display_name . ' — ' . ($comp->material_name ?? 'Material') . ($lamNameDisplay ? ' + ' . $lamNameDisplay : ' (Tanpa Laminasi)');
 
             return response()->json([
                 'success' => true,
@@ -3915,7 +3927,7 @@ class EstimationCT extends Controller
                     'print_total_hpp' => $totalHpp,
                     'print_hpp' => $totalHpp,
                     'lamination' => null,
-                    'lamination_name' => $comp->lamination_name ? ($comp->lamination_name . ' (Termasuk)') : 'Tanpa Laminasi',
+                    'lamination_name' => $lamNameDisplay ? ($lamNameDisplay . ' (Termasuk)') : 'Tanpa Laminasi',
                     'lamination_unit_price' => 0,
                     'lamination_subtotal' => 0,
                     'lamination_hpp' => $lamTotalHpp,
@@ -3932,7 +3944,7 @@ class EstimationCT extends Controller
                     'cutting_subtotal' => 0,
                     'cutting_hpp' => $costDieCut,
                     'is_potong' => false,
-                    'finishing_summary' => 'Termasuk Box KN & Die Cut' . ($comp->lamination_name ? ' · ' . $comp->lamination_name : ''),
+                    'finishing_summary' => 'Termasuk Box KN & Die Cut' . ($lamNameDisplay ? ' · ' . $lamNameDisplay : ''),
                     'additional_components' => $formattedAdditionalComponents,
                     'extra_subtotal' => $extraSubtotal,
                     'extra_total_hpp' => $extraTotalHpp,
