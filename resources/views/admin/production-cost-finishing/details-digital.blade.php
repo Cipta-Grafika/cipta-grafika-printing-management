@@ -1,6 +1,13 @@
 @extends('admin_master')
 
 @section('contents')
+    <style>
+        .details-digital-table-wrapper::-webkit-scrollbar-corner,
+        ::-webkit-scrollbar-corner {
+            background-color: transparent !important;
+        }
+    </style>
+
     @php
         $formatRupiah = function ($value) {
             return ($value === null || (float) $value <= 0) ? '-' : 'Rp' . number_format((float) $value, 0, ',', '.');

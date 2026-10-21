@@ -6428,6 +6428,10 @@ text {
     background: var(--border);
 }
 
+::-webkit-scrollbar-corner {
+    background-color: transparent;
+}
+
 .action-column {
     min-width: 120px;
     white-space: nowrap;
@@ -16614,6 +16618,10 @@ html[data-theme="dark"] .brand-logo-light {
     border-radius: 10px;
     background: var(--bg-card);
     -webkit-overflow-scrolling: touch;
+}
+
+.details-digital-table-wrapper::-webkit-scrollbar-corner {
+    background-color: transparent;
 }
 
 .details-digital-table {
