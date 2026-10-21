@@ -65,6 +65,8 @@ class CatalogCT extends Controller
                 'p.display_name',
                 'p.length',
                 'p.width',
+                'p.package_qty',
+                'p.package_unit',
                 'c.name as category_name',
                 'e.name as engine_name'
             )
@@ -75,16 +77,24 @@ class CatalogCT extends Controller
             ->get();
 
         $displayItems = $displayRows->map(function ($row) {
+            $length = (float) $row->length;
+            $width = (float) $row->width;
+            $desc = $row->category_name;
+            if (!empty($row->package_qty) && !empty($row->package_unit)) {
+                $desc .= ' · ' . (int) $row->package_qty . ' pcs/' . $row->package_unit;
+            } elseif ($width > 0 && $length > 0) {
+                $desc .= ' · Ukuran ' . $width . ' × ' . $length;
+            }
+
             return [
                 'type'          => 'display',
                 'id'            => (int) $row->id,
                 'title'         => $row->display_name,
                 'category_name' => $row->category_name,
                 'engine_name'   => $row->engine_name,
-                'length'        => (float) $row->length,
-                'width'         => (float) $row->width,
-                'desc'          => $row->category_name . ' · Ukuran ' .
-                    (float) $row->width . ' × ' . (float) $row->length,
+                'length'        => $length,
+                'width'         => $width,
+                'desc'          => $desc,
                 'cover_url'     => $row->cover_image_id
                     ? route('user_display_image', $row->cover_image_id)
                     : null,
@@ -378,6 +388,8 @@ class CatalogCT extends Controller
                 'p.length',
                 'p.width',
                 'p.category_id',
+                'p.package_qty',
+                'p.package_unit',
                 'c.name as category_name',
                 'pc.engine_id',
                 'e.name as engine_name'
@@ -391,6 +403,12 @@ class CatalogCT extends Controller
 
             $length = (float) $row->length;
             $width = (float) $row->width;
+            $desc = $row->category_name;
+            if (!empty($row->package_qty) && !empty($row->package_unit)) {
+                $desc .= ' · ' . (int) $row->package_qty . ' pcs/' . $row->package_unit;
+            } elseif ($width > 0 && $length > 0) {
+                $desc .= ' · Ukuran ' . $width . ' × ' . $length;
+            }
 
             return [
                 'key'           => 'display-' . $row->id,
@@ -402,7 +420,7 @@ class CatalogCT extends Controller
                 'title'         => $row->display_name,
                 'category_name' => $row->category_name,
                 'engine_name'   => $row->engine_name,
-                'desc'          => $row->category_name . ' · Ukuran ' . $width . ' × ' . $length,
+                'desc'          => $desc,
                 'cover_url'     => $row->cover_image_id
                     ? route('user_display_image', $row->cover_image_id)
                     : null,
@@ -553,6 +571,10 @@ class CatalogCT extends Controller
                     'p.id',
                     'p.display_name',
                     'p.category_id',
+                    'p.package_qty',
+                    'p.package_unit',
+                    'p.length',
+                    'p.width',
                     'c.name as category_name'
                 )
                 ->first();
@@ -576,7 +598,7 @@ class CatalogCT extends Controller
                 ->join('m_engines as e', 'e.id', '=', 'pc.engine_id')
                 ->where('pc.display_product_id', $displayProduct->id)
                 ->orderBy('pc.id')
-                ->select('e.id', 'e.name')
+                ->select('e.id', 'e.name', 'pc.sheet_qty', 'pc.cost_rangka', 'pc.cost_finishing')
                 ->first();
 
             $engineName = $displayEngine->name ?? 'Large Format';
@@ -615,8 +637,12 @@ class CatalogCT extends Controller
                 'engineName'       => $engineName,
                 'isLargeFormat'    => $isLargeFormat,
                 'isA3Plus'         => $isA3Plus,
+                'isDisplay'        => true,
                 'displayProductId' => (int) $displayProduct->id,
                 'categoryId'       => (int) $displayProduct->category_id,
+                'packageQty'       => (int) ($displayProduct->package_qty ?? 100),
+                'packageUnit'      => $displayProduct->package_unit ?? 'Box',
+                'sheetQty'         => (int) ($displayEngine->sheet_qty ?? 4),
             ];
 
             $locations = DB::table('m_locations')
@@ -629,7 +655,7 @@ class CatalogCT extends Controller
                 ->get();
 
             $a3Data = $isA3Plus
-                ? $this->getA3PlusMasterData((int) $displayProduct->category_id)
+                ? $this->getA3PlusMasterData((int) $displayProduct->category_id, (int) $displayProduct->id)
                 : [
                     'a3Materials'   => collect(),
                     'a3Laminations' => collect(),
@@ -948,12 +974,21 @@ class CatalogCT extends Controller
             $request->merge(['promo_code' => strtoupper(trim($promoCode))]);
         }
 
+        $categoryId = $request->input('category_id');
+        $isDisplay = false;
+        if (!empty($categoryId)) {
+            $cat = DB::table('m_categories')->where('id', $categoryId)->first();
+            if ($cat && stripos($cat->name, 'display') !== false) {
+                $isDisplay = true;
+            }
+        }
+
         $request->validate([
             'promo_code' => ['bail', 'nullable', 'string', 'min:3', 'max:30', 'regex:/\A[A-Z0-9_-]+\z/'],
-            'production_mode' => ['required', 'in:layout,direct'],
-            'print_color' => ['required', 'in:fc,bw'],
+            'production_mode' => $isDisplay ? ['nullable', 'in:layout,direct,display'] : ['required', 'in:layout,direct'],
+            'print_color' => $isDisplay ? ['nullable', 'in:fc,bw'] : ['required', 'in:fc,bw'],
             'print_side' => ['required', 'in:1,2'],
-            'material_id' => ['required', 'integer', 'exists:m_materials,id'],
+            'material_id' => $isDisplay ? ['required', 'integer'] : ['required', 'integer', 'exists:m_materials,id'],
             'length' => ['nullable', 'numeric', 'min:0.1'],
             'width' => ['nullable', 'numeric', 'min:0.1'],
             'qty' => ['nullable', 'integer', 'min:1'],
@@ -973,7 +1008,7 @@ class CatalogCT extends Controller
             ->first();
         $locationId = $purwakarta ? $purwakarta->id : 54;
 
-        $request->merge([
+        $mergeData = [
             'location_id' => $locationId,
             'price_type' => 'general',
             'vendor_id' => null,
@@ -981,7 +1016,14 @@ class CatalogCT extends Controller
             'discount_type' => 'none',
             'discount_value' => 0,
             'additional_components' => null,
-        ]);
+        ];
+
+        if ($isDisplay) {
+            $mergeData['production_mode'] = 'display';
+            $mergeData['print_color'] = $request->input('print_color', 'fc') ?: 'fc';
+        }
+
+        $request->merge($mergeData);
 
         $calculationResponse = app(EstimationCT::class)->storeA3plus($request);
         $calculation = $calculationResponse->getData(true);
@@ -1077,6 +1119,54 @@ class CatalogCT extends Controller
         $locationId = $request->input('location_id') ?: ($purwakarta ? $purwakarta->id : 54);
         $printColor = $request->input('print_color', 'fc');
         $categoryId = $request->input('category_id');
+        $displayProductId = $request->input('display_product_id');
+
+        $isDisplay = false;
+        if (!empty($categoryId)) {
+            $cat = DB::table('m_categories')->where('id', $categoryId)->first();
+            if ($cat && stripos($cat->name, 'display') !== false) {
+                $isDisplay = true;
+            }
+        }
+
+        if ($isDisplay) {
+            $engine = DB::table('m_engines')->where('name', 'ILIKE', '%digital print%')->first();
+            $displayComponents = DB::table('m_display_product_configurations as dpcfg')
+                ->join('m_display_products as dp', 'dp.id', '=', 'dpcfg.display_product_id')
+                ->join('m_display_product_component_prices as cpp', 'cpp.configuration_id', '=', 'dpcfg.id')
+                ->join('m_display_product_components as dpc', 'dpc.id', '=', 'cpp.component_id')
+                ->leftJoin('m_materials as m', 'm.id', '=', 'dpc.material_id')
+                ->leftJoin('m_laminations as lam', 'lam.id', '=', 'dpc.lamination_id')
+                ->where('dpcfg.location_id', $locationId)
+                ->when($engine, function ($q) use ($engine) {
+                    $q->where('dpcfg.engine_id', $engine->id);
+                })
+                ->when($displayProductId, function ($q) use ($displayProductId) {
+                    $q->where('dp.id', $displayProductId);
+                })
+                ->selectRaw("
+                    dpc.id AS id,
+                    dpcfg.id AS configuration_id,
+                    dp.id AS display_product_id,
+                    dp.display_name,
+                    dp.package_qty,
+                    dp.package_unit,
+                    dpcfg.sheet_qty,
+                    dpcfg.cost_rangka,
+                    dpcfg.cost_finishing,
+                    cpp.general_price,
+                    cpp.general_price_2_side,
+                    cpp.division_price,
+                    cpp.division_price_2_side,
+                    CONCAT(dp.display_name, ' — ', COALESCE(m.material_name, 'Material'), CASE WHEN lam.name IS NOT NULL THEN CONCAT(' + ', lam.name) ELSE ' (Tanpa Laminasi)' END) AS name
+                ")
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'data' => $displayComponents,
+            ]);
+        }
 
         $query = DB::table('m_materials as m')
             ->join('m_categories as c', 'c.id', '=', 'm.category_id')
@@ -1125,28 +1215,54 @@ class CatalogCT extends Controller
         ]);
     }
 
-    private function getA3PlusMasterData(?int $categoryId = null): array
+    private function getA3PlusMasterData(?int $categoryId = null, ?int $displayProductId = null): array
     {
         $purwakarta = DB::table('m_locations')
             ->whereRaw('LOWER(TRIM(name)) = ?', ['purwakarta'])
             ->first();
         $purwakartaId = $purwakarta ? $purwakarta->id : 54;
 
-        $materials = DB::table('m_materials as m')
-            ->join('m_categories as c', 'c.id', '=', 'm.category_id')
-            ->join('m_digital_production_cost_details as d', 'd.material_id', '=', 'm.id')
-            ->join('m_digital_production_costs as pc', 'pc.id', '=', 'd.digital_production_cost_id')
-            ->where('pc.location_id', $purwakartaId)
-            ->where('m.status', 'Active')
-            ->whereRaw('LOWER(TRIM(c.name)) != ?', ['bw'])
-            ->when($categoryId, fn ($q) => $q->where('m.category_id', $categoryId))
-            ->select('m.id', 'm.material_name as name', 'c.id as category_id', 'c.name as category_name')
-            ->distinct()
-            ->orderBy('c.name', 'asc')
-            ->orderBy('m.material_name', 'asc')
-            ->get();
+        $isDisplay = false;
+        if (!empty($categoryId)) {
+            $cat = DB::table('m_categories')->where('id', $categoryId)->first();
+            if ($cat && stripos($cat->name, 'display') !== false) {
+                $isDisplay = true;
+            }
+        }
 
-        if ($materials->isEmpty()) {
+        if ($isDisplay) {
+            $engine = DB::table('m_engines')->where('name', 'ILIKE', '%digital print%')->first();
+            $materials = DB::table('m_display_product_configurations as dpcfg')
+                ->join('m_display_products as dp', 'dp.id', '=', 'dpcfg.display_product_id')
+                ->join('m_display_product_component_prices as cpp', 'cpp.configuration_id', '=', 'dpcfg.id')
+                ->join('m_display_product_components as dpc', 'dpc.id', '=', 'cpp.component_id')
+                ->leftJoin('m_materials as m', 'm.id', '=', 'dpc.material_id')
+                ->leftJoin('m_laminations as lam', 'lam.id', '=', 'dpc.lamination_id')
+                ->where('dpcfg.location_id', $purwakartaId)
+                ->when($engine, function ($q) use ($engine) {
+                    $q->where('dpcfg.engine_id', $engine->id);
+                })
+                ->when($displayProductId, function ($q) use ($displayProductId) {
+                    $q->where('dp.id', $displayProductId);
+                })
+                ->selectRaw("
+                    dpc.id AS id,
+                    dpcfg.id AS configuration_id,
+                    dp.id AS display_product_id,
+                    dp.display_name,
+                    dp.package_qty,
+                    dp.package_unit,
+                    dpcfg.sheet_qty,
+                    dpcfg.cost_rangka,
+                    dpcfg.cost_finishing,
+                    cpp.general_price,
+                    cpp.general_price_2_side,
+                    cpp.division_price,
+                    cpp.division_price_2_side,
+                    CONCAT(dp.display_name, ' — ', COALESCE(m.material_name, 'Material'), CASE WHEN lam.name IS NOT NULL THEN CONCAT(' + ', lam.name) ELSE ' (Tanpa Laminasi)' END) AS name
+                ")
+                ->get();
+        } else {
             $materials = DB::table('m_materials as m')
                 ->join('m_categories as c', 'c.id', '=', 'm.category_id')
                 ->join('m_digital_production_cost_details as d', 'd.material_id', '=', 'm.id')
@@ -1154,11 +1270,27 @@ class CatalogCT extends Controller
                 ->where('pc.location_id', $purwakartaId)
                 ->where('m.status', 'Active')
                 ->whereRaw('LOWER(TRIM(c.name)) != ?', ['bw'])
+                ->when($categoryId, fn ($q) => $q->where('m.category_id', $categoryId))
                 ->select('m.id', 'm.material_name as name', 'c.id as category_id', 'c.name as category_name')
                 ->distinct()
                 ->orderBy('c.name', 'asc')
                 ->orderBy('m.material_name', 'asc')
                 ->get();
+
+            if ($materials->isEmpty()) {
+                $materials = DB::table('m_materials as m')
+                    ->join('m_categories as c', 'c.id', '=', 'm.category_id')
+                    ->join('m_digital_production_cost_details as d', 'd.material_id', '=', 'm.id')
+                    ->join('m_digital_production_costs as pc', 'pc.id', '=', 'd.digital_production_cost_id')
+                    ->where('pc.location_id', $purwakartaId)
+                    ->where('m.status', 'Active')
+                    ->whereRaw('LOWER(TRIM(c.name)) != ?', ['bw'])
+                    ->select('m.id', 'm.material_name as name', 'c.id as category_id', 'c.name as category_name')
+                    ->distinct()
+                    ->orderBy('c.name', 'asc')
+                    ->orderBy('m.material_name', 'asc')
+                    ->get();
+            }
         }
 
         $laminations = DB::table('m_laminations as l')

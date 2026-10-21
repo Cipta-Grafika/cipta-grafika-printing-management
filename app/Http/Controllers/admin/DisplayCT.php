@@ -234,6 +234,18 @@ class DisplayCT extends Controller
                 'gt:0',
             ],
 
+            'package_qty' => [
+                'nullable',
+                'integer',
+                'min:1',
+            ],
+
+            'package_unit' => [
+                'nullable',
+                'string',
+                'max:50',
+            ],
+
             'status' => [
                 'required',
                 'in:Active,Inactive',
@@ -324,6 +336,9 @@ class DisplayCT extends Controller
             $validated['display_name']
         );
 
+        $packageQty = (int) ($validated['package_qty'] ?? 1) ?: 1;
+        $packageUnit = !empty($validated['package_unit']) ? trim($validated['package_unit']) : 'Pcs';
+
         $duplicateDisplay = DB::table(
             'm_display_products'
         )
@@ -341,12 +356,16 @@ class DisplayCT extends Controller
                 'width',
                 $validated['width']
             )
+            ->where(
+                'package_qty',
+                $packageQty
+            )
             ->exists();
 
         if ($duplicateDisplay) {
             return response()->json([
                 'success' => false,
-                'message' => 'Display dengan nama dan ukuran tersebut sudah tersedia.',
+                'message' => 'Display dengan nama, ukuran, dan kemasan tersebut sudah tersedia.',
             ], 422);
         }
 
@@ -411,6 +430,12 @@ class DisplayCT extends Controller
 
                 'width' =>
                 $validated['width'],
+
+                'package_qty' =>
+                $packageQty,
+
+                'package_unit' =>
+                $packageUnit,
 
                 'status' =>
                 $validated['status'],
@@ -732,6 +757,8 @@ class DisplayCT extends Controller
                 'p.display_name',
                 'p.length',
                 'p.width',
+                'p.package_qty',
+                'p.package_unit',
                 'p.status',
                 'c.name as category_name'
             )
@@ -797,6 +824,8 @@ class DisplayCT extends Controller
                 'category_name' => $row->category_name,
                 'length'        => (float) $row->length,
                 'width'         => (float) $row->width,
+                'package_qty'   => (int) ($row->package_qty ?? 1),
+                'package_unit'  => $row->package_unit ?? 'Pcs',
                 'status'        => $row->status,
                 'image_count'   => (int) $row->image_count,
                 'cover_url'     => $row->cover_image_id
@@ -1113,6 +1142,8 @@ class DisplayCT extends Controller
                 'm_categories.name as category_name',
                 'm_display_products.length',
                 'm_display_products.width',
+                'm_display_products.package_qty',
+                'm_display_products.package_unit',
                 'm_display_products.status',
                 'm_display_products.created_by',
                 'm_display_products.created_at',
@@ -1195,6 +1226,8 @@ class DisplayCT extends Controller
                 'm_categories.name as category_name',
                 'm_display_products.length',
                 'm_display_products.width',
+                'm_display_products.package_qty',
+                'm_display_products.package_unit',
                 'm_display_products.status',
                 'm_display_products.created_by',
                 'm_display_products.created_at',
@@ -1273,6 +1306,18 @@ class DisplayCT extends Controller
                 'required',
                 'numeric',
                 'gt:0',
+            ],
+
+            'package_qty' => [
+                'nullable',
+                'integer',
+                'min:1',
+            ],
+
+            'package_unit' => [
+                'nullable',
+                'string',
+                'max:50',
             ],
 
             'status' => [
@@ -1386,13 +1431,16 @@ class DisplayCT extends Controller
             $validated['display_name']
         );
 
+        $packageQty = (int) ($validated['package_qty'] ?? 1) ?: 1;
+        $packageUnit = !empty($validated['package_unit']) ? trim($validated['package_unit']) : 'Pcs';
+
         /*
     |--------------------------------------------------------------------------
     | CHECK DUPLICATE DISPLAY
     |--------------------------------------------------------------------------
     |
     | Duplikat berdasarkan:
-    | display_name + length + width
+    | display_name + length + width + package_qty
     |
     | ID Display yang sedang diedit dikecualikan.
     |
@@ -1420,12 +1468,16 @@ class DisplayCT extends Controller
                 'width',
                 $validated['width']
             )
+            ->where(
+                'package_qty',
+                $packageQty
+            )
             ->exists();
 
         if ($duplicateDisplay) {
             return response()->json([
                 'success' => false,
-                'message' => 'Display dengan nama dan ukuran tersebut sudah tersedia.',
+                'message' => 'Display dengan nama, ukuran, dan kemasan tersebut sudah tersedia.',
             ], 422);
         }
 
@@ -1801,6 +1853,12 @@ class DisplayCT extends Controller
 
                     'width' =>
                     $validated['width'],
+
+                    'package_qty' =>
+                    $packageQty,
+
+                    'package_unit' =>
+                    $packageUnit,
 
                     'status' =>
                     $validated['status'],

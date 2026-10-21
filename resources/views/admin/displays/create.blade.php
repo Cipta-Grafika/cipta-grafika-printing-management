@@ -148,6 +148,57 @@
 
                             </div>
 
+                            {{-- =========================================================
+                                KEMASAN & PAKET
+                            ========================================================== --}}
+
+                            <div class="field" style="margin-top: 24px;">
+
+                                <label class="field-label">
+                                    Informasi Paket / Kemasan
+                                </label>
+
+                                <div class="form-grid">
+
+                                    {{-- ISI PER PAKET --}}
+
+                                    <div class="field">
+
+                                        <label class="field-label">
+                                            Isi per Paket
+                                            <span class="req">*</span>
+                                        </label>
+
+                                        <input type="number" name="package_qty" class="input"
+                                            placeholder="Contoh: 100 (atau 1 untuk satuan)" min="1" value="1" required>
+
+                                    </div>
+
+                                    {{-- SATUAN KEMASAN --}}
+
+                                    <div class="field">
+
+                                        <label class="field-label">
+                                            Satuan Kemasan
+                                            <span class="req">*</span>
+                                        </label>
+
+                                        <select name="package_unit" class="select select2" required>
+                                            <option value="Pcs" selected>Pcs</option>
+                                            <option value="Box">Box</option>
+                                            <option value="Rim">Rim</option>
+                                            <option value="Pack">Pack</option>
+                                            <option value="Set">Set</option>
+                                            <option value="Buku">Buku</option>
+                                            <option value="Lembar">Lembar</option>
+                                        </select>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
 
                             {{-- =========================================================
                                 GAMBAR PRODUK
@@ -258,6 +309,13 @@
             width: '100%'
         });
 
+        $('select[name="package_unit"]').select2({
+            placeholder: 'Pilih Satuan Kemasan',
+            allowClear: false,
+            tags: true,
+            width: '100%'
+        });
+
         document.addEventListener('DOMContentLoaded', function() {
 
             const displayProductForm =
@@ -295,6 +353,16 @@
             const statusInput =
                 displayProductForm.querySelector(
                     '[name="status"]'
+                );
+
+            const packageQtyInput =
+                displayProductForm.querySelector(
+                    '[name="package_qty"]'
+                );
+
+            const packageUnitInput =
+                displayProductForm.querySelector(
+                    '[name="package_unit"]'
                 );
 
 
@@ -868,6 +936,33 @@
 
                     widthInput.focus();
 
+                    return false;
+                }
+
+                /*
+                |--------------------------------------------------------------------------
+                | PACKAGE
+                |--------------------------------------------------------------------------
+                */
+
+                if (packageQtyInput) {
+                    const packageQty = Number(packageQtyInput.value);
+                    if (!packageQtyInput.value || !Number.isFinite(packageQty) || packageQty < 1) {
+                        showToast(
+                            'error',
+                            'Isi per Paket harus berupa angka minimal 1.'
+                        );
+                        packageQtyInput.focus();
+                        return false;
+                    }
+                }
+
+                if (packageUnitInput && !packageUnitInput.value.trim()) {
+                    showToast(
+                        'error',
+                        'Satuan Kemasan wajib diisi.'
+                    );
+                    packageUnitInput.focus();
                     return false;
                 }
 

@@ -171,6 +171,64 @@
 
                             </div>
 
+                            {{-- =========================================================
+                                KEMASAN & PAKET
+                            ========================================================== --}}
+
+                            <div class="field" style="margin-top: 24px;">
+
+                                <label class="field-label">
+                                    Informasi Paket / Kemasan
+                                </label>
+
+                                <div class="form-grid">
+
+                                    {{-- ISI PER PAKET --}}
+
+                                    <div class="field">
+
+                                        <label class="field-label">
+                                            Isi per Paket
+                                            <span class="req">*</span>
+                                        </label>
+
+                                        <input type="number" name="package_qty" class="input"
+                                            placeholder="Contoh: 100 (atau 1 untuk satuan)" min="1"
+                                            value="{{ $displayProduct->package_qty ?? 1 }}" required>
+
+                                    </div>
+
+                                    {{-- SATUAN KEMASAN --}}
+
+                                    <div class="field">
+
+                                        <label class="field-label">
+                                            Satuan Kemasan
+                                            <span class="req">*</span>
+                                        </label>
+
+                                        @php
+                                            $currentUnit = $displayProduct->package_unit ?? 'Pcs';
+                                            $defaultUnits = ['Pcs', 'Box', 'Rim', 'Pack', 'Set', 'Buku', 'Lembar'];
+                                        @endphp
+
+                                        <select name="package_unit" class="select select2" required>
+                                            @foreach ($defaultUnits as $unit)
+                                                <option value="{{ $unit }}" {{ strcasecmp($currentUnit, $unit) === 0 ? 'selected' : '' }}>
+                                                    {{ $unit }}
+                                                </option>
+                                            @endforeach
+                                            @if (!in_array(strtolower($currentUnit), array_map('strtolower', $defaultUnits)))
+                                                <option value="{{ $currentUnit }}" selected>{{ $currentUnit }}</option>
+                                            @endif
+                                        </select>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
 
                             {{-- =========================================================
                             GAMBAR PRODUK
@@ -384,6 +442,13 @@
             width: '100%'
         });
 
+        $('select[name="package_unit"]').select2({
+            placeholder: 'Pilih Satuan Kemasan',
+            allowClear: false,
+            tags: true,
+            width: '100%'
+        });
+
         document.addEventListener('DOMContentLoaded', function() {
 
             const displayProductForm =
@@ -421,6 +486,16 @@
             const statusInput =
                 displayProductForm.querySelector(
                     '[name="status"]'
+                );
+
+            const packageQtyInput =
+                displayProductForm.querySelector(
+                    '[name="package_qty"]'
+                );
+
+            const packageUnitInput =
+                displayProductForm.querySelector(
+                    '[name="package_unit"]'
                 );
 
             /*
@@ -1365,6 +1440,33 @@
 
                     widthInput.focus();
 
+                    return false;
+                }
+
+                /*
+                |--------------------------------------------------------------------------
+                | PACKAGE
+                |--------------------------------------------------------------------------
+                */
+
+                if (packageQtyInput) {
+                    const packageQty = Number(packageQtyInput.value);
+                    if (!packageQtyInput.value || !Number.isFinite(packageQty) || packageQty < 1) {
+                        showToast(
+                            'error',
+                            'Isi per Paket harus berupa angka minimal 1.'
+                        );
+                        packageQtyInput.focus();
+                        return false;
+                    }
+                }
+
+                if (packageUnitInput && !packageUnitInput.value.trim()) {
+                    showToast(
+                        'error',
+                        'Satuan Kemasan wajib diisi.'
+                    );
+                    packageUnitInput.focus();
                     return false;
                 }
 

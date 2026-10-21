@@ -147,26 +147,28 @@
                                                 </div>
 
                                                 {{-- COST RANGKA --}}
-                                                <div class="field">
+                                                <div class="field field-cost-rangka">
 
-                                                    <label class="field-label">
+                                                    <label class="field-label label-cost-rangka">
                                                         Cost Rangka
                                                     </label>
 
                                                     <input type="text" name="configurations[0][cost_rangka]"
-                                                        class="input currency-input" placeholder="Rp 0" autocomplete="off">
+                                                        class="input currency-input input-cost-rangka" placeholder="Rp 0"
+                                                        autocomplete="off">
 
                                                 </div>
 
                                                 {{-- COST FINISHING --}}
-                                                <div class="field">
+                                                <div class="field field-cost-finishing">
 
-                                                    <label class="field-label">
+                                                    <label class="field-label label-cost-finishing">
                                                         Cost Finishing
                                                     </label>
 
                                                     <input type="text" name="configurations[0][cost_finishing]"
-                                                        class="input currency-input" placeholder="Rp 0" autocomplete="off">
+                                                        class="input currency-input input-cost-finishing" placeholder="Rp 0"
+                                                        autocomplete="off">
 
                                                 </div>
 
@@ -228,6 +230,63 @@
         document.addEventListener('DOMContentLoaded', function() {
 
             console.log('JS DISPLAY CONFIGURATION BERJALAN');
+
+            const dieCutPrices = @json($dieCutPrices ?? []);
+
+            /*
+            |--------------------------------------------------------------------------
+            | UPDATE HEADER FIELDS (DIGITAL PRINT A3+ VS LARGE FORMAT)
+            |--------------------------------------------------------------------------
+            */
+            function updateHeaderFields(configuration) {
+                if (!configuration) return;
+
+                const engineSelect = configuration.querySelector('.engine-select');
+                const locationSelect = configuration.querySelector('.location-select');
+                const labelCostRangka = configuration.querySelector('.label-cost-rangka');
+                const labelCostFinishing = configuration.querySelector('.label-cost-finishing');
+                const inputCostRangka = configuration.querySelector('.input-cost-rangka');
+                const inputCostFinishing = configuration.querySelector('.input-cost-finishing');
+
+                if (!engineSelect || !inputCostFinishing || !inputCostRangka) return;
+
+                const engineText = engineSelect.selectedOptions[0] ? engineSelect.selectedOptions[0].textContent.trim().toLowerCase() : '';
+                const isDigitalPrintA3 = engineText.includes('digital print');
+
+                if (isDigitalPrintA3) {
+                    if (labelCostRangka) {
+                        labelCostRangka.textContent = 'Harga Box KN';
+                    }
+                    if (labelCostFinishing) {
+                        labelCostFinishing.textContent = 'Ongkos Die Cut';
+                    }
+                    inputCostRangka.setAttribute('placeholder', 'Rp 0');
+
+                    const locationId = locationSelect ? locationSelect.value : null;
+                    if (locationId && dieCutPrices[locationId] !== undefined) {
+                        const rawPrice = dieCutPrices[locationId];
+                        const dieCutPrice = Math.round(Number(rawPrice));
+                        inputCostFinishing.value = formatCurrency(dieCutPrice);
+                    } else {
+                        if (!locationId) {
+                            inputCostFinishing.value = '';
+                        }
+                    }
+                    inputCostFinishing.setAttribute('readonly', 'readonly');
+                    inputCostFinishing.style.cursor = 'not-allowed';
+                } else {
+                    if (labelCostRangka) {
+                        labelCostRangka.textContent = 'Cost Rangka';
+                    }
+                    if (labelCostFinishing) {
+                        labelCostFinishing.textContent = 'Cost Finishing';
+                    }
+                    inputCostRangka.setAttribute('placeholder', 'Rp 0');
+                    inputCostFinishing.removeAttribute('readonly');
+                    inputCostFinishing.style.backgroundColor = '';
+                    inputCostFinishing.style.cursor = '';
+                }
+            }
 
             /*
             |--------------------------------------------------------------------------
@@ -319,6 +378,9 @@
                     .forEach(function(field) {
 
                         field.value = '';
+                        field.removeAttribute('readonly');
+                        field.style.backgroundColor = '';
+                        field.style.cursor = '';
 
                     });
 
@@ -331,6 +393,8 @@
                         $(select).val('').trigger('change');
 
                     });
+
+                updateHeaderFields(configuration);
 
             }
 
@@ -489,6 +553,8 @@
                 reindexConfigurations();
 
                 updateConfigurationActions();
+
+                updateHeaderFields(newConfiguration);
 
             }
 
@@ -700,6 +766,11 @@
                 |----------------------------------------------------------------------
                 */
 
+                const engineText = engineSelect.selectedOptions[0] ? engineSelect.selectedOptions[0].textContent.trim().toLowerCase() : '';
+                const isDigitalPrintA3 = engineText.includes('digital print');
+                const labelRangkaText = isDigitalPrintA3 ? 'Harga Box KN' : 'Cost Rangka';
+                const labelFinishingText = isDigitalPrintA3 ? 'Ongkos Die Cut' : 'Cost Finishing';
+
                 if (
                     !costRangkaInput ||
                     costRangkaInput.value.trim() === ''
@@ -707,7 +778,7 @@
 
                     showToast(
                         'error',
-                        'Cost Rangka pada Header ' +
+                        labelRangkaText + ' pada Header ' +
                         (index + 1) +
                         ' wajib diisi.'
                     );
@@ -725,7 +796,7 @@
 
                     showToast(
                         'error',
-                        'Cost Rangka tidak boleh negatif.'
+                        labelRangkaText + ' tidak boleh negatif.'
                     );
 
                     costRangkaInput.focus();
@@ -746,12 +817,12 @@
 
                     showToast(
                         'error',
-                        'Cost Finishing pada Header ' +
+                        labelFinishingText + ' pada Header ' +
                         (index + 1) +
-                        ' wajib diisi.'
+                        (isDigitalPrintA3 ? ' belum terisi (pastikan Lokasi telah dipilih).' : ' wajib diisi.')
                     );
 
-                    if (costFinishingInput) {
+                    if (costFinishingInput && !isDigitalPrintA3) {
                         costFinishingInput.focus();
                     }
 
@@ -764,7 +835,7 @@
 
                     showToast(
                         'error',
-                        'Cost Finishing tidak boleh negatif.'
+                        labelFinishingText + ' tidak boleh negatif.'
                     );
 
                     costFinishingInput.focus();
@@ -911,6 +982,14 @@
 
             function formatCurrency(value) {
 
+                if (value === null || value === undefined || value === '') {
+                    return '';
+                }
+
+                if (typeof value === 'number') {
+                    value = Math.round(value);
+                }
+
                 const numericValue = String(value)
                     .replace(/\D/g, '');
 
@@ -1047,6 +1126,18 @@
 
             /*
             |--------------------------------------------------------------------------
+            | LISTENER PERUBAHAN MESIN & LOKASI
+            |--------------------------------------------------------------------------
+            */
+            $(configurationContainer).on('change', '.engine-select, .location-select', function() {
+                const item = this.closest('.display-configuration-item');
+                if (item) {
+                    updateHeaderFields(item);
+                }
+            });
+
+            /*
+            |--------------------------------------------------------------------------
             | INITIALIZE
             |--------------------------------------------------------------------------
             */
@@ -1056,6 +1147,10 @@
             reindexConfigurations();
 
             updateConfigurationActions();
+
+            configurationContainer.querySelectorAll('.display-configuration-item').forEach(function(item) {
+                updateHeaderFields(item);
+            });
 
         });
     </script>

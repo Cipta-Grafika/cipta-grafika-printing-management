@@ -32,6 +32,20 @@ class ProductionCostFinishingDisplayCT extends Controller
             ->orderBy('name')
             ->get();
 
+        $dieCut = DB::table('m_cuttings')->where('name', 'ILIKE', '%die cut%')->first();
+        $dieCutPrices = [];
+        if ($dieCut) {
+            $dieCutPrices = DB::table('m_digital_cutting_production_cost_prices as p')
+                ->join('m_digital_cutting_production_cost_details as d', 'd.id', '=', 'p.digital_cutting_production_cost_detail_id')
+                ->join('m_digital_cutting_production_costs as pc', 'pc.id', '=', 'd.digital_cutting_production_cost_id')
+                ->where('d.cutting_id', $dieCut->id)
+                ->where('p.price_type', 'general')
+                ->where('p.quantity_tier', 'tier_2_5')
+                ->pluck('p.price', 'pc.location_id')
+                ->map(fn($price) => (float) $price)
+                ->toArray();
+        }
+        $data['dieCutPrices'] = $dieCutPrices;
 
         return view('admin.production-cost-finishing-display.create')->with($data);
     }
@@ -272,75 +286,151 @@ class ProductionCostFinishingDisplayCT extends Controller
 
         /*
     |--------------------------------------------------------------------------
-    | DATA MATERIAL
+    | DATA MATERIAL DAN LAMINASI BERDASARKAN MESIN
     |--------------------------------------------------------------------------
     */
 
-        $materials = DB::table('m_production_cost_details as pcd')
-            ->join(
-                'm_production_costs as pc',
-                'pc.id',
-                '=',
-                'pcd.production_cost_id'
-            )
-            ->join(
-                'm_production_cost_locations as pcl',
-                'pcl.production_cost_id',
-                '=',
-                'pc.id'
-            )
-            ->join(
-                'm_materials as m',
-                'm.id',
-                '=',
-                'pcd.material_id'
-            )
-            ->where('pc.engine_id', $engineId)
-            ->where('pcl.location_id', $locationId)
-            ->where('m.status', 'Active')
-            ->select(
-                'm.id',
-                'm.material_name as name'
-            )
-            ->distinct()
-            ->orderBy('m.material_name')
-            ->get();
+        $engine = DB::table('m_engines')->where('id', $engineId)->first();
+        $isDigitalPrintA3 = $engine && (stripos($engine->name, 'digital print') !== false);
 
-        /*
-    |--------------------------------------------------------------------------
-    | DATA LAMINASI
-    |--------------------------------------------------------------------------
-    */
+        if ($isDigitalPrintA3) {
 
-        $laminations = DB::table('m_lamination_production_cost_details as lpcd')
-            ->join(
-                'm_production_costs as pc',
-                'pc.id',
-                '=',
-                'lpcd.production_cost_id'
-            )
-            ->join(
-                'm_production_cost_locations as pcl',
-                'pcl.production_cost_id',
-                '=',
-                'pc.id'
-            )
-            ->join(
-                'm_laminations as l',
-                'l.id',
-                '=',
-                'lpcd.lamination_id'
-            )
-            ->where('pc.engine_id', $engineId)
-            ->where('pcl.location_id', $locationId)
-            ->where('l.status', 'Active')
-            ->select(
-                'l.id',
-                'l.name'
-            )
-            ->distinct()
-            ->orderBy('l.name')
-            ->get();
+            /*
+            | Digital Print A3+
+            */
+            $materials = DB::table('m_digital_production_cost_details as dpcd')
+                ->join(
+                    'm_digital_production_costs as dpc',
+                    'dpc.id',
+                    '=',
+                    'dpcd.digital_production_cost_id'
+                )
+                ->join(
+                    'm_materials as m',
+                    'm.id',
+                    '=',
+                    'dpcd.material_id'
+                )
+                ->where('dpc.engine_id', $engineId)
+                ->where('dpc.location_id', $locationId)
+                ->where('m.status', 'Active')
+                ->select(
+                    'm.id',
+                    'm.material_name as name'
+                )
+                ->distinct()
+                ->orderBy('m.material_name')
+                ->get();
+
+            $rawLaminations = DB::table('m_digital_lamination_production_cost_details as dlpcd')
+                ->join(
+                    'm_digital_lamination_production_costs as dlpc',
+                    'dlpc.id',
+                    '=',
+                    'dlpcd.digital_lamination_production_cost_id'
+                )
+                ->join(
+                    'm_laminations as l',
+                    'l.id',
+                    '=',
+                    'dlpcd.lamination_id'
+                )
+                ->where('dlpc.engine_id', $engineId)
+                ->where('dlpc.location_id', $locationId)
+                ->where('l.status', 'Active')
+                ->select(
+                    'l.id',
+                    'l.name'
+                )
+                ->distinct()
+                ->orderBy('l.name')
+                ->get();
+
+            // Khusus Digital Print A3+, laminasi Doff dan Glossy digabung menjadi satu pilihan
+            // dan nilainya mengambil ID/harga dari laminasi glossy
+            $glossyLam = $rawLaminations->first(function ($item) {
+                return stripos($item->name, 'glossy') !== false;
+            });
+
+            $laminations = collect();
+            if ($glossyLam) {
+                $laminations->push((object) [
+                    'id' => $glossyLam->id,
+                    'name' => 'Laminasi Doff / Glossy A3+',
+                ]);
+            }
+
+            foreach ($rawLaminations as $item) {
+                if (stripos($item->name, 'glossy') === false && stripos($item->name, 'doff') === false) {
+                    $laminations->push($item);
+                }
+            }
+
+        } else {
+
+            /*
+            | Large Format (Original)
+            */
+            $materials = DB::table('m_production_cost_details as pcd')
+                ->join(
+                    'm_production_costs as pc',
+                    'pc.id',
+                    '=',
+                    'pcd.production_cost_id'
+                )
+                ->join(
+                    'm_production_cost_locations as pcl',
+                    'pcl.production_cost_id',
+                    '=',
+                    'pc.id'
+                )
+                ->join(
+                    'm_materials as m',
+                    'm.id',
+                    '=',
+                    'pcd.material_id'
+                )
+                ->where('pc.engine_id', $engineId)
+                ->where('pcl.location_id', $locationId)
+                ->where('m.status', 'Active')
+                ->select(
+                    'm.id',
+                    'm.material_name as name'
+                )
+                ->distinct()
+                ->orderBy('m.material_name')
+                ->get();
+
+            $laminations = DB::table('m_lamination_production_cost_details as lpcd')
+                ->join(
+                    'm_production_costs as pc',
+                    'pc.id',
+                    '=',
+                    'lpcd.production_cost_id'
+                )
+                ->join(
+                    'm_production_cost_locations as pcl',
+                    'pcl.production_cost_id',
+                    '=',
+                    'pc.id'
+                )
+                ->join(
+                    'm_laminations as l',
+                    'l.id',
+                    '=',
+                    'lpcd.lamination_id'
+                )
+                ->where('pc.engine_id', $engineId)
+                ->where('pcl.location_id', $locationId)
+                ->where('l.status', 'Active')
+                ->select(
+                    'l.id',
+                    'l.name'
+                )
+                ->distinct()
+                ->orderBy('l.name')
+                ->get();
+        }
 
         /*
     |--------------------------------------------------------------------------
@@ -522,6 +612,28 @@ class ProductionCostFinishingDisplayCT extends Controller
                 $costFinishing =
                     (float) $configuration['cost_finishing'];
 
+                $engine = DB::table('m_engines')->where('id', $engineId)->first();
+                $isDigitalPrintA3 = $engine && (stripos($engine->name, 'digital print') !== false);
+
+                if ($isDigitalPrintA3) {
+                    $dieCutCutting = DB::table('m_cuttings')->where('name', 'ILIKE', '%die cut%')->first();
+                    if ($dieCutCutting) {
+                        $cutPriceRow = DB::table('m_digital_cutting_production_cost_prices as p')
+                            ->join('m_digital_cutting_production_cost_details as d', 'd.id', '=', 'p.digital_cutting_production_cost_detail_id')
+                            ->join('m_digital_cutting_production_costs as pc', 'pc.id', '=', 'd.digital_cutting_production_cost_id')
+                            ->where('d.cutting_id', $dieCutCutting->id)
+                            ->where('p.price_type', 'general')
+                            ->where('p.quantity_tier', 'tier_2_5')
+                            ->where('pc.location_id', $locationId)
+                            ->select('p.price')
+                            ->first();
+
+                        if ($cutPriceRow) {
+                            $costFinishing = (float) $cutPriceRow->price;
+                        }
+                    }
+                }
+
                 /*
             |--------------------------------------------------------------------------
             | DISPLAY PRODUCT
@@ -699,9 +811,11 @@ class ProductionCostFinishingDisplayCT extends Controller
                     (1 + ($generalMarkup / 100))
                 );
 
-                $hargaUmum = ceil(
-                    $hargaUmum / $generalRounding
-                ) * $generalRounding;
+                if (!empty($generalRule->rounding_value) && (float) $generalRule->rounding_value > 0) {
+                    $hargaUmum = ceil(
+                        $hargaUmum / (float) $generalRule->rounding_value
+                    ) * (float) $generalRule->rounding_value;
+                }
 
                 /*
             |--------------------------------------------------------------------------
@@ -756,6 +870,16 @@ class ProductionCostFinishingDisplayCT extends Controller
             |
             */
 
+                $sheetQty = null;
+                if ($isDigitalPrintA3) {
+                    $pkgQty = (int) ($displayProduct->package_qty ?? 100);
+                    $imposition = 25;
+                    $sheetQty = (int) ceil($pkgQty / $imposition);
+                    if ($sheetQty <= 0) {
+                        $sheetQty = 4;
+                    }
+                }
+
                 DB::table(
                     'm_display_product_configurations'
                 )->insert([
@@ -771,6 +895,8 @@ class ProductionCostFinishingDisplayCT extends Controller
                     'cost_finishing' => $costFinishing,
 
                     'total_cost' => $totalCost,
+
+                    'sheet_qty' => $sheetQty,
 
                     'created_by' => $userName,
 
@@ -1011,6 +1137,7 @@ class ProductionCostFinishingDisplayCT extends Controller
                 'm_display_product_configurations.cost_rangka',
                 'm_display_product_configurations.cost_finishing',
                 'm_display_product_configurations.total_cost',
+                'm_display_product_configurations.sheet_qty',
                 'm_display_product_configurations.location_id',
                 'm_display_product_configurations.engine_id',
                 'm_locations.name as location_name',
@@ -1247,6 +1374,204 @@ class ProductionCostFinishingDisplayCT extends Controller
 
             $divisionPercentage =
                 (float) $divisionRule->markup_percentage;
+
+            /*
+        |--------------------------------------------------------------------------
+        | PEMROSESAN KHUSUS DISPLAY DIGITAL PRINT A3+
+        |--------------------------------------------------------------------------
+        */
+            $engine = DB::table('m_engines')->where('id', $engineId)->first();
+            $isDigitalPrintA3 = $engine && (stripos($engine->name, 'digital print') !== false);
+
+            if ($isDigitalPrintA3) {
+                $savedCount = 0;
+                $hargaBoxKN = (float) $configuration->cost_rangka;
+                $ongkosDieCut = (float) $configuration->cost_finishing;
+                $sheetQty = (int) ($configuration->sheet_qty ?? 4);
+                if ($sheetQty <= 0) {
+                    $sheetQty = 4;
+                }
+
+                foreach ($validated['components'] as $index => $component) {
+                    $materialId = (int) $component['material_id'];
+                    $laminationId = !empty($component['lamination_id']) ? (int) $component['lamination_id'] : null;
+                    $roundingValue = isset($component['rounding_value']) && is_numeric($component['rounding_value'])
+                        ? (float) $component['rounding_value']
+                        : 0;
+
+                    if (!$materialId) {
+                        throw new \Exception('Material pada baris ke-' . ($index + 1) . ' wajib dipilih.');
+                    }
+
+                    $material = DB::table('m_materials')
+                        ->where('id', $materialId)
+                        ->where('status', 'Active')
+                        ->first();
+
+                    if (!$material) {
+                        throw new \Exception('Material tidak ditemukan atau tidak aktif.');
+                    }
+
+                    if ($laminationId !== null) {
+                        $lamination = DB::table('m_laminations')
+                            ->where('id', $laminationId)
+                            ->where('status', 'Active')
+                            ->first();
+
+                        if (!$lamination) {
+                            throw new \Exception('Laminasi tidak ditemukan atau tidak aktif.');
+                        }
+                    }
+
+                    // Ambil harga print 1 sisi (tier 2-5, single)
+                    $print1Row = DB::table('m_digital_production_cost_details as dpcd')
+                        ->join('m_digital_production_costs as dpc', 'dpc.id', '=', 'dpcd.digital_production_cost_id')
+                        ->join('m_digital_production_cost_prices as dpcp', 'dpcp.digital_production_cost_detail_id', '=', 'dpcd.id')
+                        ->where('dpc.engine_id', $engineId)
+                        ->where('dpc.location_id', $locationId)
+                        ->where('dpcd.material_id', $materialId)
+                        ->where('dpcp.price_type', 'general')
+                        ->where('dpcp.quantity_tier', 'tier_2_5')
+                        ->where('dpcp.print_type', 'single')
+                        ->select('dpcp.selling_price')
+                        ->first();
+
+                    if (!$print1Row) {
+                        throw new \Exception('Harga Print 1 Sisi (tier 2-5) untuk material "' . $material->material_name . '" tidak ditemukan.');
+                    }
+                    $hargaPrint1Sisi = (float) $print1Row->selling_price;
+
+                    // Ambil harga print 2 sisi (tier 2-5, double)
+                    $print2Row = DB::table('m_digital_production_cost_details as dpcd')
+                        ->join('m_digital_production_costs as dpc', 'dpc.id', '=', 'dpcd.digital_production_cost_id')
+                        ->join('m_digital_production_cost_prices as dpcp', 'dpcp.digital_production_cost_detail_id', '=', 'dpcd.id')
+                        ->where('dpc.engine_id', $engineId)
+                        ->where('dpc.location_id', $locationId)
+                        ->where('dpcd.material_id', $materialId)
+                        ->where('dpcp.price_type', 'general')
+                        ->where('dpcp.quantity_tier', 'tier_2_5')
+                        ->where('dpcp.print_type', 'double')
+                        ->select('dpcp.selling_price')
+                        ->first();
+
+                    if (!$print2Row) {
+                        throw new \Exception('Harga Print 2 Sisi (tier 2-5) untuk material "' . $material->material_name . '" tidak ditemukan.');
+                    }
+                    $hargaPrint2Sisi = (float) $print2Row->selling_price;
+
+                    // Ambil harga laminasi jika ada (tier 2-5, single)
+                    $hargaLaminasi = 0;
+                    if ($laminationId !== null) {
+                        // Khusus Digital Print A3+, pastikan mengambil nilai dari laminasi glossy
+                        if ($isDigitalPrintA3) {
+                            $glossyLam = DB::table('m_laminations')
+                                ->where('name', 'ILIKE', '%glossy%')
+                                ->where('name', 'ILIKE', '%a3%')
+                                ->where('status', 'Active')
+                                ->first();
+
+                            if ($glossyLam) {
+                                $laminationId = (int) $glossyLam->id;
+                            }
+                        }
+
+                        $lamRow = DB::table('m_digital_lamination_production_cost_details as dlpcd')
+                            ->join('m_digital_lamination_production_costs as dlpc', 'dlpc.id', '=', 'dlpcd.digital_lamination_production_cost_id')
+                            ->join('m_digital_lamination_production_cost_prices as dlpcp', 'dlpcp.digital_lamination_production_cost_detail_id', '=', 'dlpcd.id')
+                            ->where('dlpc.engine_id', $engineId)
+                            ->where('dlpc.location_id', $locationId)
+                            ->where('dlpcd.lamination_id', $laminationId)
+                            ->where('dlpcp.price_type', 'general')
+                            ->where('dlpcp.quantity_tier', 'tier_2_5')
+                            ->where('dlpcp.print_type', 'single')
+                            ->select('dlpcp.selling_price')
+                            ->first();
+
+                        if (!$lamRow) {
+                            throw new \Exception('Harga Laminasi (tier 2-5) tidak ditemukan.');
+                        }
+                        $hargaLaminasi = (float) $lamRow->selling_price;
+                    }
+
+                    // Total Harga Jual Per Box:
+                    // Umum 1 Muka = (Harga Print Digital 1 sisi * 4) + Harga Box KN + Ongkos Die Cut + (4 * Harga Laminasi)
+                    $generalPrice1Side = ($hargaPrint1Sisi * $sheetQty) + $hargaBoxKN + $ongkosDieCut + ($sheetQty * $hargaLaminasi);
+
+                    // Umum 2 Muka = (Harga Print Digital 2 sisi * 4) + Harga Box KN + Ongkos Die Cut + (4 * Harga Laminasi)
+                    $generalPrice2Side = ($hargaPrint2Sisi * $sheetQty) + $hargaBoxKN + $ongkosDieCut + ($sheetQty * $hargaLaminasi);
+
+                    if ($roundingValue > 0) {
+                        $generalPrice1Side = ceil($generalPrice1Side / $roundingValue) * $roundingValue;
+                        $generalPrice2Side = ceil($generalPrice2Side / $roundingValue) * $roundingValue;
+                    }
+
+                    // Divisi = Umum * 80%
+                    $divisionPrice1Side = $generalPrice1Side * ($divisionPercentage / 100);
+                    $divisionPrice2Side = $generalPrice2Side * ($divisionPercentage / 100);
+
+                    // Master Component
+                    $displayComponentQuery = DB::table('m_display_product_components')
+                        ->where('display_product_id', $displayProductId)
+                        ->where('component_type', 'material')
+                        ->where('material_id', $materialId);
+
+                    if ($laminationId !== null) {
+                        $displayComponentQuery->where('lamination_id', $laminationId);
+                    } else {
+                        $displayComponentQuery->whereNull('lamination_id');
+                    }
+
+                    $displayComponent = $displayComponentQuery->first();
+
+                    if (!$displayComponent) {
+                        $displayComponentId = DB::table('m_display_product_components')->insertGetId([
+                            'display_product_id' => $displayProductId,
+                            'component_type' => 'material',
+                            'material_id' => $materialId,
+                            'lamination_id' => $laminationId,
+                            'created_by' => $userName,
+                            'created_at' => $now,
+                        ]);
+                    } else {
+                        $displayComponentId = (int) $displayComponent->id;
+                    }
+
+                    // Cek duplikat harga
+                    $existingPrice = DB::table('m_display_product_component_prices')
+                        ->where('configuration_id', $configurationId)
+                        ->where('component_id', $displayComponentId)
+                        ->exists();
+
+                    if ($existingPrice) {
+                        throw new \Exception('Komponen material & laminasi tersebut sudah terdaftar pada konfigurasi ini.');
+                    }
+
+                    // Insert harga
+                    DB::table('m_display_product_component_prices')->insert([
+                        'configuration_id' => $configurationId,
+                        'component_id' => $displayComponentId,
+                        'general_price' => $generalPrice1Side,
+                        'division_price' => $divisionPrice1Side,
+                        'general_price_2_side' => $generalPrice2Side,
+                        'division_price_2_side' => $divisionPrice2Side,
+                        'plain_price' => null,
+                        'rounding_value_component' => $roundingValue,
+                        'created_by' => $userName,
+                        'created_at' => $now,
+                    ]);
+
+                    $savedCount++;
+                }
+
+                DB::commit();
+
+                return redirect()
+                    ->route('admin_pc_finishing_displays')
+                    ->with(
+                        'success',
+                        $savedCount . ' komponen Display berhasil ditambahkan.'
+                    );
+            }
 
             /*
         |--------------------------------------------------------------------------
@@ -2260,6 +2585,7 @@ class ProductionCostFinishingDisplayCT extends Controller
                 dpcfg.cost_rangka,
                 dpcfg.cost_finishing,
                 dpcfg.total_cost,
+                dpcfg.sheet_qty,
 
                 dpc.component_type,
 
@@ -2269,20 +2595,30 @@ class ProductionCostFinishingDisplayCT extends Controller
                         THEN CONCAT(
                             m.material_name,
                             ' + ',
-                            lam.name
+                            CASE 
+                                WHEN e.name ILIKE '%digital print%' AND (lam.name ILIKE '%doff%' OR lam.name ILIKE '%glossy%')
+                                THEN 'Laminasi Doff / Glossy A3+'
+                                ELSE lam.name
+                            END
                         )
 
                     WHEN dpc.material_id IS NOT NULL
                         THEN m.material_name
 
                     WHEN dpc.lamination_id IS NOT NULL
-                        THEN lam.name
+                        THEN CASE 
+                            WHEN e.name ILIKE '%digital print%' AND (lam.name ILIKE '%doff%' OR lam.name ILIKE '%glossy%')
+                            THEN 'Laminasi Doff / Glossy A3+'
+                            ELSE lam.name
+                        END
 
                     ELSE '-'
                 END AS component_name,
 
                 cpp.general_price,
                 cpp.division_price,
+                cpp.general_price_2_side,
+                cpp.division_price_2_side,
                 cpp.plain_price
 
             FROM m_display_product_configurations AS dpcfg
@@ -2506,6 +2842,8 @@ class ProductionCostFinishingDisplayCT extends Controller
 
                 dpp.general_price,
                 dpp.division_price,
+                CAST(NULL AS numeric) AS general_price_2_side,
+                CAST(NULL AS numeric) AS division_price_2_side,
                 dpp.plain_price
 
             FROM m_display_product_configurations AS dpcfg
@@ -2549,20 +2887,30 @@ class ProductionCostFinishingDisplayCT extends Controller
                         THEN CONCAT(
                             m.material_name,
                             ' + ',
-                            lam.name
+                            CASE 
+                                WHEN e.name ILIKE '%digital print%' AND (lam.name ILIKE '%doff%' OR lam.name ILIKE '%glossy%')
+                                THEN 'Laminasi Doff / Glossy A3+'
+                                ELSE lam.name
+                            END
                         )
 
                     WHEN dpc.material_id IS NOT NULL
                         THEN m.material_name
 
                     WHEN dpc.lamination_id IS NOT NULL
-                        THEN lam.name
+                        THEN CASE 
+                            WHEN e.name ILIKE '%digital print%' AND (lam.name ILIKE '%doff%' OR lam.name ILIKE '%glossy%')
+                            THEN 'Laminasi Doff / Glossy A3+'
+                            ELSE lam.name
+                        END
 
                     ELSE '-'
                 END AS component_name,
 
                 cpp.general_price,
                 cpp.division_price,
+                cpp.general_price_2_side,
+                cpp.division_price_2_side,
                 cpp.plain_price
 
             FROM m_display_product_configurations AS dpcfg
@@ -2652,6 +3000,8 @@ class ProductionCostFinishingDisplayCT extends Controller
                 'cpp.rounding_value_component',
                 'cpp.general_price',
                 'cpp.division_price',
+                'cpp.general_price_2_side',
+                'cpp.division_price_2_side',
                 'cpp.plain_price'
             )
             ->orderBy('dpcfg.id')
@@ -2831,13 +3181,34 @@ class ProductionCostFinishingDisplayCT extends Controller
                 $costRangka = (float) $configuration['cost_rangka'];
                 $costFinishing = (float) $configuration['cost_finishing'];
 
-                $location = DB::table('m_locations')
-                    ->where('id', $locationId)
+                $engine = DB::table('m_engines')
+                    ->where('id', $engineId)
                     ->where('status', 'Active')
                     ->first();
 
-                $engine = DB::table('m_engines')
-                    ->where('id', $engineId)
+                $isDigitalPrintA3 = $engine && (stripos($engine->name, 'digital print') !== false);
+
+                if ($isDigitalPrintA3) {
+                    $dieCutCutting = DB::table('m_cuttings')->where('name', 'ILIKE', '%die cut%')->first();
+                    if ($dieCutCutting) {
+                        $cutPriceRow = DB::table('m_digital_cutting_production_cost_prices as p')
+                            ->join('m_digital_cutting_production_cost_details as d', 'd.id', '=', 'p.digital_cutting_production_cost_detail_id')
+                            ->join('m_digital_cutting_production_costs as pc', 'pc.id', '=', 'd.digital_cutting_production_cost_id')
+                            ->where('d.cutting_id', $dieCutCutting->id)
+                            ->where('p.price_type', 'general')
+                            ->where('p.quantity_tier', 'tier_2_5')
+                            ->where('pc.location_id', $locationId)
+                            ->select('p.price')
+                            ->first();
+
+                        if ($cutPriceRow) {
+                            $costFinishing = (float) $cutPriceRow->price;
+                        }
+                    }
+                }
+
+                $location = DB::table('m_locations')
+                    ->where('id', $locationId)
                     ->where('status', 'Active')
                     ->first();
 
@@ -2919,6 +3290,179 @@ class ProductionCostFinishingDisplayCT extends Controller
                 }
 
                 $divisionPercentage = (float) $divisionRule->markup_percentage;
+
+                /*
+                |--------------------------------------------------------------------------
+                | PROSES KOMPONEN DIGITAL PRINT A3+
+                |--------------------------------------------------------------------------
+                */
+                $engine = DB::table('m_engines')->where('id', $engineId)->first();
+                $isDigitalPrintA3 = $engine && (stripos($engine->name, 'digital print') !== false);
+
+                if ($isDigitalPrintA3) {
+                    $hargaBoxKN = (float) $configuration['cost_rangka'];
+                    $ongkosDieCut = (float) $configuration['cost_finishing'];
+
+                    $cfgRow = DB::table('m_display_product_configurations')->where('id', $configurationId)->first();
+                    $sheetQty = (int) ($cfgRow->sheet_qty ?? 4);
+                    if ($sheetQty <= 0) {
+                        $sheetQty = 4;
+                    }
+
+                    foreach ($configurationComponents as $row) {
+                        $materialId = (int) $row['material_id'];
+                        $laminationId = !empty($row['lamination_id']) ? (int) $row['lamination_id'] : null;
+                        $rounding = (float) ($row['rounding_value'] ?? 0);
+
+                        $combinationKey = $configurationId . '-' . $materialId . '-' . ($laminationId ?? 'null');
+                        if (isset($processedCombinations[$combinationKey])) {
+                            throw new \Exception('Material dan laminasi yang sama tidak boleh dimasukkan dua kali dalam konfigurasi.');
+                        }
+                        $processedCombinations[$combinationKey] = true;
+
+                        // Ambil harga print 1 sisi
+                        $print1Row = DB::table('m_digital_production_cost_details as dpcd')
+                            ->join('m_digital_production_costs as dpc', 'dpc.id', '=', 'dpcd.digital_production_cost_id')
+                            ->join('m_digital_production_cost_prices as dpcp', 'dpcp.digital_production_cost_detail_id', '=', 'dpcd.id')
+                            ->where('dpc.engine_id', $engineId)
+                            ->where('dpc.location_id', $locationId)
+                            ->where('dpcd.material_id', $materialId)
+                            ->where('dpcp.price_type', 'general')
+                            ->where('dpcp.quantity_tier', 'tier_2_5')
+                            ->where('dpcp.print_type', 'single')
+                            ->select('dpcp.selling_price')
+                            ->first();
+
+                        if (!$print1Row) {
+                            throw new \Exception('Harga Print 1 Sisi (tier 2-5) belum dikonfigurasi untuk material terpilih.');
+                        }
+                        $hargaPrint1Sisi = (float) $print1Row->selling_price;
+
+                        // Ambil harga print 2 sisi
+                        $print2Row = DB::table('m_digital_production_cost_details as dpcd')
+                            ->join('m_digital_production_costs as dpc', 'dpc.id', '=', 'dpcd.digital_production_cost_id')
+                            ->join('m_digital_production_cost_prices as dpcp', 'dpcp.digital_production_cost_detail_id', '=', 'dpcd.id')
+                            ->where('dpc.engine_id', $engineId)
+                            ->where('dpc.location_id', $locationId)
+                            ->where('dpcd.material_id', $materialId)
+                            ->where('dpcp.price_type', 'general')
+                            ->where('dpcp.quantity_tier', 'tier_2_5')
+                            ->where('dpcp.print_type', 'double')
+                            ->select('dpcp.selling_price')
+                            ->first();
+
+                        if (!$print2Row) {
+                            throw new \Exception('Harga Print 2 Sisi (tier 2-5) belum dikonfigurasi untuk material terpilih.');
+                        }
+                        $hargaPrint2Sisi = (float) $print2Row->selling_price;
+
+                        // Ambil harga laminasi jika ada
+                        $hargaLaminasi = 0;
+                        if ($laminationId !== null) {
+                            if ($isDigitalPrintA3) {
+                                $glossyLam = DB::table('m_laminations')
+                                    ->where('name', 'ILIKE', '%glossy%')
+                                    ->where('name', 'ILIKE', '%a3%')
+                                    ->where('status', 'Active')
+                                    ->first();
+
+                                if ($glossyLam) {
+                                    $laminationId = (int) $glossyLam->id;
+                                }
+                            }
+
+                            $lamRow = DB::table('m_digital_lamination_production_cost_details as dlpcd')
+                                ->join('m_digital_lamination_production_costs as dlpc', 'dlpc.id', '=', 'dlpcd.digital_lamination_production_cost_id')
+                                ->join('m_digital_lamination_production_cost_prices as dlpcp', 'dlpcp.digital_lamination_production_cost_detail_id', '=', 'dlpcd.id')
+                                ->where('dlpc.engine_id', $engineId)
+                                ->where('dlpc.location_id', $locationId)
+                                ->where('dlpcd.lamination_id', $laminationId)
+                                ->where('dlpcp.price_type', 'general')
+                                ->where('dlpcp.quantity_tier', 'tier_2_5')
+                                ->where('dlpcp.print_type', 'single')
+                                ->select('dlpcp.selling_price')
+                                ->first();
+
+                            if (!$lamRow) {
+                                throw new \Exception('Harga Laminasi (tier 2-5) belum dikonfigurasi.');
+                            }
+                            $hargaLaminasi = (float) $lamRow->selling_price;
+                        }
+
+                        // Formula per box
+                        $generalPrice1Side = ($hargaPrint1Sisi * $sheetQty) + $hargaBoxKN + $ongkosDieCut + ($sheetQty * $hargaLaminasi);
+                        $generalPrice2Side = ($hargaPrint2Sisi * $sheetQty) + $hargaBoxKN + $ongkosDieCut + ($sheetQty * $hargaLaminasi);
+
+                        if ($rounding > 0) {
+                            $generalPrice1Side = ceil($generalPrice1Side / $rounding) * $rounding;
+                            $generalPrice2Side = ceil($generalPrice2Side / $rounding) * $rounding;
+                        }
+
+                        $divisionPrice1Side = $generalPrice1Side * ($divisionPercentage / 100);
+                        $divisionPrice2Side = $generalPrice2Side * ($divisionPercentage / 100);
+
+                        // Master component query / insert
+                        $componentQuery = DB::table('m_display_product_components')
+                            ->where('display_product_id', $targetProductId)
+                            ->where('component_type', 'material')
+                            ->where('material_id', $materialId);
+
+                        if ($laminationId === null) {
+                            $componentQuery->whereNull('lamination_id');
+                        } else {
+                            $componentQuery->where('lamination_id', $laminationId);
+                        }
+
+                        $component = $componentQuery->first();
+
+                        if (!$component) {
+                            $componentId = DB::table('m_display_product_components')->insertGetId([
+                                'display_product_id' => $targetProductId,
+                                'component_type' => 'material',
+                                'material_id' => $materialId,
+                                'lamination_id' => $laminationId,
+                                'created_by' => $userName,
+                                'created_at' => now(),
+                                'updated_by' => $userName,
+                                'updated_at' => now(),
+                            ]);
+                        } else {
+                            $componentId = (int) $component->id;
+                        }
+
+                        $existingPrice = DB::table('m_display_product_component_prices')
+                            ->where('configuration_id', $configurationId)
+                            ->where('component_id', $componentId)
+                            ->first();
+
+                        $priceData = [
+                            'general_price' => $generalPrice1Side,
+                            'division_price' => $divisionPrice1Side,
+                            'general_price_2_side' => $generalPrice2Side,
+                            'division_price_2_side' => $divisionPrice2Side,
+                            'plain_price' => null,
+                            'rounding_value_component' => $rounding,
+                            'updated_by' => $userName,
+                            'updated_at' => now(),
+                        ];
+
+                        if ($existingPrice) {
+                            DB::table('m_display_product_component_prices')
+                                ->where('id', $existingPrice->id)
+                                ->update($priceData);
+                        } else {
+                            DB::table('m_display_product_component_prices')
+                                ->insert(array_merge([
+                                    'configuration_id' => $configurationId,
+                                    'component_id' => $componentId,
+                                    'created_by' => $userName,
+                                    'created_at' => now(),
+                                ], $priceData));
+                        }
+                    }
+
+                    continue;
+                }
 
                 /*
              * Urutkan komponen berdasarkan formula

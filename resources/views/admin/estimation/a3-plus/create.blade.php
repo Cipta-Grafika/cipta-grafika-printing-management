@@ -110,26 +110,28 @@
                                 </div>
 
                                 <div class="form-grid">
-                                    {{-- Mode Produksi --}}
+                                    {{-- Kategori --}}
                                     <div class="field" style="margin-bottom: 20px;">
-                                        <label class="field-label" for="production_mode">
-                                            Mode Produksi
+                                        <label class="field-label" for="category_id">
+                                            Kategori
                                             <span class="req">*</span>
                                         </label>
-
-                                        <select id="production_mode" name="production_mode" class="select select2" required>
-                                            <option value="layout" selected>Hitung Layout (Hitung Muat per Lembar A3+)
-                                            </option>
-                                            <option value="direct">Cetak Langsung per Lembar (Direct Sheet)</option>
+                                        <select id="category_id" name="category_id" class="select select2" required>
+                                            <option value="">Pilih Kategori</option>
+                                            @foreach ($categories ?? [] as $category)
+                                                <option value="{{ $category->id }}"
+                                                    data-name="{{ strtolower(trim($category->name)) }}"
+                                                    {{ old('category_id') == $category->id ? 'selected' : '' }}>
+                                                    {{ $category->name }}
+                                                </option>
+                                            @endforeach
                                         </select>
-                                        <small class="field-help" id="productionModeHelp">
-                                            Mode layout otomatis menghitung berapa objek produk jadi yang muat di lembar
-                                            A3+.
-                                        </small>
+                                        <small class="field-help" id="categoryHelp">Pilih kategori untuk memfilter material
+                                            atau produk.</small>
                                     </div>
 
                                     {{-- Warna Cetak --}}
-                                    <div class="field" style="margin-bottom: 20px;">
+                                    <div class="field" id="printColorField" style="margin-bottom: 20px;">
                                         <label class="field-label" for="print_color">
                                             Warna Cetak
                                             <span class="req">*</span>
@@ -144,19 +146,19 @@
                                 </div>
 
                                 <div class="form-grid">
-                                    {{-- Material A3+ --}}
+                                    {{-- Material A3+ / Komponen Display --}}
                                     <div class="field" style="margin-bottom: 20px;">
                                         <label class="field-label" for="material_id">
-                                            Material Kertas / Stiker
+                                            <span id="materialLabelText">Material Kertas / Stiker</span>
                                             <span class="req">*</span>
                                         </label>
 
                                         <select name="material_id" id="material_id" class="select select2" required>
-                                            <option value="">Pilih Lokasi terlebih dahulu</option>
+                                            <option value="">Pilih Lokasi &amp; Kategori terlebih dahulu</option>
                                         </select>
                                         <small class="field-help" id="materialHelp">
-                                            Material akan ditampilkan otomatis berdasarkan Lokasi dan Warna Cetak yang
-                                            dipilih.
+                                            Material akan ditampilkan otomatis berdasarkan Lokasi, Kategori, dan Warna
+                                            Cetak.
                                         </small>
 
                                         {{-- Info Ringkas HPP Material dari Master --}}
@@ -180,6 +182,54 @@
                                             <option value="2">2 Sisi (Bolak-Balik)</option>
                                         </select>
                                         <small class="field-help">Pilih cetak 1 sisi atau 2 sisi bolak-balik.</small>
+                                    </div>
+                                </div>
+
+                                {{-- Mode Produksi (Layout vs Direct Sheet - Khusus Non-Display) --}}
+                                <div class="form-grid" id="productionModeWrapper">
+                                    <div class="field" style="margin-bottom: 20px;">
+                                        <label class="field-label" for="production_mode">
+                                            Mode Produksi
+                                            <span class="req">*</span>
+                                        </label>
+
+                                        <select id="production_mode" name="production_mode" class="select select2"
+                                            required>
+                                            <option value="layout" selected>Hitung Layout (Hitung Muat per Lembar A3+)
+                                            </option>
+                                            <option value="direct">Cetak Langsung per Lembar (Direct Sheet)</option>
+                                        </select>
+                                        <small class="field-help" id="productionModeHelp">
+                                            Mode layout otomatis menghitung berapa objek produk jadi yang muat di lembar
+                                            A3+.
+                                        </small>
+                                    </div>
+                                </div>
+
+                                {{-- CONTAINER MODE DISPLAY (KHUSUS DISPLAY) --}}
+                                <div id="displayFieldsContainer" style="display: none;">
+                                    <div class="form-grid">
+                                        <div class="field" style="margin-bottom: 20px;">
+                                            <label class="field-label" for="display_qty">
+                                                Jumlah Paket (Box)
+                                                <span class="req">*</span>
+                                            </label>
+                                            <div class="input-suffix">
+                                                <input id="display_qty" class="input" type="number" min="1"
+                                                    step="1" placeholder="Contoh: 1" value="1">
+                                            </div>
+                                            <small class="field-help" id="displayQtyHelp">1 Paket = 100 pcs (Kebutuhan
+                                                Cetak: 4 Lembar A3+).</small>
+                                        </div>
+                                        <div class="field" style="margin-bottom: 20px;">
+                                            <label class="field-label">Informasi Produk Display</label>
+                                            <div
+                                                style="padding: 10px 14px; border-radius: 8px; background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.2); font-size: 13px; color: #1e40af;">
+                                                <i class="bi bi-box-seam me-1"></i>
+                                                <span id="displayPackageSummary">Paket display siap cetak lengkap dengan
+                                                    Box KN dan Finishing Die Cut.</span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -295,7 +345,7 @@
                             {{-- =========================================================
                                 3. FINISHING: LAMINASI & CUTTING
                             ========================================================== --}}
-                            <div class="form-section">
+                            <div class="form-section" id="finishingSection">
                                 <div class="form-section-head">
                                     <span class="eyebrow">
                                         FINISHING: LAMINASI &amp; CUTTING
@@ -348,20 +398,25 @@
 
                                         <select id="cutting_type" name="cutting_type" class="select select2">
                                             <option value="none" selected>Tanpa Cutting / Tanpa Potong</option>
-                                            <option value="potong">Potong Lurus (Guillotine)</option>
                                             @foreach ($cuttings ?? [] as $cut)
                                                 @php
                                                     $desc = '';
-                                                    $lowerName = strtolower($cut->name);
-                                                    if (str_contains($lowerName, 'kiss')) {
+                                                    $lowerName = strtolower(trim($cut->name));
+                                                    $isPotong = ($lowerName === 'potong');
+                                                    if ($isPotong) {
+                                                        $desc = ' Lurus (Guillotine)';
+                                                    } elseif (str_contains($lowerName, 'kiss')) {
                                                         $desc = ' (Cutting Sticker Setengah Putus)';
                                                     } elseif (str_contains($lowerName, 'die')) {
                                                         $desc = ' (Cutting Sticker Putus)';
                                                     } elseif (str_contains($lowerName, 'perforasi')) {
                                                         $desc = ' (Garis Cacah)';
                                                     }
+                                                    $val = $isPotong ? 'potong' : $cut->id;
                                                 @endphp
-                                                <option value="{{ $cut->id }}">{{ $cut->name }}{{ $desc }}</option>
+                                                <option value="{{ $val }}" {{ old('cutting_type') == $val ? 'selected' : '' }}>
+                                                    {{ $cut->name }}{{ $desc }}
+                                                </option>
                                             @endforeach
                                         </select>
                                         <small class="field-help" id="cuttingHelpText">
@@ -384,16 +439,29 @@
                                         </label>
                                         <select id="potong_size_override" name="potong_size_override"
                                             class="select select2">
-                                            <option value="" selected>Otomatis (Berdasarkan Luas Ukuran Jadi)</option>
+                                            <option value="" selected>Otomatis (Berdasarkan Luas Ukuran Jadi)
+                                            </option>
                                             <option value="A3">A3 (Besar / 29.7 × 42 cm)</option>
                                             <option value="A4">A4 (Standar / 21 × 29.7 cm)</option>
                                             <option value="A5">A5 (Sedang / 14.8 × 21 cm)</option>
                                             <option value="<=A6">≤ A6 (Kecil / Kartu Nama)</option>
                                         </select>
                                         <small class="field-help" id="potongOverrideHelp">
-                                            Biaya potong dihitung per batch produksi berdasarkan tarif ongkos potong minimal dari master data.
+                                            Biaya potong dihitung per batch produksi berdasarkan tarif ongkos potong minimal
+                                            dari master data.
                                         </small>
                                     </div>
+                                </div>
+                            </div>
+
+                            {{-- Notice Finishing untuk Display --}}
+                            <div id="displayFinishingNotice" class="form-section"
+                                style="display: none; margin-bottom: 20px;">
+                                <div
+                                    style="padding: 14px 18px; border-radius: 8px; background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.2); font-size: 13.5px; color: #065f46;">
+                                    <i class="bi bi-check-circle-fill me-2 text-success"></i>
+                                    <strong>Finishing Otomatis:</strong> Ongkos Die Cut dan Box KN sudah otomatis
+                                    diperhitungkan ke dalam paket Display.
                                 </div>
                             </div>
 
@@ -1053,7 +1121,8 @@
                     qtyInput.setAttribute('required', 'required');
                     sheetQtyInput.removeAttribute('required');
                     if (potongHelp) {
-                        potongHelp.textContent = 'Biaya potong dihitung per batch produksi berdasarkan tarif ongkos potong minimal dari master data.';
+                        potongHelp.textContent =
+                            'Biaya potong dihitung per batch produksi berdasarkan tarif ongkos potong minimal dari master data.';
                     }
                 } else {
                     layoutFields.style.display = 'none';
@@ -1063,7 +1132,8 @@
                     qtyInput.removeAttribute('required');
                     sheetQtyInput.setAttribute('required', 'required');
                     if (potongHelp) {
-                        potongHelp.textContent = 'Pada mode cetak langsung, silakan tentukan kategori ukuran potong secara spesifik (A3, A4, A5, atau ≤ A6).';
+                        potongHelp.textContent =
+                            'Pada mode cetak langsung, silakan tentukan kategori ukuran potong secara spesifik (A3, A4, A5, atau ≤ A6).';
                     }
                 }
             });
@@ -1127,11 +1197,16 @@
             });
 
             /* =====================================================
-               5B. MATERIAL FILTER BERDASARKAN LOKASI & WARNA CETAK
+               5B. MATERIAL FILTER BERDASARKAN LOKASI, KATEGORI & WARNA CETAK
             ===================================================== */
             const locationSelect = $('#location_id');
+            const categorySelect = $('#category_id');
             const printColorSelect = $('#print_color');
             const materialSelect = $('#material_id');
+            const displayQtyInput = document.getElementById('display_qty');
+            const displayPackageSummary = document.getElementById('displayPackageSummary');
+            const displayQtyHelp = document.getElementById('displayQtyHelp');
+
             const materialMasterInfo = document.getElementById('materialMasterInfo');
             const infoPaperCost = document.getElementById('infoPaperCost');
             const infoSingleCost = document.getElementById('infoSingleCost');
@@ -1140,10 +1215,53 @@
 
             const getMaterialsUrl = "{{ route('admin_get_materials_a3plus') }}";
 
+            function toggleDisplayMode(isDisplay) {
+                const materialLabel = document.getElementById('materialLabelText');
+                const productionModeWrapper = document.getElementById('productionModeWrapper');
+                const printColorField = document.getElementById('printColorField');
+                const layoutFields = document.getElementById('layoutFieldsContainer');
+                const directFields = document.getElementById('directSheetFieldsContainer');
+                const displayFields = document.getElementById('displayFieldsContainer');
+                const finishingSection = document.getElementById('finishingSection');
+                const displayFinishingNotice = document.getElementById('displayFinishingNotice');
+
+                if (isDisplay) {
+                    if (materialLabel) materialLabel.textContent = 'Produk & Komponen Display';
+                    if (productionModeWrapper) productionModeWrapper.style.display = 'none';
+                    if (printColorField) printColorField.style.display = 'none';
+                    if (layoutFields) layoutFields.style.display = 'none';
+                    if (directFields) directFields.style.display = 'none';
+                    if (displayFields) displayFields.style.display = 'block';
+                    if (finishingSection) finishingSection.style.display = 'none';
+                    if (displayFinishingNotice) displayFinishingNotice.style.display = 'block';
+
+                    lengthInput.removeAttribute('required');
+                    widthInput.removeAttribute('required');
+                    qtyInput.removeAttribute('required');
+                    sheetQtyInput.removeAttribute('required');
+                } else {
+                    if (materialLabel) materialLabel.textContent = 'Material Kertas / Stiker';
+                    if (productionModeWrapper) productionModeWrapper.style.display = 'grid';
+                    if (printColorField) printColorField.style.display = 'block';
+                    if (displayFields) displayFields.style.display = 'none';
+                    if (finishingSection) finishingSection.style.display = 'block';
+                    if (displayFinishingNotice) displayFinishingNotice.style.display = 'none';
+
+                    modeSelect.trigger('change');
+                }
+            }
+
             async function loadMaterials() {
                 const locationId = locationSelect.val();
+                const categoryId = categorySelect.val();
+                const selectedCatOption = categorySelect.find('option:selected');
+                const catName = (selectedCatOption.data('name') || selectedCatOption.text() || '').trim()
+                    .toLowerCase();
+                const isDisplay = catName.includes('display');
                 const printColor = printColorSelect.val() || 'fc';
                 const currentMaterialId = materialSelect.val();
+
+                toggleDisplayMode(isDisplay);
 
                 if (!locationId) {
                     materialSelect.empty();
@@ -1158,13 +1276,20 @@
 
                 materialSelect.prop('disabled', true);
                 if (materialHelp) {
-                    materialHelp.textContent = 'Memuat material untuk lokasi terpilih...';
+                    materialHelp.textContent = isDisplay ?
+                        'Memuat produk & komponen display untuk lokasi terpilih...' :
+                        'Memuat material untuk lokasi terpilih...';
                 }
 
                 try {
                     const url = new URL(getMaterialsUrl, window.location.origin);
                     url.searchParams.set('location_id', locationId);
-                    url.searchParams.set('print_color', printColor);
+                    if (categoryId) {
+                        url.searchParams.set('category_id', categoryId);
+                    }
+                    if (!isDisplay) {
+                        url.searchParams.set('print_color', printColor);
+                    }
 
                     const response = await fetch(url.toString(), {
                         headers: {
@@ -1176,31 +1301,49 @@
                     const res = await response.json();
 
                     materialSelect.empty();
-                    materialSelect.append('<option value="">Pilih Material</option>');
+                    materialSelect.append('<option value="">' + (isDisplay ? 'Pilih Produk & Komponen Display' :
+                        'Pilih Material') + '</option>');
 
                     if (response.ok && res.success && Array.isArray(res.data) && res.data.length > 0) {
-                        // Kelompokkan data berdasarkan category_name
-                        const grouped = {};
-                        res.data.forEach(function(mat) {
-                            const cat = mat.category_name || 'Lainnya';
-                            if (!grouped[cat]) grouped[cat] = [];
-                            grouped[cat].push(mat);
-                        });
-
-                        Object.keys(grouped).forEach(function(catName) {
-                            const $optgroup = $('<optgroup>').attr('label', catName);
-                            grouped[catName].forEach(function(mat) {
+                        if (isDisplay) {
+                            res.data.forEach(function(item) {
                                 const $option = $('<option>')
-                                    .val(mat.id)
-                                    .text(mat.name)
-                                    .attr('data-category', mat.category_name)
-                                    .attr('data-paper-cost', mat.paper_cost || 0)
-                                    .attr('data-single-cost', mat.single_print_cost || 0)
-                                    .attr('data-double-cost', mat.double_print_cost || 0);
-                                $optgroup.append($option);
+                                    .val(item.id)
+                                    .text(item.name)
+                                    .attr('data-is-display', 'true')
+                                    .attr('data-display-name', item.display_name)
+                                    .attr('data-package-qty', item.package_qty)
+                                    .attr('data-sheet-qty', item.sheet_qty)
+                                    .attr('data-gen1', item.general_price)
+                                    .attr('data-gen2', item.general_price_2_side)
+                                    .attr('data-div1', item.division_price)
+                                    .attr('data-div2', item.division_price_2_side);
+                                materialSelect.append($option);
                             });
-                            materialSelect.append($optgroup);
-                        });
+                        } else {
+                            // Kelompokkan data berdasarkan category_name
+                            const grouped = {};
+                            res.data.forEach(function(mat) {
+                                const cat = mat.category_name || 'Lainnya';
+                                if (!grouped[cat]) grouped[cat] = [];
+                                grouped[cat].push(mat);
+                            });
+
+                            Object.keys(grouped).forEach(function(cName) {
+                                const $optgroup = $('<optgroup>').attr('label', cName);
+                                grouped[cName].forEach(function(mat) {
+                                    const $option = $('<option>')
+                                        .val(mat.id)
+                                        .text(mat.name)
+                                        .attr('data-category', mat.category_name)
+                                        .attr('data-paper-cost', mat.paper_cost || 0)
+                                        .attr('data-single-cost', mat.single_print_cost || 0)
+                                        .attr('data-double-cost', mat.double_print_cost || 0);
+                                    $optgroup.append($option);
+                                });
+                                materialSelect.append($optgroup);
+                            });
+                        }
 
                         // Re-select jika sebelumnya sudah memilih material yang sama
                         if (currentMaterialId && materialSelect.find(`option[value="${currentMaterialId}"]`)
@@ -1211,18 +1354,22 @@
                         }
 
                         if (materialHelp) {
-                            const colorLabel = printColor === 'bw' ? 'Hitam Putih (BW)' : 'Full Color';
-                            materialHelp.textContent =
-                                `Menampilkan material ${colorLabel} yang aktif pada lokasi terpilih.`;
+                            if (isDisplay) {
+                                materialHelp.textContent = 'Pilih kombinasi produk display dan bahan cetak.';
+                            } else {
+                                const colorLabel = printColor === 'bw' ? 'Hitam Putih (BW)' : 'Full Color';
+                                materialHelp.textContent =
+                                    `Menampilkan material ${colorLabel} yang aktif pada kategori dan lokasi terpilih.`;
+                            }
                         }
                     } else {
-                        const colorLabel = printColor === 'bw' ? 'Hitam Putih (BW)' : 'Full Color';
                         materialSelect.append(
-                            `<option value="" disabled>Belum ada material untuk kategori ${colorLabel} di lokasi ini</option>`
+                            `<option value="" disabled>${isDisplay ? 'Belum ada produk display di lokasi ini' : 'Belum ada material untuk kategori ini di lokasi ini'}</option>`
                         );
                         if (materialHelp) {
-                            materialHelp.textContent =
-                                `Belum ada material di master untuk kategori ${colorLabel} pada lokasi ini.`;
+                            materialHelp.textContent = isDisplay ?
+                                'Belum ada produk display yang dikonfigurasi untuk lokasi ini.' :
+                                'Belum ada material di master untuk kategori dan lokasi terpilih.';
                         }
                     }
                 } catch (err) {
@@ -1239,8 +1386,9 @@
                 }
             }
 
-            // Event listener saat Lokasi atau Warna Cetak berubah
+            // Event listener saat Lokasi, Kategori, atau Warna Cetak berubah
             locationSelect.on('change', loadMaterials);
+            categorySelect.on('change', loadMaterials);
             printColorSelect.on('change', loadMaterials);
 
             // Panggil saat inisialisasi jika lokasi sudah terpilih
@@ -1250,17 +1398,38 @@
 
             materialSelect.on('change', function() {
                 const opt = $(this).find(':selected');
-                const paperCost = parseFloat(opt.data('paper-cost') || opt.attr('data-paper-cost')) || 0;
-                const singleCost = parseFloat(opt.data('single-cost') || opt.attr('data-single-cost')) || 0;
-                const doubleCost = parseFloat(opt.data('double-cost') || opt.attr('data-double-cost')) || 0;
+                const isDisplay = opt.attr('data-is-display') === 'true';
 
-                if ($(this).val()) {
-                    infoPaperCost.textContent = 'Rp ' + Math.round(paperCost).toLocaleString('id-ID');
-                    infoSingleCost.textContent = 'Rp ' + Math.round(singleCost).toLocaleString('id-ID');
-                    infoDoubleCost.textContent = 'Rp ' + Math.round(doubleCost).toLocaleString('id-ID');
-                    materialMasterInfo.style.display = 'block';
-                } else {
+                if (isDisplay) {
+                    const pkgQty = parseInt(opt.attr('data-package-qty')) || 100;
+                    const sheetQty = parseInt(opt.attr('data-sheet-qty')) || 4;
+                    const dName = opt.attr('data-display-name') || 'Produk Display';
+
+                    if (displayPackageSummary) {
+                        displayPackageSummary.textContent =
+                            `1 Box ${dName} berisi ${pkgQty} pcs. Memerlukan ${sheetQty} lembar A3+. Ongkos Die Cut dan Box KN sudah otomatis diperhitungkan.`;
+                    }
+                    if (displayQtyHelp) {
+                        displayQtyHelp.textContent =
+                            `1 Paket = ${pkgQty} pcs (Kebutuhan Cetak: ${sheetQty} Lembar A3+).`;
+                    }
                     materialMasterInfo.style.display = 'none';
+                } else {
+                    const paperCost = parseFloat(opt.data('paper-cost') || opt.attr('data-paper-cost')) ||
+                    0;
+                    const singleCost = parseFloat(opt.data('single-cost') || opt.attr(
+                        'data-single-cost')) || 0;
+                    const doubleCost = parseFloat(opt.data('double-cost') || opt.attr(
+                        'data-double-cost')) || 0;
+
+                    if ($(this).val()) {
+                        infoPaperCost.textContent = 'Rp ' + Math.round(paperCost).toLocaleString('id-ID');
+                        infoSingleCost.textContent = 'Rp ' + Math.round(singleCost).toLocaleString('id-ID');
+                        infoDoubleCost.textContent = 'Rp ' + Math.round(doubleCost).toLocaleString('id-ID');
+                        materialMasterInfo.style.display = 'block';
+                    } else {
+                        materialMasterInfo.style.display = 'none';
+                    }
                 }
             });
 
@@ -1632,7 +1801,8 @@
                     componentElement.className = 'preview-component';
                     componentElement.style.marginBottom = '12px';
 
-                    const priceTypeLabel = component.price_type === 'hpp_margin' ? 'HPP + Margin' : 'Harga Satuan';
+                    const priceTypeLabel = component.price_type === 'hpp_margin' ? 'HPP + Margin' :
+                        'Harga Satuan';
                     const salePricePerUnit = Number(component.sale_price_per_unit) || 0;
                     const subtotal = Number(component.subtotal) || 0;
                     const qty = Number(component.qty) || 0;
@@ -1749,6 +1919,17 @@
 
                 try {
                     const formData = new FormData(form);
+
+                    // Khusus mode display, sinkronkan kuantiti paket dan production mode
+                    const catOption = categorySelect.find('option:selected');
+                    const catName = (catOption.data('name') || catOption.text() || '').trim()
+                        .toLowerCase();
+                    const isDisplay = catName.includes('display');
+                    if (isDisplay) {
+                        const dQty = displayQtyInput ? (parseInt(displayQtyInput.value) || 1) : 1;
+                        formData.set('qty', dQty);
+                        formData.set('production_mode', 'display');
+                    }
 
                     // Bersihkan tanda titik pada diskon nominal
                     const discountType = formData.get('discount_type');
@@ -1875,10 +2056,12 @@
                         .cutting_name || 'Tanpa Cutting';
                     if (resultData.is_potong) {
                         document.getElementById('previewCuttingUnitPrice').textContent = resultData
-                            .cutting_subtotal > 0 ? `${formatRupiah(resultData.cutting_subtotal)} (Min)` : '—';
+                            .cutting_subtotal > 0 ?
+                            `${formatRupiah(resultData.cutting_subtotal)} (Min)` : '—';
                     } else {
                         document.getElementById('previewCuttingUnitPrice').textContent = resultData
-                            .cutting_subtotal > 0 ? formatRupiah(resultData.cutting_subtotal / resultData
+                            .cutting_subtotal > 0 ? formatRupiah(resultData.cutting_subtotal /
+                                resultData
                                 .total_sheets) : '—';
                     }
                     document.getElementById('previewCuttingSubtotal').textContent = formatRupiah(

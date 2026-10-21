@@ -303,10 +303,14 @@
                                         </select>
                                     </div>
 
+                                    @php
+                                        $isDigitalPrintA3 = stripos($configuration->engine_name ?? '', 'digital print') !== false;
+                                    @endphp
+
                                     <div class="edit-field">
 
                                         <label>
-                                            Cost Rangka
+                                            {{ $isDigitalPrintA3 ? 'Harga Box KN' : 'Cost Rangka' }}
                                         </label>
 
                                         <div class="edit-input-prefix">
@@ -322,7 +326,7 @@
                                     <div class="edit-field">
 
                                         <label>
-                                            Cost Finishing
+                                            {{ $isDigitalPrintA3 ? 'Ongkos Die Cut' : 'Cost Finishing' }}
                                         </label>
 
                                         <div class="edit-input-prefix">
@@ -331,6 +335,7 @@
                                             <input type="text"
                                                 name="configurations[{{ $configIndex }}][cost_finishing]" min="0"
                                                 step="0.01" class="js-rupiah"
+                                                @if ($isDigitalPrintA3) readonly style="cursor: not-allowed;" @endif
                                                 value="{{ old('configurations.' . $configIndex . '.cost_finishing', $configuration->cost_finishing) }}">
                                         </div>
 
@@ -383,6 +388,7 @@
                         @forelse ($groupedComponents as $configurationId => $items)
                             @php
                                 $config = collect($configurations)->firstWhere('configuration_id', $configurationId);
+                                $isConfigDigitalPrintA3 = stripos($config->engine_name ?? '', 'digital print') !== false;
 
                                 $editableComponents = collect($editComponents ?? [])
                                     ->where('configuration_id', $configurationId)
@@ -425,10 +431,12 @@
                                     <div class="display-components-container" data-component-container
                                         data-location-id="{{ $config->location_id }}"
                                         data-engine-id="{{ $config->engine_id }}"
+                                        data-engine-name="{{ $config->engine_name }}"
                                         data-configuration-id="{{ $configurationId }}">
 
-                                        {{-- HEADER KOMPONEN (3 kolom, sama dengan row) --}}
-                                        <div class="display-component-header">
+                                        {{-- HEADER KOMPONEN --}}
+                                        <div class="display-component-header"
+                                            @if ($isConfigDigitalPrintA3) style="grid-template-columns: minmax(160px, 1.2fr) minmax(180px, 1.4fr) minmax(120px, 1fr) minmax(110px, 1fr) minmax(110px, 1fr) minmax(110px, 1fr) minmax(110px, 1fr) 50px;" @endif>
                                             <div class="component-column">
                                                 <label class="field-label">
                                                     Material
@@ -444,15 +452,37 @@
                                                 <label class="field-label">Nilai Pembulatan (Rp)</label>
                                             </div>
 
-                                            {{-- HARGA UMUM --}}
-                                            <div class="component-column">
-                                                <label class="field-label">Harga Umum (Rp)</label>
-                                            </div>
+                                            @if ($isConfigDigitalPrintA3)
+                                                {{-- HARGA UMUM 1 MUKA --}}
+                                                <div class="component-column">
+                                                    <label class="field-label">Umum (1 Muka)</label>
+                                                </div>
 
-                                            {{-- HARGA DIVISI --}}
-                                            <div class="component-column">
-                                                <label class="field-label">Harga Divisi (Rp)</label>
-                                            </div>
+                                                {{-- HARGA UMUM 2 MUKA --}}
+                                                <div class="component-column">
+                                                    <label class="field-label">Umum (2 Muka)</label>
+                                                </div>
+
+                                                {{-- HARGA DIVISI 1 MUKA --}}
+                                                <div class="component-column">
+                                                    <label class="field-label">Divisi (1 Muka)</label>
+                                                </div>
+
+                                                {{-- HARGA DIVISI 2 MUKA --}}
+                                                <div class="component-column">
+                                                    <label class="field-label">Divisi (2 Muka)</label>
+                                                </div>
+                                            @else
+                                                {{-- HARGA UMUM --}}
+                                                <div class="component-column">
+                                                    <label class="field-label">Harga Umum (Rp)</label>
+                                                </div>
+
+                                                {{-- HARGA DIVISI --}}
+                                                <div class="component-column">
+                                                    <label class="field-label">Harga Divisi (Rp)</label>
+                                                </div>
+                                            @endif
 
                                             {{-- AKSI --}}
                                             <div class="component-column component-action">
@@ -465,7 +495,8 @@
 
                                             @forelse ($editableComponents as $index => $component)
                                                 <div class="display-component-row"
-                                                    data-component-index="{{ $index }}">
+                                                    data-component-index="{{ $index }}"
+                                                    @if ($isConfigDigitalPrintA3) style="grid-template-columns: minmax(160px, 1.2fr) minmax(180px, 1.4fr) minmax(120px, 1fr) minmax(110px, 1fr) minmax(110px, 1fr) minmax(110px, 1fr) minmax(110px, 1fr) 50px;" @endif>
 
                                                     {{-- ID komponen yang sudah tersimpan --}}
                                                     <input type="hidden"
@@ -503,19 +534,49 @@
                                                             autocomplete="off">
                                                     </div>
 
-                                                    {{-- HARGA UMUM --}}
-                                                    <div class="component-column">
-                                                        <input type="text" class="input js-rupiah"
-                                                            value="{{ $component->general_price ?? 0 }}"
-                                                            placeholder="Harga Umum" readonly>
-                                                    </div>
+                                                    @if ($isConfigDigitalPrintA3)
+                                                        {{-- HARGA UMUM 1 MUKA --}}
+                                                        <div class="component-column">
+                                                            <input type="text" class="input js-rupiah"
+                                                                value="{{ $component->general_price ?? 0 }}"
+                                                                placeholder="Umum 1 Muka" readonly>
+                                                        </div>
 
-                                                    {{-- HARGA DIVISI --}}
-                                                    <div class="component-column">
-                                                        <input type="text" class="input js-rupiah"
-                                                            value="{{ $component->division_price ?? 0 }}"
-                                                            placeholder="Harga Divisi" readonly>
-                                                    </div>
+                                                        {{-- HARGA UMUM 2 MUKA --}}
+                                                        <div class="component-column">
+                                                            <input type="text" class="input js-rupiah"
+                                                                value="{{ $component->general_price_2_side ?? 0 }}"
+                                                                placeholder="Umum 2 Muka" readonly>
+                                                        </div>
+
+                                                        {{-- HARGA DIVISI 1 MUKA --}}
+                                                        <div class="component-column">
+                                                            <input type="text" class="input js-rupiah"
+                                                                value="{{ $component->division_price ?? 0 }}"
+                                                                placeholder="Divisi 1 Muka" readonly>
+                                                        </div>
+
+                                                        {{-- HARGA DIVISI 2 MUKA --}}
+                                                        <div class="component-column">
+                                                            <input type="text" class="input js-rupiah"
+                                                                value="{{ $component->division_price_2_side ?? 0 }}"
+                                                                placeholder="Divisi 2 Muka" readonly>
+                                                        </div>
+                                                    @else
+                                                        {{-- HARGA UMUM --}}
+                                                        <div class="component-column">
+                                                            <input type="text" class="input js-rupiah"
+                                                                value="{{ $component->general_price ?? 0 }}"
+                                                                placeholder="Harga Umum" readonly>
+                                                        </div>
+
+                                                        {{-- HARGA DIVISI --}}
+                                                        <div class="component-column">
+                                                            <input type="text" class="input js-rupiah"
+                                                                value="{{ $component->division_price ?? 0 }}"
+                                                                placeholder="Harga Divisi" readonly>
+                                                        </div>
+                                                    @endif
 
                                                     {{-- AKSI HAPUS --}}
                                                     <div class="component-column component-action">
@@ -905,13 +966,19 @@
             |--------------------------------------------------------------------------
             */
 
-            function createComponentRow(configurationId, index) {
+            function createComponentRow(configurationId, index, engineName) {
 
                 const row = document.createElement('div');
 
                 row.className = 'display-component-row';
                 row.dataset.componentIndex = index;
                 row.dataset.isNew = 'true';
+
+                const isDigitalPrint = (engineName || '').toLowerCase().includes('digital print');
+                if (isDigitalPrint) {
+                    row.style.gridTemplateColumns =
+                        'minmax(160px, 1.2fr) minmax(180px, 1.4fr) minmax(120px, 1fr) minmax(110px, 1fr) minmax(110px, 1fr) minmax(110px, 1fr) minmax(110px, 1fr) 50px';
+                }
 
                 row.innerHTML = `
                     <div class="component-column">
@@ -944,23 +1011,27 @@
                             autocomplete="off">
                     </div>
 
-                    <div class="component-column">
-                        <input
-                            type="text"
-                            class="input js-rupiah"
-                            value="0"
-                            placeholder="Harga Umum"
-                            readonly>
-                    </div>
-
-                    <div class="component-column">
-                        <input
-                            type="text"
-                            class="input js-rupiah"
-                            value="0"
-                            placeholder="Harga Divisi"
-                            readonly>
-                    </div>
+                    ${isDigitalPrint ? `
+                            <div class="component-column">
+                                <input type="text" class="input js-rupiah" value="0" placeholder="Umum 1 Muka" readonly>
+                            </div>
+                            <div class="component-column">
+                                <input type="text" class="input js-rupiah" value="0" placeholder="Umum 2 Muka" readonly>
+                            </div>
+                            <div class="component-column">
+                                <input type="text" class="input js-rupiah" value="0" placeholder="Divisi 1 Muka" readonly>
+                            </div>
+                            <div class="component-column">
+                                <input type="text" class="input js-rupiah" value="0" placeholder="Divisi 2 Muka" readonly>
+                            </div>
+                        ` : `
+                            <div class="component-column">
+                                <input type="text" class="input js-rupiah" value="0" placeholder="Harga Umum" readonly>
+                            </div>
+                            <div class="component-column">
+                                <input type="text" class="input js-rupiah" value="0" placeholder="Harga Divisi" readonly>
+                            </div>
+                        `}
 
                     <div class="component-column component-action">
                         <button
@@ -991,6 +1062,7 @@
                 }
 
                 const configurationId = container.dataset.configurationId;
+                const engineName = container.dataset.engineName || '';
 
                 const existingRows = list.querySelectorAll(
                     '.display-component-row'
@@ -1006,7 +1078,7 @@
                     index++;
                 }
 
-                const row = createComponentRow(configurationId, index);
+                const row = createComponentRow(configurationId, index, engineName);
 
                 list.appendChild(row);
 
@@ -1153,22 +1225,18 @@
                         return;
                     }
 
-                    const locationName = locationSelect
-                        .selectedOptions[0]
-                        .textContent
-                        .trim()
-                        .toLowerCase();
+                    const locationName = locationSelect.selectedOptions[0]
+                        ? locationSelect.selectedOptions[0].textContent.trim().toLowerCase()
+                        : '';
 
-                    const engineName = engineSelect
-                        .selectedOptions[0]
-                        .textContent
-                        .trim()
-                        .toLowerCase();
+                    const engineName = engineSelect.selectedOptions[0]
+                        ? engineSelect.selectedOptions[0].textContent.trim().toLowerCase()
+                        : '';
 
-                    if (
-                        locationName !== 'purwakarta' ||
-                        engineName !== 'large format'
-                    ) {
+                    const isAllowed = (locationName === 'purwakarta') &&
+                        (engineName.includes('large format') || engineName.includes('digital print'));
+
+                    if (!isAllowed) {
                         isValid = false;
                     }
 
@@ -1180,7 +1248,7 @@
 
                     showToast(
                         'error',
-                        'Konfigurasi hanya tersedia untuk lokasi Purwakarta dengan mesin Large Format.'
+                        'Konfigurasi hanya tersedia untuk lokasi Purwakarta dengan mesin Large Format atau Digital Print A3+.'
                     );
 
                     return;

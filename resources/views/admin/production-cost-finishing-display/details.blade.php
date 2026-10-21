@@ -86,7 +86,10 @@
                                     </div>
 
                                     {{-- INFORMASI KONFIGURASI --}}
-                                    <div class="display-overview-details">
+                                    @php
+                                        $isDigitalPrintA3 = stripos($configuration->engine_name ?? '', 'digital print') !== false;
+                                    @endphp
+                                    <div class="display-overview-details" @if ($isDigitalPrintA3) style="grid-template-columns: repeat(2, minmax(0, 1fr));" @endif>
 
 
                                         {{-- LOKASI PRODUKSI --}}
@@ -147,6 +150,7 @@
 
 
                                         {{-- HARGA RANGKA --}}
+                                        @if (!$isDigitalPrintA3)
                                         <div class="frame-price-section">
 
                                             {{-- HEADER --}}
@@ -176,7 +180,7 @@
 
                                                     <strong class="frame-price-value">
                                                         Rp
-                                                        {{ number_format((float) ($framePrice->general_price ?? 0), 0, ',', '.') }}
+                                                    {{ number_format((float) ($framePrice->general_price ?? 0), 0, ',', '.') }}
                                                     </strong>
 
                                                 </div>
@@ -190,7 +194,7 @@
 
                                                     <strong class="frame-price-value">
                                                         Rp
-                                                        {{ number_format((float) ($framePrice->division_price ?? 0), 0, ',', '.') }}
+                                                    {{ number_format((float) ($framePrice->division_price ?? 0), 0, ',', '.') }}
                                                     </strong>
 
                                                 </div>
@@ -198,6 +202,7 @@
                                             </div>
 
                                         </div>
+                                        @endif
 
 
                                     </div>
@@ -222,7 +227,7 @@
                                             <div class="display-cost-card">
 
                                                 <span class="display-cost-label">
-                                                    Cost Rangka
+                                                    {{ $isDigitalPrintA3 ? 'Harga Box KN' : 'Cost Rangka' }}
                                                 </span>
 
                                                 <strong class="display-cost-value">
@@ -235,7 +240,7 @@
                                             <div class="display-cost-card">
 
                                                 <span class="display-cost-label">
-                                                    Cost Finishing
+                                                    {{ $isDigitalPrintA3 ? 'Ongkos Die Cut' : 'Cost Finishing' }}
                                                 </span>
 
                                                 <strong class="display-cost-value">
@@ -299,6 +304,9 @@
                                     @forelse ($groupedComponents as $configurationId => $items)
                                         @php
                                             $config = $items->first();
+                                            $hasTwoSide = $items->contains(function ($c) {
+                                                return !empty($c->general_price_2_side) && (float) $c->general_price_2_side > 0;
+                                            });
                                         @endphp
 
                                         <div class="display-detail-group">
@@ -307,15 +315,28 @@
 
                                                 <table class="display-detail-table">
                                                     <thead>
-                                                        <tr>
-                                                            <th class="display-detail-col-number">No.</th>
-                                                            <th>Nama Komponen</th>
-                                                            <th class="text-center">Ukuran</th>
-                                                            <th class="text-center">Tipe</th>
-                                                            <th class="text-right">Harga Umum</th>
-                                                            <th class="text-right">Harga Divisi</th>
-                                                            <th class="text-right">Harga Polos</th>
-                                                        </tr>
+                                                        @if ($hasTwoSide)
+                                                            <tr>
+                                                                <th class="display-detail-col-number">No.</th>
+                                                                <th>Nama Komponen</th>
+                                                                <th class="text-center">Ukuran</th>
+                                                                <th class="text-center">Tipe</th>
+                                                                <th class="text-right">Umum (1 Muka)</th>
+                                                                <th class="text-right">Umum (2 Muka)</th>
+                                                                <th class="text-right">Divisi (1 Muka)</th>
+                                                                <th class="text-right">Divisi (2 Muka)</th>
+                                                            </tr>
+                                                        @else
+                                                            <tr>
+                                                                <th class="display-detail-col-number">No.</th>
+                                                                <th>Nama Komponen</th>
+                                                                <th class="text-center">Ukuran</th>
+                                                                <th class="text-center">Tipe</th>
+                                                                <th class="text-right">Harga Umum</th>
+                                                                <th class="text-right">Harga Divisi</th>
+                                                                <th class="text-right">Harga Polos</th>
+                                                            </tr>
+                                                        @endif
                                                     </thead>
 
                                                     <tbody>
@@ -333,10 +354,7 @@
 
                                                                 <td class="display-detail-component-name"
                                                                     style="text-align: center;">
-                                                                    {{ number_format((float) $component->display_length, 0, ',', '.') }}
-                                                                    x
-                                                                    {{ number_format((float) $component->display_width, 0, ',', '.') }}
-                                                                    cm
+                                                                    {{ (float) $component->display_length }} x {{ (float) $component->display_width }} cm
                                                                 </td>
 
                                                                 <td class="text-center">
@@ -346,20 +364,42 @@
                                                                     </span>
                                                                 </td>
 
-                                                                <td class="text-right display-detail-price">
-                                                                    Rp
-                                                                    {{ number_format((float) ($component->general_price ?? 0), 0, ',', '.') }}
-                                                                </td>
+                                                                @if ($hasTwoSide)
+                                                                    <td class="text-right display-detail-price">
+                                                                        Rp
+                                                                        {{ number_format((float) ($component->general_price ?? 0), 0, ',', '.') }}
+                                                                    </td>
 
-                                                                <td class="text-right display-detail-price">
-                                                                    Rp
-                                                                    {{ number_format((float) ($component->division_price ?? 0), 0, ',', '.') }}
-                                                                </td>
+                                                                    <td class="text-right display-detail-price">
+                                                                        Rp
+                                                                        {{ number_format((float) ($component->general_price_2_side ?? 0), 0, ',', '.') }}
+                                                                    </td>
 
-                                                                <td class="text-right display-detail-price">
-                                                                    Rp
-                                                                    {{ number_format((float) ($component->plain_price ?? 0), 0, ',', '.') }}
-                                                                </td>
+                                                                    <td class="text-right display-detail-price">
+                                                                        Rp
+                                                                        {{ number_format((float) ($component->division_price ?? 0), 0, ',', '.') }}
+                                                                    </td>
+
+                                                                    <td class="text-right display-detail-price">
+                                                                        Rp
+                                                                        {{ number_format((float) ($component->division_price_2_side ?? 0), 0, ',', '.') }}
+                                                                    </td>
+                                                                @else
+                                                                    <td class="text-right display-detail-price">
+                                                                        Rp
+                                                                        {{ number_format((float) ($component->general_price ?? 0), 0, ',', '.') }}
+                                                                    </td>
+
+                                                                    <td class="text-right display-detail-price">
+                                                                        Rp
+                                                                        {{ number_format((float) ($component->division_price ?? 0), 0, ',', '.') }}
+                                                                    </td>
+
+                                                                    <td class="text-right display-detail-price">
+                                                                        Rp
+                                                                        {{ number_format((float) ($component->plain_price ?? 0), 0, ',', '.') }}
+                                                                    </td>
+                                                                @endif
                                                             </tr>
                                                         @endforeach
                                                     </tbody>

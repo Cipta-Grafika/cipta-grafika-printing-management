@@ -703,10 +703,14 @@
                 gap: 8px;
             `;
 
-                    /* UKURAN: LEBAR × PANJANG (SAMA DENGAN VERSI DATATABLE) */
+                    /* UKURAN: LEBAR × PANJANG + INFO KEMASAN JIKA ADA */
                     const size = document.createElement('span');
 
-                    size.textContent = item.width + ' × ' + item.length;
+                    const packageInfo = (item.package_qty && item.package_qty > 1)
+                        ? ` (${item.package_qty} ${item.package_unit || 'Pcs'})`
+                        : '';
+
+                    size.textContent = item.width + ' × ' + item.length + packageInfo;
 
                     size.style.cssText = `
                 font-size: 13px;

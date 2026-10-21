@@ -94,7 +94,10 @@
                                         </div>
 
                                         {{-- INFORMASI KONFIGURASI --}}
-                                        <div class="display-overview-details">
+                                        @php
+                                            $isDigitalPrintA3 = stripos($configuration->engine_name ?? '', 'digital print') !== false;
+                                        @endphp
+                                        <div class="display-overview-details" @if ($isDigitalPrintA3) style="grid-template-columns: repeat(2, minmax(0, 1fr));" @endif>
 
 
                                             {{-- LOKASI PRODUKSI --}}
@@ -155,6 +158,7 @@
 
 
                                             {{-- HARGA RANGKA --}}
+                                            @if (!$isDigitalPrintA3)
                                             <div class="frame-price-section">
 
                                                 {{-- HEADER --}}
@@ -206,6 +210,7 @@
                                                 </div>
 
                                             </div>
+                                            @endif
 
 
                                         </div>
@@ -230,7 +235,7 @@
                                                 <div class="display-cost-card">
 
                                                     <span class="display-cost-label">
-                                                        Cost Rangka
+                                                        {{ $isDigitalPrintA3 ? 'Harga Box KN' : 'Cost Rangka' }}
                                                     </span>
 
                                                     <strong class="display-cost-value">
@@ -243,7 +248,7 @@
                                                 <div class="display-cost-card">
 
                                                     <span class="display-cost-label">
-                                                        Cost Finishing
+                                                        {{ $isDigitalPrintA3 ? 'Ongkos Die Cut' : 'Cost Finishing' }}
                                                     </span>
 
                                                     <strong class="display-cost-value">

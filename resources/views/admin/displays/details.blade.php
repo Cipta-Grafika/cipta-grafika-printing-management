@@ -94,6 +94,18 @@
 
                                 </div>
 
+                                <div class="display-detail-size">
+
+                                    <span class="display-detail-label">
+                                        Kemasan / Paket
+                                    </span>
+
+                                    <strong>
+                                        {{ $displayProduct->package_qty ?? 1 }} {{ $displayProduct->package_unit ?? 'Pcs' }}
+                                    </strong>
+
+                                </div>
+
 
                                 <div class="display-detail-status">
 
@@ -216,6 +228,32 @@
 
                                     <div class="display-spec-value">
                                         {{ number_format($displayProduct->width, 2) }} cm
+                                    </div>
+
+                                </div>
+
+
+                                <div class="display-spec-row">
+
+                                    <div class="display-spec-label">
+                                        Isi per Paket
+                                    </div>
+
+                                    <div class="display-spec-value">
+                                        {{ $displayProduct->package_qty ?? 1 }}
+                                    </div>
+
+                                </div>
+
+
+                                <div class="display-spec-row">
+
+                                    <div class="display-spec-label">
+                                        Satuan Kemasan
+                                    </div>
+
+                                    <div class="display-spec-value">
+                                        {{ $displayProduct->package_unit ?? 'Pcs' }}
                                     </div>
 
                                 </div>
