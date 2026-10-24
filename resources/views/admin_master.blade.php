@@ -445,6 +445,14 @@
             'active' => 'dashboard',
             'crumbs' => 'Estimasi | Tambah Estimasi Large Format',
         ],
+        'admin_create_a3plus_estimation' => [
+            'active' => 'dashboard',
+            'crumbs' => 'Estimasi | Tambah Estimasi Digital Print A3+',
+        ],
+        'admin_create_offset_estimation' => [
+            'active' => 'dashboard',
+            'crumbs' => 'Estimasi | Tambah Estimasi Cetak Brosur (Digital & Offset)',
+        ],
         default => [
             'active' => 'dashboard',
             'crumbs' => 'Estimasi | Daftar Estimasi',

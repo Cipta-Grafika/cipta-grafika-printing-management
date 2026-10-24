@@ -8,6 +8,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
@@ -563,20 +564,19 @@ class CatalogCT extends Controller
                 abort(404);
             }
 
+            $columns = ['p.id', 'p.display_name', 'p.category_id', 'c.name as category_name'];
+            if (Schema::hasColumn('m_display_products', 'package_qty')) {
+                $columns[] = 'p.package_qty';
+                $columns[] = 'p.package_unit';
+                $columns[] = 'p.length';
+                $columns[] = 'p.width';
+            }
+
             $displayProduct = DB::table('m_display_products as p')
                 ->join('m_categories as c', 'c.id', '=', 'p.category_id')
                 ->where('p.id', $displayId)
                 ->where('p.status', 'Active')
-                ->select(
-                    'p.id',
-                    'p.display_name',
-                    'p.category_id',
-                    'p.package_qty',
-                    'p.package_unit',
-                    'p.length',
-                    'p.width',
-                    'c.name as category_name'
-                )
+                ->select($columns)
                 ->first();
 
             if (!$displayProduct) {
@@ -594,11 +594,18 @@ class CatalogCT extends Controller
             | dianggap Large Format (sama seperti label di halaman daftar produk).
             */
 
+            $cfgColumns = ['e.id', 'e.name'];
+            if (Schema::hasColumn('m_display_product_configurations', 'sheet_qty')) {
+                $cfgColumns[] = 'pc.sheet_qty';
+                $cfgColumns[] = 'pc.cost_rangka';
+                $cfgColumns[] = 'pc.cost_finishing';
+            }
+
             $displayEngine = DB::table('m_display_product_configurations as pc')
                 ->join('m_engines as e', 'e.id', '=', 'pc.engine_id')
                 ->where('pc.display_product_id', $displayProduct->id)
                 ->orderBy('pc.id')
-                ->select('e.id', 'e.name', 'pc.sheet_qty', 'pc.cost_rangka', 'pc.cost_finishing')
+                ->select($cfgColumns)
                 ->first();
 
             $engineName = $displayEngine->name ?? 'Large Format';
@@ -629,20 +636,22 @@ class CatalogCT extends Controller
                 ],
             ];
 
-            $isLargeFormat = strtolower(trim($engineName)) === 'large format';
-            $isA3Plus = strtolower(trim($engineName)) === 'digital print a3+';
+            $isBrochure = str_contains(strtolower($displayProduct->display_name), 'brosur') || str_contains(strtolower($displayProduct->display_name), 'flyer');
+            $isLargeFormat = !$isBrochure && (strtolower(trim($engineName)) === 'large format');
+            $isA3Plus = !$isBrochure && (strtolower(trim($engineName)) === 'digital print a3+');
 
             $estimator = [
                 'type'             => 'display',
-                'engineName'       => $engineName,
+                'engineName'       => $isBrochure ? 'Cetak Brosur & Flyer' : $engineName,
                 'isLargeFormat'    => $isLargeFormat,
                 'isA3Plus'         => $isA3Plus,
+                'isBrochure'       => $isBrochure,
                 'isDisplay'        => true,
                 'displayProductId' => (int) $displayProduct->id,
                 'categoryId'       => (int) $displayProduct->category_id,
-                'packageQty'       => (int) ($displayProduct->package_qty ?? 100),
-                'packageUnit'      => $displayProduct->package_unit ?? 'Box',
-                'sheetQty'         => (int) ($displayEngine->sheet_qty ?? 4),
+                'packageQty'       => (int) ($displayProduct->package_qty ?? 500),
+                'packageUnit'      => $displayProduct->package_unit ?? 'Lembar',
+                'sheetQty'         => (int) ($displayEngine->sheet_qty ?? 125),
             ];
 
             $locations = DB::table('m_locations')
@@ -662,16 +671,34 @@ class CatalogCT extends Controller
                     'a3Cuttings'    => collect(),
                 ];
 
+            $brochureData = $isBrochure ? [
+                'brochureProducts' => DB::table('m_offset_products')
+                    ->whereIn('product_name', ['Brosur A5', 'Brosur A4'])
+                    ->orderBy('id', 'desc')
+                    ->get(),
+                'brochureMaterials' => DB::table('m_offset_plano_materials')
+                    ->whereRaw('LOWER(status) = ?', ['active'])
+                    ->orderBy('id')
+                    ->get(),
+            ] : [
+                'brochureProducts' => collect(),
+                'brochureMaterials' => collect(),
+            ];
+
+            $activeDiscounts = $isBrochure
+                ? $this->activeBrochureDiscounts()
+                : $this->activeProductDiscounts(
+                    $discountEngineId ? (int) $discountEngineId : null,
+                    (int) $displayProduct->category_id
+                );
+
             return view('user.product_details', array_merge([
                 'product'   => $product,
                 'estimator' => $estimator,
                 'locations' => $locations,
                 'vendors'   => $vendors,
-                'activeDiscounts' => $this->activeProductDiscounts(
-                    $discountEngineId ? (int) $discountEngineId : null,
-                    (int) $displayProduct->category_id
-                ),
-            ], $a3Data));
+                'activeDiscounts' => $activeDiscounts,
+            ], $a3Data, $brochureData));
         }
 
         /*
@@ -782,6 +809,42 @@ class CatalogCT extends Controller
             'vendors'   => $vendors,
             'activeDiscounts' => $this->activeProductDiscounts($engineId ? (int) $engineId : null, (int) $categoryId),
         ], $a3Data));
+    }
+
+    private function activeBrochureDiscounts(): Collection
+    {
+        $now = Carbon::now('Asia/Jakarta')->format('Y-m-d H:i:s');
+
+        // Mesin yang digunakan untuk brosur: Offset Printing (70) dan Digital Print A3+ (71)
+        $engineIds = DB::table('m_engines')
+            ->whereIn(DB::raw('LOWER(TRIM(name))'), ['offset printing', 'digital print a3+'])
+            ->pluck('id')
+            ->push(70, 71)
+            ->unique()
+            ->all();
+
+        // Kategori yang terkait dengan produk brosur: Display (236), Art Carton/Art Paper (225), HVS (229)
+        $categoryIds = DB::table('m_categories')
+            ->whereIn(DB::raw('LOWER(TRIM(name))'), ['display', 'art carton/art paper', 'hvs'])
+            ->pluck('id')
+            ->push(236, 225, 229)
+            ->unique()
+            ->all();
+
+        return DB::table('m_discounts')
+            ->where('status', 'Active')
+            ->where('starts_at', '<=', $now)
+            ->where('ends_at', '>=', $now)
+            ->whereExists(function ($query) use ($engineIds, $categoryIds) {
+                $query->selectRaw('1')
+                    ->from('m_discount_scopes')
+                    ->whereColumn('m_discount_scopes.discount_id', 'm_discounts.id')
+                    ->whereIn('engine_id', $engineIds)
+                    ->whereIn('category_id', $categoryIds);
+            })
+            ->orderBy('ends_at')
+            ->orderBy('id')
+            ->get(['id', 'name', 'code', 'discount_percentage', 'starts_at', 'ends_at']);
     }
 
     private function activeProductDiscounts(?int $engineId, int $categoryId): Collection
@@ -1018,7 +1081,7 @@ class CatalogCT extends Controller
             'additional_components' => null,
         ];
 
-        if ($isDisplay) {
+        if ($isDisplay && Schema::hasTable('m_display_product_component_prices')) {
             $mergeData['production_mode'] = 'display';
             $mergeData['print_color'] = $request->input('print_color', 'fc') ?: 'fc';
         }
@@ -1111,6 +1174,128 @@ class CatalogCT extends Controller
         ]);
     }
 
+    public function previewUserBrosurEstimation(Request $request)
+    {
+        $promoCode = $request->input('promo_code');
+        if (is_string($promoCode)) {
+            $request->merge(['promo_code' => strtoupper(trim($promoCode))]);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'product_id' => 'required|integer',
+            'plano_material_id' => 'required|integer',
+            'print_sides' => 'required|in:1,2',
+            'quantity' => 'required|integer|min:1',
+            'quantity_type' => 'nullable|in:pieces,rims',
+            'promo_code' => ['bail', 'nullable', 'string', 'min:3', 'max:30', 'regex:/\A[A-Z0-9_-]+\z/'],
+        ], [
+            'promo_code.string' => 'Kode promo harus berupa teks.',
+            'promo_code.min' => 'Kode promo minimal 3 karakter.',
+            'promo_code.max' => 'Kode promo maksimal 30 karakter.',
+            'promo_code.regex' => 'Kode promo hanya boleh berisi huruf, angka, tanda hubung (-), dan garis bawah (_).',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()->first(),
+            ], 422);
+        }
+
+        $productId = (int) $request->input('product_id');
+        $planoMaterialId = (int) $request->input('plano_material_id');
+        $printSides = (int) $request->input('print_sides');
+        $quantity = (int) $request->input('quantity');
+        $quantityType = $request->input('quantity_type', 'pieces');
+
+        try {
+            $calcService = app(\App\Services\OffsetCalculationService::class);
+
+            $pieces = ($quantityType === 'rims') ? ($quantity * 500) : $quantity;
+
+            if ($pieces <= 500) {
+                // Gunakan Digital Print A3+
+                $calc = $calcService->calculateDigital($productId, $planoMaterialId, $pieces, $printSides, 'general');
+                $method = 'digital';
+                $methodLabel = 'Digital Print A3+ (Paket Cepat)';
+                $methodDesc = 'Dicetak dengan mesin digital print A3+ resolusi tinggi, siap cepat.';
+
+                $offsetComparison = null;
+                if ($pieces === 500) {
+                    try {
+                        $offsetCalc = $calcService->calculate($productId, $planoMaterialId, 1, $printSides, 'general');
+                        $offsetComparison = [
+                            'total_selling_price' => $offsetCalc['totals']['total_selling_price'],
+                            'selling_price_per_pcs' => $offsetCalc['totals']['selling_price_per_pcs'],
+                        ];
+                    } catch (\Throwable $e) {}
+                }
+            } else {
+                // Gunakan Cetak Offset SM 52
+                $rims = ceil($pieces / 500.0);
+                $calc = $calcService->calculate($productId, $planoMaterialId, $rims, $printSides, 'general');
+                $method = 'offset';
+                $methodLabel = 'Cetak Mesin Offset SM 52 (Cetak Massal)';
+                $methodDesc = 'Diproduksi menggunakan plat CTP dan mesin offset Heidelberg SM 52 untuk harga hemat cetak massal.';
+                $offsetComparison = null;
+            }
+
+            // Hitung diskon promo jika diinput
+            $promo = null;
+            $subtotal = (float) $calc['totals']['total_selling_price'];
+            $discountAmount = 0.0;
+            $grandTotal = $subtotal;
+            $roundingAmount = 0.0;
+
+            if (filled($request->input('promo_code'))) {
+                $promo = $this->activeBrochureDiscounts()
+                    ->first(fn ($discount) => strtoupper($discount->code) === $request->input('promo_code'));
+
+                if ($promo === null) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Kode promo tidak valid, belum/sudah tidak berlaku, atau tidak sesuai dengan produk yang dipilih.',
+                    ], 422);
+                }
+
+                $discountAmount = round($subtotal * (float) $promo->discount_percentage / 100, 2);
+                $totalAfterDiscount = max(0, $subtotal - $discountAmount);
+                $grandTotal = ceil(round($totalAfterDiscount, 2) / 1000) * 1000;
+                $roundingAmount = round($grandTotal - $totalAfterDiscount, 2);
+            }
+
+            $unitPrice = $pieces > 0 ? round($grandTotal / $pieces, 2) : 0;
+            $sellingPricePerRim = ($pieces >= 500) ? round(($grandTotal / $pieces) * 500, 2) : 0;
+
+            $calc['totals']['subtotal'] = $subtotal;
+            $calc['totals']['discount_amount'] = $discountAmount;
+            $calc['totals']['rounding_amount'] = $roundingAmount;
+            $calc['totals']['grand_total'] = $grandTotal;
+            $calc['totals']['total_selling_price'] = $grandTotal;
+            $calc['totals']['selling_price_per_pcs'] = $unitPrice;
+            $calc['totals']['selling_price_per_rim'] = $sellingPricePerRim;
+            $calc['promo'] = $promo ? [
+                'code' => $promo->code,
+                'name' => $promo->name,
+                'percentage' => (float) $promo->discount_percentage,
+            ] : null;
+
+            return response()->json([
+                'success' => true,
+                'method' => $method,
+                'method_label' => $methodLabel,
+                'method_desc' => $methodDesc,
+                'data' => $calc,
+                'offset_comparison' => $offsetComparison,
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghitung estimasi brosur: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
     public function getUserMaterialsA3plus(Request $request)
     {
         $purwakarta = DB::table('m_locations')
@@ -1129,8 +1314,8 @@ class CatalogCT extends Controller
             }
         }
 
-        if ($isDisplay) {
-            $engine = DB::table('m_engines')->where('name', 'ILIKE', '%digital print%')->first();
+        if ($isDisplay && Schema::hasTable('m_display_product_component_prices')) {
+            $engine = DB::table('m_engines')->whereRaw('LOWER(name) LIKE ?', ['%digital print%'])->first();
             $displayComponents = DB::table('m_display_product_configurations as dpcfg')
                 ->join('m_display_products as dp', 'dp.id', '=', 'dpcfg.display_product_id')
                 ->join('m_display_product_component_prices as cpp', 'cpp.configuration_id', '=', 'dpcfg.id')
@@ -1158,7 +1343,7 @@ class CatalogCT extends Controller
                     cpp.general_price_2_side,
                     cpp.division_price,
                     cpp.division_price_2_side,
-                    CONCAT(dp.display_name, ' — ', COALESCE(m.material_name, 'Material'), CASE WHEN lam.name IS NOT NULL THEN CONCAT(' + ', CASE WHEN (lam.name ILIKE '%doff%' OR lam.name ILIKE '%glossy%') THEN 'Laminasi Doff / Glossy A3+' ELSE lam.name END) ELSE ' (Tanpa Laminasi)' END) AS name
+                    CONCAT(dp.display_name, ' — ', COALESCE(m.material_name, 'Material'), CASE WHEN lam.name IS NOT NULL THEN CONCAT(' + ', CASE WHEN (LOWER(lam.name) LIKE '%doff%' OR LOWER(lam.name) LIKE '%glossy%') THEN 'Laminasi Doff / Glossy A3+' ELSE lam.name END) ELSE ' (Tanpa Laminasi)' END) AS name
                 ")
                 ->get();
 
@@ -1217,6 +1402,14 @@ class CatalogCT extends Controller
 
     private function getA3PlusMasterData(?int $categoryId = null, ?int $displayProductId = null): array
     {
+        if (!Schema::hasTable('m_materials')) {
+            return [
+                'a3Materials'   => collect(),
+                'a3Laminations' => collect(),
+                'a3Cuttings'    => collect(),
+            ];
+        }
+
         $purwakarta = DB::table('m_locations')
             ->whereRaw('LOWER(TRIM(name)) = ?', ['purwakarta'])
             ->first();
@@ -1230,8 +1423,8 @@ class CatalogCT extends Controller
             }
         }
 
-        if ($isDisplay) {
-            $engine = DB::table('m_engines')->where('name', 'ILIKE', '%digital print%')->first();
+        if ($isDisplay && Schema::hasTable('m_display_product_component_prices')) {
+            $engine = DB::table('m_engines')->whereRaw('LOWER(name) LIKE ?', ['%digital print%'])->first();
             $materials = DB::table('m_display_product_configurations as dpcfg')
                 ->join('m_display_products as dp', 'dp.id', '=', 'dpcfg.display_product_id')
                 ->join('m_display_product_component_prices as cpp', 'cpp.configuration_id', '=', 'dpcfg.id')
@@ -1259,7 +1452,7 @@ class CatalogCT extends Controller
                     cpp.general_price_2_side,
                     cpp.division_price,
                     cpp.division_price_2_side,
-                    CONCAT(dp.display_name, ' — ', COALESCE(m.material_name, 'Material'), CASE WHEN lam.name IS NOT NULL THEN CONCAT(' + ', CASE WHEN (lam.name ILIKE '%doff%' OR lam.name ILIKE '%glossy%') THEN 'Laminasi Doff / Glossy A3+' ELSE lam.name END) ELSE ' (Tanpa Laminasi)' END) AS name
+                    CONCAT(dp.display_name, ' — ', COALESCE(m.material_name, 'Material'), CASE WHEN lam.name IS NOT NULL THEN CONCAT(' + ', CASE WHEN (LOWER(lam.name) LIKE '%doff%' OR LOWER(lam.name) LIKE '%glossy%') THEN 'Laminasi Doff / Glossy A3+' ELSE lam.name END) ELSE ' (Tanpa Laminasi)' END) AS name
                 ")
                 ->get();
         } else {

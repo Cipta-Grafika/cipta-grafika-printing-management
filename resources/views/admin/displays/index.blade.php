@@ -706,15 +706,30 @@
                     /* UKURAN: LEBAR × PANJANG + INFO KEMASAN JIKA ADA */
                     const size = document.createElement('span');
 
-                    const packageInfo = (item.package_qty && item.package_qty > 1)
-                        ? ` (${item.package_qty} ${item.package_unit || 'Pcs'})`
-                        : '';
+                    let packageInfo = '';
+                    if (item.package_qty && item.package_qty > 1) {
+                        const unit = (item.package_unit || 'Pcs').trim();
+                        if (/rim/i.test(unit)) {
+                            packageInfo = ' (1 Rim)';
+                        } else if (/lembar/i.test(unit)) {
+                            packageInfo = ` (${item.package_qty} lbr)`;
+                        } else {
+                            packageInfo = ` (${item.package_qty} ${unit})`;
+                        }
+                    } else if (item.package_unit && item.package_unit.toLowerCase() === 'rim') {
+                        packageInfo = ' (1 Rim)';
+                    }
 
                     size.textContent = item.width + ' × ' + item.length + packageInfo;
+                    size.title = size.textContent;
 
                     size.style.cssText = `
                 font-size: 13px;
                 white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                min-width: 0;
+                flex: 1;
             `;
 
                     /* STATUS */
@@ -724,6 +739,9 @@
                         'badge ' + (item.status === 'Active' ? 'success' : 'danger') + ' dot';
 
                     statusBadge.textContent = item.status;
+                    statusBadge.style.cssText = `
+                flex-shrink: 0;
+            `;
 
                     meta.appendChild(size);
 

@@ -209,6 +209,65 @@
                         </article>
                     @endforeach
 
+                    {{-- CETAK OFFSET ESTIMATOR CARD --}}
+                    <article class="estimator-card">
+
+                        {{-- STATUS --}}
+                        <div class="estimator-card__status is-active">
+                            <span class="estimator-card__status-dot"></span>
+                            Active
+                        </div>
+
+                        <div class="estimator-card__visual">
+
+                            <div class="estimator-card__icon">
+                                {{-- Offset Printing Press Icon --}}
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect width="18" height="18" x="3" y="3" rx="2"/>
+                                    <circle cx="8.5" cy="8.5" r="1.5"/>
+                                    <circle cx="15.5" cy="8.5" r="1.5"/>
+                                    <circle cx="8.5" cy="15.5" r="1.5"/>
+                                    <circle cx="15.5" cy="15.5" r="1.5"/>
+                                </svg>
+                            </div>
+
+                            <div class="estimator-card__pattern">
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                            </div>
+
+                        </div>
+
+                        <div class="estimator-card__content">
+
+                            <span class="estimator-card__eyebrow">
+                                ESTIMASI CETAK
+                            </span>
+
+                            <h2 class="estimator-card__title">
+                                Cetak Brosur &amp; Flyer
+                            </h2>
+
+                            <p class="estimator-card__description">
+                                Estimasi terpadu untuk paket cepat Digital Print A3+ (100 - 500 lbr) dan cetak massal Mesin Offset (1 - 10+ rim) dengan simulasi harga otomatis.
+                            </p>
+
+                            {{-- ACTION --}}
+                            <a href="{{ route('admin_create_offset_estimation') }}" class="estimator-card__action">
+                                <span>Buat Estimasi</span>
+
+                                <svg viewBox="0 0 24 24" fill="none">
+                                    <path d="M5 12h14" />
+                                    <path d="m13 6 6 6-6 6" />
+                                </svg>
+                            </a>
+
+                        </div>
+
+                    </article>
+
                 </section>
 
 

@@ -20,6 +20,7 @@ use App\Http\Controllers\admin\LocationCT;
 use App\Http\Controllers\admin\MaterialCT;
 use App\Http\Controllers\admin\MaterialPriceCT;
 use App\Http\Controllers\admin\MaterialSizeCT;
+use App\Http\Controllers\admin\OffsetEstimationCT;
 use App\Http\Controllers\admin\OffsetMasterCT;
 use App\Http\Controllers\admin\PricingCT;
 use App\Http\Controllers\admin\PricingPolicyCT;
@@ -60,6 +61,7 @@ Route::get('/estimation/create-lf/get-categories', [CatalogCT::class, 'getUserLF
 
 Route::post('/estimation/preview-a3plus', [CatalogCT::class, 'previewUserA3PlusEstimation'])->name('user_preview_a3plus_estimation');
 Route::get('/estimation/create-a3plus/get-materials', [CatalogCT::class, 'getUserMaterialsA3plus'])->name('user_get_materials_a3plus');
+Route::post('/estimation/preview-brosur', [CatalogCT::class, 'previewUserBrosurEstimation'])->name('user_preview_brosur_estimation');
 
 // Route::get('/user/estimator/materials', [CatalogCT::class, 'estimatorMaterials'])
 //     ->middleware('throttle:60,1')->name('user_estimator_materials');
@@ -210,6 +212,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/admin/estimations/create-a3plus', [EstimationCT::class, 'createA3plus'])->name('admin_create_a3plus_estimation');
     Route::get('/admin/estimation/create-a3plus/get-materials', [EstimationCT::class, 'getMaterialsA3plus'])->name('admin_get_materials_a3plus');
     Route::post('/admin/estimation/create-a3plus', [EstimationCT::class, 'storeA3plus'])->name('admin_store_a3plus');
+
+    // Cetak Offset Estimation
+    Route::get('/admin/estimations/create-offset', [OffsetEstimationCT::class, 'create'])->name('admin_create_offset_estimation');
+    Route::post('/admin/estimations/calculate-offset', [OffsetEstimationCT::class, 'calculate'])->name('admin_calculate_offset');
+    Route::post('/admin/estimations/store-offset', [OffsetEstimationCT::class, 'store'])->name('admin_store_offset');
     Route::get('/admin/estimation/create-lf/get-material-sizes', [EstimationCT::class, 'getMaterialSizes'])->name('admin_get_material_sizes');
     Route::get('/admin/estimation/create-lf/get-laminations', [EstimationCT::class, 'getLaminations'])->name('admin_get_laminations');
     Route::get('/admin/estimation/create-lf/get-lamination-sizes', [EstimationCT::class, 'getLaminationSizes'])->name('admin_get_laminations_sizes');

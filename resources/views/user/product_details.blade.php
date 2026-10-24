@@ -86,6 +86,98 @@
         }
     </style>
 
+    <script>
+        /* =========================
+           SHARE PRODUCT
+        ========================== */
+        function shareProduct(title = '', description = '') {
+            return {
+                open: false,
+                copied: false,
+                title: title,
+                description: description,
+                url: window.location.href,
+
+                share(platform) {
+                    const currentUrl = window.location.href;
+                    const url = encodeURIComponent(currentUrl);
+                    const text = encodeURIComponent(this.title + ' - ' + this.description);
+                    let shareUrl = '';
+
+                    switch (platform) {
+                        case 'whatsapp':
+                            shareUrl = 'https://wa.me/?text=' + encodeURIComponent(this.title + '\n\n' + this.description + '\n\n' + currentUrl);
+                            break;
+                        case 'facebook':
+                            shareUrl = 'https://www.facebook.com/sharer/sharer.php?u=' + url;
+                            break;
+                        case 'x':
+                            shareUrl = 'https://twitter.com/intent/tweet?text=' + text + '&url=' + url;
+                            break;
+                        case 'telegram':
+                            shareUrl = 'https://t.me/share/url?url=' + url + '&text=' + text;
+                            break;
+                        case 'line':
+                            shareUrl = 'https://social-plugins.line.me/lineit/share?url=' + url;
+                            break;
+                        case 'pinterest':
+                            shareUrl = 'https://www.pinterest.com/pin/create/button/?url=' + url + '&description=' + text;
+                            break;
+                        case 'email':
+                            window.location.href = 'mailto:?subject=' + encodeURIComponent(this.title) + '&body=' + encodeURIComponent(this.description + '\n\n' + currentUrl);
+                            return;
+                    }
+
+                    if (shareUrl) {
+                        window.open(shareUrl, '_blank', 'width=650,height=600');
+                    }
+                },
+
+                async copyLink() {
+                    const currentUrl = window.location.href;
+                    try {
+                        if (navigator.clipboard && navigator.clipboard.writeText) {
+                            await navigator.clipboard.writeText(currentUrl);
+                        } else {
+                            throw new Error('Clipboard API unavailable');
+                        }
+                    } catch (error) {
+                        const textarea = document.createElement('textarea');
+                        textarea.value = currentUrl;
+                        textarea.style.position = 'fixed';
+                        textarea.style.opacity = '0';
+                        document.body.appendChild(textarea);
+                        textarea.select();
+                        document.execCommand('copy');
+                        textarea.remove();
+                    }
+
+                    this.copied = true;
+                    setTimeout(() => {
+                        this.copied = false;
+                    }, 2500);
+                },
+
+                async shareNative() {
+                    const currentUrl = window.location.href;
+                    if (navigator.share) {
+                        try {
+                            await navigator.share({
+                                title: this.title,
+                                text: this.description,
+                                url: currentUrl
+                            });
+                        } catch (error) {
+                            // Canceled by user
+                        }
+                    } else {
+                        this.copyLink();
+                    }
+                }
+            };
+        }
+    </script>
+
     <div x-data="products()">
         <!-- ═══ CASE STUDY HEADER ═══ -->
         <article>
@@ -786,7 +878,9 @@
                     </div>
                 </div>
 
-                @if (!empty($estimator['isA3Plus']))
+                @if (!empty($estimator['isBrochure']))
+                    @include('user.partials.brosur_estimator')
+                @elseif (!empty($estimator['isA3Plus']))
                     @include('user.partials.a3_plus_estimator')
                 @elseif ($product['label'] === 'Display' || $product['label'] === 'Large Format' || !empty($estimator['isLargeFormat']))
                     <div x-data="{
@@ -1589,244 +1683,6 @@
 @section('scripts')
     <script>
         /* =========================
-                                                                                SHARE PRODUCT
-                                                                                ========================== */
-
-        function shareProduct(title = '', description = '') {
-
-            return {
-
-                open: false,
-
-                copied: false,
-
-                title: title,
-
-                description: description,
-
-
-                get url() {
-
-                    return window.location.href;
-
-                },
-
-
-                /* =========================
-                   SHARE SOCIAL MEDIA
-                ========================== */
-
-                share(platform) {
-
-                    const url = encodeURIComponent(this.url);
-
-                    const text = encodeURIComponent(
-                        this.title + ' - ' + this.description
-                    );
-
-
-                    let shareUrl = '';
-
-
-                    switch (platform) {
-
-
-                        case 'whatsapp':
-
-                            shareUrl =
-                                'https://wa.me/?text=' +
-                                encodeURIComponent(
-                                    this.title +
-                                    '\n\n' +
-                                    this.description +
-                                    '\n\n' +
-                                    this.url
-                                );
-
-                            break;
-
-
-                        case 'facebook':
-
-                            shareUrl =
-                                'https://www.facebook.com/sharer/sharer.php?u=' +
-                                url;
-
-                            break;
-
-
-                        case 'x':
-
-                            shareUrl =
-                                'https://twitter.com/intent/tweet?text=' +
-                                text +
-                                '&url=' +
-                                url;
-
-                            break;
-
-
-                        case 'telegram':
-
-                            shareUrl =
-                                'https://t.me/share/url?url=' +
-                                url +
-                                '&text=' +
-                                text;
-
-                            break;
-
-
-                        case 'line':
-
-                            shareUrl =
-                                'https://social-plugins.line.me/lineit/share?url=' +
-                                url;
-
-                            break;
-
-
-                        case 'pinterest':
-
-                            shareUrl =
-                                'https://www.pinterest.com/pin/create/button/?url=' +
-                                url +
-                                '&description=' +
-                                text;
-
-                            break;
-
-
-                        case 'email':
-
-                            window.location.href =
-                                'mailto:?subject=' +
-                                encodeURIComponent(this.title) +
-                                '&body=' +
-                                encodeURIComponent(
-                                    this.description +
-                                    '\n\n' +
-                                    this.url
-                                );
-
-                            return;
-
-                    }
-
-
-                    if (shareUrl) {
-
-                        window.open(
-                            shareUrl,
-                            '_blank',
-                            'width=650,height=600'
-                        );
-
-                    }
-
-                },
-
-
-                /* =========================
-                   COPY LINK
-                ========================== */
-
-                async copyLink() {
-
-                    try {
-
-                        await navigator.clipboard.writeText(this.url);
-
-                    } catch (error) {
-
-                        const textarea =
-                            document.createElement('textarea');
-
-
-                        textarea.value = this.url;
-
-
-                        textarea.style.position = 'fixed';
-
-                        textarea.style.opacity = '0';
-
-
-                        document.body.appendChild(textarea);
-
-
-                        textarea.select();
-
-
-                        document.execCommand('copy');
-
-
-                        textarea.remove();
-
-                    }
-
-
-                    this.copied = true;
-
-
-                    setTimeout(() => {
-
-                        this.copied = false;
-
-                    }, 2500);
-
-                },
-
-
-                /* =========================
-                   NATIVE SHARE
-                ========================== */
-
-                async shareNative() {
-
-                    if (navigator.share) {
-
-                        try {
-
-                            await navigator.share({
-
-                                title: this.title,
-
-                                text: this.description,
-
-                                url: this.url
-
-                            });
-
-                        } catch (error) {
-
-                            /*
-                             * User membatalkan share
-                             * Tidak perlu menampilkan error
-                             */
-
-                        }
-
-                    } else {
-
-                        /*
-                         * Jika browser desktop
-                         * tidak mendukung Web Share API,
-                         * gunakan copy link
-                         */
-
-                        this.copyLink();
-
-                    }
-
-                }
-
-            }
-
-        }
-
-
-
-        /* =========================
            EXISTING COMPONENT SCRIPT
         ========================== */
 
@@ -1963,7 +1819,9 @@
             }
         );
 
-        @if (!empty($estimator['isA3Plus']))
+        @if (!empty($estimator['isBrochure']))
+            @include('user.partials.brosur_estimator_scripts')
+        @elseif (!empty($estimator['isA3Plus']))
             @include('user.partials.a3_plus_estimator_scripts')
         @else
         document.addEventListener('DOMContentLoaded', function() {
