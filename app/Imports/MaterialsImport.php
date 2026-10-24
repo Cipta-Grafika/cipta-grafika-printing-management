@@ -442,6 +442,7 @@ class MaterialsImport implements ToCollection, WithHeadingRow
                 */
 
                 $existingMaterial = DB::table('m_materials')
+                    ->where('category_id', $material['category_id'])
                     ->whereRaw(
                         'LOWER(TRIM(material_name)) = ?',
                         [

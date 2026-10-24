@@ -400,6 +400,11 @@
             'crumbs' => 'Master Data | Galeri Sampel',
         ],
 
+        'admin_offset_master' => [
+            'active' => 'offset-master',
+            'crumbs' => 'Master Data | Offset',
+        ],
+
         'admin_discounts' => [
             'active' => 'discount',
             'crumbs' => 'Konfigurasi | Diskon',
@@ -552,7 +557,8 @@
             gallery_samples: "{{ route('admin_gallery_samples') }}",
             discounts: "{{ route('admin_discounts') }}",
             cuttings: "{{ route('admin_cuttings') }}",
-            pc_finishing_cuttings: "{{ route('admin_production_cost_finishing_cuttings') }}"
+            pc_finishing_cuttings: "{{ route('admin_production_cost_finishing_cuttings') }}",
+            offset_master: "{{ route('admin_offset_master') }}"
         };
 
         window.appData = {

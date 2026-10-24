@@ -20,6 +20,7 @@ use App\Http\Controllers\admin\LocationCT;
 use App\Http\Controllers\admin\MaterialCT;
 use App\Http\Controllers\admin\MaterialPriceCT;
 use App\Http\Controllers\admin\MaterialSizeCT;
+use App\Http\Controllers\admin\OffsetMasterCT;
 use App\Http\Controllers\admin\PricingCT;
 use App\Http\Controllers\admin\PricingPolicyCT;
 use App\Http\Controllers\admin\PricingRulesCT;
@@ -362,4 +363,31 @@ Route::middleware('auth')->group(function () {
     Route::put('/admin/production-cost-finishing-potong/{id}/update', [ProductionCostFinishingCuttingCT::class, 'updatePotong'])->name('admin_update_pc_finishing_potong');
     Route::get('/admin/production-cost-finishing-potong/{id}/details', [ProductionCostFinishingCuttingCT::class, 'detailsPotong'])->name('admin_details_pc_finishing_potong');
     Route::delete('/admin/production-cost-finishing-potong/{id}/delete', [ProductionCostFinishingCuttingCT::class, 'destroyPotong'])->name('admin_destroy_pc_finishing_potong');
+
+    /*
+    |--------------------------------------------------------------------------
+    | MASTER DATA - OFFSET
+    |--------------------------------------------------------------------------
+    */
+    Route::get('/admin/offset-master', [OffsetMasterCT::class, 'index'])->name('admin_offset_master');
+    Route::get('/admin/offset-master/data-plano', [OffsetMasterCT::class, 'dataPlano'])->name('admin_data_offset_plano');
+    Route::post('/admin/offset-master/store-plano', [OffsetMasterCT::class, 'storePlano'])->name('admin_store_offset_plano');
+    Route::get('/admin/offset-master/data-plates', [OffsetMasterCT::class, 'dataPlates'])->name('admin_data_offset_plates');
+    Route::post('/admin/offset-master/store-plate', [OffsetMasterCT::class, 'storePlate'])->name('admin_store_offset_plate');
+    Route::get('/admin/offset-master/data-print-costs', [OffsetMasterCT::class, 'dataPrintCosts'])->name('admin_data_offset_print_costs');
+    Route::post('/admin/offset-master/store-print-cost', [OffsetMasterCT::class, 'storePrintCost'])->name('admin_store_offset_print_cost');
+    Route::get('/admin/offset-master/data-pricing-rules', [OffsetMasterCT::class, 'dataPricingRules'])->name('admin_data_offset_pricing_rules');
+    Route::post('/admin/offset-master/store-pricing-rule', [OffsetMasterCT::class, 'storePricingRule'])->name('admin_store_offset_pricing_rule');
+    Route::get('/admin/offset-master/data-products', [OffsetMasterCT::class, 'dataProducts'])->name('admin_data_offset_products');
+    Route::post('/admin/offset-master/store-product', [OffsetMasterCT::class, 'storeProduct'])->name('admin_store_offset_product');
+    Route::delete('/admin/offset-master/delete-plano/{id}', [OffsetMasterCT::class, 'destroyPlano'])->name('admin_delete_offset_plano');
+    Route::delete('/admin/offset-master/delete-plate/{id}', [OffsetMasterCT::class, 'destroyPlate'])->name('admin_delete_offset_plate');
+    Route::delete('/admin/offset-master/delete-print-cost/{id}', [OffsetMasterCT::class, 'destroyPrintCost'])->name('admin_delete_offset_print_cost');
+    Route::delete('/admin/offset-master/delete-pricing-rule/{id}', [OffsetMasterCT::class, 'destroyPricingRule'])->name('admin_delete_offset_pricing_rule');
+    Route::delete('/admin/offset-master/delete-product/{id}', [OffsetMasterCT::class, 'destroyProduct'])->name('admin_delete_offset_product');
+    Route::put('/admin/offset-master/update-plano/{id}', [OffsetMasterCT::class, 'updatePlano'])->name('admin_update_offset_plano');
+    Route::put('/admin/offset-master/update-plate/{id}', [OffsetMasterCT::class, 'updatePlate'])->name('admin_update_offset_plate');
+    Route::put('/admin/offset-master/update-print-cost/{id}', [OffsetMasterCT::class, 'updatePrintCost'])->name('admin_update_offset_print_cost');
+    Route::put('/admin/offset-master/update-pricing-rule/{id}', [OffsetMasterCT::class, 'updatePricingRule'])->name('admin_update_offset_pricing_rule');
+    Route::put('/admin/offset-master/update-product/{id}', [OffsetMasterCT::class, 'updateProduct'])->name('admin_update_offset_product');
 });

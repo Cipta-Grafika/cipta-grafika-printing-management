@@ -482,11 +482,13 @@ class MaterialCT extends Controller
     |--------------------------------------------------------------------------
     |
     | Nama material boleh sama dengan material yang sedang diedit.
-    | Yang tidak boleh adalah sama dengan material lain.
+    | Boleh sama jika kategorinya berbeda.
+    | Yang tidak boleh adalah sama dengan material lain pada kategori yang sama.
     |
     */
 
         $duplicateMaterial = DB::table('m_materials')
+            ->where('category_id', $request->category_id)
             ->whereRaw(
                 'LOWER(TRIM(material_name)) = ?',
                 [
@@ -502,7 +504,7 @@ class MaterialCT extends Controller
                 ->withInput()
                 ->withErrors([
                     'material_name' =>
-                    'Nama material sudah terdaftar.',
+                    'Nama material sudah terdaftar pada kategori ini.',
                 ]);
         }
 
@@ -1055,11 +1057,12 @@ class MaterialCT extends Controller
 
                 /*
             |--------------------------------------------------------------------------
-            | CARI MATERIAL BERDASARKAN NAMA
+            | CARI MATERIAL BERDASARKAN NAMA DAN KATEGORI
             |--------------------------------------------------------------------------
             */
 
                 $existingMaterial = DB::table('m_materials')
+                    ->where('category_id', $material['category_id'])
                     ->whereRaw(
                         'LOWER(TRIM(material_name)) = ?',
                         [strtolower($materialName)]

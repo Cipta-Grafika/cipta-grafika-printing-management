@@ -80,6 +80,11 @@
                                     text: "Galeri Sampel",
                                     href: window.adminRoutes.gallery_samples,
                                 },
+                                {
+                                    key: "offset-master",
+                                    text: "Offset",
+                                    href: window.adminRoutes.offset_master,
+                                },
                             ],
                         },
                         {
