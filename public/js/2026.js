@@ -184,22 +184,22 @@
                         {
                             key: "users",
                             text: "Pengguna",
-                            href: "charts.html",
+                            href: "#",
                             icon: `
                                 <circle cx="12" cy="8" r="4"/>
                                 <path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/>
                             `,
                         },
-                        {
-                            key: "roles-permissions",
-                            text: "Peran & Hak Akses",
-                            href: "forms.html",
-                            icon: `
-                                <path d="M12 3 20 7v5c0 5-3.4 8-8 9-4.6-1-8-4-8-9V7z"/>
-                                <rect x="9" y="10" width="6" height="5" rx="1"/>
-                                <path d="M10.5 10V8.5a1.5 1.5 0 0 1 3 0V10"/>
-                            `,
-                        },
+                        // {
+                        //     key: "roles-permissions",
+                        //     text: "Peran & Hak Akses",
+                        //     href: "forms.html",
+                        //     icon: `
+                        //         <path d="M12 3 20 7v5c0 5-3.4 8-8 9-4.6-1-8-4-8-9V7z"/>
+                        //         <rect x="9" y="10" width="6" height="5" rx="1"/>
+                        //         <path d="M10.5 10V8.5a1.5 1.5 0 0 1 3 0V10"/>
+                        //     `,
+                        // },
                     ],
                 },
             ];
@@ -220,7 +220,7 @@
                         .join("");
                 })(
                     e,
-                )}\n      </div>\n      <div class="topbar-actions">\n        <button class="cmd" data-palette-open>\n          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>\n          <span>Search...</span>\n          <kbd class="kbd">⌘K</kbd>\n        </button>\n\n        <div class="dd-wrap">\n          <div class="dd-menu" role="menu">\n            <div class="dd-head">\n              <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>\n              Notifications\n            </div>\n            <div class="dd-list">\n              <a class="dd-item" href="#">\n                <div class="dd-avatar a1">JD</div>\n                <div class="dd-body">\n                  <div class="dd-text"><strong>John Doe</strong> liked your <em>post</em></div>\n                  <div class="dd-time">5 MIN AGO</div>\n                </div>\n              </a>\n              <a class="dd-item" href="#">\n                <div class="dd-avatar a2">MD</div>\n                <div class="dd-body">\n                  <div class="dd-text"><strong>Moo Doe</strong> liked your <em>cover image</em></div>\n                  <div class="dd-time">7 MIN AGO</div>\n                </div>\n              </a>\n              <a class="dd-item" href="#">\n                <div class="dd-avatar a3">LD</div>\n                <div class="dd-body">\n                  <div class="dd-text"><strong>Lee Doe</strong> commented on your <em>video</em></div>\n                  <div class="dd-time">10 MIN AGO</div>\n                </div>\n              </a>\n            </div>\n            <a class="dd-footer" href="#">View all notifications →</a>\n          </div>\n        </div>\n\n        <div class="dd-wrap">\n                    <div class="dd-menu" role="menu">\n            <div class="dd-head">\n              <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>\n              Messages\n            </div>\n            <div class="dd-list">\n              <a class="dd-item" href="#">\n                <div class="dd-avatar a1">JD</div>\n                <div class="dd-body">\n                  <div class="dd-row-head"><strong>John Doe</strong><span class="dd-time">5 MIN</span></div>\n                  <div class="dd-preview">Want to create your own customized data generator for your app…</div>\n                </div>\n              </a>\n              <a class="dd-item" href="#">\n                <div class="dd-avatar a2">MD</div>\n                <div class="dd-body">\n                  <div class="dd-row-head"><strong>Moo Doe</strong><span class="dd-time">15 MIN</span></div>\n                  <div class="dd-preview">Want to create your own customized data generator for your app…</div>\n                </div>\n              </a>\n              <a class="dd-item" href="#">\n                <div class="dd-avatar a3">LD</div>\n                <div class="dd-body">\n                  <div class="dd-row-head"><strong>Lee Doe</strong><span class="dd-time">25 MIN</span></div>\n                  <div class="dd-preview">Want to create your own customized data generator for your app…</div>\n                </div>\n              </a>\n            </div>\n            <a class="dd-footer" href="#">View all messages →</a>\n          </div>\n        </div>\n\n        <button class="icon-btn" id="themeToggle" aria-label="Toggle theme"></button>\n\n        <div class="dd-wrap">\n          <div class="avatar" data-dropdown tabindex="0" role="button" aria-label="Account menu">${getInitials(window.appData?.brandName)}</div>\n          <div class="dd-menu dd-profile" role="menu">\n            <div class="dd-profile-head">\n              <div class="dd-profile-name">${window.appData?.brandName || "-"}</div>\n              <div class="dd-profile-email">${window.appData?.brandEmail || "-"}</div>\n            </div>\n            <a class="dd-menu-item" href="#">\n              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>\n              Settings\n            </a>\n            <a class="dd-menu-item" href="#">\n              <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>\n              Profile\n            </a>\n            <a class="dd-menu-item" href="email.html">\n              <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>\n              Messages\n            </a>\n            <div class="dd-divider"></div>\n            <button class="dd-menu-item danger" id="logoutButton">\n              <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>\n              Logout\n            </button>\n          </div>\n        </div>\n      </div>\n    </header>`;
+                )}\n      </div>\n      <div class="topbar-actions">\n        <button class="cmd" data-palette-open>\n          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>\n          <span>Search...</span>\n          <kbd class="kbd">⌘K</kbd>\n        </button>\n\n        <div class="dd-wrap">\n          <div class="dd-menu" role="menu">\n            <div class="dd-head">\n              <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>\n              Notifications\n            </div>\n            <div class="dd-list">\n              <a class="dd-item" href="#">\n                <div class="dd-avatar a1">JD</div>\n                <div class="dd-body">\n                  <div class="dd-text"><strong>John Doe</strong> liked your <em>post</em></div>\n                  <div class="dd-time">5 MIN AGO</div>\n                </div>\n              </a>\n              <a class="dd-item" href="#">\n                <div class="dd-avatar a2">MD</div>\n                <div class="dd-body">\n                  <div class="dd-text"><strong>Moo Doe</strong> liked your <em>cover image</em></div>\n                  <div class="dd-time">7 MIN AGO</div>\n                </div>\n              </a>\n              <a class="dd-item" href="#">\n                <div class="dd-avatar a3">LD</div>\n                <div class="dd-body">\n                  <div class="dd-text"><strong>Lee Doe</strong> commented on your <em>video</em></div>\n                  <div class="dd-time">10 MIN AGO</div>\n                </div>\n              </a>\n            </div>\n            <a class="dd-footer" href="#">View all notifications →</a>\n          </div>\n        </div>\n\n        <div class="dd-wrap">\n                    <div class="dd-menu" role="menu">\n            <div class="dd-head">\n              <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>\n              Messages\n            </div>\n            <div class="dd-list">\n              <a class="dd-item" href="#">\n                <div class="dd-avatar a1">JD</div>\n                <div class="dd-body">\n                  <div class="dd-row-head"><strong>John Doe</strong><span class="dd-time">5 MIN</span></div>\n                  <div class="dd-preview">Want to create your own customized data generator for your app…</div>\n                </div>\n              </a>\n              <a class="dd-item" href="#">\n                <div class="dd-avatar a2">MD</div>\n                <div class="dd-body">\n                  <div class="dd-row-head"><strong>Moo Doe</strong><span class="dd-time">15 MIN</span></div>\n                  <div class="dd-preview">Want to create your own customized data generator for your app…</div>\n                </div>\n              </a>\n              <a class="dd-item" href="#">\n                <div class="dd-avatar a3">LD</div>\n                <div class="dd-body">\n                  <div class="dd-row-head"><strong>Lee Doe</strong><span class="dd-time">25 MIN</span></div>\n                  <div class="dd-preview">Want to create your own customized data generator for your app…</div>\n                </div>\n              </a>\n            </div>\n            <a class="dd-footer" href="#">View all messages →</a>\n          </div>\n        </div>\n\n        <button class="icon-btn" id="themeToggle" aria-label="Toggle theme"></button>\n\n        <div class="dd-wrap">\n          <div class="avatar" data-dropdown tabindex="0" role="button" aria-label="Account menu">${getInitials(window.appData?.brandName)}</div>\n          <div class="dd-menu dd-profile" role="menu">\n            <div class="dd-profile-head">\n              <div class="dd-profile-name">${window.appData?.brandName || "-"}</div>\n              <div class="dd-profile-email">${window.appData?.brandEmail || "-"}</div>\n            </div>\n            <a class="dd-menu-item" href="#">\n              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>\n              Settings\n            </a>\n            <a class="dd-menu-item" href="#">\n              <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>\n              Profile\n            </a>\n            <a class="dd-menu-item" href="#">\n              <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>\n              Messages\n            </a>\n            <div class="dd-divider"></div>\n            <button class="dd-menu-item danger" id="logoutButton">\n              <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>\n              Logout\n            </button>\n          </div>\n        </div>\n      </div>\n    </header>`;
             }
             function s() {
                 const e = document.body,
@@ -1255,34 +1255,34 @@
                                         a && a.click();
                                     },
                                     icon: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>',
-                                 }),
-                                 e.push({
-                                     kind: "link",
-                                     label: "View on GitHub",
-                                     section: "External",
-                                     href: "https://github.com/puikinsh/Adminator-admin-dashboard",
-                                     target: "_blank",
-                                     icon: '<path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/>',
-                                 }),
-                                 e.push({
-                                     kind: "link",
-                                     label: "Documentation",
-                                     section: "External",
-                                     href: "https://puikinsh.github.io/Adminator-admin-dashboard/",
-                                     target: "_blank",
-                                     icon: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/>',
-                                 }),
-                                 e
-                             );
-                         })()),
-                     (S.value = ""),
-                     P(""),
-                     document.body.classList.add("has-palette-open"),
-                     setTimeout(() => {
-                         S.focus();
-                         R();
-                     }, 0));
-             }
+                                }),
+                                e.push({
+                                    kind: "link",
+                                    label: "View on GitHub",
+                                    section: "External",
+                                    href: "https://github.com/puikinsh/Adminator-admin-dashboard",
+                                    target: "_blank",
+                                    icon: '<path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/>',
+                                }),
+                                e.push({
+                                    kind: "link",
+                                    label: "Documentation",
+                                    section: "External",
+                                    href: "https://puikinsh.github.io/Adminator-admin-dashboard/",
+                                    target: "_blank",
+                                    icon: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/>',
+                                }),
+                                e
+                            );
+                        })()),
+                    (S.value = ""),
+                    P(""),
+                    document.body.classList.add("has-palette-open"),
+                    setTimeout(() => {
+                        S.focus();
+                        R();
+                    }, 0));
+            }
             function I() {
                 C && document.body.classList.remove("has-palette-open");
             }

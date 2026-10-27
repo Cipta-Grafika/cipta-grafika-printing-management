@@ -345,7 +345,13 @@ class OffsetCalculationService
 
         // Harga Jual Umum & Divisi (persis rumus Excel)
         if ($tier === 100) {
-            $sellingPrice = (int) (floor(($totalBaseHpp * 0.95) / 5000) * 5000);
+            if ($priceType === 'division') {
+                // Kolom AE & AF di Excel Sheet 'Brosur': floor(TotalBaseHpp * 80%, 5000)
+                $sellingPrice = (int) (floor(($totalBaseHpp * 0.80) / 5000) * 5000);
+            } else {
+                // Kolom Y & Z di Excel Sheet 'Brosur': floor(TotalBaseHpp * 95%, 5000)
+                $sellingPrice = (int) (floor(($totalBaseHpp * 0.95) / 5000) * 5000);
+            }
         } else {
             // Tier 500 Lembar (1 Rim) sesuai rumus Excel baris 8-13:
             // AA (1 Sisi Umum): =floor(L8*80%, 5000) -> totalBaseHpp * 0.80

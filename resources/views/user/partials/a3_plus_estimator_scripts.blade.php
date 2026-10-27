@@ -85,7 +85,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         [
             modeSelect,
-            colorSelect,
             sideSelect,
             materialSelect,
             laminationSelect,
@@ -302,10 +301,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     return;
                 }
             } else {
-                if (!mode || !color || !side || !materialId) {
+                if (!mode || !side || !materialId) {
                     let missing = [];
                     if (!mode) missing.push('mode produksi');
-                    if (!color) missing.push('warna cetak');
                     if (!side) missing.push('sisi cetak');
                     if (!materialId) missing.push('material');
                     $('#a3EstimateStatus')

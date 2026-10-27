@@ -783,6 +783,7 @@ class CatalogCT extends Controller
             'isA3Plus'         => $isA3Plus,
             'displayProductId' => null,
             'categoryId'       => (int) $categoryId,
+            'categoryName'     => $firstRow->category_name ?? '',
         ];
 
         $locations = DB::table('m_locations')
@@ -1044,6 +1045,18 @@ class CatalogCT extends Controller
             if ($cat && stripos($cat->name, 'display') !== false) {
                 $isDisplay = true;
             }
+        }
+
+        // Otomatis tentukan print_color berdasarkan kategori jika tidak dikirim (kategori == 'BW' -> bw, lainnya -> fc)
+        if (!$request->has('print_color') || empty($request->input('print_color'))) {
+            $isBw = false;
+            if (!empty($categoryId)) {
+                $cat = DB::table('m_categories')->where('id', $categoryId)->first();
+                if ($cat && strtoupper(trim($cat->name)) === 'BW') {
+                    $isBw = true;
+                }
+            }
+            $request->merge(['print_color' => $isBw ? 'bw' : 'fc']);
         }
 
         $request->validate([
@@ -1360,7 +1373,16 @@ class CatalogCT extends Controller
             ->where('pc.location_id', $locationId)
             ->where('m.status', 'Active');
 
-        if ($printColor === 'bw') {
+        // Otomatisasi filter material: jika kategori == 'BW' maka ambil material BW, selain itu material non-BW (Full Color)
+        $isBw = false;
+        if (!empty($categoryId)) {
+            $cat = DB::table('m_categories')->where('id', $categoryId)->first();
+            if ($cat && strtoupper(trim($cat->name)) === 'BW') {
+                $isBw = true;
+            }
+        }
+
+        if ($isBw || $printColor === 'bw') {
             $query->whereRaw('LOWER(TRIM(c.name)) = ?', ['bw']);
         } else {
             $query->whereRaw('LOWER(TRIM(c.name)) != ?', ['bw']);
@@ -1456,13 +1478,29 @@ class CatalogCT extends Controller
                 ")
                 ->get();
         } else {
-            $materials = DB::table('m_materials as m')
+            // Otomatisasi filter material Digital Print A3+: jika kategori == 'BW' -> filter BW, jika != 'BW' -> filter non-BW (Full Color)
+            $isBw = false;
+            if (!empty($categoryId)) {
+                $cat = DB::table('m_categories')->where('id', $categoryId)->first();
+                if ($cat && strtoupper(trim($cat->name)) === 'BW') {
+                    $isBw = true;
+                }
+            }
+
+            $baseMaterialQuery = DB::table('m_materials as m')
                 ->join('m_categories as c', 'c.id', '=', 'm.category_id')
                 ->join('m_digital_production_cost_details as d', 'd.material_id', '=', 'm.id')
                 ->join('m_digital_production_costs as pc', 'pc.id', '=', 'd.digital_production_cost_id')
                 ->where('pc.location_id', $purwakartaId)
-                ->where('m.status', 'Active')
-                ->whereRaw('LOWER(TRIM(c.name)) != ?', ['bw'])
+                ->where('m.status', 'Active');
+
+            if ($isBw) {
+                $baseMaterialQuery->whereRaw('LOWER(TRIM(c.name)) = ?', ['bw']);
+            } else {
+                $baseMaterialQuery->whereRaw('LOWER(TRIM(c.name)) != ?', ['bw']);
+            }
+
+            $materials = (clone $baseMaterialQuery)
                 ->when($categoryId, fn ($q) => $q->where('m.category_id', $categoryId))
                 ->select('m.id', 'm.material_name as name', 'c.id as category_id', 'c.name as category_name')
                 ->distinct()
@@ -1471,13 +1509,7 @@ class CatalogCT extends Controller
                 ->get();
 
             if ($materials->isEmpty()) {
-                $materials = DB::table('m_materials as m')
-                    ->join('m_categories as c', 'c.id', '=', 'm.category_id')
-                    ->join('m_digital_production_cost_details as d', 'd.material_id', '=', 'm.id')
-                    ->join('m_digital_production_costs as pc', 'pc.id', '=', 'd.digital_production_cost_id')
-                    ->where('pc.location_id', $purwakartaId)
-                    ->where('m.status', 'Active')
-                    ->whereRaw('LOWER(TRIM(c.name)) != ?', ['bw'])
+                $materials = (clone $baseMaterialQuery)
                     ->select('m.id', 'm.material_name as name', 'c.id as category_id', 'c.name as category_name')
                     ->distinct()
                     ->orderBy('c.name', 'asc')

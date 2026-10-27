@@ -1,5 +1,8 @@
 @php
     $isDisplayMode = !empty($estimator['isDisplay']) || (isset($estimator['categoryId']) && (int)$estimator['categoryId'] === 236) || (($product['type'] ?? '') === 'display');
+    $categoryName = $estimator['categoryName'] ?? ($product['title'] ?? '');
+    $isBwCategory = strtoupper(trim($categoryName)) === 'BW';
+    $defaultColor = $isBwCategory ? 'bw' : 'fc';
 @endphp
 
 {{-- =====================================================================
@@ -60,21 +63,11 @@
                 </h4>
             </div>
 
-            <!-- Warna Cetak -->
-            <div @if($isDisplayMode) style="display: none;" @endif>
-                <label for="a3_print_color"
-                    class="block text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1.5">
-                    Warna Cetak <span class="text-red-500">*</span>
-                </label>
-                <select id="a3_print_color" name="print_color" required class="estimator-choice-source">
-                    <option value="">Pilih Warna Cetak...</option>
-                    <option value="fc">Full Color (FC)</option>
-                    <option value="bw">Hitam Putih (B/W)</option>
-                </select>
-            </div>
+            {{-- Warna Cetak Otomatis (Hidden): Kategori == 'BW' -> bw, Kategori != 'BW' -> fc --}}
+            <input type="hidden" id="a3_print_color" name="print_color" value="{{ $defaultColor }}">
 
             <!-- Sisi Cetak -->
-            <div class="{{ $isDisplayMode ? 'sm:col-span-2' : '' }}">
+            <div class="sm:col-span-2">
                 <label for="a3_print_side"
                     class="block text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1.5">
                     Sisi Cetak <span class="text-red-500">*</span>
