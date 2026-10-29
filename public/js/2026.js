@@ -85,6 +85,11 @@
                                     text: "Offset",
                                     href: window.adminRoutes.offset_master,
                                 },
+                                {
+                                    key: "calendar-master",
+                                    text: "Kalender",
+                                    href: window.adminRoutes.calendar_master,
+                                },
                             ],
                         },
                         {

@@ -268,6 +268,65 @@
 
                     </article>
 
+                    {{-- CETAK KALENDER ESTIMATOR CARD --}}
+                    <article class="estimator-card">
+
+                        {{-- STATUS --}}
+                        <div class="estimator-card__status is-active">
+                            <span class="estimator-card__status-dot"></span>
+                            Active
+                        </div>
+
+                        <div class="estimator-card__visual">
+
+                            <div class="estimator-card__icon">
+                                {{-- Calendar Icon --}}
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/>
+                                    <line x1="16" x2="16" y1="2" y2="6"/>
+                                    <line x1="8" x2="8" y1="2" y2="6"/>
+                                    <line x1="3" x2="21" y1="10" y2="10"/>
+                                    <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"/>
+                                </svg>
+                            </div>
+
+                            <div class="estimator-card__pattern">
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                            </div>
+
+                        </div>
+
+                        <div class="estimator-card__content">
+
+                            <span class="estimator-card__eyebrow">
+                                ESTIMASI CETAK
+                            </span>
+
+                            <h2 class="estimator-card__title">
+                                Cetak Kalender (Dinding &amp; Meja)
+                            </h2>
+
+                            <p class="estimator-card__description">
+                                Estimasi cerdas Kalender Dinding &amp; Meja dengan perbandingan komparasi otomatis Digital A3+ vs Offset (SM52 / Oliver / SM72).
+                            </p>
+
+                            {{-- ACTION --}}
+                            <a href="{{ route('admin_create_calendar_estimation') }}" class="estimator-card__action">
+                                <span>Buat Estimasi</span>
+
+                                <svg viewBox="0 0 24 24" fill="none">
+                                    <path d="M5 12h14" />
+                                    <path d="m13 6 6 6-6 6" />
+                                </svg>
+                            </a>
+
+                        </div>
+
+                    </article>
+
                 </section>
 
 

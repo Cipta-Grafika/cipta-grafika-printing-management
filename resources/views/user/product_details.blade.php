@@ -878,7 +878,9 @@
                     </div>
                 </div>
 
-                @if (!empty($estimator['isBrochure']))
+                @if (!empty($estimator['isCalendar']))
+                    @include('user.partials.calendar_estimator')
+                @elseif (!empty($estimator['isBrochure']))
                     @include('user.partials.brosur_estimator')
                 @elseif (!empty($estimator['isA3Plus']))
                     @include('user.partials.a3_plus_estimator')
@@ -1819,7 +1821,9 @@
             }
         );
 
-        @if (!empty($estimator['isBrochure']))
+        @if (!empty($estimator['isCalendar']))
+            @include('user.partials.calendar_estimator_scripts')
+        @elseif (!empty($estimator['isBrochure']))
             @include('user.partials.brosur_estimator_scripts')
         @elseif (!empty($estimator['isA3Plus']))
             @include('user.partials.a3_plus_estimator_scripts')

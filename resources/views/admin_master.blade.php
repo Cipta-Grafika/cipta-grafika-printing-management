@@ -404,6 +404,10 @@
             'active' => 'offset-master',
             'crumbs' => 'Master Data | Offset',
         ],
+        'admin_calendar_master' => [
+            'active' => 'calendar-master',
+            'crumbs' => 'Master Data | Kalender',
+        ],
 
         'admin_discounts' => [
             'active' => 'discount',
@@ -452,6 +456,10 @@
         'admin_create_offset_estimation' => [
             'active' => 'dashboard',
             'crumbs' => 'Estimasi | Tambah Estimasi Cetak Brosur (Digital & Offset)',
+        ],
+        'admin_create_calendar_estimation' => [
+            'active' => 'dashboard',
+            'crumbs' => 'Estimasi | Tambah Estimasi Cetak Kalender (Dinding & Meja)',
         ],
         default => [
             'active' => 'dashboard',
@@ -566,7 +574,8 @@
             discounts: "{{ route('admin_discounts') }}",
             cuttings: "{{ route('admin_cuttings') }}",
             pc_finishing_cuttings: "{{ route('admin_production_cost_finishing_cuttings') }}",
-            offset_master: "{{ route('admin_offset_master') }}"
+            offset_master: "{{ route('admin_offset_master') }}",
+            calendar_master: "{{ route('admin_calendar_master') }}"
         };
 
         window.appData = {

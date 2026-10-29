@@ -637,15 +637,17 @@ class CatalogCT extends Controller
             ];
 
             $isBrochure = str_contains(strtolower($displayProduct->display_name), 'brosur') || str_contains(strtolower($displayProduct->display_name), 'flyer');
-            $isLargeFormat = !$isBrochure && (strtolower(trim($engineName)) === 'large format');
-            $isA3Plus = !$isBrochure && (strtolower(trim($engineName)) === 'digital print a3+');
+            $isCalendar = str_contains(strtolower($displayProduct->display_name), 'kalender');
+            $isLargeFormat = !$isBrochure && !$isCalendar && (strtolower(trim($engineName)) === 'large format');
+            $isA3Plus = !$isBrochure && !$isCalendar && (strtolower(trim($engineName)) === 'digital print a3+');
 
             $estimator = [
                 'type'             => 'display',
-                'engineName'       => $isBrochure ? 'Cetak Brosur & Flyer' : $engineName,
+                'engineName'       => $isCalendar ? 'Cetak Kalender (Dinding & Meja)' : ($isBrochure ? 'Cetak Brosur & Flyer' : $engineName),
                 'isLargeFormat'    => $isLargeFormat,
                 'isA3Plus'         => $isA3Plus,
                 'isBrochure'       => $isBrochure,
+                'isCalendar'       => $isCalendar,
                 'isDisplay'        => true,
                 'displayProductId' => (int) $displayProduct->id,
                 'categoryId'       => (int) $displayProduct->category_id,
@@ -685,12 +687,34 @@ class CatalogCT extends Controller
                 'brochureMaterials' => collect(),
             ];
 
+            $calendarData = $isCalendar ? [
+                'calendarProducts' => DB::table('m_calendar_products')
+                    ->where('status', 'active')
+                    ->orderBy('calendar_type', 'asc')
+                    ->orderBy('id', 'asc')
+                    ->get(),
+                'calendarMaterials' => DB::table('m_calendar_materials')
+                    ->where('status', 'active')
+                    ->orderBy('id', 'asc')
+                    ->get(),
+                'calendarPricingRules' => DB::table('m_calendar_pricing_rules')
+                    ->where('status', 'active')
+                    ->orderBy('min_qty', 'asc')
+                    ->get(),
+            ] : [
+                'calendarProducts' => collect(),
+                'calendarMaterials' => collect(),
+                'calendarPricingRules' => collect(),
+            ];
+
             $activeDiscounts = $isBrochure
                 ? $this->activeBrochureDiscounts()
-                : $this->activeProductDiscounts(
-                    $discountEngineId ? (int) $discountEngineId : null,
-                    (int) $displayProduct->category_id
-                );
+                : ($isCalendar
+                    ? $this->activeCalendarDiscounts()
+                    : $this->activeProductDiscounts(
+                        $discountEngineId ? (int) $discountEngineId : null,
+                        (int) $displayProduct->category_id
+                    ));
 
             return view('user.product_details', array_merge([
                 'product'   => $product,
@@ -698,7 +722,7 @@ class CatalogCT extends Controller
                 'locations' => $locations,
                 'vendors'   => $vendors,
                 'activeDiscounts' => $activeDiscounts,
-            ], $a3Data, $brochureData));
+            ], $a3Data, $brochureData, $calendarData));
         }
 
         /*
@@ -843,6 +867,19 @@ class CatalogCT extends Controller
                     ->whereIn('engine_id', $engineIds)
                     ->whereIn('category_id', $categoryIds);
             })
+            ->orderBy('ends_at')
+            ->orderBy('id')
+            ->get(['id', 'name', 'code', 'discount_percentage', 'starts_at', 'ends_at']);
+    }
+
+    private function activeCalendarDiscounts(): Collection
+    {
+        $now = Carbon::now('Asia/Jakarta')->format('Y-m-d H:i:s');
+
+        return DB::table('m_discounts')
+            ->where('status', 'Active')
+            ->where('starts_at', '<=', $now)
+            ->where('ends_at', '>=', $now)
             ->orderBy('ends_at')
             ->orderBy('id')
             ->get(['id', 'name', 'code', 'discount_percentage', 'starts_at', 'ends_at']);
@@ -1305,6 +1342,102 @@ class CatalogCT extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal menghitung estimasi brosur: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function previewUserCalendarEstimation(Request $request)
+    {
+        $promoCode = $request->input('promo_code');
+        if (is_string($promoCode)) {
+            $request->merge(['promo_code' => strtoupper(trim($promoCode))]);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'calendar_type' => 'required|in:dinding,meja',
+            'product_id'    => 'required|integer',
+            'material_id'   => 'required|integer',
+            'leaf_count'    => 'required|integer|min:1',
+            'lamination'    => 'required|string|in:none,glossy,doff',
+            'qty'           => 'required|integer|min:1',
+            'support_type'  => 'nullable|string',
+            'board_type'    => 'nullable|string',
+            'promo_code'    => ['bail', 'nullable', 'string', 'min:3', 'max:30', 'regex:/\A[A-Z0-9_-]+\z/'],
+        ], [
+            'promo_code.string' => 'Kode promo harus berupa teks.',
+            'promo_code.min' => 'Kode promo minimal 3 karakter.',
+            'promo_code.max' => 'Kode promo maksimal 30 karakter.',
+            'promo_code.regex' => 'Kode promo hanya boleh berisi huruf, angka, tanda hubung (-), dan garis bawah (_).',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()->first(),
+            ], 422);
+        }
+
+        try {
+            $calcService = app(\App\Services\CalendarCalculationService::class);
+            $res = $calcService->calculate([
+                'product_id'   => (int) $request->input('product_id'),
+                'material_id'  => (int) $request->input('material_id'),
+                'qty'          => (int) $request->input('qty'),
+                'leaf_count'   => (int) $request->input('leaf_count', 7),
+                'lamination'   => (string) $request->input('lamination', 'none'),
+                'support_type' => (string) $request->input('support_type', 'printing_fc'),
+                'board_type'   => (string) $request->input('board_type', 'boot_30'),
+            ]);
+
+            $promo = null;
+            $subtotal = (float) $res['recommended_total_offer'];
+            $discountAmount = 0.0;
+            $grandTotal = $subtotal;
+            $roundingAmount = 0.0;
+
+            if (filled($request->input('promo_code'))) {
+                $code = strtoupper(trim($request->input('promo_code')));
+                $promo = $this->activeCalendarDiscounts()
+                    ->first(fn ($discount) => strtoupper($discount->code) === $code);
+
+                if ($promo === null) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Kode promo tidak valid, belum/sudah tidak berlaku, atau tidak sesuai dengan produk yang dipilih.',
+                    ], 422);
+                }
+
+                $discountAmount = round($subtotal * (float) $promo->discount_percentage / 100, 2);
+                $totalAfterDiscount = max(0, $subtotal - $discountAmount);
+                $grandTotal = ceil(round($totalAfterDiscount, 2) / 1000) * 1000;
+                $roundingAmount = round($grandTotal - $totalAfterDiscount, 2);
+            }
+
+            $unitPrice = $res['qty'] > 0 ? round($grandTotal / $res['qty']) : 0;
+
+            return response()->json([
+                'success' => true,
+                'data' => array_merge($res, [
+                    'promo' => $promo ? [
+                        'code' => $promo->code,
+                        'name' => $promo->name ?? 'Diskon Promo',
+                        'percentage' => (float) $promo->discount_percentage,
+                    ] : null,
+                    'totals' => [
+                        'subtotal' => $subtotal,
+                        'discount_amount' => $discountAmount,
+                        'rounding_amount' => $roundingAmount,
+                        'total_selling_price' => $grandTotal,
+                        'selling_price_per_pcs' => $unitPrice,
+                    ],
+                ]),
+                'method' => $res['recommended_route'],
+                'message' => 'Estimasi kalender berhasil dihitung.'
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghitung estimasi kalender: ' . $e->getMessage(),
             ], 500);
         }
     }

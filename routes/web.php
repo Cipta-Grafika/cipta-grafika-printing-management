@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\admin\CalculationRuleCT;
+use App\Http\Controllers\admin\CalendarEstimationCT;
+use App\Http\Controllers\admin\CalendarMasterCT;
 use App\Http\Controllers\admin\CategoryCT;
 use App\Http\Controllers\admin\CompatibilityMaterialCT;
 use App\Http\Controllers\admin\DashboardCT;
@@ -62,6 +64,7 @@ Route::get('/estimation/create-lf/get-categories', [CatalogCT::class, 'getUserLF
 Route::post('/estimation/preview-a3plus', [CatalogCT::class, 'previewUserA3PlusEstimation'])->name('user_preview_a3plus_estimation');
 Route::get('/estimation/create-a3plus/get-materials', [CatalogCT::class, 'getUserMaterialsA3plus'])->name('user_get_materials_a3plus');
 Route::post('/estimation/preview-brosur', [CatalogCT::class, 'previewUserBrosurEstimation'])->name('user_preview_brosur_estimation');
+Route::post('/estimation/preview-calendar', [CatalogCT::class, 'previewUserCalendarEstimation'])->name('user_preview_calendar_estimation');
 
 // Route::get('/user/estimator/materials', [CatalogCT::class, 'estimatorMaterials'])
 //     ->middleware('throttle:60,1')->name('user_estimator_materials');
@@ -217,6 +220,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/admin/estimations/create-offset', [OffsetEstimationCT::class, 'create'])->name('admin_create_offset_estimation');
     Route::post('/admin/estimations/calculate-offset', [OffsetEstimationCT::class, 'calculate'])->name('admin_calculate_offset');
     Route::post('/admin/estimations/store-offset', [OffsetEstimationCT::class, 'store'])->name('admin_store_offset');
+
+    // Cetak Kalender Estimation
+    Route::get('/admin/estimations/create-calendar', [CalendarEstimationCT::class, 'create'])->name('admin_create_calendar_estimation');
+    Route::post('/admin/estimations/calculate-calendar', [CalendarEstimationCT::class, 'calculate'])->name('admin_calculate_calendar_estimate');
     Route::get('/admin/estimation/create-lf/get-material-sizes', [EstimationCT::class, 'getMaterialSizes'])->name('admin_get_material_sizes');
     Route::get('/admin/estimation/create-lf/get-laminations', [EstimationCT::class, 'getLaminations'])->name('admin_get_laminations');
     Route::get('/admin/estimation/create-lf/get-lamination-sizes', [EstimationCT::class, 'getLaminationSizes'])->name('admin_get_laminations_sizes');
@@ -397,4 +404,23 @@ Route::middleware('auth')->group(function () {
     Route::put('/admin/offset-master/update-print-cost/{id}', [OffsetMasterCT::class, 'updatePrintCost'])->name('admin_update_offset_print_cost');
     Route::put('/admin/offset-master/update-pricing-rule/{id}', [OffsetMasterCT::class, 'updatePricingRule'])->name('admin_update_offset_pricing_rule');
     Route::put('/admin/offset-master/update-product/{id}', [OffsetMasterCT::class, 'updateProduct'])->name('admin_update_offset_product');
+
+    /*
+    |--------------------------------------------------------------------------
+    | MASTER DATA - KALENDER
+    |--------------------------------------------------------------------------
+    */
+    Route::get('/admin/calendar-master', [CalendarMasterCT::class, 'index'])->name('admin_calendar_master');
+    Route::post('/admin/calendar-master/store-product', [CalendarMasterCT::class, 'storeProduct'])->name('admin_store_calendar_product');
+    Route::post('/admin/calendar-master/store-material', [CalendarMasterCT::class, 'storeMaterial'])->name('admin_store_calendar_material');
+    Route::post('/admin/calendar-master/store-component', [CalendarMasterCT::class, 'storeComponent'])->name('admin_store_calendar_component');
+    Route::post('/admin/calendar-master/store-rule', [CalendarMasterCT::class, 'storeRule'])->name('admin_store_calendar_rule');
+    Route::put('/admin/calendar-master/update-material/{id}', [CalendarMasterCT::class, 'updateMaterial'])->name('admin_update_calendar_material');
+    Route::put('/admin/calendar-master/update-component/{id}', [CalendarMasterCT::class, 'updateComponent'])->name('admin_update_calendar_component');
+    Route::put('/admin/calendar-master/update-rule/{id}', [CalendarMasterCT::class, 'updateRule'])->name('admin_update_calendar_rule');
+    Route::put('/admin/calendar-master/update-product/{id}', [CalendarMasterCT::class, 'updateProduct'])->name('admin_update_calendar_product');
+    Route::delete('/admin/calendar-master/delete-product/{id}', [CalendarMasterCT::class, 'destroyProduct'])->name('admin_delete_calendar_product');
+    Route::delete('/admin/calendar-master/delete-material/{id}', [CalendarMasterCT::class, 'destroyMaterial'])->name('admin_delete_calendar_material');
+    Route::delete('/admin/calendar-master/delete-component/{id}', [CalendarMasterCT::class, 'destroyComponent'])->name('admin_delete_calendar_component');
+    Route::delete('/admin/calendar-master/delete-rule/{id}', [CalendarMasterCT::class, 'destroyRule'])->name('admin_delete_calendar_rule');
 });
