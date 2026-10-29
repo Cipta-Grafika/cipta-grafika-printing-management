@@ -78,7 +78,7 @@ class CalendarEstimationCT extends Controller
                 ], 422);
             }
 
-            $result = $this->calcService->calculate([
+            $calcParams = [
                 'product_id'   => $productId,
                 'material_id'  => $materialId,
                 'qty'          => $qty,
@@ -86,11 +86,16 @@ class CalendarEstimationCT extends Controller
                 'lamination'   => $lamination,
                 'support_type' => $supportType,
                 'board_type'   => $boardType,
-            ]);
+                'price_type'   => (string) $request->input('price_type', 'general'),
+            ];
+
+            $result = $this->calcService->calculate($calcParams);
+            $matrix = $this->calcService->generatePriceMatrix($calcParams);
 
             return response()->json([
                 'success' => true,
                 'data'    => $result,
+                'matrix'  => $matrix,
             ]);
         } catch (\Throwable $e) {
             Log::error('Error calculating calendar estimate: ' . $e->getMessage(), [

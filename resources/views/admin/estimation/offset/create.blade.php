@@ -667,14 +667,22 @@
                                     </p>
                                 </div>
 
-                                {{-- Tab Sisi Matrix (Offset) --}}
-                                <div id="matrixTabWrap" class="matrix-tab-container">
-                                    <button type="button" class="matrix-tab-btn is-active" data-side="one_side">
-                                        1 Sisi (1 Muka)
-                                    </button>
-                                    <button type="button" class="matrix-tab-btn" data-side="two_sides">
-                                        2 Sisi (2 Muka)
-                                    </button>
+                                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                                    <div class="matrix-search-box">
+                                        <i class="bi bi-search"></i>
+                                        <input type="text" id="offsetMatrixSearch" class="matrix-search-input" placeholder="Cari rim, lembar, harga..." autocomplete="off">
+                                        <button type="button" class="matrix-search-clear" id="offsetMatrixSearchClear" title="Hapus pencarian">&times;</button>
+                                    </div>
+
+                                    {{-- Tab Sisi Matrix (Offset) --}}
+                                    <div id="matrixTabWrap" class="matrix-tab-container">
+                                        <button type="button" class="matrix-tab-btn is-active" data-side="one_side">
+                                            1 Sisi (1 Muka)
+                                        </button>
+                                        <button type="button" class="matrix-tab-btn" data-side="two_sides">
+                                            2 Sisi (2 Muka)
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
 
@@ -1099,6 +1107,64 @@
             }
 
             // Render Matriks Tabel Offset
+            
+        function filterOffsetMatrixRows() {
+            const input = document.getElementById("offsetMatrixSearch");
+            const clearBtn = document.getElementById("offsetMatrixSearchClear");
+            const tbody = document.getElementById("matrixTableBody");
+            if (!input || !tbody) return;
+
+            const query = (input.value || "").trim().toLowerCase();
+            if (clearBtn) {
+                clearBtn.style.display = query ? "block" : "none";
+            }
+
+            const rows = Array.from(tbody.querySelectorAll("tr:not(.no-search-result)"));
+            const prevNoResult = tbody.querySelector(".no-search-result");
+            if (prevNoResult) prevNoResult.remove();
+
+            if (rows.length === 0) return;
+            if (rows.length === 1 && rows[0].cells.length === 1 && rows[0].cells[0].colSpan > 1) {
+                return;
+            }
+
+            let matchCount = 0;
+            const cleanQuery = query.replace(/\./g, "");
+
+            rows.forEach(row => {
+                const text = row.innerText.toLowerCase();
+                const cleanText = text.replace(/\./g, "");
+                const isMatch = !query || text.includes(query) || (cleanQuery && cleanText.includes(cleanQuery));
+
+                row.style.display = isMatch ? "" : "none";
+                if (isMatch) matchCount++;
+            });
+
+            if (query && matchCount === 0) {
+                const noRow = document.createElement("tr");
+                noRow.className = "no-search-result";
+                noRow.innerHTML = `<td colspan="8" style="text-align: center; padding: 24px; color: var(--t-muted);"><i class="bi bi-search"></i> Tidak ada baris yang sesuai dengan pencarian "<strong>${query}</strong>".</td>`;
+                tbody.appendChild(noRow);
+            }
+        }
+
+        // Search input event listeners (tanpa DOMContentLoaded tambahan karena sudah di dalam block DOMContentLoaded)
+        const offSearchInput = document.getElementById("offsetMatrixSearch");
+        if (offSearchInput) {
+            offSearchInput.addEventListener("input", filterOffsetMatrixRows);
+            offSearchInput.addEventListener("keyup", filterOffsetMatrixRows);
+        }
+        const offSearchClear = document.getElementById("offsetMatrixSearchClear");
+        if (offSearchClear) {
+            offSearchClear.addEventListener("click", function() {
+                if (offSearchInput) {
+                    offSearchInput.value = "";
+                    filterOffsetMatrixRows();
+                    offSearchInput.focus();
+                }
+            });
+        }
+
             function renderOffsetMatrixTable(side) {
                 matrixTableHead.innerHTML = `
                     <tr>
@@ -1150,6 +1216,7 @@
                 });
 
                 matrixTableBody.innerHTML = rowsHtml;
+                filterOffsetMatrixRows();
 
                 // Event listener untuk tombol 'Pilih'
                 document.querySelectorAll('.btn-select-qty').forEach(btn => {
@@ -1214,6 +1281,7 @@
                 });
 
                 matrixTableBody.innerHTML = rowsHtml;
+                filterOffsetMatrixRows();
 
                 // Event listener tombol 'Pilih Paket'
                 document.querySelectorAll('.btn-select-pkg').forEach(btn => {
@@ -2218,6 +2286,59 @@
             background: var(--bg-card);
             color: var(--primary);
             box-shadow: var(--shadow-sm);
+        }
+
+        
+        /* Matrix Search Filter */
+        .matrix-search-box {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            min-width: 200px;
+            max-width: 280px;
+        }
+
+        .matrix-search-box i.bi-search {
+            position: absolute;
+            left: 11px;
+            color: var(--t-muted);
+            font-size: 13px;
+            pointer-events: none;
+        }
+
+        .matrix-search-input {
+            width: 100%;
+            height: 36px;
+            padding: 6px 30px 6px 32px;
+            font-size: 12.5px;
+            border: 1px solid var(--border);
+            border-radius: 7px;
+            background: var(--bg-card);
+            color: var(--t-base);
+            outline: none;
+            transition: all 0.15s ease;
+        }
+
+        .matrix-search-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-ring);
+        }
+
+        .matrix-search-clear {
+            position: absolute;
+            right: 8px;
+            background: none;
+            border: none;
+            color: var(--t-muted);
+            font-size: 16px;
+            cursor: pointer;
+            padding: 2px 6px;
+            line-height: 1;
+            display: none;
+        }
+
+        .matrix-search-clear:hover {
+            color: var(--t-base);
         }
 
         /* Matrix Table */

@@ -737,5 +737,98 @@ class CalendarCalculationService
             'copy_wa_full'   => $textWa,
         ];
     }
+
+    /**
+     * Generate matriks simulasi harga bertingkat (Pricelist Matrix) untuk cetak kalender
+     */
+    public function generatePriceMatrix(array $params): array
+    {
+        $tiers = [50, 100, 200, 300, 500, 1000, 2000, 3000, 5000];
+        $matrix = [];
+
+        foreach ($tiers as $tierQty) {
+            $tierParams = array_merge($params, ['qty' => $tierQty]);
+            try {
+                $calc = $this->calculate($tierParams);
+                $isDigital = ($calc['recommended_route'] ?? '') === 'digital';
+                $rec = $isDigital ? ($calc['digital'] ?? []) : ($calc['offset'] ?? []);
+
+                $matrix[] = [
+                    'qty'                 => $tierQty,
+                    'recommended_route'   => $calc['recommended_route'] ?? 'offset',
+                    'machine_label'       => $isDigital ? 'Digital A3+' : ($calc['offset']['machine_name'] ?? 'Offset SM52'),
+                    'digital_available'   => !empty($calc['digital']['available']),
+                    'digital_price_pcs'   => !empty($calc['digital']['available']) ? ($calc['digital']['selling_price_pcs'] ?? 0) : null,
+                    'offset_price_pcs'    => $calc['offset']['selling_price_pcs'] ?? 0,
+                    'hpp_per_pcs'         => $rec['hpp_per_pcs'] ?? 0,
+                    'total_hpp'           => $rec['hpp_total'] ?? 0,
+                    'selling_price_pcs'   => $calc['recommended_price_pcs'] ?? 0,
+                    'total_selling_price' => $calc['recommended_total_offer'] ?? 0,
+                    'markup_percent'      => $calc['markup_percent'] ?? 0,
+                ];
+            } catch (\Throwable $e) {
+                continue;
+            }
+        }
+
+        $waMatrix = $this->buildMatrixWaText($params, $matrix);
+
+        return [
+            'tiers'     => $matrix,
+            'wa_matrix' => $waMatrix,
+        ];
+    }
+
+    /**
+     * Susun format teks salinan WhatsApp untuk matriks daftar harga bertingkat
+     */
+    protected function buildMatrixWaText(array $params, array $matrix): string
+    {
+        if (empty($matrix)) {
+            return '';
+        }
+
+        $productId = (int) ($params['product_id'] ?? 0);
+        $materialId = (int) ($params['material_id'] ?? 0);
+        $leafCount = (int) ($params['leaf_count'] ?? 7);
+        $lamination = (string) ($params['lamination'] ?? 'none');
+
+        $product = DB::table('m_calendar_products')->where('id', $productId)->first();
+        $material = DB::table('m_calendar_materials')->where('id', $materialId)->first();
+
+        $catName = $product ? ucfirst($product->calendar_type) : 'Kalender';
+        $sizeName = $product ? "{$product->size_label} (" . ucfirst($product->orientation) . ")" : '';
+        $matName = $material ? $material->material_name : '';
+        $lamLabel = ($lamination === 'none' || empty($lamination)) ? 'Tanpa Laminasi' : ucfirst($lamination);
+
+        $text = "*DAFTAR HARGA ESTIMASI KALENDER " . strtoupper($catName) . "*\n";
+        $text .= "--------------------------------------\n";
+        $text .= "Spesifikasi:\n";
+        if ($sizeName) {
+            $text .= "• Ukuran: {$sizeName}\n";
+        }
+        if ($matName) {
+            $text .= "• Kertas: {$matName}\n";
+        }
+        $text .= "• Jumlah Isi: {$leafCount} Lembar\n";
+        $text .= "• Laminasi: {$lamLabel}\n";
+        $text .= "--------------------------------------\n";
+        $text .= "*Daftar Harga Bertingkat:*\n";
+
+        foreach ($matrix as $row) {
+            $formattedQty = number_format($row['qty'], 0, ',', '.');
+            $formattedPrice = number_format($row['selling_price_pcs'], 0, ',', '.');
+            $formattedTotal = number_format($row['total_selling_price'], 0, ',', '.');
+            $text .= "• {$formattedQty} pcs : Rp {$formattedPrice} / pcs (Total: Rp {$formattedTotal}) [{$row['machine_label']}]\n";
+        }
+
+        $text .= "--------------------------------------\n";
+        $text .= "_* Catatan:_\n";
+        $text .= "- Harga sudah termasuk cetak fullcolor & finishing standar.\n";
+        $text .= "- Harga dapat berubah sewaktu-waktu sesuai ketentuan.\n";
+        $text .= "- Hubungi tim Cipta Grafika untuk pemesanan & info selengkapnya.";
+
+        return $text;
+    }
 }
 

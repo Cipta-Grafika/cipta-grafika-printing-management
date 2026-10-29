@@ -408,6 +408,10 @@
             'active' => 'calendar-master',
             'crumbs' => 'Master Data | Kalender',
         ],
+        'admin_users' => [
+            'active' => 'users',
+            'crumbs' => 'Management | Pengguna',
+        ],
 
         'admin_discounts' => [
             'active' => 'discount',
@@ -575,7 +579,8 @@
             cuttings: "{{ route('admin_cuttings') }}",
             pc_finishing_cuttings: "{{ route('admin_production_cost_finishing_cuttings') }}",
             offset_master: "{{ route('admin_offset_master') }}",
-            calendar_master: "{{ route('admin_calendar_master') }}"
+            calendar_master: "{{ route('admin_calendar_master') }}",
+            users: "{{ route('admin_users') }}"
         };
 
         window.appData = {

@@ -32,6 +32,7 @@ use App\Http\Controllers\admin\ProductionCostFinishingCuttingCT;
 use App\Http\Controllers\admin\ProductionCostFinishingCT;
 use App\Http\Controllers\admin\ProductionCostFinishingDisplayCT;
 use App\Http\Controllers\admin\ProductionCostFinishingLaminationCT;
+use App\Http\Controllers\admin\UserCT;
 use App\Http\Controllers\admin\VendorCT;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\GetDataCT;
@@ -423,4 +424,11 @@ Route::middleware('auth')->group(function () {
     Route::delete('/admin/calendar-master/delete-material/{id}', [CalendarMasterCT::class, 'destroyMaterial'])->name('admin_delete_calendar_material');
     Route::delete('/admin/calendar-master/delete-component/{id}', [CalendarMasterCT::class, 'destroyComponent'])->name('admin_delete_calendar_component');
     Route::delete('/admin/calendar-master/delete-rule/{id}', [CalendarMasterCT::class, 'destroyRule'])->name('admin_delete_calendar_rule');
+
+    /*
+    |--------------------------------------------------------------------------
+    | MANAGEMENT - INFORMASI PENGGUNA & AKUN ADMIN (READ-ONLY)
+    |--------------------------------------------------------------------------
+    */
+    Route::get('/admin/users', [UserCT::class, 'index'])->name('admin_users');
 });
