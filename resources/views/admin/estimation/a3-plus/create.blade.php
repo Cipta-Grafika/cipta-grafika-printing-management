@@ -1,6 +1,510 @@
 @extends('admin_master')
 
 @section('contents')
+    <style>
+        /* Responsive Grid System Konsisten dengan Brosur / Offset */
+        .a3plus-estimator-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+            width: 100%;
+        }
+
+        .a3plus-form-col {
+            min-width: 0;
+            width: 100%;
+        }
+
+        .a3plus-summary-col {
+            min-width: 0;
+            width: 100%;
+        }
+
+        @media (min-width: 1024px) {
+            .a3plus-estimator-grid {
+                grid-template-columns: 1.25fr 1fr;
+                gap: 24px;
+                align-items: start;
+            }
+
+            .a3plus-sticky-card {
+                position: sticky;
+                top: 20px;
+            }
+        }
+
+        /* Selling Price Box */
+        .selling-price-box {
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.08) 0%, rgba(37, 99, 235, 0.02) 100%);
+            border: 1.5px solid rgba(37, 99, 235, 0.28);
+            border-radius: 12px;
+            padding: 18px;
+            margin-bottom: 20px;
+        }
+
+        .selling-price-box-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: var(--primary);
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .selling-price-box-val {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--t-base);
+            letter-spacing: -0.02em;
+            line-height: 1.2;
+        }
+
+        .selling-price-box-sub {
+            display: flex;
+            gap: 16px;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed var(--border);
+            font-size: 13px;
+        }
+
+        .selling-price-box-sub .sub-label {
+            color: var(--t-muted);
+            font-size: 11.5px;
+            display: block;
+        }
+
+        .selling-price-box-sub .sub-val {
+            color: var(--t-base);
+            font-weight: 700;
+        }
+
+        .sub-divider {
+            padding-left: 16px;
+            border-left: 1px solid var(--border);
+        }
+
+        .rounding-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: var(--bg-muted);
+            color: var(--t-muted);
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+        }
+
+        /* Breakdown Row */
+        .breakdown-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 10px 12px;
+            background: var(--bg-muted);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            gap: 10px;
+        }
+
+        .breakdown-row-title {
+            font-weight: 700;
+            color: var(--t-base);
+            font-size: 12.5px;
+        }
+
+        .breakdown-row-sub {
+            color: var(--t-muted);
+            font-size: 11.5px;
+            display: block;
+            margin-top: 2px;
+        }
+
+        .breakdown-row-cost {
+            font-weight: 700;
+            color: var(--t-base);
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        /* Total HPP Bar */
+        .total-hpp-bar {
+            padding: 12px 14px;
+            background: var(--bg-card);
+            border-radius: 8px;
+            border: 1.5px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 4px;
+        }
+
+        .total-hpp-bar-title {
+            font-size: 12px;
+            font-weight: 800;
+            color: var(--t-base);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .total-hpp-bar-sub {
+            font-size: 11.5px;
+            color: var(--t-muted);
+            margin-top: 2px;
+        }
+
+        .total-hpp-bar-val {
+            font-size: 15px;
+            font-weight: 800;
+            color: var(--t-base);
+        }
+
+        .btn-back-header {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            border-radius: 8px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--t-base);
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .btn-back-header:hover {
+            background: var(--bg-hover);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        /* Modal Custom Styles */
+        .modal-overlay {
+            position: fixed !important;
+            inset: 0 !important;
+            display: none;
+            align-items: center !important;
+            justify-content: center !important;
+            background: rgba(11, 17, 32, 0.75) !important;
+            backdrop-filter: blur(4px) !important;
+            z-index: 99999 !important;
+            padding: 20px !important;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease, visibility 0.2s ease !important;
+        }
+
+        .modal-overlay.is-open {
+            display: flex !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+        }
+
+        .modal-content-custom {
+            background: var(--bg-card);
+            color: var(--t-base);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            width: 100%;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
+            overflow: hidden;
+        }
+
+        .modal-head-custom {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--bg-card);
+        }
+
+        .modal-title-custom {
+            margin: 2px 0 0;
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--t-base);
+        }
+
+        .modal-close-btn {
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 20px;
+            color: var(--t-muted);
+            transition: color 0.15s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px;
+            border-radius: 6px;
+        }
+
+        .modal-close-btn:hover {
+            color: var(--t-base);
+            background: var(--bg-hover);
+        }
+
+        .modal-foot-custom {
+            padding: 14px 20px;
+            background: var(--bg-muted);
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            border-radius: 0 0 12px 12px;
+        }
+
+        /* Printable Area */
+        .printable-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 12px;
+            margin-bottom: 18px;
+        }
+
+        .printable-company-name {
+            margin: 0;
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: var(--t-base);
+        }
+
+        .printable-info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+
+        .printable-info-box {
+            background: var(--bg-muted);
+            padding: 12px 14px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            color: var(--t-base);
+            font-size: 12.5px;
+            line-height: 1.6;
+        }
+
+        .printable-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            margin-bottom: 18px;
+        }
+
+        .printable-table thead tr {
+            background: var(--bg-muted);
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+            color: var(--t-base);
+        }
+
+        .printable-table tbody tr {
+            border-bottom: 1px solid var(--border);
+            color: var(--t-base);
+        }
+
+        .printable-table tfoot tr {
+            border-top: 2px solid var(--border);
+            font-size: 14px;
+            color: var(--t-base);
+        }
+
+        /* Detail Teknis Grid & Badges */
+        .tech-spec-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .tech-spec-item {
+            background: var(--bg-muted);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px 12px;
+        }
+
+        .tech-spec-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--t-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 3px;
+        }
+
+        .tech-spec-value {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--t-base);
+            word-break: break-word;
+        }
+
+        .tech-kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 12px;
+            margin-top: 18px;
+        }
+
+        .tech-kpi-card {
+            background: var(--bg-muted);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 14px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .tech-kpi-card.highlight {
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.08) 0%, rgba(37, 99, 235, 0.02) 100%);
+            border-color: rgba(37, 99, 235, 0.3);
+        }
+
+        .tech-kpi-card.profit {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(16, 185, 129, 0.02) 100%);
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        .tech-kpi-label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--t-muted);
+            margin-bottom: 4px;
+        }
+
+        .tech-kpi-val {
+            font-size: 17px;
+            font-weight: 800;
+            color: var(--t-base);
+        }
+
+        /* Buttons Hover */
+        .btn-preview-estimation:hover {
+            opacity: 0.92;
+            transform: translateY(-1px);
+        }
+
+        .btn-detail-estimation:hover {
+            background: var(--bg-hover) !important;
+            border-color: var(--primary) !important;
+            color: var(--primary) !important;
+            transform: translateY(-1px);
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .printable-info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .printable-header {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .tech-kpi-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        /* Media Print Rules */
+        @media print {
+            body {
+                background: #fff !important;
+                color: #000 !important;
+            }
+
+            .shell,
+            .hero,
+            nav,
+            header,
+            footer,
+            aside,
+            #modalA3plusTechnical {
+                display: none !important;
+            }
+
+            #modalA3plusQuotation.modal-overlay {
+                display: block !important;
+                position: static !important;
+                background: transparent !important;
+                padding: 0 !important;
+                opacity: 1 !important;
+                visibility: visible !important;
+                backdrop-filter: none !important;
+            }
+
+            #modalA3plusQuotation .modal-head-custom,
+            #modalA3plusQuotation .modal-foot-custom {
+                display: none !important;
+            }
+
+            #modalA3plusQuotation .modal-content-custom {
+                box-shadow: none !important;
+                border: none !important;
+                max-width: 100% !important;
+                width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                background: #fff !important;
+                color: #000 !important;
+            }
+
+            #printableEstimationArea {
+                display: block !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                color: #000 !important;
+                background: #fff !important;
+            }
+
+            #printableEstimationArea * {
+                color: #000 !important;
+                background: transparent !important;
+            }
+
+            .printable-info-box {
+                border: 1px solid #d1d5db !important;
+                background: #f9fafb !important;
+            }
+
+            .printable-table,
+            .printable-table th,
+            .printable-table td {
+                border: 1px solid #d1d5db !important;
+            }
+
+            .printable-table thead tr {
+                background: #f3f4f6 !important;
+            }
+        }
+
+        .spin {
+            display: inline-block;
+            animation: a3spin 1s linear infinite;
+        }
+        @keyframes a3spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
+
     <div class="shell">
 
         <div data-shell-sidebar></div>
@@ -12,40 +516,55 @@
             <main class="content">
 
                 {{-- HERO --}}
-                <section class="hero">
-                    <div class="hero-text">
+                <section class="hero"
+                    style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+                    <div class="hero-text" style="flex: 1; min-width: 280px;">
                         <span class="eyebrow">
-                            ESTIMASI
+                            ESTIMASI PRODUKSI DIGITAL PRINT A3+
                         </span>
-                        <p class="hero-sub">
-                            Buat estimasi biaya produksi untuk kebutuhan cetak menggunakan mesin Digital Print A3+.
+                        <h1 class="hero-title" style="margin: 6px 0 8px;">
+                            Buat Estimasi Digital Print A3+
+                        </h1>
+                        <p class="hero-sub" style="margin: 0;">
+                            Kalkulasi cepat dan akurat cetak lembaran A3+ (Brosur, Kartu Nama, Flyer, Sertifikat, Display) dengan simulasi biaya bahan, klik mesin, laminasi, dan potong.
                         </p>
+                    </div>
+                    <div>
+                        <a href="{{ route('admin_home') }}" class="btn-back-header">
+                            <i class="bi bi-arrow-left"></i>
+                            <span>Kembali</span>
+                        </a>
                     </div>
                 </section>
 
-                <div class="grid">
-                    <section class="col-12 card">
+                <div class="a3plus-estimator-grid">
 
-                        {{-- CARD HEADER --}}
-                        <div class="card-head">
-                            <div class="card-title-wrap">
-                                <span class="eyebrow">
-                                    ESTIMASI DIGITAL PRINT A3+
-                                </span>
+                    {{-- =========================================================
+                        KOLOM KIRI: FORM ESTIMASI DIGITAL PRINT A3+
+                    ========================================================== --}}
+                    <div class="a3plus-form-col">
+                        <section class="card" style="margin-bottom: 24px;">
+
+                            {{-- CARD HEADER --}}
+                            <div class="card-head">
+                                <div class="card-title-wrap">
+                                    <span class="eyebrow">
+                                        FORMULIR SPESIFIKASI DIGITAL PRINT A3+
+                                    </span>
+                                </div>
                             </div>
-                        </div>
 
-                        {{-- FORM ESTIMASI A3+ --}}
-                        <form action="{{ route('admin_store_a3plus') }}" method="POST" id="a3PlusEstimationForm">
-                            @csrf
+                            {{-- FORM ESTIMASI A3+ --}}
+                            <form action="{{ route('admin_store_a3plus') }}" method="POST" id="a3PlusEstimationForm">
+                                @csrf
 
                             {{-- =========================================================
-                                1. INFORMASI ESTIMASI
+                                1. INFORMASI ESTIMASI & PELANGGAN
                             ========================================================== --}}
                             <div class="form-section">
                                 <div class="form-section-head">
-                                    <span class="eyebrow">
-                                        INFORMASI ESTIMASI
+                                    <span class="eyebrow" style="font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 6px;">
+                                        <i class="bi bi-person-badge"></i> 1. INFORMASI PELANGGAN &amp; LOKASI
                                     </span>
                                 </div>
 
@@ -68,22 +587,6 @@
                                         </select>
                                     </div>
 
-                                    {{-- Vendor (Opsional / Internal) --}}
-                                    {{-- <div class="field" id="vendorField" style="margin-bottom: 20px;">
-                                        <label class="field-label" for="vendor_id">
-                                            Vendor / In-House
-                                        </label>
-
-                                        <select id="vendor_id" name="vendor_id" class="select select2">
-                                            <option value="">Produksi Internal (In-House)</option>
-                                            @foreach ($vendors ?? [] as $vendor)
-                                                <option value="{{ $vendor->id }}">
-                                                    {{ $vendor->name }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    </div> --}}
-
                                     {{-- Pilihan Harga / Pricing Profile --}}
                                     <div class="field" style="margin-bottom: 20px;">
                                         <label class="field-label" for="price_type">
@@ -96,6 +599,36 @@
                                             <option value="division">Harga Divisi</option>
                                         </select>
                                     </div>
+                                </div>
+
+                                {{-- Informasi Pelanggan (Untuk Surat Penawaran) --}}
+                                <div class="form-grid">
+                                    {{-- Nama Pelanggan --}}
+                                    <div class="field" style="margin-bottom: 16px;">
+                                        <label class="field-label" for="customer_name">
+                                            Nama Pelanggan / Perusahaan (Opsional)
+                                        </label>
+                                        <input type="text" id="customer_name" name="customer_name" class="input"
+                                            placeholder="Contoh: PT. Sumber Makmur / Bpk. Hendra">
+                                    </div>
+
+                                    {{-- No. WhatsApp / Telepon --}}
+                                    <div class="field" style="margin-bottom: 16px;">
+                                        <label class="field-label" for="customer_phone">
+                                            No. WhatsApp / Telepon (Opsional)
+                                        </label>
+                                        <input type="text" id="customer_phone" name="customer_phone" class="input"
+                                            placeholder="Contoh: 08123456789">
+                                    </div>
+                                </div>
+
+                                {{-- Catatan Produksi / Penawaran --}}
+                                <div class="field" style="margin-bottom: 20px;">
+                                    <label class="field-label" for="customer_notes">
+                                        Catatan Khusus Penawaran / Produksi (Opsional)
+                                    </label>
+                                    <input type="text" id="customer_notes" name="customer_notes" class="input"
+                                        placeholder="Contoh: Packing per 100 pcs plastik mika, cetak prioritas...">
                                 </div>
                             </div>
 
@@ -591,26 +1124,191 @@
                             </div>
 
                             {{-- =========================================================
-                                6. ACTIONS
+                                6. STATUS & RESET
                             ========================================================== --}}
-                            <div class="form-actions">
-                                <span class="badge dot success">
-                                    Siap dihitung
+                            <div class="form-actions" style="padding: 16px 20px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                                <span class="badge dot success" id="realtimeStatusBadge">
+                                    <i class="bi bi-lightning-charge-fill" style="margin-right: 4px;"></i> Kalkulasi Otomatis Aktif
                                 </span>
 
-                                <span class="spacer"></span>
-
-                                <a href="{{ route('admin_home') }}" class="btn btn--ghost">
-                                    Batal
-                                </a>
-
-                                <button type="submit" class="btn btn--primary" id="calculateEstimationButton">
-                                    Hitung Estimasi
-                                </button>
+                                <div style="display: flex; gap: 8px;">
+                                    <button type="button" class="btn btn--ghost" id="btnResetForm">
+                                        <i class="bi bi-arrow-counterclockwise"></i> Reset
+                                    </button>
+                                    <a href="{{ route('admin_home') }}" class="btn btn--ghost">
+                                        Batal
+                                    </a>
+                                </div>
                             </div>
                         </form>
                     </section>
                 </div>
+
+                {{-- =========================================================
+                    KOLOM KANAN: STICKY LIVE SUMMARY (KONSISTEN DENGAN BROSUR)
+                ========================================================== --}}
+                <div class="a3plus-summary-col">
+                    <section class="card a3plus-sticky-card">
+
+                        {{-- CARD HEAD DENGAN GRADASI BIRU KHAS DIGITAL PRINT A3+ --}}
+                        <div class="card-head"
+                            style="background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%); color: #fff; padding: 18px 20px; border-radius: 13px 13px 0 0; margin-bottom: 0;">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%;">
+                                <div>
+                                    <span class="eyebrow" style="color: #93c5fd; font-size: 11px; letter-spacing: 0.8px;">
+                                        HASIL KALKULASI REAL-TIME
+                                    </span>
+                                    <h2 style="font-size: 1.15rem; font-weight: 700; color: #ffffff; margin: 4px 0 0;">
+                                        Ringkasan Estimasi Digital A3+
+                                    </h2>
+                                </div>
+                                <span id="livePriceTypeBadge" class="badge"
+                                    style="background: rgba(255,255,255,0.18); color: #fff; border: 1px solid rgba(255,255,255,0.3); padding: 4px 10px; border-radius: 20px; font-size: 11.5px;">
+                                    Harga Umum
+                                </span>
+                            </div>
+                        </div>
+
+                        <div style="padding: 20px;">
+                            {{-- INITIAL PLACEHOLDER (KETIKA BELUM ADA DATA LENGKAP) --}}
+                            <div id="liveEmptyState" style="text-align: center; padding: 36px 16px; color: var(--t-muted);">
+                                <div style="width: 54px; height: 54px; margin: 0 auto 14px; border-radius: 14px; background: rgba(59, 130, 246, 0.1); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 24px;">
+                                    <i class="bi bi-calculator"></i>
+                                </div>
+                                <h4 style="font-size: 15px; font-weight: 700; color: var(--t-base); margin: 0 0 6px;">Kalkulasi Otomatis Siap</h4>
+                                <p style="font-size: 12.5px; margin: 0; line-height: 1.5;">
+                                    Silakan lengkapi pilihan <strong>Material</strong> dan <strong>Kuantiti</strong> cetak untuk melihat kalkulasi harga real-time.
+                                </p>
+                            </div>
+
+                            {{-- ACTIVE RESULT CONTAINER --}}
+                            <div id="liveResultContainer" style="display: none;">
+
+                                {{-- HIGHLIGHT TOTAL HARGA JUAL --}}
+                                <div class="selling-price-box">
+                                    <div class="selling-price-box-label" style="display: flex; justify-content: space-between; align-items: center;">
+                                        <span>Total Rekomendasi Harga Jual</span>
+                                        <span id="liveCalcSpinner" style="display: none; font-size: 11px; color: var(--primary); text-transform: none; font-weight: 600;">
+                                            <i class="bi bi-arrow-repeat spin"></i> Menghitung...
+                                        </span>
+                                    </div>
+
+                                    {{-- Info Diskon --}}
+                                    <div id="liveDiscountWrap"
+                                        style="display: none; margin: 8px 0 10px; padding: 8px 12px; background: rgba(239, 68, 68, 0.08); border-radius: 8px; border: 1px dashed rgba(239, 68, 68, 0.35);">
+                                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12.5px;">
+                                            <span style="color: var(--t-muted);">Harga Sebelum Diskon:</span>
+                                            <s id="liveSubtotalPrice" style="color: var(--t-muted); font-weight: 600;">Rp 0</s>
+                                        </div>
+                                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12.5px; margin-top: 4px;">
+                                            <span style="color: #ef4444; font-weight: 600;">Hemat Diskon (<span id="liveDiscountDesc">-</span>):</span>
+                                            <strong id="liveDiscountAmount" style="color: #ef4444; font-weight: 700;">- Rp 0</strong>
+                                        </div>
+                                    </div>
+
+                                    <div id="liveTotalSellingPrice" class="selling-price-box-val">
+                                        Rp 0
+                                    </div>
+
+                                    <div class="selling-price-box-sub">
+                                        <div>
+                                            <span class="sub-label">Harga Satuan / Pcs:</span>
+                                            <strong id="liveSellingPricePerPcs" class="sub-val">Rp 0</strong>
+                                        </div>
+                                        <div class="sub-divider">
+                                            <span class="sub-label">Kebutuhan Bahan:</span>
+                                            <strong id="liveTotalSheetsSub" class="sub-val">0 Lembar A3+</strong>
+                                        </div>
+                                    </div>
+
+                                    <div style="margin-top: 10px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                        <small class="rounding-pill">
+                                            <i class="bi bi-check2-circle"></i> <span id="liveImpositionBadge">1 Lembar</span>
+                                        </small>
+                                        <small class="rounding-pill" id="liveColorSideBadge" style="background: rgba(59, 130, 246, 0.1); color: var(--primary);">
+                                            <i class="bi bi-printer"></i> Full Color · 1 Sisi
+                                        </small>
+                                    </div>
+                                </div>
+
+                                {{-- RINCIAN KOMPONEN BIAYA (HPP BREAKDOWN) --}}
+                                <div style="margin-bottom: 18px;">
+                                    <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--t-muted); letter-spacing: 0.5px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
+                                        <span>Rincian Komponen Biaya</span>
+                                        <span id="liveTotalHppBadge" class="badge" style="background: var(--bg-muted); color: var(--t-base); border: 1px solid var(--border); font-size: 12px;">
+                                            HPP: Rp 0
+                                        </span>
+                                    </div>
+
+                                    <div style="display: flex; flex-direction: column; gap: 10px; font-size: 13px;">
+
+                                        {{-- 1. Cetak Lembaran A3+ --}}
+                                        <div class="breakdown-row">
+                                            <div>
+                                                <div class="breakdown-row-title">1. Biaya Cetak A3+ (Bahan &amp; Klik)</div>
+                                                <small id="livePrintDetail" class="breakdown-row-sub">-</small>
+                                            </div>
+                                            <strong id="livePrintCost" class="breakdown-row-cost">Rp 0</strong>
+                                        </div>
+
+                                        {{-- 2. Laminasi --}}
+                                        <div class="breakdown-row" id="liveLaminationRow" style="display: none;">
+                                            <div>
+                                                <div class="breakdown-row-title">2. Finishing Laminasi</div>
+                                                <small id="liveLaminationDetail" class="breakdown-row-sub">Tanpa Laminasi</small>
+                                            </div>
+                                            <strong id="liveLaminationCost" class="breakdown-row-cost">Rp 0</strong>
+                                        </div>
+
+                                        {{-- 3. Cutting / Potong --}}
+                                        <div class="breakdown-row" id="liveCuttingRow" style="display: none;">
+                                            <div>
+                                                <div class="breakdown-row-title">3. Finishing Potong / Cutting</div>
+                                                <small id="liveCuttingDetail" class="breakdown-row-sub">Tanpa Cutting</small>
+                                            </div>
+                                            <strong id="liveCuttingCost" class="breakdown-row-cost">Rp 0</strong>
+                                        </div>
+
+                                        {{-- 4. Komponen Tambahan (Jika ada) --}}
+                                        <div class="breakdown-row" id="liveExtraRow" style="display: none;">
+                                            <div>
+                                                <div class="breakdown-row-title">4. Komponen Tambahan</div>
+                                                <small id="liveExtraDetail" class="breakdown-row-sub">-</small>
+                                            </div>
+                                            <strong id="liveExtraCost" class="breakdown-row-cost">Rp 0</strong>
+                                        </div>
+
+                                        {{-- TOTAL HPP BAR --}}
+                                        <div class="total-hpp-bar">
+                                            <div>
+                                                <strong class="total-hpp-bar-title">TOTAL HPP PRODUKSI</strong>
+                                                <div class="total-hpp-bar-sub">Profit: <span id="liveProfitVal" style="color: #10b981; font-weight: 700;">Rp 0</span> (Margin: <span id="liveMarginVal">0%</span>)</div>
+                                            </div>
+                                            <strong id="liveTotalHppVal" class="total-hpp-bar-val">Rp 0</strong>
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                                {{-- ACTION BUTTONS: CETAK SURAT PENAWARAN & DETAIL ESTIMASI --}}
+                                <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px;">
+                                    <button type="button" id="btnOpenQuotationModal" class="btn-preview-estimation" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 16px; border-radius: 9px; font-size: 13.5px; font-weight: 700; background: var(--primary); color: #fff; border: none; cursor: pointer; transition: all 0.2s ease;">
+                                        <i class="bi bi-printer"></i> Preview &amp; Cetak Surat Penawaran
+                                    </button>
+                                    <button type="button" id="btnOpenTechnicalModal" class="btn-detail-estimation" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 11px 16px; border-radius: 9px; font-size: 13px; font-weight: 600; background: var(--bg-muted); color: var(--t-base); border: 1.5px solid var(--border); cursor: pointer; transition: all 0.2s ease;">
+                                        <i class="bi bi-file-earmark-spreadsheet"></i> Detail Rincian Estimasi (HPP &amp; Biaya)
+                                    </button>
+                                </div>
+
+                                <div style="font-size: 11.5px; color: var(--t-muted); text-align: center;">
+                                    <i class="bi bi-lightning-charge"></i> Kalkulasi otomatis diperbarui saat Anda mengubah formulir di samping.
+                                </div>
+
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
             </main>
 
             <div data-shell-footer></div>
@@ -618,443 +1316,327 @@
     </div>
 
     {{-- =========================================================
-        MODAL PREVIEW ESTIMASI DIGITAL PRINT A3+
+        MODAL 1: PREVIEW & CETAK SURAT PENAWARAN (SURAT PENAWARAN CETAK)
     ========================================================== --}}
-    <div class="modal-overlay" id="modalEstimationPreview">
-        <div class="modal modal-estimation">
+    <div class="modal-overlay" id="modalA3plusQuotation">
+        <div class="modal modal-content-custom" style="max-width: 750px;">
 
-            {{-- HEADER --}}
-            <div class="modal-header">
+            {{-- MODAL HEAD --}}
+            <div class="modal-head-custom">
                 <div>
-                    <span class="eyebrow">ESTIMASI · DIGITAL PRINT A3+</span>
+                    <span class="eyebrow" style="color: var(--primary); font-weight: 700;">PREVIEW PENAWARAN HARGA</span>
+                    <h3 class="modal-title-custom">Surat Penawaran Cetak Digital A3+</h3>
                 </div>
-
-                <button type="button" class="modal-close" id="btnCloseEstimationPreview" aria-label="Tutup">
-                    <svg viewBox="0 0 24 24">
-                        <path d="M18 6 6 18" />
-                        <path d="m6 6 12 12" />
-                    </svg>
+                <button type="button" id="btnCloseQuotationModal" class="modal-close-btn" aria-label="Tutup">
+                    <i class="bi bi-x-lg"></i>
                 </button>
             </div>
 
-            {{-- TOGGLE PREVIEW (Summary vs Details) --}}
-            <div class="estimation-preview-toggle">
-                <button type="button" class="estimation-preview-toggle-btn is-active" id="btnSummaryEstimation">
-                    Summary Estimasi
-                </button>
-
-                <button type="button" class="estimation-preview-toggle-btn" id="btnDetailsEstimation">
-                    Details Estimasi
-                </button>
-            </div>
-
-            {{-- BODY --}}
-            <div class="modal-body">
-
-                {{-- TAB 1: SUMMARY ESTIMASI --}}
-                <div id="estimationSummary" class="estimation-preview-content">
-                    <div class="preview-section">
-                        <div class="preview-section-header">
-                            <div>
-                                <h3 class="preview-section-title">SUMMARY ESTIMASI</h3>
-                            </div>
-                        </div>
-
-                        <div class="row g-3">
-                            <div class="col-md-4">
-                                <small class="text-muted">Mesin</small>
-                                <div id="summaryEngineName">Digital Print A3+</div>
-                            </div>
-
-                            <div class="col-md-4">
-                                <small class="text-muted">Lokasi</small>
-                                <div id="summaryLocationName">-</div>
-                            </div>
-
-                            <div class="col-md-4">
-                                <small class="text-muted">Tipe Harga</small>
-                                <div id="summaryPriceType">Harga Umum</div>
-                            </div>
-
-                            <div class="col-md-4">
-                                <small class="text-muted">Material</small>
-                                <div id="summaryMaterialName">-</div>
-                            </div>
-
-                            <div class="col-md-4">
-                                <small class="text-muted">Warna / Sisi</small>
-                                <div id="summaryPrintSpec">-</div>
-                            </div>
-
-                            <div class="col-md-4">
-                                <small class="text-muted">Finishing</small>
-                                <div id="summaryFinishing">-</div>
-                            </div>
-
-                            <div class="col-md-4">
-                                <small class="text-muted">Jumlah Pesanan</small>
-                                <div id="summaryQty">-</div>
-                            </div>
-
-                            <div class="col-md-4">
-                                <small class="text-muted">Imposisi (Objek/Lembar)</small>
-                                <div id="summaryImposition">-</div>
-                            </div>
-
-                            <div class="col-md-4">
-                                <small class="text-muted">Total Lembar A3+</small>
-                                <strong id="summaryTotalSheets" style="color: var(--primary, #1e3a8a);">-</strong>
-                            </div>
-                        </div>
+            {{-- MODAL BODY (PRINTABLE) --}}
+            <div id="printableEstimationArea" style="padding: 24px; overflow-y: auto; flex: 1;">
+                <div class="printable-header">
+                    <div>
+                        <h2 class="printable-company-name">CIPTA GRAFIKA</h2>
+                        <div style="font-size: 12px; color: var(--t-muted);">Printing Management System &middot; Estimator Digital Print A3+</div>
                     </div>
-
-                    <hr>
-
-                    {{-- HARGA --}}
-                    <div class="preview-section">
-                        <div class="preview-section-header">
-                            <div>
-                                <h3 class="preview-section-title">HARGA</h3>
-                            </div>
-                        </div>
-
-                        <div class="row g-3">
-                            <div class="col-md-4">
-                                <small class="text-muted">Harga / Lembar Cetak</small>
-                                <div id="summaryUnitPrice">-</div>
-                            </div>
-
-                            <div class="col-md-4">
-                                <small class="text-muted">Subtotal Harga Jual</small>
-                                <div id="summarySubtotal">-</div>
-                            </div>
-
-                            <div class="col-md-4">
-                                <small class="text-muted">Diskon</small>
-                                <div id="summaryDiscount">-</div>
-                            </div>
-
-                            <div class="col-md-4">
-                                <small class="text-muted">Harga / PCS Jadi</small>
-                                <div id="summaryPricePerPcs">-</div>
-                            </div>
-
-                            <div class="col-md-8">
-                                <small class="text-muted">Grand Total</small>
-                                <strong id="summaryGrandTotal"
-                                    style="font-size: 1.25rem; color: var(--primary, #1e3a8a);">
-                                    -
-                                </strong>
-                            </div>
-                        </div>
-                    </div>
-
-                    <hr>
-
-                    {{-- PROFITABILITAS --}}
-                    <div class="preview-section">
-                        <div class="preview-section-header">
-                            <div>
-                                <h3 class="preview-section-title">PROFITABILITAS</h3>
-                            </div>
-                        </div>
-
-                        <div class="row g-3">
-                            <div class="col-md-4">
-                                <small class="text-muted">Total HPP</small>
-                                <strong id="summaryTotalHpp">-</strong>
-                            </div>
-
-                            <div class="col-md-4">
-                                <small class="text-muted">Total Profit</small>
-                                <strong id="summaryProfit" style="color: #16a34a;">-</strong>
-                            </div>
-
-                            <div class="col-md-4">
-                                <small class="text-muted">Margin (%)</small>
-                                <div id="summaryMargin">-</div>
-                            </div>
-
-                            <div class="col-md-4">
-                                <small class="text-muted">Markup (%)</small>
-                                <div id="summaryMarkup">-</div>
-                            </div>
-                        </div>
+                    <div style="text-align: right; font-size: 12px; color: var(--t-muted);">
+                        <div>Tanggal: <strong>{{ date('d/m/Y') }}</strong></div>
+                        <div>Lead Time: <strong id="modalQuoteLeadTime">-</strong></div>
                     </div>
                 </div>
 
-                {{-- TAB 2: DETAILS ESTIMASI --}}
-                <div id="estimationDetails" class="estimation-preview-content" style="display: none;">
-
-                    {{-- INFORMASI PRODUKSI --}}
-                    <div class="preview-section">
-                        <div class="preview-section-header">
-                            <div>
-                                <h3 class="preview-section-title">INFORMASI PRODUKSI</h3>
-                            </div>
-                        </div>
-
-                        <div class="row g-3">
-                            <div class="col-md-4">
-                                <small class="text-muted">Mesin</small>
-                                <div>Digital Print A3+</div>
-                            </div>
-
-                            <div class="col-md-4">
-                                <small class="text-muted">Lokasi</small>
-                                <div id="previewLocationName">-</div>
-                            </div>
-
-                            <div class="col-md-4">
-                                <small class="text-muted">Material</small>
-                                <div id="previewMaterialName">-</div>
-                            </div>
-
-                            <div class="col-md-4">
-                                <small class="text-muted">Warna &amp; Sisi</small>
-                                <div id="previewColorSide">-</div>
-                            </div>
-
-                            <div class="col-md-4">
-                                <small class="text-muted">Pilihan Harga</small>
-                                <div id="previewPriceType">-</div>
-                            </div>
-
-                            <div class="col-md-4">
-                                <small class="text-muted">Estimasi Waktu</small>
-                                <div id="previewLeadTime">-</div>
-                            </div>
+                {{-- Customer & Specs Info Grid --}}
+                <div class="printable-info-grid">
+                    <div class="printable-info-box">
+                        <div style="font-weight: 700; color: var(--t-base); margin-bottom: 4px;">INFORMASI PELANGGAN:</div>
+                        <div>Nama: <strong id="modalQuoteCustomerName">-</strong></div>
+                        <div>Telepon: <strong id="modalQuoteCustomerPhone">-</strong></div>
+                        <div>Cabang: <strong id="modalQuoteCustomerLocation">-</strong></div>
+                        <div id="modalQuoteNotesWrap" style="display: none; margin-top: 4px; padding-top: 4px; border-top: 1px dashed var(--border);">
+                            Catatan: <strong id="modalQuoteCustomerNotes">-</strong>
                         </div>
                     </div>
-
-                    <hr>
-
-                    {{-- DETAIL IMPOSISI --}}
-                    <div class="preview-section">
-                        <div class="preview-section-header">
-                            <div>
-                                <h3 class="preview-section-title">DETAIL IMPOSISI &amp; LEMBAR</h3>
-                            </div>
-                        </div>
-
-                        <div class="row g-3">
-                            <div class="col-md-4">
-                                <small class="text-muted">Mode Produksi</small>
-                                <div id="previewMode">-</div>
-                            </div>
-
-                            <div class="col-md-4">
-                                <small class="text-muted">Ukuran Jadi</small>
-                                <div id="previewFinishedSize">-</div>
-                            </div>
-
-                            <div class="col-md-4">
-                                <small class="text-muted">Ukuran Lembar A3+</small>
-                                <div id="previewSheetSize">32.5 × 48.5 cm (Area Cetak 31.5 × 47.5 cm)</div>
-                            </div>
-
-                            <div class="col-md-4">
-                                <small class="text-muted">Muat per Lembar (Up)</small>
-                                <div id="previewUpCount">-</div>
-                            </div>
-
-                            <div class="col-md-4">
-                                <small class="text-muted">Orientasi Layout</small>
-                                <div id="previewOrientation">-</div>
-                            </div>
-
-                            <div class="col-md-4">
-                                <small class="text-muted">Total Kebutuhan Lembar</small>
-                                <strong id="previewTotalSheets" style="color: var(--primary, #1e3a8a);">-</strong>
-                            </div>
-                        </div>
+                    <div class="printable-info-box">
+                        <div style="font-weight: 700; color: var(--t-base); margin-bottom: 4px;">SPESIFIKASI CETAK:</div>
+                        <div>Produk: <strong id="modalQuoteProductName">Digital Print A3+</strong></div>
+                        <div>Kertas: <strong id="modalQuoteMaterialName">-</strong></div>
+                        <div>Sisi &amp; Warna: <strong id="modalQuotePrintSide">-</strong></div>
+                        <div>Kuantitas Jadi: <strong id="modalQuoteQty">-</strong></div>
+                        <div>Finishing: <strong id="modalQuoteFinishing">-</strong></div>
                     </div>
+                </div>
 
-                    <hr>
+                {{-- Table Summary Penawaran --}}
+                <table class="printable-table">
+                    <thead>
+                        <tr>
+                            <th style="padding: 8px 10px; text-align: left;">Item Deskripsi</th>
+                            <th style="padding: 8px 10px; text-align: center;">Jumlah</th>
+                            <th style="padding: 8px 10px; text-align: right;">Harga Satuan</th>
+                            <th style="padding: 8px 10px; text-align: right;">Total Harga</th>
+                        </tr>
+                    </thead>
+                    <tbody id="modalQuoteTableBody">
+                        <tr>
+                            <td style="padding: 10px;">
+                                <strong id="modalQuoteItemTitle">Cetak Digital Print A3+</strong>
+                                <div id="modalQuoteItemDesc" style="font-size: 11.5px; color: var(--t-muted);">-</div>
+                            </td>
+                            <td id="modalQuoteItemQty" style="padding: 10px; text-align: center;">-</td>
+                            <td id="modalQuoteItemUnitPrice" style="padding: 10px; text-align: right;">-</td>
+                            <td id="modalQuoteItemSubtotal" style="padding: 10px; text-align: right; font-weight: 700;">-</td>
+                        </tr>
+                    </tbody>
+                    <tfoot>
+                        <tr id="modalQuoteSubtotalRow" style="display: none;">
+                            <th colspan="3" style="padding: 6px 10px; text-align: right; color: var(--t-muted); font-weight: 500;">
+                                Subtotal (Sebelum Diskon):
+                            </th>
+                            <th id="modalQuoteSubtotalAmount" style="padding: 6px 10px; text-align: right; font-weight: 600; color: var(--t-base);">
+                                -
+                            </th>
+                        </tr>
+                        <tr id="modalQuoteDiscountRow" style="display: none;">
+                            <th colspan="3" style="padding: 6px 10px; text-align: right; color: #ef4444; font-weight: 600;">
+                                Potongan Diskon (<span id="modalQuoteDiscountLabel">-</span>):
+                            </th>
+                            <th id="modalQuoteDiscountAmount" style="padding: 6px 10px; text-align: right; font-weight: 700; color: #ef4444;">
+                                -
+                            </th>
+                        </tr>
+                        <tr>
+                            <th colspan="3" style="padding: 12px 10px; text-align: right; text-transform: uppercase;">
+                                Total Harga Jual:
+                            </th>
+                            <th id="modalQuoteGrandTotal" style="padding: 12px 10px; text-align: right; font-weight: 800; color: var(--primary); font-size: 1.15rem;">
+                                -
+                            </th>
+                        </tr>
+                    </tfoot>
+                </table>
 
-                    {{-- KOMPONEN HARGA --}}
-                    <div class="preview-section">
-                        <div class="preview-section-header">
-                            <div>
-                                <h3 class="preview-section-title">RINCIAN KOMPONEN HARGA JUAL</h3>
-                            </div>
-                        </div>
-
-                        {{-- Cetak & Material --}}
-                        <div class="preview-component" style="margin-bottom: 12px;">
-                            <div class="preview-component-header">
-                                <strong>KERTAS &amp; CETAK A3+</strong>
-                            </div>
-                            <div class="row g-3">
-                                <div class="col-md-4">
-                                    <small class="text-muted">Basis Lembar</small>
-                                    <div id="previewPrintBasis">-</div>
-                                </div>
-                                <div class="col-md-4">
-                                    <small class="text-muted">Harga Satuan</small>
-                                    <div id="previewPrintUnitPrice">-</div>
-                                </div>
-                                <div class="col-md-4">
-                                    <small class="text-muted">Subtotal Cetak</small>
-                                    <div id="previewPrintSubtotal">-</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {{-- Laminasi --}}
-                        <div class="preview-component" id="previewLaminationBlock" style="margin-bottom: 12px;">
-                            <div class="preview-component-header">
-                                <strong>FINISHING LAMINASI</strong>
-                            </div>
-                            <div class="row g-3">
-                                <div class="col-md-4">
-                                    <small class="text-muted">Jenis Laminasi</small>
-                                    <div id="previewLaminationName">Tanpa Laminasi</div>
-                                </div>
-                                <div class="col-md-4">
-                                    <small class="text-muted">Harga Satuan</small>
-                                    <div id="previewLaminationUnitPrice">-</div>
-                                </div>
-                                <div class="col-md-4">
-                                    <small class="text-muted">Subtotal Laminasi</small>
-                                    <div id="previewLaminationSubtotal">-</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {{-- Cutting --}}
-                        <div class="preview-component" id="previewCuttingBlock" style="margin-bottom: 12px;">
-                            <div class="preview-component-header">
-                                <strong>FINISHING CUTTING / POTONG</strong>
-                            </div>
-                            <div class="row g-3">
-                                <div class="col-md-4">
-                                    <small class="text-muted">Jenis Cutting</small>
-                                    <div id="previewCuttingName">Tanpa Cutting</div>
-                                </div>
-                                <div class="col-md-4">
-                                    <small class="text-muted">Tarif Satuan / Minimum</small>
-                                    <div id="previewCuttingUnitPrice">-</div>
-                                </div>
-                                <div class="col-md-4">
-                                    <small class="text-muted">Subtotal Cutting</small>
-                                    <div id="previewCuttingSubtotal">-</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {{-- Komponen Tambahan --}}
-                        <div id="previewAdditionalComponentsContainer"></div>
-                    </div>
-
-                    <hr>
-
-                    {{-- RINGKASAN KEUANGAN --}}
-                    <div class="preview-section">
-                        <div class="preview-section-header">
-                            <div>
-                                <h3 class="preview-section-title">RINGKASAN KEUANGAN</h3>
-                            </div>
-                        </div>
-
-                        <div class="row g-3">
-                            <div class="col-md-4">
-                                <small class="text-muted">Subtotal Harga Jual</small>
-                                <div id="previewSubtotal">-</div>
-                            </div>
-
-                            <div class="col-md-4">
-                                <small class="text-muted">Diskon</small>
-                                <div id="previewDiscount">-</div>
-                            </div>
-
-                            <div class="col-md-4">
-                                <small class="text-muted">Grand Total</small>
-                                <strong id="previewGrandTotal">-</strong>
-                            </div>
-
-                            <div class="col-md-4">
-                                <small class="text-muted">Harga Per PCS</small>
-                                <div id="previewPricePerPcs">-</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <hr>
-
-                    {{-- HPP --}}
-                    <div class="preview-section">
-                        <div class="preview-section-header">
-                            <div>
-                                <h3 class="preview-section-title">HPP (HARGA POKOK PRODUKSI)</h3>
-                            </div>
-                        </div>
-
-                        <div class="preview-component" style="margin-bottom: 12px;">
-                            <div class="row g-3">
-                                <div class="col-md-4">
-                                    <small class="text-muted">HPP Kertas &amp; Klik Cetak</small>
-                                    <div id="previewPrintHpp">-</div>
-                                </div>
-                                <div class="col-md-4">
-                                    <small class="text-muted">HPP Laminasi</small>
-                                    <div id="previewLaminationHpp">-</div>
-                                </div>
-                                <div class="col-md-4">
-                                    <small class="text-muted">HPP Cutting</small>
-                                    <div id="previewCuttingHpp">-</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div id="previewAdditionalComponentsHppContainer"></div>
-
-                        <div class="preview-component">
-                            <div class="row g-3">
-                                <div class="col-md-4">
-                                    <small class="text-muted">Total HPP Produksi</small>
-                                    <strong id="previewTotalHpp" style="color: var(--primary, #1e3a8a);">-</strong>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <hr>
-
-                    {{-- PROFITABILITAS --}}
-                    <div class="preview-section">
-                        <div class="preview-section-header">
-                            <div>
-                                <h3 class="preview-section-title">ANALISIS PROFITABILITAS</h3>
-                            </div>
-                        </div>
-
-                        <div class="row g-3">
-                            <div class="col-md-4">
-                                <small class="text-muted">Total Profit</small>
-                                <strong id="previewProfit" style="color: #16a34a;">-</strong>
-                            </div>
-
-                            <div class="col-md-4">
-                                <small class="text-muted">Margin (%)</small>
-                                <div id="previewMargin">-</div>
-                            </div>
-
-                            <div class="col-md-4">
-                                <small class="text-muted">Markup (%)</small>
-                                <div id="previewMarkup">-</div>
-                            </div>
-                        </div>
-                    </div>
+                <div style="font-size: 11px; color: var(--t-muted); border-top: 1px dashed var(--border); padding-top: 10px;">
+                    * Penawaran ini berlaku selama 14 hari sejak tanggal diterbitkan. Harga sudah termasuk cetak mesin digital A3+, material kertas pilihan, dan finishing yang dipilih.
                 </div>
             </div>
 
-            {{-- FOOTER MODAL --}}
-            <div class="modal-footer">
-                <button type="button" class="btn btn--ghost" id="btnCancelEstimationPreview">
-                    Kembali
+            {{-- MODAL FOOT --}}
+            <div class="modal-foot-custom">
+                <button type="button" id="btnCancelQuotationModal" class="btn btn-secondary-custom">
+                    Tutup
+                </button>
+                <button type="button" id="btnPrintQuotationModal" class="btn btn--primary" style="display: flex; align-items: center; gap: 6px;">
+                    <i class="bi bi-printer-fill"></i> Cetak Dokumen
                 </button>
             </div>
+
+        </div>
+    </div>
+
+    {{-- =========================================================
+        MODAL 2: DETAIL RINCIAN ESTIMASI (HPP & BIAYA LENGKAP)
+    ========================================================== --}}
+    <div class="modal-overlay" id="modalA3plusTechnical">
+        <div class="modal modal-content-custom" style="max-width: 820px;">
+
+            {{-- MODAL HEAD --}}
+            <div class="modal-head-custom">
+                <div>
+                    <span class="eyebrow" style="color: var(--primary); font-weight: 700;">RINCIAN TEKNIS PRODUKSI &amp; BIAYA</span>
+                    <h3 class="modal-title-custom">Detail Rincian Estimasi Digital Print A3+</h3>
+                </div>
+                <button type="button" id="btnCloseTechModal" class="modal-close-btn" aria-label="Tutup">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+
+            {{-- MODAL BODY --}}
+            <div style="padding: 24px; overflow-y: auto; flex: 1;">
+
+                {{-- SPESIFIKASI PRODUKSI --}}
+                <div style="margin-bottom: 20px;">
+                    <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--primary); letter-spacing: 0.5px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+                        <i class="bi bi-gear-fill"></i> PARAMETER PRODUKSI &amp; IMPOSISI
+                    </div>
+
+                    <div class="tech-spec-grid">
+                        <div class="tech-spec-item">
+                            <div class="tech-spec-label">Mesin Produksi</div>
+                            <div class="tech-spec-value">Digital Print A3+</div>
+                        </div>
+                        <div class="tech-spec-item">
+                            <div class="tech-spec-label">Lokasi Cabang</div>
+                            <div class="tech-spec-value" id="techLocationName">-</div>
+                        </div>
+                        <div class="tech-spec-item">
+                            <div class="tech-spec-label">Profil Harga</div>
+                            <div class="tech-spec-value" id="techPriceType">-</div>
+                        </div>
+                        <div class="tech-spec-item">
+                            <div class="tech-spec-label">Material Kertas</div>
+                            <div class="tech-spec-value" id="techMaterialName">-</div>
+                        </div>
+                        <div class="tech-spec-item">
+                            <div class="tech-spec-label">Warna &amp; Sisi Cetak</div>
+                            <div class="tech-spec-value" id="techPrintColorSide">-</div>
+                        </div>
+                        <div class="tech-spec-item">
+                            <div class="tech-spec-label">Mode Produksi</div>
+                            <div class="tech-spec-value" id="techProductionMode">-</div>
+                        </div>
+                        <div class="tech-spec-item">
+                            <div class="tech-spec-label">Ukuran Jadi</div>
+                            <div class="tech-spec-value" id="techFinishedSize">-</div>
+                        </div>
+                        <div class="tech-spec-item">
+                            <div class="tech-spec-label">Hasil Imposisi</div>
+                            <div class="tech-spec-value" id="techImposition">-</div>
+                        </div>
+                        <div class="tech-spec-item">
+                            <div class="tech-spec-label">Kebutuhan Bahan</div>
+                            <div class="tech-spec-value" id="techTotalSheets" style="color: var(--primary);">-</div>
+                        </div>
+                        <div class="tech-spec-item">
+                            <div class="tech-spec-label">Estimasi Waktu</div>
+                            <div class="tech-spec-value" id="techLeadTime">-</div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- RINCIAN KOMPONEN BIAYA & HPP --}}
+                <div style="margin-bottom: 20px;">
+                    <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--primary); letter-spacing: 0.5px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+                        <i class="bi bi-calculator"></i> RINCIAN BIAYA POKOK PRODUKSI (HPP) &amp; HARGA JUAL
+                    </div>
+
+                    <table class="printable-table" style="margin-bottom: 10px;">
+                        <thead>
+                            <tr>
+                                <th style="padding: 10px; text-align: left;">Komponen Biaya</th>
+                                <th style="padding: 10px; text-align: left;">Spesifikasi / Parameter</th>
+                                <th style="padding: 10px; text-align: right;">HPP Produksi</th>
+                                <th style="padding: 10px; text-align: right;">Subtotal Harga Jual</th>
+                            </tr>
+                        </thead>
+                        <tbody id="techBreakdownTableBody">
+                            <tr>
+                                <td style="padding: 10px;">
+                                    <strong>1. Kertas &amp; Cetak Lembaran A3+</strong>
+                                    <div style="font-size: 11px; color: var(--t-muted);">Biaya kertas + Klik mesin digital</div>
+                                </td>
+                                <td id="techRow1Spec" style="padding: 10px; font-size: 12.5px;">-</td>
+                                <td id="techRow1Hpp" style="padding: 10px; text-align: right; font-weight: 600;">Rp 0</td>
+                                <td id="techRow1Subtotal" style="padding: 10px; text-align: right; font-weight: 700; color: var(--primary);">Rp 0</td>
+                            </tr>
+                            <tr id="techRowLamination">
+                                <td style="padding: 10px;">
+                                    <strong>2. Finishing Laminasi</strong>
+                                    <div style="font-size: 11px; color: var(--t-muted);">Lapisan plastik pelindung cetak</div>
+                                </td>
+                                <td id="techRow2Spec" style="padding: 10px; font-size: 12.5px;">Tanpa Laminasi</td>
+                                <td id="techRow2Hpp" style="padding: 10px; text-align: right; font-weight: 600;">Rp 0</td>
+                                <td id="techRow2Subtotal" style="padding: 10px; text-align: right; font-weight: 700; color: var(--primary);">Rp 0</td>
+                            </tr>
+                            <tr id="techRowCutting">
+                                <td style="padding: 10px;">
+                                    <strong>3. Finishing Cutting / Potong</strong>
+                                    <div style="font-size: 11px; color: var(--t-muted);">Ongkos potong mesin</div>
+                                </td>
+                                <td id="techRow3Spec" style="padding: 10px; font-size: 12.5px;">Tanpa Potong</td>
+                                <td id="techRow3Hpp" style="padding: 10px; text-align: right; font-weight: 600;">Rp 0</td>
+                                <td id="techRow3Subtotal" style="padding: 10px; text-align: right; font-weight: 700; color: var(--primary);">Rp 0</td>
+                            </tr>
+                        </tbody>
+                        <tbody id="techExtraComponentsRows">
+                            {{-- Dynamically inserted additional components --}}
+                        </tbody>
+                        <tfoot>
+                            <tr id="techSubtotalRow" style="display: none; border-top: 1.5px solid var(--border);">
+                                <th colspan="3" style="padding: 8px 10px; text-align: right; color: var(--t-muted); font-weight: 600;">
+                                    Subtotal Harga Jual (Sebelum Diskon):
+                                </th>
+                                <th id="techSubtotalAmount" style="padding: 8px 10px; text-align: right; font-weight: 700; color: var(--t-base);">
+                                    Rp 0
+                                </th>
+                            </tr>
+                            <tr id="techDiscountRow" style="display: none; background: rgba(239, 68, 68, 0.06);">
+                                <th colspan="3" style="padding: 8px 10px; text-align: right; color: #ef4444; font-weight: 700;">
+                                    <i class="bi bi-tag-fill" style="margin-right: 4px;"></i> Potongan Diskon (<span id="techDiscountLabel">-</span>):
+                                </th>
+                                <th id="techDiscountAmount" style="padding: 8px 10px; text-align: right; font-weight: 800; color: #ef4444;">
+                                    - Rp 0
+                                </th>
+                            </tr>
+                            <tr style="border-top: 2px solid var(--border);">
+                                <th colspan="2" style="padding: 10px; text-align: left; font-size: 12.5px; font-weight: 800; text-transform: uppercase;">
+                                    TOTAL AKHIR HARGA JUAL
+                                </th>
+                                <th id="techTotalHppCol" style="padding: 10px; text-align: right; font-weight: 800; color: var(--t-base);">
+                                    HPP: Rp 0
+                                </th>
+                                <th id="techGrandTotalCol" style="padding: 10px; text-align: right; font-weight: 800; color: var(--primary); font-size: 1.1rem;">
+                                    Rp 0
+                                </th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                {{-- INFO DISKON BANNER JIKA ADA DISKON AKTIF --}}
+                <div id="techDiscountBanner" style="display: none; margin-bottom: 20px; padding: 12px 16px; border-radius: 9px; background: rgba(239, 68, 68, 0.08); border: 1.5px dashed rgba(239, 68, 68, 0.35);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="width: 30px; height: 30px; border-radius: 6px; background: rgba(239, 68, 68, 0.15); color: #ef4444; display: flex; align-items: center; justify-content: center; font-size: 14px;">
+                                <i class="bi bi-tag-fill"></i>
+                            </span>
+                            <div>
+                                <strong style="color: #ef4444; font-size: 13.5px;">Potongan Diskon Diterapkan: <span id="techBannerDiscountDesc">-</span></strong>
+                                <div style="font-size: 12px; color: var(--t-muted); margin-top: 2px;">
+                                    Harga sebelum diskon: <s id="techBannerOriginalSubtotal" style="font-weight: 600;">Rp 0</s>
+                                </div>
+                            </div>
+                        </div>
+                        <strong id="techBannerDiscountVal" style="color: #ef4444; font-size: 16px; font-weight: 800;">- Rp 0</strong>
+                    </div>
+                </div>
+
+                {{-- 4-METRIC FINANCIAL KPI CARDS --}}
+                <div>
+                    <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--primary); letter-spacing: 0.5px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+                        <i class="bi bi-graph-up-arrow"></i> RINGKASAN PROFITABILITAS &amp; FINANSIAL
+                    </div>
+
+                    <div class="tech-kpi-grid">
+                        <div class="tech-kpi-card">
+                            <span class="tech-kpi-label">Total HPP Produksi</span>
+                            <span class="tech-kpi-val" id="techKpiTotalHpp">Rp 0</span>
+                        </div>
+                        <div class="tech-kpi-card highlight">
+                            <span class="tech-kpi-label" style="color: var(--primary);">Total Harga Jual</span>
+                            <span class="tech-kpi-val" id="techKpiGrandTotal" style="color: var(--primary);">Rp 0</span>
+                        </div>
+                        <div class="tech-kpi-card profit">
+                            <span class="tech-kpi-label" style="color: #10b981;">Estimasi Profit</span>
+                            <span class="tech-kpi-val" id="techKpiProfit" style="color: #10b981;">Rp 0</span>
+                        </div>
+                        <div class="tech-kpi-card">
+                            <span class="tech-kpi-label">Margin / Markup</span>
+                            <span class="tech-kpi-val" style="font-size: 14.5px;">
+                                <span id="techKpiMargin">0%</span> <span style="font-size: 11px; color: var(--t-muted); font-weight: 400;">(Markup <span id="techKpiMarkup">0%</span>)</span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            {{-- MODAL FOOT --}}
+            <div class="modal-foot-custom">
+                <button type="button" id="btnCancelTechModal" class="btn btn-secondary-custom">
+                    Tutup
+                </button>
+            </div>
+
         </div>
     </div>
 @endsection
@@ -1098,14 +1680,18 @@
             const discountValueInput = document.getElementById('discount_value');
             const discountSuffix = document.getElementById('discountSuffix');
 
-            // Modal Preview
-            const modalPreview = document.getElementById('modalEstimationPreview');
-            const btnClosePreview = document.getElementById('btnCloseEstimationPreview');
-            const btnCancelPreview = document.getElementById('btnCancelEstimationPreview');
-            const btnSummary = document.getElementById('btnSummaryEstimation');
-            const btnDetails = document.getElementById('btnDetailsEstimation');
-            const summaryView = document.getElementById('estimationSummary');
-            const detailsView = document.getElementById('estimationDetails');
+            // Modal 1: Quotation (Surat Penawaran)
+            const modalQuotation = document.getElementById('modalA3plusQuotation');
+            const btnOpenQuotationModal = document.getElementById('btnOpenQuotationModal');
+            const btnCloseQuotationModal = document.getElementById('btnCloseQuotationModal');
+            const btnCancelQuotationModal = document.getElementById('btnCancelQuotationModal');
+            const btnPrintQuotationModal = document.getElementById('btnPrintQuotationModal');
+
+            // Modal 2: Technical Breakdown (Detail Estimasi)
+            const modalTechnical = document.getElementById('modalA3plusTechnical');
+            const btnOpenTechnicalModal = document.getElementById('btnOpenTechnicalModal');
+            const btnCloseTechModal = document.getElementById('btnCloseTechModal');
+            const btnCancelTechModal = document.getElementById('btnCancelTechModal');
 
             /* =====================================================
                3. PRODUCTION MODE TOGGLE (Layout vs Direct Sheet)
@@ -1521,11 +2107,13 @@
 
                 unitPriceInput.addEventListener('input', function() {
                     this.value = formatAdditionalComponentNumber(this.value);
+                    if (typeof triggerRealtimeCalculation === 'function') triggerRealtimeCalculation();
                 });
 
                 hppInput.addEventListener('input', function() {
                     this.value = formatAdditionalComponentNumber(this.value);
                     calculateAdditionalComponentPrice(component);
+                    if (typeof triggerRealtimeCalculation === 'function') triggerRealtimeCalculation();
                 });
 
                 $(priceTypeSelect).on('change', function() {
@@ -1538,11 +2126,20 @@
                         hppMarginWrapper.style.display = 'none';
                         calculatedPriceInput.value = 'Rp 0';
                     }
+                    if (typeof triggerRealtimeCalculation === 'function') triggerRealtimeCalculation();
                 });
 
                 marginInput.addEventListener('input', function() {
                     calculateAdditionalComponentPrice(component);
+                    if (typeof triggerRealtimeCalculation === 'function') triggerRealtimeCalculation();
                 });
+
+                const compQtyInput = component.querySelector('.additional-component-qty');
+                if (compQtyInput) {
+                    compQtyInput.addEventListener('input', function() {
+                        if (typeof triggerRealtimeCalculation === 'function') triggerRealtimeCalculation();
+                    });
+                }
 
                 const removeButton = component.querySelector('.btn-remove-additional-component');
                 removeButton.addEventListener('click', function() {
@@ -1558,6 +2155,7 @@
 
                     component.remove();
                     updateAdditionalComponentNumbers();
+                    if (typeof triggerRealtimeCalculation === 'function') triggerRealtimeCalculation();
                 });
             }
 
@@ -1738,44 +2336,85 @@
             });
 
             /* =====================================================
-               8. MODAL PREVIEW TABS & CONTROLS
+               8. MODAL CONTROLS (QUOTATION & TECHNICAL)
             ===================================================== */
-            function openPreviewModal() {
-                modalPreview.classList.add('is-open');
+            let lastCalculatedData = null;
+
+            function updateQuotationCustomerInfo() {
+                const custName = (document.getElementById('customer_name')?.value || '').trim() || 'Pelanggan Umum';
+                const custPhone = (document.getElementById('customer_phone')?.value || '').trim() || '-';
+                const locOption = locationSelect.find('option:selected');
+                const locName = locOption.text().trim() || '-';
+                const custNotes = (document.getElementById('customer_notes')?.value || '').trim();
+
+                const elName = document.getElementById('modalQuoteCustomerName');
+                const elPhone = document.getElementById('modalQuoteCustomerPhone');
+                const elLoc = document.getElementById('modalQuoteCustomerLocation');
+                const elNotesWrap = document.getElementById('modalQuoteNotesWrap');
+                const elNotes = document.getElementById('modalQuoteCustomerNotes');
+
+                if (elName) elName.textContent = custName;
+                if (elPhone) elPhone.textContent = custPhone;
+                if (elLoc) elLoc.textContent = locName;
+
+                if (elNotesWrap && elNotes) {
+                    if (custNotes) {
+                        elNotesWrap.style.display = 'block';
+                        elNotes.textContent = custNotes;
+                    } else {
+                        elNotesWrap.style.display = 'none';
+                    }
+                }
             }
 
-            function closePreviewModal() {
-                modalPreview.classList.remove('is-open');
+            function openQuotationModal() {
+                updateQuotationCustomerInfo();
+                if (modalQuotation) modalQuotation.classList.add('is-open');
             }
 
-            if (btnClosePreview) btnClosePreview.addEventListener('click', closePreviewModal);
-            if (btnCancelPreview) btnCancelPreview.addEventListener('click', closePreviewModal);
+            function closeQuotationModal() {
+                if (modalQuotation) modalQuotation.classList.remove('is-open');
+            }
 
-            if (modalPreview) {
-                modalPreview.addEventListener('click', function(e) {
-                    if (e.target === modalPreview) closePreviewModal();
+            function openTechnicalModal() {
+                if (modalTechnical) modalTechnical.classList.add('is-open');
+            }
+
+            function closeTechnicalModal() {
+                if (modalTechnical) modalTechnical.classList.remove('is-open');
+            }
+
+            if (btnOpenQuotationModal) btnOpenQuotationModal.addEventListener('click', openQuotationModal);
+            if (btnCloseQuotationModal) btnCloseQuotationModal.addEventListener('click', closeQuotationModal);
+            if (btnCancelQuotationModal) btnCancelQuotationModal.addEventListener('click', closeQuotationModal);
+
+            if (btnOpenTechnicalModal) btnOpenTechnicalModal.addEventListener('click', openTechnicalModal);
+            if (btnCloseTechModal) btnCloseTechModal.addEventListener('click', closeTechnicalModal);
+            if (btnCancelTechModal) btnCancelTechModal.addEventListener('click', closeTechnicalModal);
+
+            if (btnPrintQuotationModal) {
+                btnPrintQuotationModal.addEventListener('click', function() {
+                    window.print();
+                });
+            }
+
+            if (modalQuotation) {
+                modalQuotation.addEventListener('click', function(e) {
+                    if (e.target === modalQuotation) closeQuotationModal();
+                });
+            }
+            if (modalTechnical) {
+                modalTechnical.addEventListener('click', function(e) {
+                    if (e.target === modalTechnical) closeTechnicalModal();
                 });
             }
 
             document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape') closePreviewModal();
+                if (e.key === 'Escape') {
+                    closeQuotationModal();
+                    closeTechnicalModal();
+                }
             });
-
-            if (btnSummary && btnDetails) {
-                btnSummary.addEventListener('click', function() {
-                    btnSummary.classList.add('is-active');
-                    btnDetails.classList.remove('is-active');
-                    summaryView.style.display = 'block';
-                    detailsView.style.display = 'none';
-                });
-
-                btnDetails.addEventListener('click', function() {
-                    btnDetails.classList.add('is-active');
-                    btnSummary.classList.remove('is-active');
-                    summaryView.style.display = 'none';
-                    detailsView.style.display = 'block';
-                });
-            }
 
             /* =====================================================
                9. FORM SUBMIT (UI/UX SIMULATOR / AJAX READY)
@@ -1911,20 +2550,66 @@
                 });
             }
 
-            form.addEventListener('submit', async function(e) {
-                e.preventDefault();
+            /* =====================================================
+               9. REAL-TIME AUTO CALCULATION (KONSISTEN DENGAN BROSUR)
+            ===================================================== */
+            let calcDebounceTimer = null;
+            let isCalculating = false;
 
-                calculateButton.disabled = true;
-                calculateButton.textContent = 'Menghitung...';
+            const liveEmptyState = document.getElementById('liveEmptyState');
+            const liveResultContainer = document.getElementById('liveResultContainer');
+            const liveCalcSpinner = document.getElementById('liveCalcSpinner');
+            const btnOpenModalPreview = document.getElementById('btnOpenModalPreview');
+            const btnResetForm = document.getElementById('btnResetForm');
+            const livePriceTypeBadge = document.getElementById('livePriceTypeBadge');
+
+            function updatePriceTypeBadge() {
+                const pt = $('#price_type').val();
+                if (livePriceTypeBadge) {
+                    livePriceTypeBadge.textContent = pt === 'division' ? 'Harga Divisi' : 'Harga Umum';
+                }
+            }
+
+            async function executeRealtimeCalculation() {
+                const locId = locationSelect.val();
+                const matId = materialSelect.val();
+                const mode = modeSelect.val();
+                const catOption = categorySelect.find('option:selected');
+                const catName = (catOption.data('name') || catOption.text() || '').trim().toLowerCase();
+                const isDisplay = catName.includes('display');
+
+                // Validasi data minimal sebelum hitung agar tidak spam server
+                let isReady = true;
+                if (!locId || !matId) isReady = false;
+
+                if (isDisplay) {
+                    const dQty = parseInt(displayQtyInput ? displayQtyInput.value : 0) || 0;
+                    if (dQty <= 0) isReady = false;
+                } else if (mode === 'layout') {
+                    const l = parseFloat(lengthInput.value) || 0;
+                    const w = parseFloat(widthInput.value) || 0;
+                    const q = parseInt(qtyInput.value) || 0;
+                    if (l <= 0 || w <= 0 || q <= 0) isReady = false;
+                } else {
+                    const sq = parseInt(sheetQtyInput.value) || 0;
+                    if (sq <= 0) isReady = false;
+                }
+
+                if (!isReady) {
+                    if (liveEmptyState) liveEmptyState.style.display = 'block';
+                    if (liveResultContainer) liveResultContainer.style.display = 'none';
+                    return;
+                }
+
+                if (isCalculating) return;
+                isCalculating = true;
+
+                if (liveCalcSpinner) liveCalcSpinner.style.display = 'inline-block';
 
                 try {
                     const formData = new FormData(form);
 
-                    // Khusus mode display, sinkronkan kuantiti paket dan production mode
-                    const catOption = categorySelect.find('option:selected');
-                    const catName = (catOption.data('name') || catOption.text() || '').trim()
-                        .toLowerCase();
-                    const isDisplay = catName.includes('display');
+                    // Khusus mode display
                     if (isDisplay) {
                         const dQty = displayQtyInput ? (parseInt(displayQtyInput.value) || 1) : 1;
                         formData.set('qty', dQty);
@@ -1948,7 +2633,6 @@
                         formData.set(fieldName, rawVal);
                     });
 
-                    // Request ke backend storeA3plus
                     const response = await fetch(form.action, {
                         method: 'POST',
                         headers: {
@@ -1961,157 +2645,495 @@
                     const res = await response.json();
 
                     if (!response.ok || !res.success) {
-                        const errMsg = res.message || (res.errors ? Object.values(res.errors).flat()
-                            .join('<br>') : 'Gagal menghitung estimasi.');
-                        if (typeof showToast === 'function') {
-                            showToast('error', errMsg);
-                        } else {
-                            alert(errMsg);
-                        }
+                        console.warn('Realtime calculation warning:', res.message || res.errors);
                         return;
                     }
 
                     const resultData = res.data;
 
                     // =========================================================
-                    // POPULATE MODAL DATA
+                    // 1. POPULATE LIVE SUMMARY PANEL (STICKY CARD KANAN)
                     // =========================================================
-                    // Summary Tab
-                    document.getElementById('summaryLocationName').textContent = resultData
-                        .location_name || '-';
-                    document.getElementById('summaryPriceType').textContent = resultData.price_type ||
-                        '-';
-                    document.getElementById('summaryMaterialName').textContent = resultData
-                        .material_name || '-';
-                    document.getElementById('summaryPrintSpec').textContent = resultData.color_side ||
-                        '-';
-                    document.getElementById('summaryFinishing').textContent = resultData
-                        .finishing_summary || '-';
-                    document.getElementById('summaryQty').textContent =
-                        `${(resultData.qty || 0).toLocaleString('id-ID')} pcs`;
-                    document.getElementById('summaryImposition').textContent = resultData
-                        .imposition_info || '-';
-                    document.getElementById('summaryTotalSheets').textContent =
-                        `${(resultData.total_sheets || 0).toLocaleString('id-ID')} Lembar A3+`;
+                    if (liveEmptyState) liveEmptyState.style.display = 'none';
+                    if (liveResultContainer) liveResultContainer.style.display = 'block';
 
-                    document.getElementById('summaryUnitPrice').textContent = formatRupiah(resultData
-                        .unit_price_sheet);
-                    document.getElementById('summarySubtotal').textContent = formatRupiah(resultData
-                        .subtotal);
-                    document.getElementById('summaryDiscount').textContent = formatRupiah(resultData
-                        .discount_amount);
-                    document.getElementById('summaryPricePerPcs').textContent = formatRupiah(resultData
-                        .price_per_pcs) + ' /pcs';
-                    document.getElementById('summaryGrandTotal').textContent = formatRupiah(resultData
-                        .grand_total);
+                    // Total Harga Jual
+                    const elTotalSelling = document.getElementById('liveTotalSellingPrice');
+                    if (elTotalSelling) elTotalSelling.textContent = formatRupiah(resultData.grand_total);
 
-                    document.getElementById('summaryTotalHpp').textContent = formatRupiah(resultData
-                        .total_hpp);
-                    document.getElementById('summaryProfit').textContent = formatRupiah(resultData
-                        .profit);
-                    document.getElementById('summaryMargin').textContent = formatPercentage(resultData
-                        .margin);
-                    document.getElementById('summaryMarkup').textContent = formatPercentage(resultData
-                        .markup);
+                    // Harga Satuan / Pcs
+                    const elPerPcs = document.getElementById('liveSellingPricePerPcs');
+                    if (elPerPcs) elPerPcs.textContent = formatRupiah(resultData.price_per_pcs);
 
-                    // Details Tab
-                    document.getElementById('previewLocationName').textContent = resultData
-                        .location_name || '-';
-                    document.getElementById('previewMaterialName').textContent = resultData
-                        .material_name || '-';
-                    document.getElementById('previewColorSide').textContent = resultData.color_side ||
-                        '-';
-                    document.getElementById('previewPriceType').textContent = resultData.price_type ||
-                        '-';
-                    document.getElementById('previewLeadTime').textContent = resultData.lead_time ||
-                        '-';
+                    // Kebutuhan Lembar A3+
+                    const elSheetsSub = document.getElementById('liveTotalSheetsSub');
+                    if (elSheetsSub) elSheetsSub.textContent = `${(resultData.total_sheets || 0).toLocaleString('id-ID')} Lembar A3+`;
 
-                    document.getElementById('previewMode').textContent = resultData.production_mode ||
-                        '-';
-                    document.getElementById('previewFinishedSize').textContent = resultData
-                        .finished_size || '-';
-                    document.getElementById('previewUpCount').textContent = resultData.up_count ?
-                        `${resultData.up_count} objek/lembar` : 'Direct Sheet';
-                    document.getElementById('previewOrientation').textContent = resultData
-                        .orientation || 'Normal';
-                    document.getElementById('previewTotalSheets').textContent =
-                        `${(resultData.total_sheets || 0).toLocaleString('id-ID')} Lembar A3+`;
-
-                    document.getElementById('previewPrintBasis').textContent =
-                        `${(resultData.total_sheets || 0).toLocaleString('id-ID')} lembar A3+`;
-                    document.getElementById('previewPrintUnitPrice').textContent = formatRupiah(
-                        resultData.unit_price_sheet);
-                    document.getElementById('previewPrintSubtotal').textContent = formatRupiah(
-                        resultData.print_subtotal);
-
-                    document.getElementById('previewLaminationName').textContent = resultData
-                        .lamination_name || 'Tanpa Laminasi';
-                    document.getElementById('previewLaminationUnitPrice').textContent = resultData
-                        .lamination_subtotal > 0 ? formatRupiah(resultData.lamination_subtotal /
-                            resultData.total_sheets) : '—';
-                    document.getElementById('previewLaminationSubtotal').textContent = formatRupiah(
-                        resultData.lamination_subtotal);
-
-                    document.getElementById('previewCuttingName').textContent = resultData
-                        .cutting_name || 'Tanpa Cutting';
-                    if (resultData.is_potong) {
-                        document.getElementById('previewCuttingUnitPrice').textContent = resultData
-                            .cutting_subtotal > 0 ?
-                            `${formatRupiah(resultData.cutting_subtotal)} (Min)` : '—';
-                    } else {
-                        document.getElementById('previewCuttingUnitPrice').textContent = resultData
-                            .cutting_subtotal > 0 ? formatRupiah(resultData.cutting_subtotal /
-                                resultData
-                                .total_sheets) : '—';
+                    // Badges
+                    const elImpositionBadge = document.getElementById('liveImpositionBadge');
+                    if (elImpositionBadge) {
+                        elImpositionBadge.textContent = resultData.imposition_info || `${resultData.total_sheets} Lembar A3+`;
                     }
-                    document.getElementById('previewCuttingSubtotal').textContent = formatRupiah(
-                        resultData.cutting_subtotal);
+                    const elColorSideBadge = document.getElementById('liveColorSideBadge');
+                    if (elColorSideBadge) {
+                        elColorSideBadge.innerHTML = `<i class="bi bi-printer"></i> ${resultData.color_side || 'Full Color'}`;
+                    }
 
-                    // Render Komponen Tambahan (Harga Jual & HPP)
-                    renderAdditionalComponentsPreview(resultData.additional_components);
-                    renderAdditionalComponentsHppPreview(resultData.additional_components);
+                    // Diskon Wrap
+                    const discountWrap = document.getElementById('liveDiscountWrap');
+                    if (discountWrap) {
+                        if (resultData.discount_amount > 0) {
+                            discountWrap.style.display = 'block';
+                            document.getElementById('liveSubtotalPrice').textContent = formatRupiah(resultData.subtotal);
+                            document.getElementById('liveDiscountAmount').textContent = '- ' + formatRupiah(resultData.discount_amount);
+                            const discDesc = resultData.discount_type === 'percentage' ?
+                                `${resultData.discount_value}%` : 'Nominal';
+                            document.getElementById('liveDiscountDesc').textContent = discDesc;
+                        } else {
+                            discountWrap.style.display = 'none';
+                        }
+                    }
 
-                    document.getElementById('previewSubtotal').textContent = formatRupiah(resultData
-                        .subtotal);
-                    document.getElementById('previewDiscount').textContent = formatRupiah(resultData
-                        .discount_amount);
-                    document.getElementById('previewGrandTotal').textContent = formatRupiah(resultData
-                        .grand_total);
-                    document.getElementById('previewPricePerPcs').textContent = formatRupiah(resultData
-                        .price_per_pcs) + ' /pcs';
+                    // Rincian Komponen Biaya (HPP Breakdown)
+                    // 1. Biaya Cetak A3+
+                    const elPrintDetail = document.getElementById('livePrintDetail');
+                    if (elPrintDetail) elPrintDetail.textContent = `${resultData.material_name || '-'} (${resultData.color_side || '-'})`;
+                    const elPrintCost = document.getElementById('livePrintCost');
+                    if (elPrintCost) elPrintCost.textContent = formatRupiah(resultData.print_subtotal);
 
-                    document.getElementById('previewPrintHpp').textContent = formatRupiah(resultData
-                        .print_hpp || resultData.print_total_hpp);
-                    document.getElementById('previewLaminationHpp').textContent = formatRupiah(
-                        resultData.lamination_hpp);
-                    document.getElementById('previewCuttingHpp').textContent = formatRupiah(resultData
-                        .cutting_hpp);
-                    document.getElementById('previewTotalHpp').textContent = formatRupiah(resultData
-                        .total_hpp);
+                    // 2. Laminasi
+                    const elLamRow = document.getElementById('liveLaminationRow');
+                    if (elLamRow) {
+                        if (resultData.lamination && resultData.lamination_subtotal > 0) {
+                            elLamRow.style.display = 'flex';
+                            document.getElementById('liveLaminationDetail').textContent = resultData.lamination_name || 'Laminasi';
+                            document.getElementById('liveLaminationCost').textContent = formatRupiah(resultData.lamination_subtotal);
+                        } else {
+                            elLamRow.style.display = 'none';
+                        }
+                    }
 
-                    document.getElementById('previewProfit').textContent = formatRupiah(resultData
-                        .profit);
-                    document.getElementById('previewMargin').textContent = formatPercentage(resultData
-                        .margin);
-                    document.getElementById('previewMarkup').textContent = formatPercentage(resultData
-                        .markup);
+                    // 3. Cutting
+                    const elCutRow = document.getElementById('liveCuttingRow');
+                    if (elCutRow) {
+                        if (resultData.cutting && resultData.cutting_subtotal > 0) {
+                            elCutRow.style.display = 'flex';
+                            document.getElementById('liveCuttingDetail').textContent = resultData.cutting_name || 'Finishing Cutting';
+                            document.getElementById('liveCuttingCost').textContent = formatRupiah(resultData.cutting_subtotal);
+                        } else {
+                            elCutRow.style.display = 'none';
+                        }
+                    }
 
-                    // Show Summary as default tab & open modal
-                    btnSummary.click();
-                    openPreviewModal();
+                    // 4. Komponen Tambahan
+                    const elExtraRow = document.getElementById('liveExtraRow');
+                    if (elExtraRow) {
+                        if (resultData.extra_subtotal > 0) {
+                            elExtraRow.style.display = 'flex';
+                            const compCount = Array.isArray(resultData.additional_components) ? resultData.additional_components.length : 1;
+                            document.getElementById('liveExtraDetail').textContent = `${compCount} item tambahan`;
+                            document.getElementById('liveExtraCost').textContent = formatRupiah(resultData.extra_subtotal);
+                        } else {
+                            elExtraRow.style.display = 'none';
+                        }
+                    }
+
+                    // Total HPP Bar
+                    const elTotalHppBadge = document.getElementById('liveTotalHppBadge');
+                    if (elTotalHppBadge) elTotalHppBadge.textContent = 'HPP: ' + formatRupiah(resultData.total_hpp);
+                    const elTotalHppVal = document.getElementById('liveTotalHppVal');
+                    if (elTotalHppVal) elTotalHppVal.textContent = formatRupiah(resultData.total_hpp);
+                    const elProfitVal = document.getElementById('liveProfitVal');
+                    if (elProfitVal) elProfitVal.textContent = formatRupiah(resultData.profit);
+                    const elMarginVal = document.getElementById('liveMarginVal');
+                    if (elMarginVal) elMarginVal.textContent = formatPercentage(resultData.margin);
+
+                    // =========================================================
+                    // 2. POPULATE MODAL DATA (PENAWARAN & DETAIL TEKNIS)
+                    // =========================================================
+                    lastCalculatedData = resultData;
+                    const setTxt = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+
+                    // A. MODAL 1: SURAT PENAWARAN (QUOTATION)
+                    updateQuotationCustomerInfo();
+                    const quoteLead = (resultData.lead_time || document.getElementById('estimation_time')?.value || 1) + ' Hari Kerja';
+                    setTxt('modalQuoteLeadTime', quoteLead);
+                    setTxt('modalQuoteMaterialName', resultData.material_name || '-');
+                    setTxt('modalQuotePrintSide', (resultData.color_side || 'Full Color') + ' · ' + (resultData.print_side == 2 ? '2 Sisi Bolak-Balik' : '1 Sisi'));
+                    setTxt('modalQuoteQty', `${(resultData.qty || 0).toLocaleString('id-ID')} pcs`);
+
+                    const finishingParts = [];
+                    if (resultData.lamination && resultData.lamination_subtotal > 0) finishingParts.push(resultData.lamination_name || 'Laminasi');
+                    if (resultData.cutting && resultData.cutting_subtotal > 0) finishingParts.push(resultData.cutting_name || 'Cutting');
+                    setTxt('modalQuoteFinishing', finishingParts.length > 0 ? finishingParts.join(', ') : 'Tanpa Finishing');
+
+                    // Quotation Table Rows
+                    let quoteRowsHtml = `
+                        <tr>
+                            <td style="padding: 10px;">
+                                <strong style="color: var(--t-base);">Cetak Digital Print A3+ (${resultData.material_name || '-'})</strong>
+                                <div style="font-size: 11.5px; color: var(--t-muted); margin-top: 2px;">
+                                    ${resultData.color_side || 'Full Color'} &middot; ${resultData.imposition_info || ((resultData.total_sheets || 0) + ' Lembar A3+')}
+                                </div>
+                            </td>
+                            <td style="padding: 10px; text-align: center;">${(resultData.total_sheets || 0).toLocaleString('id-ID')} Lembar</td>
+                            <td style="padding: 10px; text-align: right;">${formatRupiah(resultData.unit_price_sheet || (resultData.print_subtotal / (resultData.total_sheets || 1)))}</td>
+                            <td style="padding: 10px; text-align: right; font-weight: 700;">${formatRupiah(resultData.print_subtotal)}</td>
+                        </tr>
+                    `;
+
+                    if (resultData.lamination && resultData.lamination_subtotal > 0) {
+                        quoteRowsHtml += `
+                            <tr>
+                                <td style="padding: 10px;">
+                                    <strong style="color: var(--t-base);">Finishing: ${resultData.lamination_name || 'Laminasi'}</strong>
+                                    <div style="font-size: 11.5px; color: var(--t-muted); margin-top: 2px;">Lapisan pelindung cetak A3+</div>
+                                </td>
+                                <td style="padding: 10px; text-align: center;">${(resultData.total_sheets || 0).toLocaleString('id-ID')} Lembar</td>
+                                <td style="padding: 10px; text-align: right;">${formatRupiah(resultData.lamination_subtotal / (resultData.total_sheets || 1))}</td>
+                                <td style="padding: 10px; text-align: right; font-weight: 700;">${formatRupiah(resultData.lamination_subtotal)}</td>
+                            </tr>
+                        `;
+                    }
+
+                    if (resultData.cutting && resultData.cutting_subtotal > 0) {
+                        quoteRowsHtml += `
+                            <tr>
+                                <td style="padding: 10px;">
+                                    <strong style="color: var(--t-base);">Finishing: ${resultData.cutting_name || 'Cutting / Potong'}</strong>
+                                    <div style="font-size: 11.5px; color: var(--t-muted); margin-top: 2px;">Jasa potong / cutting presisi</div>
+                                </td>
+                                <td style="padding: 10px; text-align: center;">${resultData.is_potong ? '1 Paket' : ((resultData.total_sheets || 0).toLocaleString('id-ID') + ' Lembar')}</td>
+                                <td style="padding: 10px; text-align: right;">${formatRupiah(resultData.cutting_subtotal)}</td>
+                                <td style="padding: 10px; text-align: right; font-weight: 700;">${formatRupiah(resultData.cutting_subtotal)}</td>
+                            </tr>
+                        `;
+                    }
+
+                    if (Array.isArray(resultData.additional_components) && resultData.additional_components.length > 0) {
+                        resultData.additional_components.forEach(function(comp) {
+                            quoteRowsHtml += `
+                                <tr>
+                                    <td style="padding: 10px;">
+                                        <strong style="color: var(--t-base);">${comp.type ? comp.type.toUpperCase() + ': ' : ''}${comp.name || 'Komponen Tambahan'}</strong>
+                                        <div style="font-size: 11.5px; color: var(--t-muted); margin-top: 2px;">Komponen pendukung produksi</div>
+                                    </td>
+                                    <td style="padding: 10px; text-align: center;">${(comp.qty || 1).toLocaleString('id-ID')}</td>
+                                    <td style="padding: 10px; text-align: right;">${formatRupiah(comp.sale_price_per_unit || 0)}</td>
+                                    <td style="padding: 10px; text-align: right; font-weight: 700;">${formatRupiah(comp.subtotal || 0)}</td>
+                                </tr>
+                            `;
+                        });
+                    }
+
+                    const quoteTableBody = document.getElementById('modalQuoteTableBody');
+                    if (quoteTableBody) quoteTableBody.innerHTML = quoteRowsHtml;
+
+                    const quoteSubtotalRow = document.getElementById('modalQuoteSubtotalRow');
+                    const quoteDiscountRow = document.getElementById('modalQuoteDiscountRow');
+                    if (resultData.discount_amount > 0) {
+                        if (quoteSubtotalRow) quoteSubtotalRow.style.display = 'table-row';
+                        setTxt('modalQuoteSubtotalAmount', formatRupiah(resultData.subtotal));
+                        if (quoteDiscountRow) quoteDiscountRow.style.display = 'table-row';
+                        const discLbl = resultData.discount_type === 'percentage' ? `${resultData.discount_value}%` : 'Nominal';
+                        setTxt('modalQuoteDiscountLabel', discLbl);
+                        setTxt('modalQuoteDiscountAmount', '- ' + formatRupiah(resultData.discount_amount));
+                    } else {
+                        if (quoteSubtotalRow) quoteSubtotalRow.style.display = 'none';
+                        if (quoteDiscountRow) quoteDiscountRow.style.display = 'none';
+                    }
+                    setTxt('modalQuoteGrandTotal', formatRupiah(resultData.grand_total));
+
+                    // B. MODAL 2: DETAIL TEKNIS PRODUKSI & BIAYA (TECHNICAL)
+                    setTxt('techLocationName', resultData.location_name || locationSelect.find('option:selected').text().trim() || '-');
+                    setTxt('techPriceType', resultData.price_type || ($('#price_type').val() === 'division' ? 'Harga Divisi' : 'Harga Umum'));
+                    setTxt('techMaterialName', resultData.material_name || '-');
+                    setTxt('techPrintColorSide', (resultData.color_side || 'Full Color') + ' (' + (resultData.print_side == 2 ? '2 Sisi' : '1 Sisi') + ')');
+                    setTxt('techProductionMode', resultData.production_mode || (modeSelect.val() === 'layout' ? 'Hitung Layout' : 'Direct Sheet'));
+                    setTxt('techFinishedSize', resultData.finished_size || ((lengthInput.value || '-') + ' × ' + (widthInput.value || '-') + ' cm'));
+                    setTxt('techImposition', resultData.imposition_info || (resultData.up_count ? `${resultData.up_count} objek/lbr` : '-'));
+                    setTxt('techTotalSheets', `${(resultData.total_sheets || 0).toLocaleString('id-ID')} Lembar A3+`);
+                    setTxt('techLeadTime', quoteLead);
+
+                    // Technical Breakdown Rows
+                    setTxt('techRow1Spec', `${(resultData.total_sheets || 0).toLocaleString('id-ID')} lbr A3+ @ ${formatRupiah(resultData.unit_price_sheet || (resultData.print_subtotal / (resultData.total_sheets || 1)))}`);
+                    setTxt('techRow1Hpp', formatRupiah(resultData.print_hpp || resultData.print_total_hpp || 0));
+                    setTxt('techRow1Subtotal', formatRupiah(resultData.print_subtotal || 0));
+
+                    setTxt('techRow2Spec', resultData.lamination && resultData.lamination_subtotal > 0 ? `${resultData.lamination_name} (${formatRupiah(resultData.lamination_subtotal / (resultData.total_sheets || 1))}/lbr)` : 'Tanpa Laminasi');
+                    setTxt('techRow2Hpp', formatRupiah(resultData.lamination_hpp || 0));
+                    setTxt('techRow2Subtotal', formatRupiah(resultData.lamination_subtotal || 0));
+
+                    setTxt('techRow3Spec', resultData.cutting && resultData.cutting_subtotal > 0 ? `${resultData.cutting_name} ${resultData.is_potong ? '(Min Ongkos Potong)' : '(' + formatRupiah(resultData.cutting_subtotal / (resultData.total_sheets || 1)) + '/lbr)'}` : 'Tanpa Potong');
+                    setTxt('techRow3Hpp', formatRupiah(resultData.cutting_hpp || 0));
+                    setTxt('techRow3Subtotal', formatRupiah(resultData.cutting_subtotal || 0));
+
+                    // Extra components repeater rows
+                    const techExtraTbody = document.getElementById('techExtraComponentsRows');
+                    if (techExtraTbody) {
+                        techExtraTbody.innerHTML = '';
+                        if (Array.isArray(resultData.additional_components) && resultData.additional_components.length > 0) {
+                            resultData.additional_components.forEach(function(comp, idx) {
+                                const tr = document.createElement('tr');
+                                tr.innerHTML = `
+                                    <td style="padding: 10px;">
+                                        <strong>${idx + 4}. ${comp.type ? comp.type.toUpperCase() + ': ' : ''}${comp.name || 'Komponen Tambahan'}</strong>
+                                        <div style="font-size: 11px; color: var(--t-muted);">Komponen tambahan pilihan</div>
+                                    </td>
+                                    <td style="padding: 10px; font-size: 12.5px;">${(comp.qty || 1).toLocaleString('id-ID')} unit @ ${formatRupiah(comp.sale_price_per_unit || 0)}</td>
+                                    <td style="padding: 10px; text-align: right; font-weight: 600;">${formatRupiah(comp.total_hpp || 0)}</td>
+                                    <td style="padding: 10px; text-align: right; font-weight: 700; color: var(--primary);">${formatRupiah(comp.subtotal || 0)}</td>
+                                `;
+                                techExtraTbody.appendChild(tr);
+                            });
+                        }
+                    }
+
+                    // 4-Card KPI Financial Summary
+                    setTxt('techKpiTotalHpp', formatRupiah(resultData.total_hpp));
+                    setTxt('techKpiGrandTotal', formatRupiah(resultData.grand_total));
+                    setTxt('techKpiProfit', formatRupiah(resultData.profit));
+                    setTxt('techKpiMargin', formatPercentage(resultData.margin));
+                    setTxt('techKpiMarkup', formatPercentage(resultData.markup));
+
+                    // Populate Technical Discount Rows & Banner
+                    const techSubtotalRow = document.getElementById('techSubtotalRow');
+                    const techDiscountRow = document.getElementById('techDiscountRow');
+                    const techDiscountBanner = document.getElementById('techDiscountBanner');
+
+                    if (resultData.discount_amount > 0) {
+                        const discLbl = resultData.discount_type === 'percentage' ? `${resultData.discount_value}%` : 'Nominal';
+
+                        if (techSubtotalRow) techSubtotalRow.style.display = 'table-row';
+                        setTxt('techSubtotalAmount', formatRupiah(resultData.subtotal));
+
+                        if (techDiscountRow) techDiscountRow.style.display = 'table-row';
+                        setTxt('techDiscountLabel', discLbl);
+                        setTxt('techDiscountAmount', '- ' + formatRupiah(resultData.discount_amount));
+
+                        if (techDiscountBanner) {
+                            techDiscountBanner.style.display = 'block';
+                            setTxt('techBannerDiscountDesc', discLbl);
+                            setTxt('techBannerOriginalSubtotal', formatRupiah(resultData.subtotal));
+                            setTxt('techBannerDiscountVal', '- ' + formatRupiah(resultData.discount_amount));
+                        }
+                    } else {
+                        if (techSubtotalRow) techSubtotalRow.style.display = 'none';
+                        if (techDiscountRow) techDiscountRow.style.display = 'none';
+                        if (techDiscountBanner) techDiscountBanner.style.display = 'none';
+                    }
+
+                    setTxt('techTotalHppCol', 'HPP: ' + formatRupiah(resultData.total_hpp));
+                    setTxt('techGrandTotalCol', formatRupiah(resultData.grand_total));
 
                 } catch (err) {
                     console.error('Calculation Error:', err);
-                    if (typeof showToast === 'function') {
-                        showToast('error', 'Terjadi kesalahan sistem saat menghitung estimasi.');
-                    } else {
-                        alert('Terjadi kesalahan: ' + err.message);
-                    }
                 } finally {
-                    calculateButton.disabled = false;
-                    calculateButton.textContent = 'Hitung Estimasi';
+                    isCalculating = false;
+                    if (liveCalcSpinner) liveCalcSpinner.style.display = 'none';
                 }
+            }
+
+            function triggerRealtimeCalculation() {
+                clearTimeout(calcDebounceTimer);
+                calcDebounceTimer = setTimeout(function() {
+                    executeRealtimeCalculation();
+                }, 350);
+            }
+
+            // =========================================================
+            // EVENT LISTENERS UNTUK REAL-TIME CALCULATION
+            // =========================================================
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                executeRealtimeCalculation();
             });
+
+            // Input teks & angka (debounced)
+            lengthInput.addEventListener('input', triggerRealtimeCalculation);
+            widthInput.addEventListener('input', triggerRealtimeCalculation);
+            qtyInput.addEventListener('input', triggerRealtimeCalculation);
+            sheetQtyInput.addEventListener('input', triggerRealtimeCalculation);
+            if (displayQtyInput) displayQtyInput.addEventListener('input', triggerRealtimeCalculation);
+            discountValueInput.addEventListener('input', triggerRealtimeCalculation);
+            const estTimeInput = document.getElementById('estimation_time');
+            if (estTimeInput) estTimeInput.addEventListener('input', triggerRealtimeCalculation);
+
+            // Pelanggan & Catatan Input Listeners (Real-time updates)
+            const custNameInput = document.getElementById('customer_name');
+            const custPhoneInput = document.getElementById('customer_phone');
+            const custNotesInput = document.getElementById('customer_notes');
+            if (custNameInput) custNameInput.addEventListener('input', updateQuotationCustomerInfo);
+            if (custPhoneInput) custPhoneInput.addEventListener('input', updateQuotationCustomerInfo);
+            if (custNotesInput) custNotesInput.addEventListener('input', updateQuotationCustomerInfo);
+
+            // Select & Radio (Langsung kalkulasi)
+            locationSelect.on('change', function() {
+                updateQuotationCustomerInfo();
+                triggerRealtimeCalculation();
+            });
+            $('#price_type').on('change', function() {
+                updatePriceTypeBadge();
+                triggerRealtimeCalculation();
+            });
+            materialSelect.on('change', triggerRealtimeCalculation);
+            printColorSelect.on('change', triggerRealtimeCalculation);
+            $('#print_side').on('change', triggerRealtimeCalculation);
+            modeSelect.on('change', triggerRealtimeCalculation);
+            $('#sheet_size_id').on('change', triggerRealtimeCalculation);
+            laminationSelect.on('change', triggerRealtimeCalculation);
+            cuttingSelect.on('change', triggerRealtimeCalculation);
+            $('#potong_size_override').on('change', triggerRealtimeCalculation);
+            discountRadios.forEach(radio => radio.addEventListener('change', triggerRealtimeCalculation));
+
+            // =========================================================
+            // RESET FORMULIR ESTIMASI (LENGKAP & AMAN)
+            // =========================================================
+            function resetFormEstimation() {
+                // 1. Batalkan debounce timer & request aktif
+                clearTimeout(calcDebounceTimer);
+                isCalculating = false;
+                lastCalculatedData = null;
+
+                // 2. Native form reset
+                form.reset();
+
+                // 3. Reset Dropdown Select2
+                locationSelect.val('').trigger('change.select2');
+                categorySelect.val('').trigger('change.select2');
+                printColorSelect.val('fc').trigger('change.select2');
+                $('#price_type').val('general').trigger('change.select2');
+                modeSelect.val('layout').trigger('change.select2');
+                laminationSelect.val('none').trigger('change.select2');
+                cuttingSelect.val('none').trigger('change.select2');
+                $('#potong_size_override').val('').trigger('change.select2');
+                $('#sheet_size_id').val('standard').trigger('change.select2');
+
+                // 4. Reset Material dropdown & info
+                materialSelect.empty().append('<option value="">Pilih Lokasi &amp; Kategori terlebih dahulu</option>');
+                materialSelect.val('').trigger('change.select2');
+                if (materialMasterInfo) materialMasterInfo.style.display = 'none';
+                if (materialHelp) {
+                    materialHelp.textContent = 'Material akan ditampilkan otomatis berdasarkan Lokasi, Kategori, dan Warna Cetak.';
+                }
+
+                // 5. Kembalikan Mode Tampilan (Non-Display Layout)
+                toggleDisplayMode(false);
+                modeSelect.trigger('change');
+
+                // 6. Sembunyikan info master finishing & override
+                if (laminationMasterInfo) laminationMasterInfo.style.display = 'none';
+                if (cuttingMasterInfo) cuttingMasterInfo.style.display = 'none';
+                if (potongOverrideWrap) potongOverrideWrap.style.display = 'none';
+
+                // 7. Hapus semua Komponen Tambahan dinamis
+                const dynamicComponents = compContainer.querySelectorAll('.additional-component-item');
+                dynamicComponents.forEach(function(comp) {
+                    const pSelect = $(comp).find('.additional-component-price-type');
+                    const cSelect = $(comp).find('.additional-component-type');
+                    if (pSelect.hasClass('select2-hidden-accessible')) pSelect.select2('destroy');
+                    if (cSelect.hasClass('select2-hidden-accessible')) cSelect.select2('destroy');
+                    comp.remove();
+                });
+                compIdx = 0;
+
+                // 8. Reset opsi & input diskon
+                const discountNoneRadio = document.querySelector('input[name="discount_type"][value="none"]');
+                if (discountNoneRadio) discountNoneRadio.checked = true;
+                if (discountValueField) discountValueField.hidden = true;
+                if (discountValueInput) {
+                    discountValueInput.disabled = true;
+                    discountValueInput.value = '';
+                }
+                if (discountSuffix) discountSuffix.textContent = '%';
+                const discWrap = document.getElementById('liveDiscountWrap');
+                if (discWrap) discWrap.style.display = 'none';
+
+                // 9. Reset preview teks imposisi
+                if (layoutUpCountEl) layoutUpCountEl.textContent = '—';
+                if (layoutTotalSheetsEl) layoutTotalSheetsEl.textContent = '—';
+
+                // 10. Reset Input Pelanggan & Info Modal Penawaran
+                const cName = document.getElementById('customer_name');
+                const cPhone = document.getElementById('customer_phone');
+                const cNotes = document.getElementById('customer_notes');
+                if (cName) cName.value = '';
+                if (cPhone) cPhone.value = '';
+                if (cNotes) cNotes.value = '';
+                updateQuotationCustomerInfo();
+
+                // 11. Reset Sticky Summary Card ke State Awal (Empty State)
+                updatePriceTypeBadge();
+                if (liveEmptyState) liveEmptyState.style.display = 'block';
+                if (liveResultContainer) liveResultContainer.style.display = 'none';
+                if (liveCalcSpinner) liveCalcSpinner.style.display = 'none';
+
+                // 12. Reset elemen-elemen modal agar bersih
+                const modalQuoteBody = document.getElementById('modalQuoteTableBody');
+                if (modalQuoteBody) {
+                    modalQuoteBody.innerHTML = `
+                        <tr>
+                            <td style="padding: 10px;">
+                                <strong id="modalQuoteItemTitle">Cetak Digital Print A3+</strong>
+                                <div id="modalQuoteItemDesc" style="font-size: 11.5px; color: var(--t-muted);">-</div>
+                            </td>
+                            <td id="modalQuoteItemQty" style="padding: 10px; text-align: center;">-</td>
+                            <td id="modalQuoteItemUnitPrice" style="padding: 10px; text-align: right;">-</td>
+                            <td id="modalQuoteItemSubtotal" style="padding: 10px; text-align: right; font-weight: 700;">-</td>
+                        </tr>
+                    `;
+                }
+                const quoteSubRow = document.getElementById('modalQuoteSubtotalRow');
+                const quoteDiscRow = document.getElementById('modalQuoteDiscountRow');
+                if (quoteSubRow) quoteSubRow.style.display = 'none';
+                if (quoteDiscRow) quoteDiscRow.style.display = 'none';
+
+                const techExtraBody = document.getElementById('techExtraComponentsRows');
+                if (techExtraBody) techExtraBody.innerHTML = '';
+                const techSubRow = document.getElementById('techSubtotalRow');
+                const techDiscRow = document.getElementById('techDiscountRow');
+                const techBanner = document.getElementById('techDiscountBanner');
+                if (techSubRow) techSubRow.style.display = 'none';
+                if (techDiscRow) techDiscRow.style.display = 'none';
+                if (techBanner) techBanner.style.display = 'none';
+
+                setTxt('techRow1Spec', '-');
+                setTxt('techRow1Hpp', 'Rp 0');
+                setTxt('techRow1Subtotal', 'Rp 0');
+                setTxt('techRow2Spec', 'Tanpa Laminasi');
+                setTxt('techRow2Hpp', 'Rp 0');
+                setTxt('techRow2Subtotal', 'Rp 0');
+                setTxt('techRow3Spec', 'Tanpa Potong');
+                setTxt('techRow3Hpp', 'Rp 0');
+                setTxt('techRow3Subtotal', 'Rp 0');
+                setTxt('techKpiTotalHpp', 'Rp 0');
+                setTxt('techKpiGrandTotal', 'Rp 0');
+                setTxt('techKpiProfit', 'Rp 0');
+                setTxt('techKpiMargin', '0%');
+                setTxt('techKpiMarkup', '0%');
+
+                if (typeof showToast === 'function') {
+                    showToast('info', 'Formulir estimasi telah direset.');
+                }
+            }
+
+            if (btnResetForm) {
+                btnResetForm.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    resetFormEstimation();
+                });
+            }
+
+            form.addEventListener('reset', function(e) {
+                e.preventDefault();
+                resetFormEstimation();
+            });
+
+            // Panggil inisialisasi awal jika form sudah memiliki nilai
+            updatePriceTypeBadge();
+            setTimeout(function() {
+                executeRealtimeCalculation();
+            }, 600);
 
         });
 
