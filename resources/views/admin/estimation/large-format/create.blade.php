@@ -345,64 +345,191 @@
             color: var(--t-base);
         }
 
-        /* Table Sticky Separator & Typography Enhancements */
-        .details-digital-table td.details-digital-col-material,
-        .details-digital-table th.details-digital-col-material {
-            box-shadow: 3px 0 6px -2px rgba(0, 0, 0, 0.08);
+        /* =========================================================
+           SOLID, OPAQUE & PERFECTLY ALIGNED LARGE FORMAT TABLE (NO OVERLAP / TRANSPARENCY)
+        ========================================================= */
+        #lfPriceListTable {
+            border-collapse: separate !important;
+            border-spacing: 0 !important;
+            width: max-content;
+            min-width: 100%;
         }
 
-        .details-digital-table td.details-digital-price {
-            font-variant-numeric: tabular-nums;
+        /* Base Header Cell Styling */
+        #lfPriceListTable thead th {
+            box-sizing: border-box !important;
+            white-space: nowrap !important;
+            border-right: 1px solid var(--border) !important;
+            border-bottom: 1px solid var(--border) !important;
+            vertical-align: middle !important;
+            font-size: 11.5px;
+        }
+
+        /* 1. Header Row 1 (Group Row: Biaya Produksi & Rekomendasi Harga Jual) - 38px Solid */
+        #lfPriceListTable thead tr:nth-child(1) th {
+            position: sticky !important;
+            top: 0 !important;
+            height: 38px !important;
+            max-height: 38px !important;
+            line-height: 38px !important;
+            padding: 0 12px !important;
+            background-color: #172033 !important;
+            color: #f1f5f9 !important;
             font-weight: 700;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+            z-index: 10 !important;
         }
 
-        .details-digital-table td.details-digital-cost {
-            font-variant-numeric: tabular-nums;
-            background-color: rgba(0, 0, 0, 0.015);
+        :root[data-theme="light"] #lfPriceListTable thead tr:nth-child(1) th {
+            background-color: #e2e8f0 !important;
+            color: #1e293b !important;
+            border-bottom: 1px solid #cbd5e1 !important;
         }
 
-        .details-digital-table tbody tr:hover td {
-            background-color: rgba(37, 99, 235, 0.04) !important;
+        /* 2. Header Row 2 (Sub-Headers) - Pinned at top: 38px exactly, 36px Solid */
+        #lfPriceListTable thead tr:nth-child(2) th {
+            position: sticky !important;
+            top: 38px !important;
+            height: 36px !important;
+            max-height: 36px !important;
+            line-height: 36px !important;
+            padding: 0 12px !important;
+            background-color: #121826 !important;
+            color: #94a3b8 !important;
+            font-weight: 600;
+            z-index: 10 !important;
         }
 
-        /* Large Format Column Price Header Colors */
-        .details-digital-table thead th.col-price-general {
-            background-color: rgba(245, 158, 11, 0.09) !important;
-            color: #92400e !important;
-            font-weight: 700;
-            border-bottom: 1px solid rgba(245, 158, 11, 0.25);
+        :root[data-theme="light"] #lfPriceListTable thead tr:nth-child(2) th {
+            background-color: #f1f5f9 !important;
+            color: #475569 !important;
+            border-bottom: 1px solid #cbd5e1 !important;
         }
 
-        .details-digital-table thead th.col-price-division {
-            background-color: rgba(139, 92, 246, 0.08) !important;
-            color: #5b21b6 !important;
-            font-weight: 700;
-            border-bottom: 1px solid rgba(139, 92, 246, 0.25);
+        /* 3. Rowspan=2 Cells (No, Item Material, Ukuran Lebar) - 74px Solid spanning row 1 & 2 */
+        #lfPriceListTable thead th[rowspan="2"] {
+            top: 0 !important;
+            height: 74px !important;
+            max-height: 74px !important;
+            line-height: normal !important;
+            vertical-align: middle !important;
+            z-index: 15 !important;
+            background-color: #172033 !important;
+            color: #f8fafc !important;
         }
 
-        .details-digital-table thead th.col-price-plain {
-            background-color: rgba(14, 165, 233, 0.08) !important;
-            color: #0369a1 !important;
-            font-weight: 700;
-            border-bottom: 1px solid rgba(14, 165, 233, 0.25);
+        :root[data-theme="light"] #lfPriceListTable thead th[rowspan="2"] {
+            background-color: #e2e8f0 !important;
+            color: #0f172a !important;
         }
 
-        :root[data-theme="dark"] .details-digital-table thead th.col-price-general {
-            background-color: rgba(245, 158, 11, 0.16) !important;
+        /* 4. Left Sticky Columns (No & Item Material) */
+        #lfPriceListTable .details-digital-col-no {
+            left: 0 !important;
+            width: 44px;
+            min-width: 44px;
+            text-align: center;
+        }
+
+        #lfPriceListTable .details-digital-col-material {
+            left: 44px !important;
+            min-width: 220px;
+            max-width: 280px;
+            text-align: left;
+            box-shadow: 3px 0 6px -2px rgba(0, 0, 0, 0.25);
+        }
+
+        #lfPriceListTable thead th.details-digital-sticky {
+            z-index: 20 !important;
+        }
+
+        #lfPriceListTable tbody td.details-digital-sticky {
+            position: sticky !important;
+            z-index: 5 !important;
+            background-color: var(--bg-card) !important;
+        }
+
+        #lfPriceListTable tbody tr:hover td.details-digital-sticky {
+            background-color: var(--bg-hover) !important;
+        }
+
+        /* 5. 100% Solid Opaque Colors for Selling Price Headers (NO TRANSPARENCY / BLEEDING) */
+        /* Harga Umum Header (Amber) */
+        #lfPriceListTable thead th.col-price-general {
+            background-color: #2b1f08 !important;
             color: #fbbf24 !important;
-            border-bottom-color: rgba(245, 158, 11, 0.35);
+            font-weight: 700;
+            border-bottom: 2px solid #f59e0b !important;
+        }
+        :root[data-theme="light"] #lfPriceListTable thead th.col-price-general {
+            background-color: #fef3c7 !important;
+            color: #92400e !important;
+            border-bottom: 2px solid #d97706 !important;
         }
 
-        :root[data-theme="dark"] .details-digital-table thead th.col-price-division {
-            background-color: rgba(139, 92, 246, 0.15) !important;
+        /* Harga Divisi Header (Violet) */
+        #lfPriceListTable thead th.col-price-division {
+            background-color: #1e172e !important;
             color: #c4b5fd !important;
-            border-bottom-color: rgba(139, 92, 246, 0.35);
+            font-weight: 700;
+            border-bottom: 2px solid #8b5cf6 !important;
+        }
+        :root[data-theme="light"] #lfPriceListTable thead th.col-price-division {
+            background-color: #ede9fe !important;
+            color: #5b21b6 !important;
+            border-bottom: 2px solid #7c3aed !important;
         }
 
-        :root[data-theme="dark"] .details-digital-table thead th.col-price-plain {
-            background-color: rgba(14, 165, 233, 0.15) !important;
+        /* Harga Polos Header (Sky Cyan) */
+        #lfPriceListTable thead th.col-price-plain {
+            background-color: #0f2231 !important;
             color: #7dd3fc !important;
-            border-bottom-color: rgba(14, 165, 233, 0.35);
+            font-weight: 700;
+            border-bottom: 2px solid #0ea5e9 !important;
+        }
+        :root[data-theme="light"] #lfPriceListTable thead th.col-price-plain {
+            background-color: #e0f2fe !important;
+            color: #0369a1 !important;
+            border-bottom: 2px solid #0284c7 !important;
+        }
+
+        /* 6. Body Cells Color Coding for Selling Prices */
+        #lfPriceListTable td.details-digital-price {
+            font-variant-numeric: tabular-nums;
+            font-weight: 700;
+        }
+
+        #lfPriceListTable td.details-digital-cost {
+            font-variant-numeric: tabular-nums;
+        }
+
+        #lfPriceListTable tbody td.col-price-general {
+            color: #fbbf24 !important;
+            font-weight: 700;
+        }
+        :root[data-theme="light"] #lfPriceListTable tbody td.col-price-general {
+            color: #b45309 !important;
+        }
+
+        #lfPriceListTable tbody td.col-price-division {
+            color: #c4b5fd !important;
+            font-weight: 700;
+        }
+        :root[data-theme="light"] #lfPriceListTable tbody td.col-price-division {
+            color: #6d28d9 !important;
+        }
+
+        #lfPriceListTable tbody td.col-price-plain {
+            color: #7dd3fc !important;
+            font-weight: 700;
+        }
+        :root[data-theme="light"] #lfPriceListTable tbody td.col-price-plain {
+            color: #0284c7 !important;
+        }
+
+        #lfPriceListTable tbody tr:hover td {
+            background-color: rgba(37, 99, 235, 0.05) !important;
         }
 
         /* Large Format Width Badges */
@@ -3594,10 +3721,10 @@
                         tr += `<td class="details-digital-cost" style="text-align:right;">${formatPlRupiah(item.finishing_cost)}</td>`;
                         tr += `<td class="details-digital-cost details-digital-cost-total" style="text-align:right; font-weight:700;">${formatPlRupiah(item.total_cost || item.vendor_price)}</td>`;
 
-                        // Harga Jual
-                        tr += `<td class="details-digital-price col-price-general" style="text-align:right; color:#d97706;">${formatPlRupiah(item.general_price)}</td>`;
-                        tr += `<td class="details-digital-price col-price-division" style="text-align:right; color:#7c3aed;">${formatPlRupiah(item.division_price)}</td>`;
-                        tr += `<td class="details-digital-price col-price-plain" style="text-align:right; color:#0284c7;">${formatPlRupiah(item.plain_price)}</td>`;
+                        // Harga Jual (Warna diatur oleh CSS yang solid dan adaptif terhadap tema)
+                        tr += `<td class="details-digital-price col-price-general" style="text-align:right;">${formatPlRupiah(item.general_price)}</td>`;
+                        tr += `<td class="details-digital-price col-price-division" style="text-align:right;">${formatPlRupiah(item.division_price)}</td>`;
+                        tr += `<td class="details-digital-price col-price-plain" style="text-align:right;">${formatPlRupiah(item.plain_price)}</td>`;
 
                         tr += `</tr>`;
                         tbodyHtml += tr;
