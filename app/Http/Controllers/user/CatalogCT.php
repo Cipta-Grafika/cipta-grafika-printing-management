@@ -249,31 +249,23 @@ class CatalogCT extends Controller
     private function serveTemporaryImage($image, string $sourceFolder, string $temporaryFolder, string $prefix)
     {
         /*
-    |--------------------------------------------------------------------------
-    | DATA TIDAK DITEMUKAN ATAU TIDAK DIPUBLIKASIKAN
-    |--------------------------------------------------------------------------
-    */
+        |--------------------------------------------------------------------------
+        | DATA TIDAK DITEMUKAN ATAU TIDAK DIPUBLIKASIKAN
+        |--------------------------------------------------------------------------
+        */
 
-        if (!$image) {
+        if (!$image || empty($image->image_path)) {
             abort(404);
         }
 
         /*
-    |--------------------------------------------------------------------------
-    | SOURCE PATH
-    |--------------------------------------------------------------------------
-    */
+        |--------------------------------------------------------------------------
+        | FILE ASLI
+        |--------------------------------------------------------------------------
+        */
 
         $sourcePath = public_path($sourceFolder);
-
-        /*
-    |--------------------------------------------------------------------------
-    | FILE ASLI
-    |--------------------------------------------------------------------------
-    */
-
         $baseName = basename($image->image_path);
-
         $sourceFile = $sourcePath . DIRECTORY_SEPARATOR . $baseName;
 
         if (!file_exists($sourceFile)) {
@@ -281,51 +273,33 @@ class CatalogCT extends Controller
         }
 
         /*
-    |--------------------------------------------------------------------------
-    | TEMPORARY DIRECTORY (PER SESI)
-    |--------------------------------------------------------------------------
-    */
+        |--------------------------------------------------------------------------
+        | OPTIMASI PENGIRIMAN GAMBAR & HTTP BROWSER CACHING
+        |--------------------------------------------------------------------------
+        | Sajikan file langsung tanpa overhead copy & delete pada setiap request.
+        | Menggunakan ETag, Last-Modified, dan HTTP 304 Not Modified untuk
+        | mencegah transfer ulang data yang sudah di-cache oleh browser pengguna.
+        */
 
-        $sessionKey = hash('sha256', session()->getId());
+        $mtime = filemtime($sourceFile);
+        $size = filesize($sourceFile);
+        $etag = '"' . dechex($mtime) . '-' . dechex($size) . '"';
 
-        $temporaryPath = public_path($temporaryFolder . '/' . $sessionKey);
+        $clientEtag = request()->header('If-None-Match');
+        $clientMtime = request()->header('If-Modified-Since');
 
-        if (!is_dir($temporaryPath)) {
-            if (!mkdir($temporaryPath, 0755, true)) {
-                abort(500);
-            }
+        $headers = [
+            'Cache-Control' => 'public, max-age=604800, stale-while-revalidate=86400',
+            'ETag'          => $etag,
+            'Last-Modified' => gmdate('D, d M Y H:i:s', $mtime) . ' GMT',
+        ];
+
+        if (($clientEtag && trim($clientEtag) === $etag) ||
+            ($clientMtime && @strtotime($clientMtime) >= $mtime)) {
+            return response('', 304, $headers);
         }
 
-        /*
-    |--------------------------------------------------------------------------
-    | COPY KE TEMPORARY
-    |--------------------------------------------------------------------------
-    */
-
-        $temporaryFilePath =
-            $temporaryPath .
-            DIRECTORY_SEPARATOR .
-            $prefix .
-            $image->id .
-            '_' .
-            $baseName;
-
-        if (!file_exists($temporaryFilePath)) {
-            if (!copy($sourceFile, $temporaryFilePath)) {
-                abort(500);
-            }
-        }
-
-        $response = response()->file($temporaryFilePath)
-            ->deleteFileAfterSend(true);
-
-        app()->terminating(function () use ($temporaryPath) {
-            if (is_dir($temporaryPath)) {
-                @rmdir($temporaryPath);
-            }
-        });
-
-        return $response;
+        return response()->file($sourceFile, $headers);
     }
 
     public function filters()

@@ -212,9 +212,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/admin/estimations', [EstimationCT::class, 'index'])->name('admin_estimations');
     Route::get('/admin/estimations/create-lf', [EstimationCT::class, 'createLF'])->name('admin_create_lf_estimation');
     Route::get('/admin/estimation/create-lf/get-materials', [EstimationCT::class, 'getMaterials'])->name('admin_get_materials');
+    Route::get('/admin/estimation/create-lf/get-pricelist', [EstimationCT::class, 'getPriceListLF'])->name('admin_get_pricelist_lf');
     Route::post('/admin/estimation/create-lf', [EstimationCT::class, 'storeLF'])->name('admin_store_lf');
     Route::get('/admin/estimations/create-a3plus', [EstimationCT::class, 'createA3plus'])->name('admin_create_a3plus_estimation');
     Route::get('/admin/estimation/create-a3plus/get-materials', [EstimationCT::class, 'getMaterialsA3plus'])->name('admin_get_materials_a3plus');
+    Route::get('/admin/estimation/create-a3plus/get-pricelist', [EstimationCT::class, 'getPriceListA3plus'])->name('admin_get_pricelist_a3plus');
     Route::post('/admin/estimation/create-a3plus', [EstimationCT::class, 'storeA3plus'])->name('admin_store_a3plus');
 
     // Cetak Offset Estimation

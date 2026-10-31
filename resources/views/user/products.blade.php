@@ -339,37 +339,91 @@
                         <div class="flex items-center justify-between mb-6 border-b border-zinc-200/70 dark:border-white/10 px-1 py-3">
                             <p class="text-sm text-zinc-500 dark:text-zinc-400">
                                 Menampilkan
-                                <span class="font-semibold text-zinc-900 dark:text-white" x-text="visibleProducts.length">
-                                </span> produk
+                                <span class="font-semibold text-zinc-900 dark:text-white" x-text="displayedProducts.length"></span>
+                                dari
+                                <span class="font-semibold text-zinc-900 dark:text-white" x-text="visibleProducts.length"></span> produk
                             </p>
                             <button x-show="search || printType !== 'all' || selectedCategories.length > 0"
                                 x-cloak @click="resetFilter()"
-                                class="inline-flex items-center gap-1.5 text-xs font-semibold text-accent hover:opacity-70">
+                                class="inline-flex items-center gap-1.5 text-xs font-semibold text-accent hover:opacity-70 transition-colors">
                                 <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>
                                 Hapus filter
                             </button>
                         </div>
 
-
+                        <!-- =========================
+                            SKELETON LOADING GRID (INITIAL LOAD)
+                        ========================== -->
+                        <div x-show="productsLoading" class="grid sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                            <template x-for="i in [1, 2, 3, 4, 5, 6]" :key="i">
+                                <div class="flex h-full flex-col rounded-2xl overflow-hidden bg-white dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800 shadow-sm animate-pulse">
+                                    <!-- Skeleton Image Frame -->
+                                    <div class="w-full h-52 bg-zinc-200/80 dark:bg-zinc-800/80 skeleton-wave relative">
+                                        <div class="absolute top-3 left-3 w-24 h-5 rounded-full bg-zinc-300 dark:bg-zinc-700/80"></div>
+                                        <div class="absolute top-3 right-3 w-9 h-9 rounded-full bg-zinc-300 dark:bg-zinc-700/80"></div>
+                                        <div class="absolute bottom-3 left-3 w-28 h-3.5 rounded bg-zinc-300 dark:bg-zinc-700/80"></div>
+                                    </div>
+                                    <!-- Skeleton Content -->
+                                    <div class="flex flex-1 flex-col p-5 space-y-4">
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-2 h-2 rounded-full bg-accent/40"></div>
+                                            <div class="w-20 h-3 rounded bg-zinc-200 dark:bg-zinc-800"></div>
+                                        </div>
+                                        <div class="space-y-2">
+                                            <div class="w-5/6 h-5 rounded bg-zinc-200 dark:bg-zinc-800"></div>
+                                            <div class="w-3/5 h-5 rounded bg-zinc-200 dark:bg-zinc-800"></div>
+                                        </div>
+                                        <div class="space-y-2 py-1">
+                                            <div class="w-full h-3 rounded bg-zinc-100 dark:bg-zinc-800/50"></div>
+                                            <div class="w-4/5 h-3 rounded bg-zinc-100 dark:bg-zinc-800/50"></div>
+                                        </div>
+                                        <div class="mt-auto border-t border-zinc-100 dark:border-zinc-800 pt-4 flex items-center justify-between">
+                                            <div class="w-28 h-4 rounded bg-zinc-200 dark:bg-zinc-800"></div>
+                                            <div class="w-8 h-8 rounded-full bg-zinc-200 dark:bg-zinc-800"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
 
                         <!-- =========================
-                                                                                PRODUCT GRID
-                                                                            ========================== -->
-                        <div class="grid sm:grid-cols-2 xl:grid-cols-3 gap-6">
-                            <template x-for="p in visibleProducts" :key="p.key">
+                            PRODUCT GRID (PROGRESSIVE BATCH RENDERING)
+                        ========================== -->
+                        <div x-show="!productsLoading" class="grid sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                            <template x-for="p in displayedProducts" :key="p.key">
                                 <article
                                     class="project-card group flex h-full flex-col rounded-2xl overflow-hidden
                                         bg-white dark:bg-zinc-900
                                         border border-zinc-200/80 dark:border-zinc-800
                                         shadow-sm hover:-translate-y-1 hover:border-accent
                                         hover:shadow-xl hover:shadow-zinc-900/10 dark:hover:shadow-black/30
-                                        transition-all duration-300">
-                                    <!-- PRODUCT IMAGE -->
+                                        transition-all duration-300"
+                                    x-data="{ imgLoaded: false, imgError: false }">
+                                    <!-- PRODUCT IMAGE WITH SKELETON SHIMMER & SMOOTH LAZY LOAD -->
                                     <a :href="p.url"
                                         class="relative block photo-frame w-full h-52 overflow-hidden bg-zinc-100 dark:bg-zinc-800">
-                                        <img :src="p.cover_url" :alt="p.title" loading="lazy"
-                                            class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
-                                        <div class="absolute inset-0 bg-gradient-to-t from-zinc-950/65 via-transparent to-zinc-950/10"
+                                        <!-- Placeholder Shimmer selagi gambar dimuat -->
+                                        <div x-show="!imgLoaded && !imgError && p.cover_url"
+                                            class="absolute inset-0 bg-zinc-200 dark:bg-zinc-800 skeleton-wave transition-opacity duration-300">
+                                        </div>
+
+                                        <!-- Fallback jika gambar gagal dimuat atau belum ada gambar -->
+                                        <div x-show="imgError || !p.cover_url"
+                                            class="absolute inset-0 flex flex-col items-center justify-center gap-2 text-zinc-400 bg-zinc-100 dark:bg-zinc-800/90">
+                                            <i class="bi bi-image text-3xl opacity-50" aria-hidden="true"></i>
+                                            <span class="text-[11px] font-medium text-zinc-400">Gambar segera tersedia</span>
+                                        </div>
+
+                                        <!-- Tag Gambar Utama -->
+                                        <template x-if="p.cover_url">
+                                            <img :src="p.cover_url" :alt="p.title" loading="lazy" decoding="async"
+                                                x-on:load="imgLoaded = true"
+                                                x-on:error="imgError = true; imgLoaded = true"
+                                                class="w-full h-full object-cover transition-all duration-500 group-hover:scale-105"
+                                                :class="imgLoaded ? 'opacity-100' : 'opacity-0'">
+                                        </template>
+
+                                        <div class="absolute inset-0 bg-gradient-to-t from-zinc-950/65 via-transparent to-zinc-950/10 pointer-events-none"
                                             aria-hidden="true"></div>
                                         <span
                                             class="absolute top-3 left-3 max-w-[75%] truncate rounded-full border border-white/25 bg-zinc-950/45 px-3 py-1.5 text-[11px] font-medium text-white backdrop-blur-md"
@@ -411,7 +465,6 @@
                                                 text-zinc-500 dark:text-zinc-400
                                                 leading-relaxed mb-5 line-clamp-2"
                                             x-text="p.desc">
-
                                         </p>
 
                                         <!-- FOOTER -->
@@ -432,17 +485,59 @@
                         </div>
 
                         <!-- =========================
-                                                                                EMPTY STATE
-                                                                            ========================== -->
-                        <div x-show="visibleProducts.length === 0" x-cloak class="text-center py-20">
-                            <p class="text-zinc-400 text-sm">
-                                Produk tidak ditemukan.
+                            INFINITE SCROLL / LOAD MORE SENTINEL & ANIMATIONS
+                        ========================== -->
+                        <div x-show="!productsLoading && visibleProducts.length > 0" class="mt-8">
+                            <!-- Indikator Loading Saat Memuat Batch Berikutnya -->
+                            <div x-show="isLoadingMore" x-cloak class="py-6 flex flex-col items-center justify-center">
+                                <div class="inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-md text-xs font-medium text-zinc-700 dark:text-zinc-300 animate-pulse">
+                                    <svg class="animate-spin h-4 w-4 text-accent" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    <span>Memuat lebih banyak produk...</span>
+                                </div>
+                            </div>
+
+                            <!-- Sentinel Element: Trigger Infinite Scroll otomatis saat terlihat -->
+                            <div id="infiniteSentinel"
+                                x-init="
+                                    const observer = new IntersectionObserver((entries) => {
+                                        if (entries[0].isIntersecting && hasMoreProducts && !isLoadingMore && !productsLoading) {
+                                            loadMore();
+                                        }
+                                    }, { rootMargin: '350px' });
+                                    observer.observe($el);
+                                "
+                                class="h-8 w-full"
+                                x-show="hasMoreProducts">
+                            </div>
+
+                            <!-- Indikator Ketika Semua Produk Selesai Ditampilkan -->
+                            <div x-show="!hasMoreProducts && visibleProducts.length > 0" x-cloak
+                                class="py-8 flex flex-col items-center justify-center text-center">
+                                <div class="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-zinc-100 dark:bg-zinc-800/80 border border-zinc-200/80 dark:border-zinc-700/60 text-xs font-medium text-zinc-500 dark:text-zinc-400">
+                                    <i class="bi bi-check-circle-fill text-accent text-sm"></i>
+                                    <span>Semua produk telah ditampilkan (<span x-text="visibleProducts.length"></span> produk)</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- =========================
+                            EMPTY STATE
+                        ========================== -->
+                        <div x-show="!productsLoading && visibleProducts.length === 0" x-cloak class="text-center py-20">
+                            <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-400">
+                                <i class="bi bi-search text-2xl"></i>
+                            </div>
+                            <h3 class="font-display font-semibold text-lg text-zinc-900 dark:text-white mb-1">Produk tidak ditemukan</h3>
+                            <p class="text-zinc-400 text-sm max-w-sm mx-auto">
+                                Tidak ada produk yang sesuai dengan filter atau kata kunci pencarian Anda.
                             </p>
 
                             <button @click="resetFilter()"
-                                class="mt-4 text-sm font-medium
-                                    text-accent hover:opacity-70
-                                    transition-opacity">
+                                class="mt-5 inline-flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-full bg-accent/10 text-accent hover:bg-accent/20 transition-colors">
+                                <i class="bi bi-arrow-counterclockwise"></i>
                                 Reset Filter
                             </button>
                         </div>

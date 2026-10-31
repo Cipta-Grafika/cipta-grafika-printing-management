@@ -190,7 +190,7 @@
                         <a href="{{ $product['url'] }}"
                             class="relative block photo-frame w-full h-52 overflow-hidden bg-zinc-100 dark:bg-zinc-800">
                             @if ($product['cover_url'])
-                                <img src="{{ $product['cover_url'] }}" alt="{{ $product['title'] }}" loading="lazy"
+                                <img src="{{ $product['cover_url'] }}" alt="{{ $product['title'] }}" loading="lazy" decoding="async"
                                     class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
                             @else
                                 <div class="w-full h-full flex flex-col items-center justify-center gap-2 text-zinc-400">

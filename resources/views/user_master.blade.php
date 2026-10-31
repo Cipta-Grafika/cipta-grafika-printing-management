@@ -176,6 +176,27 @@
             left: 160%
         }
 
+        /* skeleton shimmer */
+        @@keyframes skeletonWave {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        .skeleton-wave {
+            position: relative;
+            overflow: hidden;
+        }
+        .skeleton-wave::after {
+            position: absolute;
+            top: 0; right: 0; bottom: 0; left: 0;
+            transform: translateX(-100%);
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+            animation: skeletonWave 1.6s infinite;
+            content: '';
+        }
+        .dark .skeleton-wave::after {
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.09), transparent);
+        }
+
         /* photo frames */
         .pf {
             overflow: hidden;
@@ -2215,10 +2236,42 @@
                     });
                 },
 
+                /* =========================
+                  PAGINATION & PROGRESSIVE BATCH RENDERING
+                ========================== */
+                perPage: 12,
+                displayedCount: 12,
+                isLoadingMore: false,
+
+                get displayedProducts() {
+                    return this.visibleProducts.slice(0, this.displayedCount);
+                },
+
+                get hasMoreProducts() {
+                    return this.displayedCount < this.visibleProducts.length;
+                },
+
+                loadMore() {
+                    if (this.isLoadingMore || !this.hasMoreProducts) {
+                        return;
+                    }
+                    this.isLoadingMore = true;
+                    setTimeout(() => {
+                        this.displayedCount += this.perPage;
+                        this.isLoadingMore = false;
+                    }, 280);
+                },
+
+                resetPagination() {
+                    this.displayedCount = this.perPage;
+                    this.isLoadingMore = false;
+                },
+
                 resetFilter() {
                     this.printType = 'all';
                     this.selectedCategories = [];
                     this.search = '';
+                    this.resetPagination();
                 },
 
 
@@ -2227,6 +2280,13 @@
                 ========================== */
 
                 init() {
+
+                    /* WATCHERS UNTUK RESET PAGINATION SAAT FILTER BERUBAH */
+                    if (typeof this.$watch === 'function') {
+                        this.$watch('search', () => this.resetPagination());
+                        this.$watch('printType', () => this.resetPagination());
+                        this.$watch('selectedCategories', () => this.resetPagination());
+                    }
 
                     /* =========================
                       LOAD BASKET
@@ -2305,6 +2365,23 @@
                         document
                             .querySelectorAll('.reveal')
                             .forEach(el => obs.observe(el));
+
+                        /* INFINITE SCROLL SENTINEL OBSERVER */
+                        const sentinel = document.getElementById('infiniteSentinel');
+                        if (sentinel) {
+                            const sentinelObs = new IntersectionObserver((entries) => {
+                                entries.forEach(entry => {
+                                    if (entry.isIntersecting && this.hasMoreProducts && !this.isLoadingMore && !this.productsLoading) {
+                                        this.loadMore();
+                                    }
+                                });
+                            }, {
+                                root: null,
+                                rootMargin: '300px',
+                                threshold: 0.05
+                            });
+                            sentinelObs.observe(sentinel);
+                        }
                     });
                 }
             }

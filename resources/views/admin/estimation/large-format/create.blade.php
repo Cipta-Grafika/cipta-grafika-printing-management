@@ -34,6 +34,539 @@
                 top: 20px;
             }
         }
+        /* =========================================================
+           PRICE LIST LARGE FORMAT MATRIX COMPONENT
+        ========================================================= */
+        .lf-matrix-col {
+            grid-column: 1 / -1;
+            min-width: 0;
+            width: 100%;
+            margin-top: 16px;
+        }
+
+        /* Matrix Card & Header Styling */
+        .matrix-card {
+            margin-top: 14px;
+            border-radius: 12px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border);
+            background: var(--bg-card);
+            overflow: visible;
+        }
+
+        .matrix-card-head {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            padding: 20px 22px;
+            border-bottom: 1px solid var(--border);
+            background: var(--bg-card);
+            margin-bottom: 0;
+            border-top-left-radius: 12px;
+            border-top-right-radius: 12px;
+        }
+
+        .matrix-head-title-wrap {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            width: 100%;
+        }
+
+        .matrix-head-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 11px;
+            background: linear-gradient(135deg, rgba(37,99,235,0.14) 0%, rgba(37,99,235,0.04) 100%);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+            border: 1px solid rgba(37,99,235,0.2);
+        }
+
+        .matrix-head-text {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .matrix-head-eyebrow-row {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .matrix-eyebrow {
+            color: var(--primary);
+            font-weight: 700;
+            letter-spacing: 0.6px;
+            font-size: 11px;
+        }
+
+        .matrix-cat-badge {
+            background: rgba(37, 99, 235, 0.1);
+            color: var(--primary);
+            font-weight: 700;
+            border: 1px solid rgba(37, 99, 235, 0.25);
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 11px;
+        }
+
+        .matrix-title {
+            font-size: 1.18rem;
+            font-weight: 700;
+            color: var(--t-base);
+            margin: 3px 0 2px;
+            letter-spacing: -0.01em;
+            line-height: 1.3;
+        }
+
+        .matrix-subtitle {
+            margin: 0;
+            font-size: 12.5px;
+            color: var(--t-muted);
+            line-height: 1.4;
+        }
+
+        /* Matrix Toolbar: Structured Two-Row Responsive Layout */
+        .matrix-toolbar {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+        }
+
+        .matrix-toolbar-row-main {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+            flex-wrap: wrap;
+        }
+
+        .matrix-toolbar-row-sub {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 16px;
+            flex-wrap: wrap;
+            width: 100%;
+            padding-top: 4px;
+            border-top: 1px dashed var(--border);
+        }
+
+        .matrix-filter-group {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .matrix-filter-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--t-muted);
+            white-space: nowrap;
+            margin: 0;
+        }
+
+        .matrix-cat-select-wrap {
+            width: 170px;
+        }
+
+        .matrix-pagesize-select-wrap {
+            width: 110px;
+        }
+
+        .matrix-tab-cluster {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: nowrap;
+        }
+
+        .matrix-tab-cluster-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--t-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+
+        /* Matrix Tabs Segmented Control */
+        .matrix-tab-container {
+            display: inline-flex;
+            gap: 4px;
+            background: var(--bg-muted);
+            padding: 3px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            height: 38px;
+            align-items: center;
+        }
+
+        .matrix-tab-btn {
+            padding: 5px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            background: transparent;
+            color: var(--t-muted);
+            transition: all 0.15s ease;
+            white-space: nowrap;
+            height: 30px;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .matrix-tab-btn:hover:not(.is-active) {
+            color: var(--t-base);
+            background: var(--bg-hover);
+        }
+
+        .matrix-tab-btn.is-active {
+            background: var(--bg-card);
+            color: var(--primary);
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* Toolbar Select2 Styling */
+        .toolbar-select2-wrap .select2-container--default .select2-selection--single {
+            height: 38px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            border-color: var(--border);
+            background-color: var(--bg-card);
+            display: flex;
+            align-items: center;
+        }
+
+        .toolbar-select2-wrap .select2-container--default .select2-selection--single .select2-selection__rendered {
+            line-height: 36px;
+            padding-left: 10px;
+            padding-right: 24px;
+            color: var(--t-base);
+        }
+
+        .toolbar-select2-wrap .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 36px;
+            right: 6px;
+        }
+
+        .toolbar-select2-wrap .select2-container--default.select2-container--focus .select2-selection--single,
+        .toolbar-select2-wrap .select2-container--default.select2-container--open .select2-selection--single {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-ring);
+        }
+
+        /* Select2 Dropdown Global Dark/Light Theme Compatibility */
+        .select2-container--default .select2-dropdown {
+            background-color: var(--bg-card) !important;
+            border: 1px solid var(--border) !important;
+            border-radius: 8px !important;
+            box-shadow: var(--shadow-lg) !important;
+            z-index: 99999 !important;
+            overflow: hidden;
+        }
+
+        .select2-container--default .select2-results__option {
+            color: var(--t-base) !important;
+            font-size: 12.5px !important;
+            padding: 8px 12px !important;
+        }
+
+        .select2-container--default .select2-results__option--highlighted[aria-selected] {
+            background-color: var(--primary) !important;
+            color: #ffffff !important;
+        }
+
+        .select2-container--default .select2-results__option[aria-selected=true] {
+            background-color: var(--bg-muted) !important;
+            color: var(--primary) !important;
+            font-weight: 600 !important;
+        }
+
+        /* Matrix Search Filter with Flex 1 */
+        .matrix-search-box {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            flex: 1 1 200px;
+            min-width: 170px;
+        }
+
+        .matrix-search-box i.bi-search {
+            position: absolute;
+            left: 12px;
+            color: var(--t-muted);
+            font-size: 13px;
+            pointer-events: none;
+        }
+
+        .matrix-search-input {
+            width: 100%;
+            height: 38px;
+            padding: 6px 30px 6px 34px;
+            font-size: 12.5px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--bg-card);
+            color: var(--t-base);
+            outline: none;
+            transition: all 0.15s ease;
+        }
+
+        .matrix-search-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-ring);
+        }
+
+        .matrix-search-clear {
+            position: absolute;
+            right: 8px;
+            background: none;
+            border: none;
+            color: var(--t-muted);
+            font-size: 16px;
+            cursor: pointer;
+            padding: 2px 6px;
+            line-height: 1;
+            display: none;
+        }
+
+        .matrix-search-clear:hover {
+            color: var(--t-base);
+        }
+
+        /* Table Sticky Separator & Typography Enhancements */
+        .details-digital-table td.details-digital-col-material,
+        .details-digital-table th.details-digital-col-material {
+            box-shadow: 3px 0 6px -2px rgba(0, 0, 0, 0.08);
+        }
+
+        .details-digital-table td.details-digital-price {
+            font-variant-numeric: tabular-nums;
+            font-weight: 700;
+        }
+
+        .details-digital-table td.details-digital-cost {
+            font-variant-numeric: tabular-nums;
+            background-color: rgba(0, 0, 0, 0.015);
+        }
+
+        .details-digital-table tbody tr:hover td {
+            background-color: rgba(37, 99, 235, 0.04) !important;
+        }
+
+        /* Large Format Column Price Header Colors */
+        .details-digital-table thead th.col-price-general {
+            background-color: rgba(245, 158, 11, 0.09) !important;
+            color: #92400e !important;
+            font-weight: 700;
+            border-bottom: 1px solid rgba(245, 158, 11, 0.25);
+        }
+
+        .details-digital-table thead th.col-price-division {
+            background-color: rgba(139, 92, 246, 0.08) !important;
+            color: #5b21b6 !important;
+            font-weight: 700;
+            border-bottom: 1px solid rgba(139, 92, 246, 0.25);
+        }
+
+        .details-digital-table thead th.col-price-plain {
+            background-color: rgba(14, 165, 233, 0.08) !important;
+            color: #0369a1 !important;
+            font-weight: 700;
+            border-bottom: 1px solid rgba(14, 165, 233, 0.25);
+        }
+
+        :root[data-theme="dark"] .details-digital-table thead th.col-price-general {
+            background-color: rgba(245, 158, 11, 0.16) !important;
+            color: #fbbf24 !important;
+            border-bottom-color: rgba(245, 158, 11, 0.35);
+        }
+
+        :root[data-theme="dark"] .details-digital-table thead th.col-price-division {
+            background-color: rgba(139, 92, 246, 0.15) !important;
+            color: #c4b5fd !important;
+            border-bottom-color: rgba(139, 92, 246, 0.35);
+        }
+
+        :root[data-theme="dark"] .details-digital-table thead th.col-price-plain {
+            background-color: rgba(14, 165, 233, 0.15) !important;
+            color: #7dd3fc !important;
+            border-bottom-color: rgba(14, 165, 233, 0.35);
+        }
+
+        /* Large Format Width Badges */
+        .lf-width-badge {
+            display: inline-block;
+            padding: 2px 7px;
+            background: var(--bg-muted);
+            border-radius: 5px;
+            font-size: 11.5px;
+            color: var(--t-muted);
+            border: 1px solid var(--border);
+            margin: 1px 2px;
+            white-space: nowrap;
+        }
+
+        /* Pagination Buttons */
+        .price-page-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 32px;
+            height: 32px;
+            padding: 0 8px;
+            font-size: 12px;
+            font-weight: 600;
+            border-radius: 7px;
+            border: 1px solid var(--border);
+            background: var(--bg-card);
+            color: var(--t-base);
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .price-page-btn:hover:not(:disabled) {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: var(--bg-hover);
+        }
+
+        .price-page-btn.is-active {
+            background: var(--primary) !important;
+            color: #fff !important;
+            border-color: var(--primary) !important;
+            box-shadow: 0 2px 6px rgba(37, 99, 235, 0.35);
+        }
+
+        .price-page-btn:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        .col-hide {
+            display: none !important;
+        }
+
+        /* RESPONSIVE MEDIA QUERIES FOR LARGE FORMAT MATRIX */
+        @media (max-width: 991px) {
+            .matrix-card-head {
+                padding: 16px 16px;
+                gap: 14px;
+            }
+
+            .matrix-toolbar-row-main {
+                gap: 10px;
+            }
+
+            .matrix-search-box {
+                flex: 1 1 100%;
+                order: 3;
+            }
+
+            .matrix-filter-group.matrix-pagesize-group {
+                margin-left: auto;
+            }
+
+            .matrix-toolbar-row-sub {
+                gap: 12px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .matrix-card-head {
+                padding: 14px 12px;
+            }
+
+            .matrix-head-icon {
+                width: 38px;
+                height: 38px;
+                font-size: 17px;
+            }
+
+            .matrix-title {
+                font-size: 1.05rem;
+            }
+
+            .matrix-subtitle {
+                font-size: 11.5px;
+            }
+
+            .matrix-toolbar-row-main {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+            }
+
+            .matrix-filter-group {
+                display: flex;
+                justify-content: space-between;
+                width: 100%;
+            }
+
+            .matrix-cat-select-wrap,
+            .matrix-pagesize-select-wrap {
+                width: 160px;
+            }
+
+            .matrix-search-box {
+                width: 100%;
+                order: unset;
+            }
+
+            .matrix-toolbar-row-sub {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+            }
+
+            .matrix-tab-cluster {
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 4px;
+                width: 100%;
+            }
+
+            .matrix-tab-container {
+                width: 100%;
+                display: flex;
+            }
+
+            .matrix-tab-btn {
+                flex: 1;
+                justify-content: center;
+                padding: 5px 6px;
+                font-size: 11px;
+            }
+
+            .matrix-card-footer {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+                gap: 10px;
+            }
+
+            #priceListInfo {
+                text-align: center;
+                width: 100%;
+            }
+
+            #priceListPagination {
+                justify-content: center;
+                width: 100%;
+            }
+        }
 
         /* Selling Price Box - Konsisten dengan A3+ */
         .selling-price-box {
@@ -1111,6 +1644,159 @@
                             </div>
                         </section>
                     </div>
+
+                {{-- =========================================================
+                    BAGIAN BAWAH: PRICE LIST LARGE FORMAT (FULL WIDTH)
+                ========================================================== --}}
+                <div class="lf-matrix-col">
+                    <section class="card matrix-card">
+
+                        {{-- CARD HEAD: JUDUL & TOOLBAR DUA BARIS RESPONSIVE --}}
+                        <div class="card-head matrix-card-head">
+                            <div class="matrix-head-title-wrap">
+                                <div class="matrix-head-icon">
+                                    <i class="bi bi-grid-3x3-gap-fill"></i>
+                                </div>
+                                <div class="matrix-head-text">
+                                    <div class="matrix-head-eyebrow-row">
+                                        <span class="eyebrow matrix-eyebrow">
+                                            TABEL ACUAN BIAYA &amp; HARGA JUAL RESMI
+                                        </span>
+                                        <span id="currentCatBadge" class="badge matrix-cat-badge">
+                                            <i class="bi bi-folder2-open me-1"></i> Kategori: Indoor
+                                        </span>
+                                    </div>
+                                    <h3 class="matrix-title">
+                                        Price List Cetak Large Format
+                                    </h3>
+                                    <p class="matrix-subtitle">
+                                        Daftar HPP (Bahan &amp; Ongkos Cetak) dan Rekomendasi Harga Jual (Harga Umum, Divisi, &amp; Polos).
+                                    </p>
+                                </div>
+                            </div>
+
+                            {{-- TOOLBAR RESPONSIVE --}}
+                            <div class="matrix-toolbar">
+                                {{-- BARIS 1: FILTER KATEGORI, SEARCH MATERIAL (FLEX 1), & JUMLAH BARIS --}}
+                                <div class="matrix-toolbar-row-main">
+                                    {{-- 1. Filter Kategori (Select2) --}}
+                                    <div class="matrix-filter-group">
+                                        <label for="priceListCategoryFilter" class="matrix-filter-label">
+                                            <i class="bi bi-tag-fill text-primary"></i> Kategori:
+                                        </label>
+                                        @php
+                                            $lfCategoriesList = $lfPriceList['categories'] ?? [];
+                                            $defaultLfCat = $lfCategoriesList[0] ?? 'all';
+                                        @endphp
+                                        <div class="toolbar-select2-wrap matrix-cat-select-wrap">
+                                            <select id="priceListCategoryFilter" class="select select2" style="width: 100%;">
+                                                @foreach ($lfCategoriesList as $cat)
+                                                    <option value="{{ $cat }}" {{ $cat === $defaultLfCat ? 'selected' : '' }}>
+                                                        {{ $cat }}
+                                                    </option>
+                                                @endforeach
+                                                <option value="all">Semua Kategori</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    {{-- 2. Input Search Filter (Otomatis mengisi ruang tengah / flex-1) --}}
+                                    <div class="matrix-search-box">
+                                        <i class="bi bi-search"></i>
+                                        <input type="text" id="priceListSearch" class="matrix-search-input"
+                                            placeholder="Cari nama material / ukuran lebar..." autocomplete="off">
+                                        <button type="button" class="matrix-search-clear" id="priceListSearchClear" title="Hapus pencarian">&times;</button>
+                                    </div>
+
+                                    {{-- 3. Selector Jumlah Baris (Select2) --}}
+                                    <div class="matrix-filter-group matrix-pagesize-group">
+                                        <label for="priceListPageSize" class="matrix-filter-label">
+                                            Baris:
+                                        </label>
+                                        <div class="toolbar-select2-wrap matrix-pagesize-select-wrap">
+                                            <select id="priceListPageSize" class="select select2" style="width: 100%;">
+                                                <option value="5">5 / hal</option>
+                                                <option value="10" selected>10 / hal</option>
+                                                <option value="25">25 / hal</option>
+                                                <option value="all">Semua</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- BARIS 2: TAB SWITCHER TIPE HARGA --}}
+                                <div class="matrix-toolbar-row-sub">
+                                    <div class="matrix-tab-cluster">
+                                        <span class="matrix-tab-cluster-label">Tipe Harga:</span>
+                                        <div class="matrix-tab-container" id="priceTypeTabWrap">
+                                            <button type="button" class="matrix-tab-btn is-active" data-group="all" title="Tampilkan Semua Harga">
+                                                Semua Harga
+                                            </button>
+                                            <button type="button" class="matrix-tab-btn" data-group="general" title="Harga Umum Saja">
+                                                Harga Umum
+                                            </button>
+                                            <button type="button" class="matrix-tab-btn" data-group="division" title="Harga Divisi Saja">
+                                                Harga Divisi
+                                            </button>
+                                            <button type="button" class="matrix-tab-btn" data-group="plain" title="Harga Polos Saja">
+                                                Harga Polos
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- CARD BODY: TABEL PRICE LIST LARGE FORMAT --}}
+                        <div style="padding: 16px 20px;">
+                            <div class="details-digital-table-wrapper" style="max-height: 60vh; border-radius: 10px; border: 1px solid var(--border);">
+                                <table class="details-digital-table" id="lfPriceListTable">
+                                    <thead>
+                                        <tr class="details-digital-group-row">
+                                            <th rowspan="2" class="details-digital-sticky details-digital-col-no" style="font-weight: 700;">No</th>
+                                            <th rowspan="2" class="details-digital-sticky details-digital-col-material" style="font-weight: 700;">Item Material</th>
+                                            <th rowspan="2" style="font-weight: 700; text-align: center;">Ukuran Lebar</th>
+
+                                            <th colspan="4" class="details-digital-cost" style="font-weight: 700; text-align: center;">
+                                                Biaya Produksi (HPP) / m²
+                                            </th>
+
+                                            <th colspan="3" class="details-digital-group" style="font-weight: 700; text-align: center;">
+                                                Rekomendasi Harga Jual / m²
+                                            </th>
+                                        </tr>
+
+                                        <tr class="details-digital-tier-row">
+                                            {{-- Biaya Sub-Headers --}}
+                                            <th class="details-digital-cost" style="font-weight: 600; text-align: right;">Bahan</th>
+                                            <th class="details-digital-cost" style="font-weight: 600; text-align: right;">Produksi</th>
+                                            <th class="details-digital-cost" style="font-weight: 600; text-align: right;">Finishing</th>
+                                            <th class="details-digital-cost" style="font-weight: 700; text-align: right;">Total Cost</th>
+
+                                            {{-- Harga Jual Sub-Headers --}}
+                                            <th class="col-price-general" style="font-weight: 700; text-align: right;">Harga Umum</th>
+                                            <th class="col-price-division" style="font-weight: 700; text-align: right;">Harga Divisi</th>
+                                            <th class="col-price-plain" style="font-weight: 700; text-align: right;">Harga Polos</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="lfPriceListBody">
+                                        {{-- Rows populated via JavaScript --}}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {{-- CARD FOOTER: INFO JUMLAH & PAGINATION RESPONSIVE --}}
+                            <div class="matrix-card-footer" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border);">
+                                <div id="priceListInfo" style="font-size: 12.5px; color: var(--t-muted);">
+                                    Memuat data price list...
+                                </div>
+                                <div id="priceListPagination" style="display: flex; gap: 6px; align-items: center;">
+                                    {{-- Pagination buttons --}}
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
                 </div>
             </main>
 
@@ -2785,6 +3471,299 @@
             if (btnResetForm) {
                 btnResetForm.addEventListener('click', resetFormEstimation);
             }
+
+            /* =====================================================
+               PRICE LIST LARGE FORMAT INTERACTIVE MODULE
+            ===================================================== */
+            let priceListRaw = @json($lfPriceList ?? null);
+
+            let plState = {
+                category: '{{ $defaultLfCat ?? 'Indoor' }}',
+                group: 'all', // 'all' | 'general' | 'division' | 'plain'
+                search: '',
+                page: 1,
+                pageSize: 10
+            };
+
+            const plCatSelect = $('#priceListCategoryFilter');
+            const plPageSizeSelect = $('#priceListPageSize');
+            const plSearchInput = document.getElementById('priceListSearch');
+            const plSearchClear = document.getElementById('priceListSearchClear');
+            const plTableBody = document.getElementById('lfPriceListBody');
+            const plInfo = document.getElementById('priceListInfo');
+            const plPagination = document.getElementById('priceListPagination');
+            const currentCatBadge = document.getElementById('currentCatBadge');
+
+            // Format Rupiah
+            function formatPlRupiah(val) {
+                if (val === null || val === undefined || isNaN(val) || Number(val) <= 0) return '<span style="color:var(--t-muted); opacity:0.4;">-</span>';
+                return 'Rp ' + Math.round(Number(val)).toLocaleString('id-ID');
+            }
+
+            // Update Kolom Tampil / Sembunyi berdasarkan Tipe Harga
+            function updateColumnVisibility() {
+                const table = document.getElementById('lfPriceListTable');
+                if (!table) return;
+
+                const gGen = table.querySelectorAll('.col-price-general');
+                const gDiv = table.querySelectorAll('.col-price-division');
+                const gPlain = table.querySelectorAll('.col-price-plain');
+
+                const showGen = (plState.group === 'all' || plState.group === 'general');
+                const showDiv = (plState.group === 'all' || plState.group === 'division');
+                const showPlain = (plState.group === 'all' || plState.group === 'plain');
+
+                gGen.forEach(el => el.classList.toggle('col-hide', !showGen));
+                gDiv.forEach(el => el.classList.toggle('col-hide', !showDiv));
+                gPlain.forEach(el => el.classList.toggle('col-hide', !showPlain));
+            }
+
+            // Render Body Tabel dan Pagination
+            function renderPriceList() {
+                if (!plTableBody || !priceListRaw || !Array.isArray(priceListRaw.details)) {
+                    if (plTableBody) {
+                        plTableBody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding:28px; color:var(--t-muted);">Data price list belum tersedia.</td></tr>';
+                    }
+                    return;
+                }
+
+                // 1. Filter Kategori & Search
+                const filtered = priceListRaw.details.filter(item => {
+                    const matchCat = (plState.category === 'all') || (item.category_name === plState.category);
+                    const matchSearch = (!plState.search) ||
+                        (item.material_name && item.material_name.toLowerCase().includes(plState.search.toLowerCase())) ||
+                        (item.widths_label && item.widths_label.toLowerCase().includes(plState.search.toLowerCase()));
+                    return matchCat && matchSearch;
+                });
+
+                // 2. Pagination Slice
+                const totalItems = filtered.length;
+                const pageSize = plState.pageSize === 'all' ? (totalItems || 1) : parseInt(plState.pageSize, 10);
+                const totalPages = Math.ceil(totalItems / pageSize) || 1;
+
+                if (plState.page > totalPages) plState.page = totalPages;
+                if (plState.page < 1) plState.page = 1;
+
+                const startIdx = (plState.page - 1) * pageSize;
+                const endIdx = plState.pageSize === 'all' ? totalItems : Math.min(startIdx + pageSize, totalItems);
+                const pageItems = filtered.slice(startIdx, endIdx);
+
+                // Update Badge Header Kategori
+                if (currentCatBadge) {
+                    currentCatBadge.innerHTML = `<i class="bi bi-folder2-open me-1"></i> Kategori: ${plState.category === 'all' ? 'Semua' : plState.category}`;
+                }
+
+                // 3. Render Baris Data
+                if (pageItems.length === 0) {
+                    plTableBody.innerHTML = `
+                        <tr>
+                            <td colspan="10" style="text-align: center; padding: 42px 16px; color: var(--t-muted);">
+                                <div style="font-size: 28px; margin-bottom: 8px; color: var(--t-muted); opacity: 0.6;"><i class="bi bi-inbox-fill"></i></div>
+                                <div style="font-size: 14px; font-weight: 700; color: var(--t-base); margin-bottom: 4px;">Material Tidak Ditemukan</div>
+                                <div style="font-size: 12.5px;">Tidak ada material yang cocok dengan filter kategori atau kata kunci pencarian.</div>
+                            </td>
+                        </tr>
+                    `;
+                } else {
+                    let tbodyHtml = '';
+
+                    pageItems.forEach((item, idx) => {
+                        const no = startIdx + idx + 1;
+                        let tr = `<tr>`;
+                        tr += `<td class="details-digital-sticky details-digital-col-no" style="text-align:center; color:var(--t-muted); font-size:12px;">${no}</td>`;
+                        tr += `<td class="details-digital-sticky details-digital-col-material font-semibold" style="font-weight:700; color:var(--t-base);">
+                            <div style="display:flex; flex-direction:column; gap:3px;">
+                                <div style="display:flex; align-items:center; justify-content:space-between; gap:6px;">
+                                    <span>${item.material_name}</span>
+                                    ${plState.category === 'all' ? `<span class="badge" style="font-size:10px; padding:2px 6px; background:var(--bg-muted); color:var(--t-muted); border:1px solid var(--border);">${item.category_name}</span>` : ''}
+                                </div>
+                                ${item.vendor_name ? `<span style="font-size:10.5px; color:var(--primary); font-weight:600;"><i class="bi bi-building"></i> Vendor: ${item.vendor_name}</span>` : ''}
+                            </div>
+                        </td>`;
+
+                        // Ukuran Lebar Badges
+                        let widthsHtml = '-';
+                        if (Array.isArray(item.widths) && item.widths.length > 0) {
+                            widthsHtml = item.widths.map(w => `<span class="lf-width-badge">${w}</span>`).join('');
+                        }
+                        tr += `<td style="text-align:center;"><div style="display:flex; flex-wrap:wrap; gap:3px; justify-content:center;">${widthsHtml}</div></td>`;
+
+                        // Biaya & HPP
+                        tr += `<td class="details-digital-cost" style="text-align:right;">${formatPlRupiah(item.price_per_meter)}</td>`;
+                        tr += `<td class="details-digital-cost" style="text-align:right;">${formatPlRupiah(item.production_cost)}</td>`;
+                        tr += `<td class="details-digital-cost" style="text-align:right;">${formatPlRupiah(item.finishing_cost)}</td>`;
+                        tr += `<td class="details-digital-cost details-digital-cost-total" style="text-align:right; font-weight:700;">${formatPlRupiah(item.total_cost || item.vendor_price)}</td>`;
+
+                        // Harga Jual
+                        tr += `<td class="details-digital-price col-price-general" style="text-align:right; color:#d97706;">${formatPlRupiah(item.general_price)}</td>`;
+                        tr += `<td class="details-digital-price col-price-division" style="text-align:right; color:#7c3aed;">${formatPlRupiah(item.division_price)}</td>`;
+                        tr += `<td class="details-digital-price col-price-plain" style="text-align:right; color:#0284c7;">${formatPlRupiah(item.plain_price)}</td>`;
+
+                        tr += `</tr>`;
+                        tbodyHtml += tr;
+                    });
+
+                    plTableBody.innerHTML = tbodyHtml;
+                }
+
+                // 4. Update Kolom Tampil/Sembunyi
+                updateColumnVisibility();
+
+                // 5. Update Info Bar
+                const catLabel = plState.category === 'all' ? 'Semua Kategori' : `Kategori: ${plState.category}`;
+                if (totalItems > 0) {
+                    plInfo.innerHTML = `<i class="bi bi-info-circle me-1 text-primary"></i> Menampilkan <strong>${startIdx + 1}</strong> sampai <strong>${endIdx}</strong> dari <strong>${totalItems}</strong> material (${catLabel})`;
+                } else {
+                    plInfo.innerHTML = `<i class="bi bi-info-circle me-1 text-muted"></i> Tidak ada material (${catLabel})`;
+                }
+
+                // 6. Render Pagination Buttons
+                renderPaginationButtons(totalPages, totalItems);
+            }
+
+            function renderPaginationButtons(totalPages, totalItems) {
+                if (!plPagination) return;
+                if (totalItems <= 0 || totalPages <= 1 || plState.pageSize === 'all') {
+                    plPagination.innerHTML = '';
+                    return;
+                }
+
+                let pagHtml = '';
+                // Prev Button
+                pagHtml += `<button type="button" class="price-page-btn" ${plState.page <= 1 ? 'disabled' : ''} data-page="${plState.page - 1}" title="Halaman Sebelumnya"><i class="bi bi-chevron-left"></i></button>`;
+
+                // Numbered Buttons
+                let startPage = Math.max(1, plState.page - 2);
+                let endPage = Math.min(totalPages, startPage + 4);
+                if (endPage - startPage < 4) {
+                    startPage = Math.max(1, endPage - 4);
+                }
+
+                if (startPage > 1) {
+                    pagHtml += `<button type="button" class="price-page-btn" data-page="1">1</button>`;
+                    if (startPage > 2) pagHtml += `<span style="color:var(--t-muted); padding:0 3px;">...</span>`;
+                }
+
+                for (let p = startPage; p <= endPage; p++) {
+                    pagHtml += `<button type="button" class="price-page-btn ${p === plState.page ? 'is-active' : ''}" data-page="${p}">${p}</button>`;
+                }
+
+                if (endPage < totalPages) {
+                    if (endPage < totalPages - 1) pagHtml += `<span style="color:var(--t-muted); padding:0 3px;">...</span>`;
+                    pagHtml += `<button type="button" class="price-page-btn" data-page="${totalPages}">${totalPages}</button>`;
+                }
+
+                // Next Button
+                pagHtml += `<button type="button" class="price-page-btn" ${plState.page >= totalPages ? 'disabled' : ''} data-page="${plState.page + 1}" title="Halaman Selanjutnya"><i class="bi bi-chevron-right"></i></button>`;
+
+                plPagination.innerHTML = pagHtml;
+
+                // Event Listeners for Pagination
+                plPagination.querySelectorAll('.price-page-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const targetPage = parseInt(this.getAttribute('data-page'), 10);
+                        if (!isNaN(targetPage) && targetPage >= 1 && targetPage <= totalPages && targetPage !== plState.page) {
+                            plState.page = targetPage;
+                            renderPriceList();
+                        }
+                    });
+                });
+            }
+
+            // Inisialisasi Select2 pada Price List Toolbar
+            if (plCatSelect.length) {
+                plCatSelect.select2({
+                    width: '100%',
+                    placeholder: 'Pilih Kategori'
+                }).on('change', function() {
+                    plState.category = $(this).val();
+                    plState.page = 1;
+                    renderPriceList();
+                });
+            }
+
+            if (plPageSizeSelect.length) {
+                plPageSizeSelect.select2({
+                    width: '100%',
+                    minimumResultsForSearch: -1
+                }).on('change', function() {
+                    plState.pageSize = $(this).val();
+                    plState.page = 1;
+                    renderPriceList();
+                });
+            }
+
+            // Tipe Harga Tabs (Semua / Umum / Divisi / Polos)
+            const priceTypeTabs = document.querySelectorAll('#priceTypeTabWrap .matrix-tab-btn');
+            priceTypeTabs.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    priceTypeTabs.forEach(b => b.classList.remove('is-active'));
+                    this.classList.add('is-active');
+                    plState.group = this.getAttribute('data-group') || 'all';
+                    updateColumnVisibility();
+                });
+            });
+
+            // Search Filter
+            if (plSearchInput) {
+                plSearchInput.addEventListener('input', function() {
+                    plState.search = this.value.trim();
+                    if (plSearchClear) {
+                        plSearchClear.style.display = plState.search ? 'block' : 'none';
+                    }
+                    plState.page = 1;
+                    renderPriceList();
+                });
+            }
+
+            if (plSearchClear) {
+                plSearchClear.addEventListener('click', function() {
+                    if (plSearchInput) plSearchInput.value = '';
+                    plState.search = '';
+                    this.style.display = 'none';
+                    plState.page = 1;
+                    renderPriceList();
+                });
+            }
+
+            // Re-fetch saat lokasi diubah di form utama Large Format
+            locationSelect.on('change', async function() {
+                const locId = $(this).val();
+                if (!locId) return;
+                try {
+                    const url = `{{ route('admin_get_pricelist_lf') }}?location_id=${locId}`;
+                    const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+                    const json = await res.json();
+                    if (json.success && json.data) {
+                        priceListRaw = json.data;
+                        if (plCatSelect.length && Array.isArray(json.data.categories)) {
+                            const curVal = plCatSelect.val();
+                            plCatSelect.empty();
+                            json.data.categories.forEach(cat => {
+                                const opt = new Option(cat, cat);
+                                plCatSelect.append(opt);
+                            });
+                            plCatSelect.append(new Option('Semua Kategori', 'all'));
+
+                            if (json.data.categories.includes(curVal)) {
+                                plCatSelect.val(curVal);
+                            } else if (json.data.categories.length > 0) {
+                                plCatSelect.val(json.data.categories[0]);
+                            } else {
+                                plCatSelect.val('all');
+                            }
+                            plCatSelect.trigger('change.select2');
+                            plState.category = plCatSelect.val();
+                        }
+                        renderPriceList();
+                    }
+                } catch (err) {
+                    console.error('Gagal mengambil price list Large Format untuk lokasi terpilih:', err);
+                }
+            });
+
+            // Inisialisasi awal render tabel
+            renderPriceList();
 
         });
 

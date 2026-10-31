@@ -44,6 +44,8 @@ class EstimationCT extends Controller
             ->where('status', 'Active')
             ->get();
 
+        $data['lfPriceList'] = $this->buildLargeFormatPriceListData();
+
         /*
         |--------------------------------------------------------------------------
         | View
@@ -2904,7 +2906,284 @@ class EstimationCT extends Controller
             ->orderBy('name', 'asc')
             ->get();
 
+        $data['digitalPriceList'] = $this->buildDigitalPriceListData();
+
         return view('admin.estimation.a3-plus.create')->with($data);
+    }
+
+    /**
+     * Endpoint AJAX untuk mengambil data Price List Large Format
+     */
+    public function getPriceListLF(Request $request)
+    {
+        $locationId = $request->query('location_id');
+        $data = $this->buildLargeFormatPriceListData($locationId);
+
+        return response()->json([
+            'success' => true,
+            'data' => $data,
+        ]);
+    }
+
+    /**
+     * Helper untuk mengambil dan menyusun data Price List Large Format
+     */
+    private function buildLargeFormatPriceListData($locationId = null)
+    {
+        $engine = DB::table('m_engines')
+            ->whereRaw('LOWER(TRIM(name)) = ?', ['large format'])
+            ->first();
+
+        if (!$engine) {
+            return [
+                'categories' => [],
+                'details' => [],
+            ];
+        }
+
+        $pcQuery = DB::table('m_production_costs as pc')
+            ->join('m_production_cost_locations as pcl', 'pcl.production_cost_id', '=', 'pc.id')
+            ->where('pc.engine_id', $engine->id);
+
+        if (!empty($locationId)) {
+            $locPcIds = (clone $pcQuery)->where('pcl.location_id', $locationId)->pluck('pc.id')->toArray();
+            if (empty($locPcIds)) {
+                $locPcIds = $pcQuery->pluck('pc.id')->toArray();
+            }
+        } else {
+            $locPcIds = $pcQuery->pluck('pc.id')->toArray();
+        }
+
+        if (empty($locPcIds)) {
+            return [
+                'categories' => [],
+                'details' => [],
+            ];
+        }
+
+        $details = DB::table('m_production_cost_details as pcd')
+            ->join('m_materials as m', 'm.id', '=', 'pcd.material_id')
+            ->join('m_categories as c', 'c.id', '=', 'm.category_id')
+            ->leftJoin('m_vendors as v', 'v.id', '=', 'pcd.vendor_id')
+            ->whereIn('pcd.production_cost_id', $locPcIds)
+            ->select(
+                'pcd.id',
+                'pcd.production_cost_id',
+                'c.id as category_id',
+                'c.name as category_name',
+                'pcd.material_id',
+                'm.material_name',
+                'pcd.vendor_id',
+                'v.name as vendor_name',
+                'pcd.vendor_price',
+                'pcd.price_per_meter',
+                'pcd.production_cost',
+                'pcd.finishing_cost',
+                'pcd.total_cost',
+                'pcd.general_price',
+                'pcd.division_price',
+                'pcd.plain_price'
+            )
+            ->orderBy('c.name')
+            ->orderBy('m.material_name')
+            ->get();
+
+        $detailIds = $details->pluck('id')->toArray();
+        $widthsGrouped = collect();
+
+        if (!empty($detailIds)) {
+            $widths = DB::table('m_production_cost_detail_widths as pcdw')
+                ->join('m_material_sizes as ms', 'ms.id', '=', 'pcdw.material_size_id')
+                ->whereIn('pcdw.production_cost_detail_id', $detailIds)
+                ->select('pcdw.production_cost_detail_id', 'ms.width', 'ms.unit')
+                ->orderBy('ms.width')
+                ->get();
+            $widthsGrouped = $widths->groupBy('production_cost_detail_id');
+        }
+
+        $categories = $details->pluck('category_name')->unique()->values()->toArray();
+
+        $formattedDetails = [];
+        foreach ($details as $d) {
+            $wList = [];
+            if (isset($widthsGrouped[$d->id])) {
+                foreach ($widthsGrouped[$d->id] as $w) {
+                    $val = (float) $w->width;
+                    $wList[] = $val . ' ' . $w->unit;
+                }
+            }
+
+            $formattedDetails[] = [
+                'id' => $d->id,
+                'category_id' => $d->category_id,
+                'category_name' => $d->category_name,
+                'material_id' => $d->material_id,
+                'material_name' => $d->material_name,
+                'vendor_name' => $d->vendor_name,
+                'vendor_price' => (float) $d->vendor_price,
+                'price_per_meter' => (float) $d->price_per_meter,
+                'production_cost' => (float) $d->production_cost,
+                'finishing_cost' => (float) $d->finishing_cost,
+                'total_cost' => (float) $d->total_cost,
+                'general_price' => (float) $d->general_price,
+                'division_price' => (float) $d->division_price,
+                'plain_price' => (float) $d->plain_price,
+                'widths' => $wList,
+                'widths_label' => !empty($wList) ? implode(', ', $wList) : '-',
+            ];
+        }
+
+        return [
+            'categories' => $categories,
+            'details' => $formattedDetails,
+        ];
+    }
+
+    /**
+     * Endpoint AJAX untuk mengambil data Price List Digital Print A3+
+     */
+    public function getPriceListA3plus(Request $request)
+    {
+        $locationId = $request->query('location_id');
+        $data = $this->buildDigitalPriceListData($locationId);
+
+        return response()->json([
+            'success' => true,
+            'data' => $data,
+        ]);
+    }
+
+    /**
+     * Helper untuk mengambil dan menyusun data Price List Digital Print A3+
+     */
+    private function buildDigitalPriceListData($locationId = null)
+    {
+        $query = DB::table('m_digital_production_costs as pc')
+            ->join('m_engines as e', 'e.id', '=', 'pc.engine_id')
+            ->whereRaw('LOWER(TRIM(e.name)) = ?', ['digital print a3+']);
+
+        if (!empty($locationId)) {
+            $cost = (clone $query)->where('pc.location_id', $locationId)->select('pc.id', 'pc.location_id')->first();
+            if (!$cost) {
+                $cost = $query->select('pc.id', 'pc.location_id')->first();
+            }
+        } else {
+            $cost = $query->select('pc.id', 'pc.location_id')->first();
+        }
+
+        if (!$cost) {
+            return [
+                'tierLabels' => [],
+                'priceGroups' => [],
+                'categories' => [],
+                'categoryMarkups' => [],
+                'details' => [],
+            ];
+        }
+
+        $costDetails = DB::table('m_digital_production_cost_details as d')
+            ->join('m_materials as m', 'm.id', '=', 'd.material_id')
+            ->join('m_categories as c', 'c.id', '=', 'm.category_id')
+            ->where('d.digital_production_cost_id', $cost->id)
+            ->where('m.status', 'Active')
+            ->select(
+                'd.id',
+                'd.material_id',
+                'm.material_name',
+                'c.id as category_id',
+                'c.name as category_name',
+                'd.paper_cost',
+                'd.click_cost',
+                'd.single_print_cost',
+                'd.double_print_cost'
+            )
+            ->orderBy('c.name', 'asc')
+            ->orderBy('m.material_name', 'asc')
+            ->get();
+
+        $costPrices = DB::table('m_digital_production_cost_prices')
+            ->whereIn('digital_production_cost_detail_id', $costDetails->pluck('id'))
+            ->select(
+                'digital_production_cost_detail_id',
+                'price_type',
+                'print_type',
+                'quantity_tier',
+                'markup_percentage',
+                'selling_price'
+            )
+            ->get()
+            ->groupBy('digital_production_cost_detail_id');
+
+        $materialSizes = DB::table('m_material_sizes')
+            ->whereIn('material_id', $costDetails->pluck('material_id')->unique()->values())
+            ->orderBy('id')
+            ->get()
+            ->groupBy('material_id');
+
+        $tierLabels = [
+            'tier_1' => '1 lbr',
+            'tier_2_5' => '2-5 lbr',
+            'tier_6_50' => '6-50 lbr',
+            'tier_100' => '100 lbr',
+            'tier_300' => '300 lbr',
+            'tier_500' => '500 lbr',
+        ];
+
+        $priceGroups = [
+            'general_single' => ['general', 'single', 'Harga Umum · Print 1 Muka'],
+            'general_double' => ['general', 'double', 'Harga Umum · Print 2 Muka'],
+            'division_single' => ['division', 'single', 'Harga Divisi · Print 1 Muka'],
+            'division_double' => ['division', 'double', 'Harga Divisi · Print 2 Muka'],
+        ];
+
+        $formatNum = function ($val) {
+            return rtrim(rtrim(number_format((float) $val, 2, '.', ''), '0'), '.');
+        };
+
+        $categoryMarkups = [];
+
+        $costDetails->each(function ($detail) use ($costPrices, $priceGroups, $tierLabels, $materialSizes, $formatNum, &$categoryMarkups) {
+            $detailPrices = ($costPrices->get($detail->id) ?? collect())->keyBy(function ($p) {
+                return $p->price_type . '|' . $p->print_type . '|' . $p->quantity_tier;
+            });
+
+            $detail->size_label = ($materialSizes->get($detail->material_id) ?? collect())
+                ->map(function ($s) use ($formatNum) {
+                    return $formatNum($s->width) . ' x ' . $formatNum($s->length) . ' ' . $s->unit;
+                })
+                ->implode(', ');
+
+            $detail->prices = [];
+
+            foreach ($priceGroups as $gKey => [$pType, $prType]) {
+                foreach (array_keys($tierLabels) as $t) {
+                    $p = $detailPrices->get($pType . '|' . $prType . '|' . $t);
+                    $detail->prices[$gKey][$t] = $p ? (float) $p->selling_price : null;
+
+                    if (!isset($categoryMarkups[$detail->category_name][$gKey][$t]) && $p) {
+                        $categoryMarkups[$detail->category_name][$gKey][$t] = $formatNum($p->markup_percentage) . '%';
+                    }
+                }
+            }
+        });
+
+        foreach ($costDetails->pluck('category_name')->unique() as $catName) {
+            foreach (array_keys($priceGroups) as $gKey) {
+                foreach (array_keys($tierLabels) as $t) {
+                    if (!isset($categoryMarkups[$catName][$gKey][$t])) {
+                        $categoryMarkups[$catName][$gKey][$t] = '-';
+                    }
+                }
+            }
+        }
+
+        return [
+            'tierLabels' => $tierLabels,
+            'priceGroups' => $priceGroups,
+            'categories' => $costDetails->pluck('category_name')->unique()->values()->toArray(),
+            'categoryMarkups' => $categoryMarkups,
+            'details' => $costDetails->values()->toArray(),
+        ];
     }
 
     /**
