@@ -45,6 +45,7 @@ class EstimationCT extends Controller
             ->get();
 
         $data['lfPriceList'] = $this->buildLargeFormatPriceListData();
+        $data['displayPriceList'] = $this->buildDisplayPriceListData(null, 'large format');
 
         /*
         |--------------------------------------------------------------------------
@@ -2907,6 +2908,7 @@ class EstimationCT extends Controller
             ->get();
 
         $data['digitalPriceList'] = $this->buildDigitalPriceListData();
+        $data['displayPriceList'] = $this->buildDisplayPriceListData();
 
         return view('admin.estimation.a3-plus.create')->with($data);
     }
@@ -2918,6 +2920,7 @@ class EstimationCT extends Controller
     {
         $locationId = $request->query('location_id');
         $data = $this->buildLargeFormatPriceListData($locationId);
+        $data['display'] = $this->buildDisplayPriceListData($locationId, 'large format');
 
         return response()->json([
             'success' => true,
@@ -3046,6 +3049,7 @@ class EstimationCT extends Controller
     {
         $locationId = $request->query('location_id');
         $data = $this->buildDigitalPriceListData($locationId);
+        $data['display'] = $this->buildDisplayPriceListData($locationId);
 
         return response()->json([
             'success' => true,
@@ -3183,6 +3187,163 @@ class EstimationCT extends Controller
             'categories' => $costDetails->pluck('category_name')->unique()->values()->toArray(),
             'categoryMarkups' => $categoryMarkups,
             'details' => $costDetails->values()->toArray(),
+        ];
+    }
+
+    /**
+     * Helper untuk mengambil dan menyusun data Price List Produk Display (Digital Print A3+ & Large Format)
+     */
+    private function buildDisplayPriceListData($locationId = null, $engineKeyword = 'digital print')
+    {
+        $engine = DB::table('m_engines')
+            ->where('name', 'ILIKE', '%' . $engineKeyword . '%')
+            ->first();
+
+        if (!$engine) {
+            return [
+                'products' => [],
+                'details' => [],
+            ];
+        }
+
+        $query = DB::table('m_display_product_configurations as dpcfg')
+            ->join('m_display_products as dp', 'dp.id', '=', 'dpcfg.display_product_id')
+            ->join('m_display_product_component_prices as cpp', 'cpp.configuration_id', '=', 'dpcfg.id')
+            ->join('m_display_product_components as dpc', 'dpc.id', '=', 'cpp.component_id')
+            ->leftJoin('m_materials as m', 'm.id', '=', 'dpc.material_id')
+            ->leftJoin('m_laminations as lam', 'lam.id', '=', 'dpc.lamination_id')
+            ->leftJoin('m_locations as l', 'l.id', '=', 'dpcfg.location_id')
+            ->where('dpcfg.engine_id', $engine->id)
+            ->where('dpc.component_type', '<>', 'frame')
+            ->selectRaw("
+                dpcfg.id AS configuration_id,
+                dpcfg.location_id,
+                l.name AS location_name,
+                dp.id AS product_id,
+                dp.display_name,
+                dp.length,
+                dp.width,
+                dp.package_qty,
+                dp.package_unit,
+                dpcfg.sheet_qty,
+                dpcfg.cost_rangka,
+                dpcfg.cost_finishing,
+                dpc.id AS component_id,
+                dpc.component_type,
+                m.material_name,
+                lam.name AS lamination_name,
+                CASE
+                    WHEN dpc.material_id IS NOT NULL AND dpc.lamination_id IS NOT NULL THEN
+                        CONCAT(m.material_name, ' + ', 
+                            CASE 
+                                WHEN (lam.name ILIKE '%doff%' OR lam.name ILIKE '%glossy%') AND '{$engineKeyword}' = 'digital print'
+                                THEN 'Laminasi Doff / Glossy A3+'
+                                ELSE lam.name
+                            END
+                        )
+                    WHEN dpc.material_id IS NOT NULL THEN m.material_name
+                    WHEN dpc.lamination_id IS NOT NULL THEN lam.name
+                    ELSE '-'
+                END AS component_name,
+                cpp.general_price,
+                cpp.general_price_2_side,
+                cpp.division_price,
+                cpp.division_price_2_side,
+                cpp.plain_price
+            ")
+            ->orderBy('dp.display_name', 'asc')
+            ->orderBy('m.material_name', 'asc')
+            ->orderBy('lam.name', 'asc');
+
+        if (!empty($locationId)) {
+            $locRows = (clone $query)->where('dpcfg.location_id', $locationId)->get();
+            if ($locRows->isNotEmpty()) {
+                $rows = $locRows;
+            } else {
+                $rows = $query->get();
+            }
+        } else {
+            $rows = $query->get();
+        }
+
+        $products = $rows->pluck('display_name')->unique()->values()->toArray();
+
+        // Ambil harga rangka (frame price) per display product
+        $framePrices = DB::table('m_display_product_prices')
+            ->whereIn('display_product_id', $rows->pluck('product_id')->unique()->toArray())
+            ->get()
+            ->keyBy('display_product_id');
+
+        $details = collect();
+        $groupedByProduct = $rows->groupBy('product_id');
+
+        foreach ($groupedByProduct as $prodId => $prodRows) {
+            $firstRow = $prodRows->first();
+            $len = rtrim(rtrim(number_format((float) $firstRow->length, 2, '.', ''), '0'), '.');
+            $wid = rtrim(rtrim(number_format((float) $firstRow->width, 2, '.', ''), '0'), '.');
+            $sizeStr = ($len && $wid) ? "{$len} × {$wid} cm" : '-';
+            $pkgStr = "{$firstRow->package_qty} pcs / " . ($firstRow->package_unit ?: 'Pcs');
+
+            // Jika produk memiliki harga rangka khusus di m_display_product_prices (terutama untuk Large Format seperti Roll Up Banner, X-Banner)
+            if (isset($framePrices[$prodId])) {
+                $fp = $framePrices[$prodId];
+                if ((float) $fp->general_price > 0 || (float) $fp->division_price > 0) {
+                    $details->push([
+                        'configuration_id' => $firstRow->configuration_id,
+                        'product_id' => $prodId,
+                        'display_name' => $firstRow->display_name,
+                        'component_name' => 'Rangka / Standing Saja (Tanpa Cetak)',
+                        'material_name' => 'Rangka Display',
+                        'lamination_name' => '-',
+                        'is_frame' => true,
+                        'size_label' => $sizeStr,
+                        'package_label' => $pkgStr,
+                        'sheet_qty' => null,
+                        'sheet_label' => '-',
+                        'general_price' => (float) $fp->general_price,
+                        'general_price_2_side' => null,
+                        'division_price' => (float) $fp->division_price,
+                        'division_price_2_side' => null,
+                        'plain_price' => (float) $fp->plain_price,
+                        'cost_rangka' => (float) $firstRow->cost_rangka,
+                        'cost_finishing' => 0,
+                        'location_id' => $firstRow->location_id,
+                        'location_name' => $firstRow->location_name,
+                    ]);
+                }
+            }
+
+            foreach ($prodRows as $r) {
+                $sheetStr = $r->sheet_qty ? "{$r->sheet_qty} lbr" . ($engineKeyword === 'digital print' ? ' A3+' : '') : '-';
+
+                $details->push([
+                    'configuration_id' => $r->configuration_id,
+                    'product_id' => $r->product_id,
+                    'display_name' => $r->display_name,
+                    'component_name' => $r->component_name,
+                    'material_name' => $r->material_name ?? '-',
+                    'lamination_name' => $r->lamination_name ?? '-',
+                    'is_frame' => false,
+                    'size_label' => $sizeStr,
+                    'package_label' => $pkgStr,
+                    'sheet_qty' => $r->sheet_qty,
+                    'sheet_label' => $sheetStr,
+                    'general_price' => (float) $r->general_price,
+                    'general_price_2_side' => (float) $r->general_price_2_side,
+                    'division_price' => (float) $r->division_price,
+                    'division_price_2_side' => (float) $r->division_price_2_side,
+                    'plain_price' => (float) $r->plain_price,
+                    'cost_rangka' => (float) $r->cost_rangka,
+                    'cost_finishing' => (float) $r->cost_finishing,
+                    'location_id' => $r->location_id,
+                    'location_name' => $r->location_name,
+                ]);
+            }
+        }
+
+        return [
+            'products' => $products,
+            'details' => $details->values()->toArray(),
         ];
     }
 

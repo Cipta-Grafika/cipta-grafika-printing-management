@@ -365,20 +365,23 @@
             font-size: 11.5px;
         }
 
-        /* 1. Header Row 1 (Group Row: Biaya Produksi & Rekomendasi Harga Jual) - 38px Solid */
+        /* 1. Header Row 1 (Group Row: Biaya Produksi & Rekomendasi Harga Jual) - 42px Solid */
+        #lfPriceListTable thead tr:nth-child(1) {
+            height: 42px !important;
+        }
         #lfPriceListTable thead tr:nth-child(1) th {
             position: sticky !important;
             top: 0 !important;
-            height: 38px !important;
-            max-height: 38px !important;
-            line-height: 38px !important;
-            padding: 0 12px !important;
+            height: 42px !important;
+            max-height: 42px !important;
+            line-height: 42px !important;
+            padding: 0 14px !important;
             background-color: #172033 !important;
             color: #f1f5f9 !important;
             font-weight: 700;
-            letter-spacing: 0.03em;
+            letter-spacing: 0.04em;
             text-transform: uppercase;
-            z-index: 10 !important;
+            z-index: 12 !important;
         }
 
         :root[data-theme="light"] #lfPriceListTable thead tr:nth-child(1) th {
@@ -387,18 +390,21 @@
             border-bottom: 1px solid #cbd5e1 !important;
         }
 
-        /* 2. Header Row 2 (Sub-Headers) - Pinned at top: 38px exactly, 36px Solid */
+        /* 2. Header Row 2 (Sub-Headers) - Pinned at top: 42px exactly, 38px Solid */
+        #lfPriceListTable thead tr:nth-child(2) {
+            height: 38px !important;
+        }
         #lfPriceListTable thead tr:nth-child(2) th {
             position: sticky !important;
-            top: 38px !important;
-            height: 36px !important;
-            max-height: 36px !important;
-            line-height: 36px !important;
-            padding: 0 12px !important;
+            top: 42px !important;
+            height: 38px !important;
+            max-height: 38px !important;
+            line-height: 38px !important;
+            padding: 0 14px !important;
             background-color: #121826 !important;
             color: #94a3b8 !important;
             font-weight: 600;
-            z-index: 10 !important;
+            z-index: 11 !important;
         }
 
         :root[data-theme="light"] #lfPriceListTable thead tr:nth-child(2) th {
@@ -407,11 +413,11 @@
             border-bottom: 1px solid #cbd5e1 !important;
         }
 
-        /* 3. Rowspan=2 Cells (No, Item Material, Ukuran Lebar) - 74px Solid spanning row 1 & 2 */
+        /* 3. Rowspan=2 Cells (No, Item Material, Ukuran Lebar) - 80px Solid spanning row 1 & 2 (42px + 38px) */
         #lfPriceListTable thead th[rowspan="2"] {
             top: 0 !important;
-            height: 74px !important;
-            max-height: 74px !important;
+            height: 80px !important;
+            max-height: 80px !important;
             line-height: normal !important;
             vertical-align: middle !important;
             z-index: 15 !important;
@@ -434,10 +440,12 @@
 
         #lfPriceListTable .details-digital-col-material {
             left: 44px !important;
-            min-width: 220px;
-            max-width: 280px;
+            width: 320px;
+            min-width: 300px;
+            max-width: 360px;
             text-align: left;
             box-shadow: 3px 0 6px -2px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
         }
 
         #lfPriceListTable thead th.details-digital-sticky {
@@ -447,11 +455,19 @@
         #lfPriceListTable tbody td.details-digital-sticky {
             position: sticky !important;
             z-index: 5 !important;
-            background-color: var(--bg-card) !important;
+            background-color: #141b2d !important;
+        }
+        :root[data-theme="light"] #lfPriceListTable tbody td.details-digital-sticky {
+            background-color: #ffffff !important;
         }
 
         #lfPriceListTable tbody tr:hover td.details-digital-sticky {
-            background-color: var(--bg-hover) !important;
+            background-color: #1c2538 !important;
+            background-image: none !important;
+        }
+        :root[data-theme="light"] #lfPriceListTable tbody tr:hover td.details-digital-sticky {
+            background-color: #f1f5f9 !important;
+            background-image: none !important;
         }
 
         /* 5. 100% Solid Opaque Colors for Selling Price Headers (NO TRANSPARENCY / BLEEDING) */
@@ -529,7 +545,12 @@
         }
 
         #lfPriceListTable tbody tr:hover td {
-            background-color: rgba(37, 99, 235, 0.05) !important;
+            background-color: #1c2538 !important;
+            background-image: none !important;
+        }
+        :root[data-theme="light"] #lfPriceListTable tbody tr:hover td {
+            background-color: #f1f5f9 !important;
+            background-image: none !important;
         }
 
         /* Large Format Width Badges */
@@ -585,6 +606,220 @@
             display: none !important;
         }
 
+        /* Scope Tab Switcher: Cetak Meteran vs Paket Display */
+        .matrix-scope-switcher {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--bg-muted);
+            padding: 4px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            margin-top: 10px;
+            width: fit-content;
+        }
+
+        .matrix-scope-tab {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            border-radius: 7px;
+            font-size: 12.5px;
+            font-weight: 600;
+            color: var(--t-muted);
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .matrix-scope-tab:hover {
+            color: var(--t-base);
+        }
+
+        .matrix-scope-tab.is-active {
+            background: var(--bg-card);
+            color: var(--primary);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            font-weight: 700;
+        }
+
+        /* =========================================================
+           CLEAN, SPACIOUS & MODERN DISPLAY PRICE LIST TABLE FOR LARGE FORMAT
+        ========================================================= */
+        #displayPriceListTable {
+            border-collapse: separate !important;
+            border-spacing: 0 !important;
+            width: 100%;
+            min-width: 100%;
+        }
+
+        #displayPriceListTable thead th {
+            box-sizing: border-box !important;
+            white-space: nowrap !important;
+            border-right: 1px solid var(--border) !important;
+            border-bottom: 1px solid var(--border) !important;
+            vertical-align: middle !important;
+            font-size: 11.5px;
+            position: sticky !important;
+            top: 0 !important;
+            height: 44px !important;
+            max-height: 44px !important;
+            line-height: 44px !important;
+            padding: 0 16px !important;
+            background-color: #172033 !important;
+            color: #f1f5f9 !important;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            z-index: 12 !important;
+        }
+
+        :root[data-theme="light"] #displayPriceListTable thead th {
+            background-color: #e2e8f0 !important;
+            color: #1e293b !important;
+            border-bottom: 1px solid #cbd5e1 !important;
+        }
+
+        /* Header Colors for Harga Umum & Harga Divisi */
+        #displayPriceListTable thead th.col-display-group-gen {
+            background-color: #2b1f08 !important;
+            color: #fbbf24 !important;
+            font-weight: 700;
+            border-bottom: 2px solid #f59e0b !important;
+        }
+        :root[data-theme="light"] #displayPriceListTable thead th.col-display-group-gen {
+            background-color: #fef3c7 !important;
+            color: #92400e !important;
+            border-bottom: 2px solid #d97706 !important;
+        }
+
+        #displayPriceListTable thead th.col-display-group-div {
+            background-color: #1e172e !important;
+            color: #c4b5fd !important;
+            font-weight: 700;
+            border-bottom: 2px solid #8b5cf6 !important;
+        }
+        :root[data-theme="light"] #displayPriceListTable thead th.col-display-group-div {
+            background-color: #ede9fe !important;
+            color: #5b21b6 !important;
+            border-bottom: 2px solid #7c3aed !important;
+        }
+
+        /* Body Cells */
+        #displayPriceListTable tbody td.col-display-col-gen {
+            color: #fbbf24 !important;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+        }
+        :root[data-theme="light"] #displayPriceListTable tbody td.col-display-col-gen {
+            color: #b45309 !important;
+        }
+
+        #displayPriceListTable tbody td.col-display-col-div {
+            color: #c4b5fd !important;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+        }
+        :root[data-theme="light"] #displayPriceListTable tbody td.col-display-col-div {
+            color: #6d28d9 !important;
+        }
+
+        #displayPriceListTable .details-digital-col-no {
+            left: 0 !important;
+            width: 48px;
+            min-width: 48px;
+            text-align: center;
+        }
+
+        #displayPriceListTable .details-digital-col-material {
+            left: 48px !important;
+            min-width: 340px;
+            text-align: left;
+            box-shadow: 3px 0 6px -2px rgba(0, 0, 0, 0.25);
+        }
+
+        #displayPriceListTable thead th.details-digital-sticky {
+            z-index: 20 !important;
+        }
+
+        #displayPriceListTable tbody td.details-digital-sticky {
+            position: sticky !important;
+            z-index: 5 !important;
+            background-color: #141b2d !important;
+        }
+        :root[data-theme="light"] #displayPriceListTable tbody td.details-digital-sticky {
+            background-color: #ffffff !important;
+        }
+
+        #displayPriceListTable tbody tr:hover td.details-digital-sticky {
+            background-color: #1c2538 !important;
+            background-image: none !important;
+        }
+        :root[data-theme="light"] #displayPriceListTable tbody tr:hover td.details-digital-sticky {
+            background-color: #f1f5f9 !important;
+            background-image: none !important;
+        }
+
+        #displayPriceListTable tbody tr:hover td {
+            background-color: #1c2538 !important;
+            background-image: none !important;
+        }
+        :root[data-theme="light"] #displayPriceListTable tbody tr:hover td {
+            background-color: #f1f5f9 !important;
+            background-image: none !important;
+        }
+
+        /* Type Badges: Rangka Saja vs Paket Komplit */
+        .display-type-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            white-space: nowrap;
+        }
+
+        .display-type-pill--package {
+            background: rgba(37, 99, 235, 0.12);
+            color: #60a5fa;
+            border: 1px solid rgba(37, 99, 235, 0.3);
+        }
+        :root[data-theme="light"] .display-type-pill--package {
+            background: #eff6ff;
+            color: #1d4ed8;
+            border: 1px solid #bfdbfe;
+        }
+
+        .display-type-pill--frame {
+            background: rgba(245, 158, 11, 0.12);
+            color: #fbbf24;
+            border: 1px solid rgba(245, 158, 11, 0.35);
+        }
+        :root[data-theme="light"] .display-type-pill--frame {
+            background: #fef3c7;
+            color: #b45309;
+            border: 1px solid #fde68a;
+        }
+
+        .display-product-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 7px;
+            border-radius: 5px;
+            font-size: 11px;
+            font-weight: 600;
+            background: var(--bg-muted);
+            color: var(--t-muted);
+            border: 1px solid var(--border);
+        }
+
         /* RESPONSIVE MEDIA QUERIES FOR LARGE FORMAT MATRIX */
         @media (max-width: 991px) {
             .matrix-card-head {
@@ -607,6 +842,20 @@
 
             .matrix-toolbar-row-sub {
                 gap: 12px;
+            }
+
+            #lfPriceListTable .details-digital-col-material {
+                width: 250px;
+                min-width: 230px;
+                max-width: 260px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            #lfPriceListTable .details-digital-col-material {
+                width: 210px;
+                min-width: 190px;
+                max-width: 210px;
             }
         }
 
@@ -1793,21 +2042,31 @@
                                             <i class="bi bi-folder2-open me-1"></i> Kategori: Indoor
                                         </span>
                                     </div>
-                                    <h3 class="matrix-title">
+                                    <h3 class="matrix-title" id="priceListTitle">
                                         Price List Cetak Large Format
                                     </h3>
-                                    <p class="matrix-subtitle">
+                                    <p class="matrix-subtitle" id="priceListSubtitle">
                                         Daftar HPP (Bahan &amp; Ongkos Cetak) dan Rekomendasi Harga Jual (Harga Umum, Divisi, &amp; Polos).
                                     </p>
+
+                                    {{-- TAB SWITCHER: CETAK METERAN VS PAKET DISPLAY --}}
+                                    <div class="matrix-scope-switcher" id="priceListScopeSwitcher">
+                                        <button type="button" class="matrix-scope-tab is-active" id="btnScopeRoll" data-scope="roll">
+                                            <i class="bi bi-rulers"></i> Cetak Meteran Large Format
+                                        </button>
+                                        <button type="button" class="matrix-scope-tab" id="btnScopeDisplay" data-scope="display">
+                                            <i class="bi bi-box-seam"></i> Paket Display (Roll Up, X-Banner, dll)
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
 
                             {{-- TOOLBAR RESPONSIVE --}}
                             <div class="matrix-toolbar">
-                                {{-- BARIS 1: FILTER KATEGORI, SEARCH MATERIAL (FLEX 1), & JUMLAH BARIS --}}
+                                {{-- BARIS 1: FILTER KATEGORI/PRODUK, SEARCH MATERIAL (FLEX 1), & JUMLAH BARIS --}}
                                 <div class="matrix-toolbar-row-main">
-                                    {{-- 1. Filter Kategori (Select2) --}}
-                                    <div class="matrix-filter-group">
+                                    {{-- 1A. Filter Kategori untuk Mode Meteran --}}
+                                    <div class="matrix-filter-group" id="wrapFilterCategory">
                                         <label for="priceListCategoryFilter" class="matrix-filter-label">
                                             <i class="bi bi-tag-fill text-primary"></i> Kategori:
                                         </label>
@@ -1823,6 +2082,24 @@
                                                     </option>
                                                 @endforeach
                                                 <option value="all">Semua Kategori</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    {{-- 1B. Filter Produk Display untuk Mode Display --}}
+                                    <div class="matrix-filter-group" id="wrapFilterDisplay" style="display: none;">
+                                        <label for="priceListDisplayFilter" class="matrix-filter-label">
+                                            <i class="bi bi-box-seam text-primary"></i> Produk:
+                                        </label>
+                                        @php
+                                            $displayProductsList = $displayPriceList['products'] ?? [];
+                                        @endphp
+                                        <div class="toolbar-select2-wrap matrix-cat-select-wrap">
+                                            <select id="priceListDisplayFilter" class="select select2" style="width: 100%;">
+                                                <option value="all">Semua Produk</option>
+                                                @foreach ($displayProductsList as $dp)
+                                                    <option value="{{ $dp }}">{{ $dp }}</option>
+                                                @endforeach
                                             </select>
                                         </div>
                                     </div>
@@ -1851,8 +2128,9 @@
                                     </div>
                                 </div>
 
-                                {{-- BARIS 2: TAB SWITCHER TIPE HARGA --}}
+                                {{-- BARIS 2: TAB SWITCHER TIPE HARGA & SISI CETAK --}}
                                 <div class="matrix-toolbar-row-sub">
+                                    {{-- Tab Filter Tipe Harga (Semua / Umum / Divisi / Polos) --}}
                                     <div class="matrix-tab-cluster">
                                         <span class="matrix-tab-cluster-label">Tipe Harga:</span>
                                         <div class="matrix-tab-container" id="priceTypeTabWrap">
@@ -1865,8 +2143,24 @@
                                             <button type="button" class="matrix-tab-btn" data-group="division" title="Harga Divisi Saja">
                                                 Harga Divisi
                                             </button>
-                                            <button type="button" class="matrix-tab-btn" data-group="plain" title="Harga Polos Saja">
+                                            <button type="button" class="matrix-tab-btn" id="btnPriceTypePlain" data-group="plain" title="Harga Polos Saja">
                                                 Harga Polos
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {{-- Tab Filter Sisi Cetak (Mode Display: Semua Sisi / 1 Muka / 2 Muka) --}}
+                                    <div class="matrix-tab-cluster" id="printSideTabCluster" style="display: none;">
+                                        <span class="matrix-tab-cluster-label">Sisi Cetak:</span>
+                                        <div class="matrix-tab-container" id="printSideTabWrap">
+                                            <button type="button" class="matrix-tab-btn is-active" data-side="all" title="Semua Sisi Cetak">
+                                                Semua Sisi
+                                            </button>
+                                            <button type="button" class="matrix-tab-btn" data-side="single" title="Print 1 Muka">
+                                                1 Muka
+                                            </button>
+                                            <button type="button" class="matrix-tab-btn" data-side="double" title="Print 2 Muka">
+                                                2 Muka
                                             </button>
                                         </div>
                                     </div>
@@ -1874,9 +2168,10 @@
                             </div>
                         </div>
 
-                        {{-- CARD BODY: TABEL PRICE LIST LARGE FORMAT --}}
+                        {{-- CARD BODY: TABEL PRICE LIST LARGE FORMAT / DISPLAY --}}
                         <div style="padding: 16px 20px;">
-                            <div class="details-digital-table-wrapper" style="max-height: 60vh; border-radius: 10px; border: 1px solid var(--border);">
+                            {{-- TABEL A: CETAK METERAN LARGE FORMAT --}}
+                            <div class="details-digital-table-wrapper" id="rollTableWrapper" style="max-height: 60vh; border-radius: 10px; border: 1px solid var(--border);">
                                 <table class="details-digital-table" id="lfPriceListTable">
                                     <thead>
                                         <tr class="details-digital-group-row">
@@ -1907,6 +2202,28 @@
                                         </tr>
                                     </thead>
                                     <tbody id="lfPriceListBody">
+                                        {{-- Rows populated via JavaScript --}}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {{-- TABEL B: PAKET PRODUK DISPLAY LARGE FORMAT --}}
+                            <div class="details-digital-table-wrapper" id="displayTableWrapper" style="display: none; max-height: 60vh; border-radius: 10px; border: 1px solid var(--border);">
+                                <table class="details-digital-table" id="displayPriceListTable">
+                                    <thead>
+                                        <tr class="details-digital-group-row">
+                                            <th class="details-digital-sticky details-digital-col-no" style="font-weight: 700; width: 48px; text-align: center;">No</th>
+                                            <th class="details-digital-sticky details-digital-col-material" style="font-weight: 700; min-width: 340px;">Paket &amp; Spesifikasi Display</th>
+                                            <th style="font-weight: 700; text-align: center; min-width: 140px;">Ukuran Display</th>
+                                            <th class="col-display-group-gen col-display-col-gen" style="font-weight: 700; text-align: right; min-width: 170px;">
+                                                Harga Umum (Jual / Paket)
+                                            </th>
+                                            <th class="col-display-group-div col-display-col-div" style="font-weight: 700; text-align: right; min-width: 170px;">
+                                                Harga Divisi (Jual / Paket)
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="displayPriceListBody">
                                         {{-- Rows populated via JavaScript --}}
                                     </tbody>
                                 </table>
@@ -3600,23 +3917,40 @@
             }
 
             /* =====================================================
-               PRICE LIST LARGE FORMAT INTERACTIVE MODULE
+               PRICE LIST LARGE FORMAT & DISPLAY INTERACTIVE MODULE
             ===================================================== */
             let priceListRaw = @json($lfPriceList ?? null);
+            let displayPriceListRaw = @json($displayPriceList ?? null);
 
             let plState = {
+                scope: 'roll', // 'roll' | 'display'
                 category: '{{ $defaultLfCat ?? 'Indoor' }}',
+                displayProduct: 'all',
                 group: 'all', // 'all' | 'general' | 'division' | 'plain'
+                side: 'all',  // 'all' | 'single' | 'double'
                 search: '',
                 page: 1,
                 pageSize: 10
             };
 
+            const btnScopeRoll = document.getElementById('btnScopeRoll');
+            const btnScopeDisplay = document.getElementById('btnScopeDisplay');
+            const wrapFilterCategory = document.getElementById('wrapFilterCategory');
+            const wrapFilterDisplay = document.getElementById('wrapFilterDisplay');
+            const rollTableWrapper = document.getElementById('rollTableWrapper');
+            const displayTableWrapper = document.getElementById('displayTableWrapper');
+            const priceListTitle = document.getElementById('priceListTitle');
+            const priceListSubtitle = document.getElementById('priceListSubtitle');
+            const btnPriceTypePlain = document.getElementById('btnPriceTypePlain');
+            const printSideTabCluster = document.getElementById('printSideTabCluster');
+
             const plCatSelect = $('#priceListCategoryFilter');
+            const plDisplaySelect = $('#priceListDisplayFilter');
             const plPageSizeSelect = $('#priceListPageSize');
             const plSearchInput = document.getElementById('priceListSearch');
             const plSearchClear = document.getElementById('priceListSearchClear');
             const plTableBody = document.getElementById('lfPriceListBody');
+            const plDisplayTableBody = document.getElementById('displayPriceListBody');
             const plInfo = document.getElementById('priceListInfo');
             const plPagination = document.getElementById('priceListPagination');
             const currentCatBadge = document.getElementById('currentCatBadge');
@@ -3627,26 +3961,108 @@
                 return 'Rp ' + Math.round(Number(val)).toLocaleString('id-ID');
             }
 
-            // Update Kolom Tampil / Sembunyi berdasarkan Tipe Harga
+            // Switch Scope (Roll vs Display)
+            function switchScope(newScope) {
+                if (plState.scope === newScope) return;
+                plState.scope = newScope;
+                plState.page = 1;
+                plState.search = '';
+                if (plSearchInput) plSearchInput.value = '';
+                if (plSearchClear) plSearchClear.style.display = 'none';
+
+                if (newScope === 'roll') {
+                    btnScopeRoll.classList.add('is-active');
+                    btnScopeDisplay.classList.remove('is-active');
+                    wrapFilterCategory.style.display = 'inline-flex';
+                    wrapFilterDisplay.style.display = 'none';
+                    rollTableWrapper.style.display = 'block';
+                    displayTableWrapper.style.display = 'none';
+                    if (btnPriceTypePlain) btnPriceTypePlain.style.display = 'inline-flex';
+                    if (printSideTabCluster) printSideTabCluster.style.display = 'none';
+                    if (priceListTitle) priceListTitle.textContent = 'Price List Cetak Large Format';
+                    if (priceListSubtitle) priceListSubtitle.textContent = 'Daftar HPP (Bahan & Ongkos Cetak) dan Rekomendasi Harga Jual (Harga Umum, Divisi, & Polos).';
+                    if (plSearchInput) plSearchInput.placeholder = 'Cari nama material / ukuran lebar...';
+                } else {
+                    btnScopeDisplay.classList.add('is-active');
+                    btnScopeRoll.classList.remove('is-active');
+                    wrapFilterCategory.style.display = 'none';
+                    wrapFilterDisplay.style.display = 'inline-flex';
+                    rollTableWrapper.style.display = 'none';
+                    displayTableWrapper.style.display = 'block';
+                    if (btnPriceTypePlain) {
+                        btnPriceTypePlain.style.display = 'none';
+                        if (plState.group === 'plain') {
+                            plState.group = 'all';
+                            document.querySelectorAll('#priceTypeTabWrap .matrix-tab-btn').forEach(b => {
+                                b.classList.toggle('is-active', b.getAttribute('data-group') === 'all');
+                            });
+                        }
+                    }
+                    if (printSideTabCluster) printSideTabCluster.style.display = 'inline-flex';
+                    if (priceListTitle) priceListTitle.textContent = 'Price List Paket Produk Display Large Format';
+                    if (priceListSubtitle) priceListSubtitle.textContent = 'Daftar Rekomendasi Harga Jual Paket Display (Roll Up Banner, X-Banner, dll) berdasarkan Komponen Bahan & Rangka.';
+                    if (plSearchInput) plSearchInput.placeholder = 'Cari produk / bahan / rangka...';
+                }
+
+                renderPriceList();
+            }
+
+            if (btnScopeRoll) {
+                btnScopeRoll.addEventListener('click', function() {
+                    switchScope('roll');
+                });
+            }
+
+            if (btnScopeDisplay) {
+                btnScopeDisplay.addEventListener('click', function() {
+                    switchScope('display');
+                });
+            }
+
+            // Update Kolom Tampil / Sembunyi berdasarkan Tipe Harga & Sisi Cetak
             function updateColumnVisibility() {
-                const table = document.getElementById('lfPriceListTable');
-                if (!table) return;
+                if (plState.scope === 'roll') {
+                    const table = document.getElementById('lfPriceListTable');
+                    if (!table) return;
 
-                const gGen = table.querySelectorAll('.col-price-general');
-                const gDiv = table.querySelectorAll('.col-price-division');
-                const gPlain = table.querySelectorAll('.col-price-plain');
+                    const gGen = table.querySelectorAll('.col-price-general');
+                    const gDiv = table.querySelectorAll('.col-price-division');
+                    const gPlain = table.querySelectorAll('.col-price-plain');
 
-                const showGen = (plState.group === 'all' || plState.group === 'general');
-                const showDiv = (plState.group === 'all' || plState.group === 'division');
-                const showPlain = (plState.group === 'all' || plState.group === 'plain');
+                    const showGen = (plState.group === 'all' || plState.group === 'general');
+                    const showDiv = (plState.group === 'all' || plState.group === 'division');
+                    const showPlain = (plState.group === 'all' || plState.group === 'plain');
 
-                gGen.forEach(el => el.classList.toggle('col-hide', !showGen));
-                gDiv.forEach(el => el.classList.toggle('col-hide', !showDiv));
-                gPlain.forEach(el => el.classList.toggle('col-hide', !showPlain));
+                    gGen.forEach(el => el.classList.toggle('col-hide', !showGen));
+                    gDiv.forEach(el => el.classList.toggle('col-hide', !showDiv));
+                    gPlain.forEach(el => el.classList.toggle('col-hide', !showPlain));
+                } else {
+                    const table = document.getElementById('displayPriceListTable');
+                    if (!table) return;
+
+                    const showGen = (plState.group === 'all' || plState.group === 'general');
+                    const showDiv = (plState.group === 'all' || plState.group === 'division');
+
+                    table.querySelectorAll('.col-display-col-gen').forEach(el => {
+                        el.classList.toggle('col-hide', !showGen);
+                    });
+                    table.querySelectorAll('.col-display-col-div').forEach(el => {
+                        el.classList.toggle('col-hide', !showDiv);
+                    });
+                }
             }
 
             // Render Body Tabel dan Pagination
             function renderPriceList() {
+                if (plState.scope === 'roll') {
+                    renderRollPriceList();
+                } else {
+                    renderDisplayPriceList();
+                }
+            }
+
+            // Render Price List Meteran
+            function renderRollPriceList() {
                 if (!plTableBody || !priceListRaw || !Array.isArray(priceListRaw.details)) {
                     if (plTableBody) {
                         plTableBody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding:28px; color:var(--t-muted);">Data price list belum tersedia.</td></tr>';
@@ -3699,12 +4115,12 @@
                         let tr = `<tr>`;
                         tr += `<td class="details-digital-sticky details-digital-col-no" style="text-align:center; color:var(--t-muted); font-size:12px;">${no}</td>`;
                         tr += `<td class="details-digital-sticky details-digital-col-material font-semibold" style="font-weight:700; color:var(--t-base);">
-                            <div style="display:flex; flex-direction:column; gap:3px;">
-                                <div style="display:flex; align-items:center; justify-content:space-between; gap:6px;">
-                                    <span>${item.material_name}</span>
-                                    ${plState.category === 'all' ? `<span class="badge" style="font-size:10px; padding:2px 6px; background:var(--bg-muted); color:var(--t-muted); border:1px solid var(--border);">${item.category_name}</span>` : ''}
+                            <div style="display:flex; flex-direction:column; gap:3px; width:100%; min-width:0; max-width:100%;">
+                                <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; width:100%; min-width:0;">
+                                    <span style="flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${item.material_name}">${item.material_name}</span>
+                                    ${plState.category === 'all' ? `<span class="badge" style="font-size:10px; font-weight:600; padding:2px 7px; background:var(--bg-muted); color:var(--t-muted); border:1px solid var(--border); border-radius:4px; flex-shrink:0; white-space:nowrap;">${item.category_name}</span>` : ''}
                                 </div>
-                                ${item.vendor_name ? `<span style="font-size:10.5px; color:var(--primary); font-weight:600;"><i class="bi bi-building"></i> Vendor: ${item.vendor_name}</span>` : ''}
+                                ${item.vendor_name ? `<span style="font-size:10.5px; color:var(--primary); font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="Vendor: ${item.vendor_name}"><i class="bi bi-building"></i> Vendor: ${item.vendor_name}</span>` : ''}
                             </div>
                         </td>`;
 
@@ -3748,6 +4164,114 @@
                 renderPaginationButtons(totalPages, totalItems);
             }
 
+            // Render Price List Paket Display
+            function renderDisplayPriceList() {
+                if (!plDisplayTableBody || !displayPriceListRaw || !Array.isArray(displayPriceListRaw.details)) {
+                    if (plDisplayTableBody) {
+                        plDisplayTableBody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:28px; color:var(--t-muted);">Data paket display belum tersedia.</td></tr>';
+                    }
+                    return;
+                }
+
+                // 1. Filter Produk & Search
+                const filtered = displayPriceListRaw.details.filter(item => {
+                    const matchProd = (plState.displayProduct === 'all') || (item.display_name === plState.displayProduct);
+                    const matchSearch = (!plState.search) ||
+                        (item.display_name && item.display_name.toLowerCase().includes(plState.search.toLowerCase())) ||
+                        (item.component_name && item.component_name.toLowerCase().includes(plState.search.toLowerCase())) ||
+                        (item.material_name && item.material_name.toLowerCase().includes(plState.search.toLowerCase())) ||
+                        (item.lamination_name && item.lamination_name.toLowerCase().includes(plState.search.toLowerCase()));
+                    return matchProd && matchSearch;
+                });
+
+                // 2. Pagination Slice
+                const totalItems = filtered.length;
+                const pageSize = plState.pageSize === 'all' ? (totalItems || 1) : parseInt(plState.pageSize, 10);
+                const totalPages = Math.ceil(totalItems / pageSize) || 1;
+
+                if (plState.page > totalPages) plState.page = totalPages;
+                if (plState.page < 1) plState.page = 1;
+
+                const startIdx = (plState.page - 1) * pageSize;
+                const endIdx = plState.pageSize === 'all' ? totalItems : Math.min(startIdx + pageSize, totalItems);
+                const pageItems = filtered.slice(startIdx, endIdx);
+
+                // Update Badge Header
+                if (currentCatBadge) {
+                    currentCatBadge.innerHTML = `<i class="bi bi-box-seam me-1"></i> Display: ${plState.displayProduct === 'all' ? 'Semua Produk' : plState.displayProduct}`;
+                }
+
+                // 3. Render Baris Data Display
+                if (pageItems.length === 0) {
+                    plDisplayTableBody.innerHTML = `
+                        <tr>
+                            <td colspan="5" style="text-align: center; padding: 42px 16px; color: var(--t-muted);">
+                                <div style="font-size: 28px; margin-bottom: 8px; color: var(--t-muted); opacity: 0.6;"><i class="bi bi-inbox-fill"></i></div>
+                                <div style="font-size: 14px; font-weight: 700; color: var(--t-base); margin-bottom: 4px;">Paket Display Tidak Ditemukan</div>
+                                <div style="font-size: 12.5px;">Tidak ada paket display yang cocok dengan filter atau kata kunci pencarian.</div>
+                            </td>
+                        </tr>
+                    `;
+                } else {
+                    let tbodyHtml = '';
+
+                    pageItems.forEach((item, idx) => {
+                        const no = startIdx + idx + 1;
+                        let tr = `<tr>`;
+                        tr += `<td class="details-digital-sticky details-digital-col-no" style="text-align:center; color:var(--t-muted); font-size:12px;">${no}</td>`;
+
+                        // Kolom Paket & Spesifikasi Display (Clean, Modern, No Redundancy)
+                        tr += `<td class="details-digital-sticky details-digital-col-material font-semibold" style="font-weight:700; color:var(--t-base);">
+                            <div style="display:flex; flex-direction:column; gap:5px;">
+                                <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                                    ${item.is_frame 
+                                        ? `<span class="display-type-pill display-type-pill--frame"><i class="bi bi-aspect-ratio"></i> Rangka Saja</span>` 
+                                        : `<span class="display-type-pill display-type-pill--package"><i class="bi bi-box-seam"></i> Paket Komplit</span>`}
+                                    <span style="font-size:13px; font-weight:700; color:var(--t-base);">${item.component_name}</span>
+                                    ${plState.displayProduct === 'all' ? `<span class="display-product-tag"><i class="bi bi-tag-fill me-1 text-primary"></i>${item.display_name}</span>` : ''}
+                                </div>
+                                <div style="display:flex; align-items:center; gap:8px; font-size:11.5px; color:var(--t-muted); font-weight:500;">
+                                    ${item.is_frame 
+                                        ? `<span><i class="bi bi-info-circle text-warning me-1"></i>Hanya unit standing display / frame (tanpa bahan cetakan)</span>` 
+                                        : `<span><i class="bi bi-check2-circle text-success me-1"></i>Sudah termasuk Cetak &amp; Rangka Display (Siap Pasang)</span>`}
+                                    ${item.cost_rangka > 0 ? `<span style="opacity:0.75;">· Biaya Rangka: ${formatPlRupiah(item.cost_rangka)}</span>` : ''}
+                                </div>
+                            </div>
+                        </td>`;
+
+                        // Ukuran Display
+                        tr += `<td style="text-align:center;">
+                            <div style="display:flex; flex-direction:column; gap:2px; align-items:center;">
+                                <span style="font-weight:700; font-size:13px; color:var(--t-base);">${item.size_label}</span>
+                                <span style="font-size:11px; color:var(--t-muted); font-weight:500;">Isi: 1 unit / set</span>
+                            </div>
+                        </td>`;
+
+                        // Harga Umum (Jual / Paket)
+                        tr += `<td class="details-digital-price col-display-col-gen" style="text-align:right; font-size:13.5px; font-weight:700;">${formatPlRupiah(item.general_price)}</td>`;
+
+                        // Harga Divisi (Jual / Paket)
+                        tr += `<td class="details-digital-price col-display-col-div" style="text-align:right; font-size:13.5px; font-weight:700;">${formatPlRupiah(item.division_price)}</td>`;
+
+                        tr += `</tr>`;
+                        tbodyHtml += tr;
+                    });
+
+                    plDisplayTableBody.innerHTML = tbodyHtml;
+                }
+
+                updateColumnVisibility();
+
+                const prodLabel = plState.displayProduct === 'all' ? 'Semua Produk' : `Produk: ${plState.displayProduct}`;
+                if (totalItems > 0) {
+                    plInfo.innerHTML = `<i class="bi bi-info-circle me-1 text-primary"></i> Menampilkan <strong>${startIdx + 1}</strong> sampai <strong>${endIdx}</strong> dari <strong>${totalItems}</strong> paket display (${prodLabel})`;
+                } else {
+                    plInfo.innerHTML = `<i class="bi bi-info-circle me-1 text-muted"></i> Tidak ada paket display (${prodLabel})`;
+                }
+
+                renderPaginationButtons(totalPages, totalItems);
+            }
+
             function renderPaginationButtons(totalPages, totalItems) {
                 if (!plPagination) return;
                 if (totalItems <= 0 || totalPages <= 1 || plState.pageSize === 'all') {
@@ -3759,11 +4283,11 @@
                 // Prev Button
                 pagHtml += `<button type="button" class="price-page-btn" ${plState.page <= 1 ? 'disabled' : ''} data-page="${plState.page - 1}" title="Halaman Sebelumnya"><i class="bi bi-chevron-left"></i></button>`;
 
-                // Numbered Buttons
+                const maxBtns = 5;
                 let startPage = Math.max(1, plState.page - 2);
-                let endPage = Math.min(totalPages, startPage + 4);
-                if (endPage - startPage < 4) {
-                    startPage = Math.max(1, endPage - 4);
+                let endPage = Math.min(totalPages, startPage + maxBtns - 1);
+                if (endPage - startPage < maxBtns - 1) {
+                    startPage = Math.max(1, endPage - maxBtns + 1);
                 }
 
                 if (startPage > 1) {
@@ -3809,6 +4333,17 @@
                 });
             }
 
+            if (plDisplaySelect.length) {
+                plDisplaySelect.select2({
+                    width: '100%',
+                    placeholder: 'Pilih Produk'
+                }).on('change', function() {
+                    plState.displayProduct = $(this).val();
+                    plState.page = 1;
+                    renderPriceList();
+                });
+            }
+
             if (plPageSizeSelect.length) {
                 plPageSizeSelect.select2({
                     width: '100%',
@@ -3827,6 +4362,17 @@
                     priceTypeTabs.forEach(b => b.classList.remove('is-active'));
                     this.classList.add('is-active');
                     plState.group = this.getAttribute('data-group') || 'all';
+                    updateColumnVisibility();
+                });
+            });
+
+            // Sisi Cetak Tabs (Semua Sisi / 1 Muka / 2 Muka)
+            const printSideTabs = document.querySelectorAll('#printSideTabWrap .matrix-tab-btn');
+            printSideTabs.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    printSideTabs.forEach(b => b.classList.remove('is-active'));
+                    this.classList.add('is-active');
+                    plState.side = this.getAttribute('data-side') || 'all';
                     updateColumnVisibility();
                 });
             });
@@ -3863,6 +4409,11 @@
                     const json = await res.json();
                     if (json.success && json.data) {
                         priceListRaw = json.data;
+                        if (json.data.display) {
+                            displayPriceListRaw = json.data.display;
+                        }
+
+                        // Re-populate Category Filter
                         if (plCatSelect.length && Array.isArray(json.data.categories)) {
                             const curVal = plCatSelect.val();
                             plCatSelect.empty();
@@ -3882,6 +4433,25 @@
                             plCatSelect.trigger('change.select2');
                             plState.category = plCatSelect.val();
                         }
+
+                        // Re-populate Display Product Filter
+                        if (plDisplaySelect.length && displayPriceListRaw && Array.isArray(displayPriceListRaw.products)) {
+                            const curDpVal = plDisplaySelect.val();
+                            plDisplaySelect.empty();
+                            plDisplaySelect.append(new Option('Semua Produk', 'all'));
+                            displayPriceListRaw.products.forEach(dp => {
+                                const opt = new Option(dp, dp);
+                                plDisplaySelect.append(opt);
+                            });
+                            if (displayPriceListRaw.products.includes(curDpVal)) {
+                                plDisplaySelect.val(curDpVal);
+                            } else {
+                                plDisplaySelect.val('all');
+                            }
+                            plDisplaySelect.trigger('change.select2');
+                            plState.displayProduct = plDisplaySelect.val();
+                        }
+
                         renderPriceList();
                     }
                 } catch (err) {
