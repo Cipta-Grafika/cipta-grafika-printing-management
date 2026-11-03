@@ -1147,6 +1147,234 @@
         </div>
     </div>
 
+
+    {{-- MODAL UBAH PRODUK (LENGKAP: KATEGORI, UKURAN, DIGITAL, OFFSET & PLANO) --}}
+    <div id="modalEditProduct" class="modal-cal">
+        <div class="modal-cal-content modal-lg">
+            <div class="modal-cal-head">
+                <h3 style="margin: 0; font-size: 15px;" id="modalProdTitle">Ubah Parameter Produk Kalender</h3>
+                <button type="button" onclick="closeCalModal('modalEditProduct')"
+                    style="background: none; border: none; font-size: 18px; cursor: pointer; color: var(--t-muted);">&times;</button>
+            </div>
+            <form id="formEditProduct" onsubmit="submitEditProduct(event)">
+                @csrf
+                <input type="hidden" id="prodId" name="prod_id">
+                <div class="modal-cal-body">
+                    <!-- Baris 1: Kategori & Nama Produk -->
+                    <div style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 12px; margin-bottom: 14px;">
+                        <div class="field">
+                            <label class="field-label">Kategori Kalender <span
+                                    style="color: var(--danger);">*</span></label>
+                            <select id="prodCategory" name="calendar_type" class="select select2-modal" required>
+                                <option value="dinding">Kalender Dinding</option>
+                                <option value="meja">Kalender Meja</option>
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label class="field-label">Nama Produk <span
+                                    style="color: var(--danger);">*</span></label>
+                            <input type="text" id="prodName" name="product_name" class="input" required>
+                        </div>
+                    </div>
+
+                    <!-- Baris 2: Ukuran (Lebar x Tinggi cm) & Orientasi -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+                        <div class="field">
+                            <label class="field-label">Lebar Jadi (cm) <span
+                                    style="color: var(--danger);">*</span></label>
+                            <input type="number" step="0.01" id="prodWidth" name="final_width" class="input" required>
+                        </div>
+                        <div class="field">
+                            <label class="field-label">Tinggi Jadi (cm) <span
+                                    style="color: var(--danger);">*</span></label>
+                            <input type="number" step="0.01" id="prodHeight" name="final_height" class="input" required>
+                        </div>
+                        <div class="field">
+                            <label class="field-label">Orientasi <span
+                                    style="color: var(--danger);">*</span></label>
+                            <select id="prodOrientation" name="orientation" class="select select2-modal" required>
+                                <option value="portrait">Portrait</option>
+                                <option value="landscape">Landscape</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Baris 3: Parameter Digital A3+ -->
+                    <div
+                        style="padding: 12px 14px; background: var(--bg-surface-2); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 14px;">
+                        <div
+                            style="font-size: 12px; font-weight: 700; color: var(--primary); margin-bottom: 10px; text-transform: uppercase;">
+                            <i class="bi bi-printer me-1"></i> Parameter Digital Print A3+
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 12px;">
+                            <div class="field">
+                                <label class="field-label">Ketersediaan Digital</label>
+                                <select id="prodDigAvail" name="digital_available" class="select select2-modal">
+                                    <option value="1">Tersedia (Bisa Digital A3+)</option>
+                                    <option value="0">Over Area (Khusus Offset)</option>
+                                </select>
+                            </div>
+                            <div class="field">
+                                <label class="field-label">Up A3+ (Pcs / lembar A3+) <span
+                                        style="color: var(--danger);">*</span></label>
+                                <input type="number" id="prodDigUp" name="digital_up" class="input" min="0" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Baris 4: Parameter Mesin Offset & Plano -->
+                    <div
+                        style="padding: 12px 14px; background: var(--bg-surface-2); border: 1px solid var(--border); border-radius: 8px;">
+                        <div
+                            style="font-size: 12px; font-weight: 700; color: #10b981; margin-bottom: 10px; text-transform: uppercase;">
+                            <i class="bi bi-gear me-1"></i> Parameter Mesin Offset &amp; Bahan Baku
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 12px; margin-bottom: 10px;">
+                            <div class="field">
+                                <label class="field-label">Mesin Offset Rekomendasi</label>
+                                <select id="prodOffsetMachine" name="offset_machine" class="select select2-modal">
+                                    <option value="SM52">Heidelberg SM52</option>
+                                    <option value="Oliver66">Sakurai Oliver 66</option>
+                                    <option value="SM72">Heidelberg SM72</option>
+                                </select>
+                            </div>
+                            <div class="field">
+                                <label class="field-label">Up Offset (FC) <span
+                                        style="color: var(--danger);">*</span></label>
+                                <input type="number" id="prodOffUp" name="offset_up" class="input" min="1" required>
+                            </div>
+                            <div class="field">
+                                <label class="field-label">Up Offset (BW - Opsional)</label>
+                                <input type="number" id="prodOffUpBw" name="offset_up_bw" class="input"
+                                    min="0" placeholder="Opsional">
+                            </div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 12px;">
+                            <div class="field">
+                                <label class="field-label">Ukuran Plano Rekomendasi</label>
+                                <select id="prodPlano" name="recommended_plano" class="select select2-modal">
+                                    <option value="65x90">Plano 65 x 90 cm</option>
+                                    <option value="65x100">Plano 65 x 100 cm</option>
+                                    <option value="109x79">Plano 109 x 79 cm</option>
+                                </select>
+                            </div>
+                            <div class="field">
+                                <label class="field-label">Default Lembar Isi <span
+                                        style="color: var(--danger);">*</span></label>
+                                <input type="number" id="prodDefLeaf" name="default_leaf_count" class="input" min="1" required>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-cal-foot">
+                    <button type="button" class="btn btn--ghost"
+                        onclick="closeCalModal('modalEditProduct')">Batal</button>
+                    <button type="submit" class="btn btn--primary" id="btnSubmitEditProduct">Simpan Perubahan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- MODAL UBAH KOMPONEN / FINISHING --}}
+    <div id="modalEditComponent" class="modal-cal">
+        <div class="modal-cal-content" style="max-width: 540px;">
+            <div class="modal-cal-head">
+                <h3 style="margin: 0; font-size: 15px;" id="modalCompTitle">Ubah Tarif Komponen &amp; Jilid</h3>
+                <button type="button" onclick="closeCalModal('modalEditComponent')"
+                    style="background: none; border: none; font-size: 18px; cursor: pointer; color: var(--t-muted);">&times;</button>
+            </div>
+            <form id="formEditComponent" onsubmit="submitEditComponent(event)">
+                @csrf
+                <input type="hidden" id="compId" name="comp_id">
+                <div class="modal-cal-body">
+                    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 12px; margin-bottom: 12px;">
+                        <div class="field">
+                            <label class="field-label">Nama Komponen <span style="color: var(--danger);">*</span></label>
+                            <input type="text" id="compName" name="name" class="input" required>
+                        </div>
+                        <div class="field">
+                            <label class="field-label">Satuan</label>
+                            <input type="text" id="compUnit" name="unit" class="input" readonly style="opacity: 0.8; background: var(--bg-hover);">
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                        <div class="field">
+                            <label class="field-label">Tarif / Harga Satuan <span
+                                    style="color: var(--danger);">*</span></label>
+                            <input type="text" id="compPrice" name="price" class="input input-rupiah" required>
+                        </div>
+                        <div class="field">
+                            <label class="field-label">Biaya Minimum Job (Opsional)</label>
+                            <input type="text" id="compMinFee" name="minimum_fee" class="input input-rupiah"
+                                placeholder="Rp 0">
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="field-label">Keterangan / Fungsi</label>
+                        <input type="text" id="compDesc" name="description" class="input"
+                            placeholder="Keterangan komponen">
+                    </div>
+                </div>
+                <div class="modal-cal-foot">
+                    <button type="button" class="btn btn--ghost"
+                        onclick="closeCalModal('modalEditComponent')">Batal</button>
+                    <button type="submit" class="btn btn--primary" id="btnSubmitEditComponent">Simpan Perubahan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- MODAL UBAH PRICING RULE (MARKUP TIER) --}}
+    <div id="modalEditRule" class="modal-cal">
+        <div class="modal-cal-content" style="max-width: 540px;">
+            <div class="modal-cal-head">
+                <h3 style="margin: 0; font-size: 15px;" id="modalRuleTitle">Ubah Aturan Pricing Markup Tier</h3>
+                <button type="button" onclick="closeCalModal('modalEditRule')"
+                    style="background: none; border: none; font-size: 18px; cursor: pointer; color: var(--t-muted);">&times;</button>
+            </div>
+            <form id="formEditRule" onsubmit="submitEditRule(event)">
+                @csrf
+                <input type="hidden" id="ruleId" name="rule_id">
+                <div class="modal-cal-body">
+                    <div class="field" style="margin-bottom: 12px;">
+                        <label class="field-label">Nama Aturan Tier</label>
+                        <input type="text" id="ruleName" name="rule_name" class="input" readonly style="opacity: 0.8; background: var(--bg-hover);">
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                        <div class="field">
+                            <label class="field-label">Min. Qty (pcs) <span style="color: var(--danger);">*</span></label>
+                            <input type="number" id="ruleMinQty" name="min_qty" class="input" required>
+                        </div>
+                        <div class="field">
+                            <label class="field-label">Max. Qty (pcs - Kosongkan jika Tak Terbatas)</label>
+                            <input type="number" id="ruleMaxQty" name="max_qty" class="input"
+                                placeholder="Tak Terbatas">
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div class="field">
+                            <label class="field-label">Markup Persen (%) <span
+                                    style="color: var(--danger);">*</span></label>
+                            <input type="number" step="0.01" id="ruleMarkup" name="markup_percent"
+                                class="input" required>
+                        </div>
+                        <div class="field">
+                            <label class="field-label">Pembulatan Rupiah (Ceiling) <span
+                                    style="color: var(--danger);">*</span></label>
+                            <input type="text" id="ruleRounding" name="rounding_value"
+                                class="input input-rupiah" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-cal-foot">
+                    <button type="button" class="btn btn--ghost"
+                        onclick="closeCalModal('modalEditRule')">Batal</button>
+                    <button type="submit" class="btn btn--primary" id="btnSubmitEditRule">Simpan Perubahan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         let currentCalTab = 'products';
 
@@ -1932,15 +2160,15 @@
             document.getElementById('prodOffUpBw').value = prod.offset_up_bw || '';
             document.getElementById('prodDefLeaf').value = prod.default_leaf_count;
 
-            // Set Select2 values
-            $('#prodCategory').val(prod.calendar_type);
-            $('#prodOrientation').val(prod.orientation);
-            $('#prodDigAvail').val(prod.digital_available ? '1' : '0');
-            $('#prodOffsetMachine').val(prod.offset_machine);
-            $('#prodPlano').val(prod.recommended_plano);
-
             document.getElementById('modalEditProduct').classList.add('is-open');
             initCalModalSelect2('modalEditProduct');
+
+            // Set Select2 values and trigger change so UI updates
+            $('#prodCategory').val(prod.calendar_type).trigger('change');
+            $('#prodOrientation').val(prod.orientation).trigger('change');
+            $('#prodDigAvail').val(prod.digital_available ? '1' : '0').trigger('change');
+            $('#prodOffsetMachine').val(prod.offset_machine).trigger('change');
+            $('#prodPlano').val(prod.recommended_plano).trigger('change');
         }
 
         function submitEditProduct(e) {

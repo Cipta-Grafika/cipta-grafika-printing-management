@@ -63,6 +63,8 @@ class OffsetEstimationCT extends Controller
             $data['pricingRule'] = DB::table('m_offset_pricing_rules')->first();
         }
 
+        $data['customers'] = \App\Support\CetakiaCustomer::all();
+
         return view('admin.estimation.offset.create')->with($data);
     }
 

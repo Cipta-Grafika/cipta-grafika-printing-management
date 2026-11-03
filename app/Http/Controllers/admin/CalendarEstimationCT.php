@@ -54,6 +54,8 @@ class CalendarEstimationCT extends Controller
             ->orderBy('min_qty', 'asc')
             ->get();
 
+        $data['customers'] = \App\Support\CetakiaCustomer::all();
+
         return view('admin.estimation.calendar.create')->with($data);
     }
 

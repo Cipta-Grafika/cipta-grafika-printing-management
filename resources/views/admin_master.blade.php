@@ -5,17 +5,36 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="color-scheme" content="light dark">
     <title>Cipta Grafika Estimator System</title>
     <script>
         ! function() {
             try {
                 var t = localStorage.getItem("dash26-theme"),
                     e = window.matchMedia("(prefers-color-scheme: dark)").matches;
-                document.documentElement.setAttribute("data-theme", t || (e ? "dark" : "light"))
+                var currentTheme = t || (e ? "dark" : "light");
+                document.documentElement.setAttribute("data-theme", currentTheme);
+                document.documentElement.style.colorScheme = currentTheme;
             } catch (t) {
-                document.documentElement.setAttribute("data-theme", "light")
+                document.documentElement.setAttribute("data-theme", "light");
+                document.documentElement.style.colorScheme = "light";
             }
         }()
+    </script>
+    <script>
+        (function() {
+            try {
+                var observer = new MutationObserver(function(mutations) {
+                    mutations.forEach(function(m) {
+                        if (m.attributeName === 'data-theme') {
+                            var val = document.documentElement.getAttribute('data-theme') || 'light';
+                            document.documentElement.style.colorScheme = val;
+                        }
+                    });
+                });
+                observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+            } catch(e) {}
+        })();
     </script>
 
     <script defer="defer" src="{{ asset('js/runtime.js') }}"></script>
@@ -30,7 +49,7 @@
     <link rel="stylesheet" href="{{ asset('vendor/datatables/responsive.dataTables.min.css') }}">
     <link rel="stylesheet" href="{{ asset('vendor/select2/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('vendor/bootstrap-icons/bootstrap-icons.min.css') }}">
-    <link href="{{ asset('css/style.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/style.css') }}?v={{ filemtime(public_path('css/style.css')) }}" rel="stylesheet">
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 

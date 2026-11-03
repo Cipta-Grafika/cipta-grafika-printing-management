@@ -22,6 +22,101 @@
             width: 100%;
         }
 
+        /* Quotation & Date Picker Theming (Dark & Light) */
+        :root[data-theme="dark"] input[type="date"],
+        [data-theme="dark"] input[type="date"] {
+            color-scheme: dark !important;
+        }
+        :root[data-theme="light"] input[type="date"],
+        [data-theme="light"] input[type="date"] {
+            color-scheme: light !important;
+        }
+        input[type="date"].input {
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 500;
+        }
+        :root[data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator,
+        [data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+            opacity: 0.85;
+            cursor: pointer;
+            border-radius: 4px;
+            padding: 4px;
+            transition: all 0.15s ease;
+        }
+        :root[data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator:hover,
+        [data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator:hover {
+            filter: invert(1);
+            opacity: 1;
+            background: rgba(255, 255, 255, 0.15);
+        }
+        :root[data-theme="light"] input[type="date"]::-webkit-calendar-picker-indicator,
+        [data-theme="light"] input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: none;
+            opacity: 0.7;
+            cursor: pointer;
+            border-radius: 4px;
+            padding: 4px;
+            transition: all 0.15s ease;
+        }
+        :root[data-theme="light"] input[type="date"]::-webkit-calendar-picker-indicator:hover,
+        [data-theme="light"] input[type="date"]::-webkit-calendar-picker-indicator:hover {
+            filter: none;
+            opacity: 1;
+            background: rgba(0, 0, 0, 0.08);
+        }
+        .quote-preset-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2px 8px;
+            font-size: 11px;
+            font-weight: 600;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: var(--bg-card);
+            color: var(--t-muted);
+            cursor: pointer;
+            transition: all 0.15s ease-in-out;
+            line-height: 1.4;
+            user-select: none;
+        }
+        .quote-preset-btn:hover {
+            background: var(--primary-soft);
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+        .quote-preset-btn.active,
+        .quote-preset-btn.is-active {
+            background: var(--primary);
+            color: #ffffff;
+            border-color: var(--primary);
+            box-shadow: 0 1px 3px var(--primary-ring);
+        }
+        .btn-copy-address {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 8px;
+            font-size: 11px;
+            font-weight: 500;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: var(--bg-card);
+            color: var(--t-muted);
+            cursor: pointer;
+            transition: all 0.15s ease-in-out;
+            line-height: 1.4;
+            user-select: none;
+        }
+        .btn-copy-address:hover {
+            background: var(--primary-soft);
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+
         @media (min-width: 1024px) {
             .lf-estimator-grid {
                 grid-template-columns: 1.25fr 1fr;
@@ -1539,13 +1634,20 @@
 
                                     {{-- Informasi Pelanggan (Untuk Surat Penawaran) --}}
                                     <div class="form-grid">
-                                        {{-- Nama Pelanggan --}}
+                                        {{-- Nama Pelanggan (Select2 Cetakia) --}}
                                         <div class="field" style="margin-bottom: 16px;">
-                                            <label class="field-label" for="customer_name">
+                                            <label class="field-label" for="customer_id">
                                                 Nama Pelanggan / Perusahaan (Opsional)
                                             </label>
-                                            <input type="text" id="customer_name" name="customer_name" class="input"
-                                                placeholder="Contoh: PT. Sumber Makmur / Bpk. Hendra">
+                                            <select id="customer_id" name="customer_id" class="select select2">
+                                                <option value="">-- Pilih Pelanggan (Cetakia) --</option>
+                                                @foreach ($customers ?? \App\Support\CetakiaCustomer::all() as $cust)
+                                                    <option value="{{ $cust['id'] }}" data-code="{{ $cust['customer_code'] }}" data-name="{{ $cust['name'] }}">
+                                                        {{ $cust['name'] }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                            <input type="hidden" id="customer_name" name="customer_name" value="">
                                         </div>
 
                                         {{-- No. WhatsApp / Telepon --}}
@@ -1555,6 +1657,61 @@
                                             </label>
                                             <input type="text" id="customer_phone" name="customer_phone" class="input"
                                                 placeholder="Contoh: 08123456789">
+                                        </div>
+                                    </div>
+
+                                    {{-- Alamat Penagihan & Pengiriman (Cetakia Quotation) --}}
+                                    <div class="form-grid">
+                                        {{-- Alamat Penagihan (Bill To) --}}
+                                        <div class="field" style="margin-bottom: 16px;">
+                                            <label class="field-label" for="bill_to">
+                                                Alamat Penagihan (Bill To)
+                                            </label>
+                                            <textarea id="bill_to" name="bill_to" class="input" rows="2" style="height: auto; resize: vertical;"
+                                                placeholder="Alamat penagihan pelanggan..."></textarea>
+                                        </div>
+
+                                        {{-- Alamat Pengiriman (Ship To) --}}
+                                        <div class="field" style="margin-bottom: 16px;">
+                                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                                                <label class="field-label" for="ship_to" style="margin-bottom: 0;">
+                                                    Alamat Pengiriman (Ship To)
+                                                </label>
+                                                <button type="button" id="btn_copy_bill_to_lf" class="btn-copy-address" title="Salin dari Alamat Penagihan">
+                                                    <i class="bi bi-copy"></i> Sama dgn Bill To
+                                                </button>
+                                            </div>
+                                            <textarea id="ship_to" name="ship_to" class="input" rows="2" style="height: auto; resize: vertical;"
+                                                placeholder="Alamat tujuan pengiriman..."></textarea>
+                                        </div>
+                                    </div>
+
+                                    {{-- Masa Berlaku & Tanggal Penawaran (Cetakia Quotation) --}}
+                                    <div class="form-grid">
+                                        {{-- Tanggal Penawaran --}}
+                                        <div class="field" style="margin-bottom: 16px;">
+                                            <label class="field-label" for="quotation_date">
+                                                Tanggal Penawaran
+                                            </label>
+                                            <input type="date" id="quotation_date" name="quotation_date" class="input"
+                                                value="{{ date('Y-m-d') }}">
+                                        </div>
+
+                                        {{-- Masa Berlaku Penawaran --}}
+                                        <div class="field" style="margin-bottom: 16px;">
+                                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                                                <label class="field-label" for="quotation_expired" style="margin-bottom: 0;">
+                                                    Masa Berlaku Penawaran (Expired)
+                                                </label>
+                                                <div style="display: flex; gap: 5px;">
+                                                    <button type="button" class="quote-preset-btn btn-expire-preset-lf" data-days="3" title="Berlaku 3 Hari">+3 Hr</button>
+                                                    <button type="button" class="quote-preset-btn btn-expire-preset-lf active" data-days="7" title="Berlaku 7 Hari">+7 Hr</button>
+                                                    <button type="button" class="quote-preset-btn btn-expire-preset-lf" data-days="14" title="Berlaku 14 Hari">+14 Hr</button>
+                                                    <button type="button" class="quote-preset-btn btn-expire-preset-lf" data-days="30" title="Berlaku 30 Hari">+30 Hr</button>
+                                                </div>
+                                            </div>
+                                            <input type="date" id="quotation_expired" name="quotation_expired" class="input"
+                                                value="{{ date('Y-m-d', strtotime('+7 days')) }}">
                                         </div>
                                     </div>
 
@@ -2273,7 +2430,8 @@
                         <div style="font-size: 12px; color: var(--t-muted);">Printing Management System &middot; Estimator Large Format</div>
                     </div>
                     <div style="text-align: right; font-size: 12px; color: var(--t-muted);">
-                        <div>Tanggal: <strong>{{ date('d/m/Y') }}</strong></div>
+                        <div>Tanggal: <strong id="modalQuoteDate">{{ date('d/m/Y') }}</strong></div>
+                        <div>Berlaku s/d: <strong id="modalQuoteExpired">{{ date('d/m/Y', strtotime('+7 days')) }}</strong></div>
                         <div>Lead Time: <strong id="modalQuoteLeadTime">-</strong></div>
                     </div>
                 </div>
@@ -2350,7 +2508,7 @@
                 </table>
 
                 <div style="font-size: 11px; color: var(--t-muted); border-top: 1px dashed var(--border); padding-top: 10px;">
-                    * Penawaran ini berlaku selama 14 hari sejak tanggal diterbitkan. Harga sudah termasuk cetak mesin Large Format, material bahan pilihan, dan finishing yang dipilih.
+                    * Penawaran ini berlaku hingga tanggal <strong id="modalQuoteExpiredNotice">{{ date('d/m/Y', strtotime('+7 days')) }}</strong>. Harga sudah termasuk cetak mesin Large Format, material bahan pilihan, dan finishing yang dipilih.
                 </div>
             </div>
 
@@ -3342,6 +3500,21 @@
                 if (elPhone) elPhone.textContent = custPhone;
                 if (elLoc) elLoc.textContent = locName;
 
+                // Update Tanggal Penawaran & Berlaku s/d
+                const qDateVal = document.getElementById('quotation_date')?.value;
+                const qExpVal = document.getElementById('quotation_expired')?.value;
+                const elQDate = document.getElementById('modalQuoteDate');
+                const elQExp = document.getElementById('modalQuoteExpired');
+                const elQExpNotice = document.getElementById('modalQuoteExpiredNotice');
+                const formatDmy = (dStr) => {
+                    if (!dStr) return '-';
+                    const parts = dStr.split('-');
+                    return parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : dStr;
+                };
+                if (elQDate && qDateVal) elQDate.textContent = formatDmy(qDateVal);
+                if (elQExp && qExpVal) elQExp.textContent = formatDmy(qExpVal);
+                if (elQExpNotice && qExpVal) elQExpNotice.textContent = formatDmy(qExpVal);
+
                 if (elNotesWrap && elNotes) {
                     if (custNotes) {
                         elNotesWrap.style.display = 'block';
@@ -3842,12 +4015,63 @@
             materialCustomWidthInput.on('input', triggerRealtimeCalculation);
             laminationCustomWidthInput.on('input', triggerRealtimeCalculation);
 
+            const custIdSelect = $('#customer_id');
             const custNameInput = document.getElementById('customer_name');
             const custPhoneInput = document.getElementById('customer_phone');
             const custNotesInput = document.getElementById('customer_notes');
+            if (custIdSelect.length) {
+                custIdSelect.on('change', function() {
+                    const sel = $(this).find('option:selected');
+                    if (custNameInput) {
+                        custNameInput.value = sel.data('name') || '';
+                    }
+                    updateQuotationCustomerInfo();
+                });
+            }
             if (custNameInput) custNameInput.addEventListener('input', updateQuotationCustomerInfo);
             if (custPhoneInput) custPhoneInput.addEventListener('input', updateQuotationCustomerInfo);
             if (custNotesInput) custNotesInput.addEventListener('input', updateQuotationCustomerInfo);
+
+            $('#btn_copy_bill_to_lf').on('click', function(e) {
+                e.preventDefault();
+                $('#ship_to').val($('#bill_to').val());
+            });
+
+            // Preset Masa Berlaku Penawaran
+            $('.btn-expire-preset-lf').on('click', function(e) {
+                e.preventDefault();
+                $('.btn-expire-preset-lf').removeClass('active');
+                $(this).addClass('active');
+                const days = parseInt($(this).data('days')) || 7;
+                const baseDateVal = $('#quotation_date').val() || new Date().toISOString().split('T')[0];
+                const baseDate = new Date(baseDateVal);
+                baseDate.setDate(baseDate.getDate() + days);
+                const yyyy = baseDate.getFullYear();
+                const mm = String(baseDate.getMonth() + 1).padStart(2, '0');
+                const dd = String(baseDate.getDate()).padStart(2, '0');
+                $('#quotation_expired').val(`${yyyy}-${mm}-${dd}`);
+                updateQuotationCustomerInfo();
+            });
+
+            $('#quotation_date').on('change', function() {
+                const qDate = $(this).val();
+                const expDate = $('#quotation_expired').val();
+                if (qDate && (!expDate || expDate < qDate)) {
+                    const d = new Date(qDate);
+                    d.setDate(d.getDate() + 7);
+                    const yyyy = d.getFullYear();
+                    const mm = String(d.getMonth() + 1).padStart(2, '0');
+                    const dd = String(d.getDate()).padStart(2, '0');
+                    $('#quotation_expired').val(`${yyyy}-${mm}-${dd}`);
+                    $('.btn-expire-preset-lf').removeClass('active');
+                    $('.btn-expire-preset-lf[data-days="7"]').addClass('active');
+                }
+                updateQuotationCustomerInfo();
+            });
+
+            $('#quotation_expired').on('input change', function() {
+                updateQuotationCustomerInfo();
+            });
 
             /* =====================================================
                13. RESET FORMULIR ESTIMASI (BERSIH & AMAN)
@@ -3900,9 +4124,24 @@
                 if (discountSuffix) discountSuffix.textContent = '%';
 
                 // Reset Pelanggan & Info Penawaran
+                if (typeof $ !== 'undefined' && $('#customer_id').length) {
+                    $('#customer_id').val('').trigger('change.select2');
+                }
                 if (custNameInput) custNameInput.value = '';
                 if (custPhoneInput) custPhoneInput.value = '';
                 if (custNotesInput) custNotesInput.value = '';
+                const bToLF = document.getElementById('bill_to');
+                const sToLF = document.getElementById('ship_to');
+                if (bToLF) bToLF.value = '';
+                if (sToLF) sToLF.value = '';
+                const today = new Date().toISOString().split('T')[0];
+                const next7 = new Date();
+                next7.setDate(next7.getDate() + 7);
+                const next7Str = `${next7.getFullYear()}-${String(next7.getMonth() + 1).padStart(2, '0')}-${String(next7.getDate()).padStart(2, '0')}`;
+                $('#quotation_date').val(today);
+                $('#quotation_expired').val(next7Str);
+                $('.btn-expire-preset-lf').removeClass('active');
+                $('.btn-expire-preset-lf[data-days="7"]').addClass('active');
                 updateQuotationCustomerInfo();
 
                 // Reset Summary Card

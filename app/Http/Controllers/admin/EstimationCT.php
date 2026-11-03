@@ -46,6 +46,7 @@ class EstimationCT extends Controller
 
         $data['lfPriceList'] = $this->buildLargeFormatPriceListData();
         $data['displayPriceList'] = $this->buildDisplayPriceListData(null, 'large format');
+        $data['customers'] = \App\Support\CetakiaCustomer::all();
 
         /*
         |--------------------------------------------------------------------------
@@ -2909,6 +2910,7 @@ class EstimationCT extends Controller
 
         $data['digitalPriceList'] = $this->buildDigitalPriceListData();
         $data['displayPriceList'] = $this->buildDisplayPriceListData();
+        $data['customers'] = \App\Support\CetakiaCustomer::all();
 
         return view('admin.estimation.a3-plus.create')->with($data);
     }
