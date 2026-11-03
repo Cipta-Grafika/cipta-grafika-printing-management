@@ -805,11 +805,20 @@ class CatalogCT extends Controller
         $isA3Plus = $engineName !== null
             && strtolower(trim($engineName)) === 'digital print a3+';
 
+        $isSticker = $isA3Plus && (
+            (int)$categoryId === 221
+            || stripos($firstRow->category_name ?? '', 'sticker') !== false
+            || stripos($firstRow->category_name ?? '', 'stiker') !== false
+            || stripos($firstRow->title_alias ?? '', 'sticker') !== false
+            || stripos($firstRow->title_alias ?? '', 'stiker') !== false
+        );
+
         $estimator = [
             'type'             => 'gallery',
             'engineName'       => $engineName,
             'isLargeFormat'    => $isLargeFormat,
             'isA3Plus'         => $isA3Plus,
+            'isSticker'        => $isSticker,
             'displayProductId' => null,
             'categoryId'       => (int) $categoryId,
             'categoryName'     => $firstRow->category_name ?? '',
@@ -825,7 +834,7 @@ class CatalogCT extends Controller
             ->get();
 
         $a3Data = $isA3Plus
-            ? $this->getA3PlusMasterData((int) $categoryId)
+            ? $this->getA3PlusMasterData((int) $categoryId, null, $engineId ? (int) $engineId : null)
             : [
                 'a3Materials'   => collect(),
                 'a3Laminations' => collect(),
@@ -1099,6 +1108,14 @@ class CatalogCT extends Controller
                 }
             }
             $request->merge(['print_color' => $isBw ? 'bw' : 'fc']);
+        }
+
+        // Otomatis tentukan print_side = 1 jika kategori adalah Sticker / Stiker
+        if (!empty($categoryId)) {
+            $cat = DB::table('m_categories')->where('id', $categoryId)->first();
+            if ($cat && ((int)$cat->id === 221 || stripos($cat->name, 'sticker') !== false || stripos($cat->name, 'stiker') !== false)) {
+                $request->merge(['print_side' => '1']);
+            }
         }
 
         $request->validate([
@@ -1560,7 +1577,7 @@ class CatalogCT extends Controller
         ]);
     }
 
-    private function getA3PlusMasterData(?int $categoryId = null, ?int $displayProductId = null): array
+    private function getA3PlusMasterData(?int $categoryId = null, ?int $displayProductId = null, ?int $engineId = null): array
     {
         if (!Schema::hasTable('m_materials')) {
             return [
@@ -1669,10 +1686,72 @@ class CatalogCT extends Controller
             ->orderBy('l.name', 'asc')
             ->get();
 
-        $cuttings = DB::table('m_cuttings')
-            ->where('status', 'Active')
-            ->orderBy('name', 'asc')
-            ->get();
+        // Ambil opsi finishing cutting sesuai konfigurasi di master ongkos produksi finishing cutting
+        $cuttings = collect();
+        if (!empty($categoryId)) {
+            // 1. Ambil cutting selain potong yang terdaftar di m_digital_cutting_production_cost_details
+            $cuttingItems = DB::table('m_cuttings as c')
+                ->join('m_digital_cutting_production_cost_details as d', 'd.cutting_id', '=', 'c.id')
+                ->join('m_digital_cutting_production_costs as pc', 'pc.id', '=', 'd.digital_cutting_production_cost_id')
+                ->where('c.status', 'Active')
+                ->where('d.category_id', $categoryId)
+                ->when($engineId, fn ($q) => $q->where('pc.engine_id', $engineId))
+                ->when($purwakartaId, fn ($q) => $q->where('pc.location_id', $purwakartaId))
+                ->select('c.id', 'c.name')
+                ->distinct()
+                ->get();
+
+            // Fallback tanpa filter lokasi jika konfigurasi lokasi purwakarta belum ada
+            if ($cuttingItems->isEmpty()) {
+                $cuttingItems = DB::table('m_cuttings as c')
+                    ->join('m_digital_cutting_production_cost_details as d', 'd.cutting_id', '=', 'c.id')
+                    ->join('m_digital_cutting_production_costs as pc', 'pc.id', '=', 'd.digital_cutting_production_cost_id')
+                    ->where('c.status', 'Active')
+                    ->where('d.category_id', $categoryId)
+                    ->when($engineId, fn ($q) => $q->where('pc.engine_id', $engineId))
+                    ->select('c.id', 'c.name')
+                    ->distinct()
+                    ->get();
+            }
+
+            // 2. Cek apakah ada konfigurasi Potong Guillotine untuk kategori ini di m_digital_potong_production_cost_categories
+            $hasPotong = DB::table('m_digital_potong_production_cost_categories as pc_cat')
+                ->join('m_digital_potong_production_costs as pc', 'pc.id', '=', 'pc_cat.digital_potong_production_cost_id')
+                ->where('pc_cat.category_id', $categoryId)
+                ->when($engineId, fn ($q) => $q->where('pc.engine_id', $engineId))
+                ->when($purwakartaId, fn ($q) => $q->where('pc.location_id', $purwakartaId))
+                ->exists();
+
+            if (!$hasPotong) {
+                $hasPotong = DB::table('m_digital_potong_production_cost_categories as pc_cat')
+                    ->join('m_digital_potong_production_costs as pc', 'pc.id', '=', 'pc_cat.digital_potong_production_cost_id')
+                    ->where('pc_cat.category_id', $categoryId)
+                    ->when($engineId, fn ($q) => $q->where('pc.engine_id', $engineId))
+                    ->exists();
+            }
+
+            if ($hasPotong) {
+                $potongCutting = DB::table('m_cuttings')
+                    ->where('status', 'Active')
+                    ->whereRaw('LOWER(TRIM(name)) = ?', ['potong'])
+                    ->select('id', 'name')
+                    ->first();
+
+                if ($potongCutting) {
+                    $cuttingItems->push($potongCutting);
+                }
+            }
+
+            $cuttings = $cuttingItems->unique('id')->sortBy('name')->values();
+        }
+
+        // Fallback aman: jika kategori belum pernah dikonfigurasi sama sekali di admin
+        if ($cuttings->isEmpty()) {
+            $cuttings = DB::table('m_cuttings')
+                ->where('status', 'Active')
+                ->orderBy('name', 'asc')
+                ->get();
+        }
 
         return [
             'a3Materials'   => $materials,

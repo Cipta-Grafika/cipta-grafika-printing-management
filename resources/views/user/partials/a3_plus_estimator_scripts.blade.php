@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', function() {
            ===================================================================== */
         function setupChoiceButtons(select) {
             const element = select[0];
-            if (!element) return;
+            if (!element || element.tagName !== 'SELECT') return;
 
             const label = element.parentElement ? element.parentElement.querySelector('label') : null;
             const labelId = `a3-choice-label-${element.id}`;

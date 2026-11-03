@@ -865,16 +865,7 @@
 
                         </div>
 
-                        <p class="reveal d1
-                        text-xl
- 
-                        text-zinc-500
-                        dark:text-zinc-400
- 
-                        leading-relaxed
-                        max-w-2xl"
-                            style="font-size: 16px;">Produk dibuat sesuai pesanan dengan estimasi proses sekitar 2 hari
-                            kerja.</p>
+
                     </div>
                 </div>
 

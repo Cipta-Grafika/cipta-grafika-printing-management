@@ -3,6 +3,13 @@
     $categoryName = $estimator['categoryName'] ?? ($product['title'] ?? '');
     $isBwCategory = strtoupper(trim($categoryName)) === 'BW';
     $defaultColor = $isBwCategory ? 'bw' : 'fc';
+
+    $isStickerCategory = !empty($estimator['isSticker'])
+        || (isset($estimator['categoryId']) && (int)$estimator['categoryId'] === 221)
+        || stripos($categoryName, 'stiker') !== false
+        || stripos($categoryName, 'sticker') !== false
+        || stripos($product['title'] ?? '', 'stiker') !== false
+        || stripos($product['title'] ?? '', 'sticker') !== false;
 @endphp
 
 {{-- =====================================================================
@@ -67,17 +74,22 @@
             <input type="hidden" id="a3_print_color" name="print_color" value="{{ $defaultColor }}">
 
             <!-- Sisi Cetak -->
-            <div class="sm:col-span-2">
-                <label for="a3_print_side"
-                    class="block text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1.5">
-                    Sisi Cetak <span class="text-red-500">*</span>
-                </label>
-                <select id="a3_print_side" name="print_side" required class="estimator-choice-source">
-                    <option value="">Pilih Sisi Cetak...</option>
-                    <option value="1">1 Sisi</option>
-                    <option value="2">2 Sisi (Bolak-Balik)</option>
-                </select>
-            </div>
+            @if ($isStickerCategory)
+                {{-- Kategori Sticker Digital A3+: Sisi cetak terkunci otomatis 1 sisi (tidak tersedia 2 sisi) --}}
+                <input type="hidden" id="a3_print_side" name="print_side" value="1">
+            @else
+                <div class="sm:col-span-2">
+                    <label for="a3_print_side"
+                        class="block text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-1.5">
+                        Sisi Cetak <span class="text-red-500">*</span>
+                    </label>
+                    <select id="a3_print_side" name="print_side" required class="estimator-choice-source">
+                        <option value="">Pilih Sisi Cetak...</option>
+                        <option value="1">1 Sisi</option>
+                        <option value="2">2 Sisi (Bolak-Balik)</option>
+                    </select>
+                </div>
+            @endif
 
             <!-- Material Kertas / Stiker / Komponen Display -->
             <div class="sm:col-span-2">
