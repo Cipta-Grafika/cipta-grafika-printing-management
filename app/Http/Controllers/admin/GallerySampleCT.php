@@ -210,6 +210,12 @@ class GallerySampleCT extends Controller
                 'exists:m_categories,id',
             ],
 
+            'title_alias' => [
+                'nullable',
+                'string',
+                'max:255',
+            ],
+
             'images' => [
                 'required',
                 'array',
@@ -363,6 +369,7 @@ class GallerySampleCT extends Controller
         */
 
             $actor = Auth::user()->name;
+            $titleAlias = $request->filled('title_alias') ? trim($request->input('title_alias')) : null;
 
             /*
         |--------------------------------------------------------------------------
@@ -371,6 +378,13 @@ class GallerySampleCT extends Controller
         | Reset flag utama pada kombinasi mesin + kategori yang sama.
         |--------------------------------------------------------------------------
         */
+
+            DB::table('m_sample_galleries')
+                ->where('engine_id', $engineId)
+                ->where('category_id', $categoryId)
+                ->update([
+                    'title_alias' => $titleAlias,
+                ]);
 
             DB::table('m_sample_galleries')
                 ->where('engine_id', $engineId)
@@ -416,6 +430,7 @@ class GallerySampleCT extends Controller
                 DB::table('m_sample_galleries')->insert([
                     'engine_id'   => $engineId,
                     'category_id' => $categoryId,
+                    'title_alias' => $titleAlias,
                     'image_path'  => 'images/gallery-samples/' . $fileName,
                     'image_name'  => $image->getClientOriginalName(),
                     'image_hash'  => $imageHashes[$index],
@@ -520,7 +535,8 @@ class GallerySampleCT extends Controller
                 'g.engine_id',
                 'g.category_id',
                 'e.name as engine_name',
-                'c.name as category_name'
+                'c.name as category_name',
+                DB::raw('MAX(g.title_alias) as title_alias')
             )
             ->selectRaw('COUNT(g.id) as image_count')
             ->selectSub($cover, 'cover_image_id')
@@ -555,7 +571,8 @@ class GallerySampleCT extends Controller
 
             $query->where(function ($q) use ($keyword) {
                 $q->whereRaw('e.name ILIKE ?', [$keyword])
-                    ->orWhereRaw('c.name ILIKE ?', [$keyword]);
+                    ->orWhereRaw('c.name ILIKE ?', [$keyword])
+                    ->orWhereRaw('g.title_alias ILIKE ?', [$keyword]);
             });
         }
 
@@ -582,6 +599,7 @@ class GallerySampleCT extends Controller
                 'category_id'   => (int) $row->category_id,
                 'engine_name'   => $row->engine_name,
                 'category_name' => $row->category_name,
+                'title_alias'   => $row->title_alias,
                 'image_count'   => (int) $row->image_count,
                 'cover_url'     => $row->cover_image_id
                     ? route('admin_gallery_sample_image', $row->cover_image_id)
@@ -642,11 +660,14 @@ class GallerySampleCT extends Controller
             ->orderBy('name')
             ->get();
 
+        $titleAlias = $galleryImages->first()?->title_alias;
+
         return view(
             'admin.galery-sample.edit',
             compact(
                 'engine',
                 'category',
+                'titleAlias',
                 'galleryImages',
                 'engines',
                 'categories'
@@ -886,6 +907,12 @@ class GallerySampleCT extends Controller
                 'exists:m_categories,id',
             ],
 
+            'title_alias' => [
+                'nullable',
+                'string',
+                'max:255',
+            ],
+
             'existing_image_ids' => [
                 'nullable',
                 'array',
@@ -957,6 +984,8 @@ class GallerySampleCT extends Controller
 
         $targetCategoryId =
             (int) $validated['category_id'];
+
+        $titleAlias = $request->filled('title_alias') ? trim($request->input('title_alias')) : null;
 
 
         /*
@@ -1430,7 +1459,7 @@ class GallerySampleCT extends Controller
 
             /*
         |--------------------------------------------------------------------------
-        | RESET PRIMARY
+        | UPDATE TITLE ALIAS & RESET PRIMARY
         |--------------------------------------------------------------------------
         */
 
@@ -1438,6 +1467,7 @@ class GallerySampleCT extends Controller
                 ->where('engine_id', $targetEngineId)
                 ->where('category_id', $targetCategoryId)
                 ->update([
+                    'title_alias' => $titleAlias,
                     'is_primary' => false,
                     'updated_by' => $actor,
                     'updated_at' => now(),
@@ -1453,8 +1483,6 @@ class GallerySampleCT extends Controller
 
                 DB::table('m_sample_galleries')
                     ->where('id', $primaryExistingIds[0])
-                    ->where('engine_id', $engineId)
-                    ->where('category_id', $categoryId)
                     ->update([
                         'is_primary' => true,
                         'updated_by' => $actor,
@@ -1505,6 +1533,9 @@ class GallerySampleCT extends Controller
 
                     'category_id' =>
                     $targetCategoryId,
+
+                    'title_alias' =>
+                    $titleAlias,
 
                     'image_path' =>
                     'images/gallery-samples/' .
@@ -1668,11 +1699,14 @@ class GallerySampleCT extends Controller
     |--------------------------------------------------------------------------
     */
 
+        $titleAlias = $galleryImages->first()?->title_alias;
+
         return view(
             'admin.galery-sample.details',
             compact(
                 'engine',
                 'category',
+                'titleAlias',
                 'galleryImages'
             )
         );

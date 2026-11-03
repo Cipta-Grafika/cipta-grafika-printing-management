@@ -77,7 +77,7 @@
                                 },
                                 {
                                     key: "gallery-sample",
-                                    text: "Galeri Sampel",
+                                    text: "Produk Sampel",
                                     href: window.adminRoutes.gallery_samples,
                                 },
                                 {

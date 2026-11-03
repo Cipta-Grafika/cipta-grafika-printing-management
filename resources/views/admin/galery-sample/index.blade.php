@@ -7,7 +7,7 @@
             <div data-shell-topbar></div>
             <main class="content">
                 <section class="hero">
-                    <div class="hero-text"><span class="eyebrow">MASTER DATA · GALERI SAMPEL</span>
+                    <div class="hero-text"><span class="eyebrow">MASTER DATA · PRODUK SAMPEL</span>
                         {{-- <h1 class="hero-title">Daftar Material</h1> --}}
                         <p class="hero-sub">Kelola gambar contoh hasil cetak untuk setiap kategori produk sebagai
                             referensi visual saat membuat estimasi.</p>
@@ -19,7 +19,7 @@
                             <svg viewBox="0 0 24 24">
                                 <path d="M12 5v14M5 12h14" />
                             </svg>
-                            Tambah Galeri
+                            Tambah Produk Sampel
                         </a>
                     </div>
                 </section>
@@ -33,7 +33,7 @@
                             <div class="card-title-wrap">
 
                                 <span class="eyebrow">
-                                    Daftar Galeri Sampel
+                                    Daftar Produk Sampel
                                 </span>
 
                             </div>
@@ -146,11 +146,11 @@
 
                 <div>
                     <span class="eyebrow">
-                        MASTER DATA · GALERI SAMPEL
+                        MASTER DATA · PRODUK SAMPEL
                     </span>
                     <br>
                     <span class="eyebrow">
-                        Hapus Galeri Sampel
+                        Hapus Produk Sampel
                     </span>
                 </div>
 
@@ -176,7 +176,7 @@
                     <div class="delete-content">
 
                         <h3>
-                            Hapus Galeri Sampel?
+                            Hapus Produk Sampel?
                         </h3>
 
                         <p>
@@ -487,9 +487,7 @@
                     `;
 
                     const engineName = document.createElement('div');
-
                     engineName.textContent = item.engine_name;
-
                     engineName.style.cssText = `
                         font-weight: 600;
                         white-space: nowrap;
@@ -498,9 +496,7 @@
                     `;
 
                     const categoryName = document.createElement('div');
-
                     categoryName.textContent = item.category_name;
-
                     categoryName.style.cssText = `
                         margin-top: 2px;
                         font-size: 13px;
@@ -511,8 +507,22 @@
                     `;
 
                     info.appendChild(engineName);
-
                     info.appendChild(categoryName);
+
+                    if (item.title_alias) {
+                        const aliasInfo = document.createElement('div');
+                        aliasInfo.textContent = 'Alias web: ' + item.title_alias;
+                        aliasInfo.title = aliasInfo.textContent;
+                        aliasInfo.style.cssText = `
+                            margin-top: 4px;
+                            font-size: 11px;
+                            color: var(--primary, #2563eb);
+                            white-space: nowrap;
+                            overflow: hidden;
+                            text-overflow: ellipsis;
+                        `;
+                        info.appendChild(aliasInfo);
+                    }
 
                     /* ACTION BUTTONS */
                     const actions = document.createElement('div');

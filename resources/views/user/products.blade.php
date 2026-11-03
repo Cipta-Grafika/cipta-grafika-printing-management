@@ -84,13 +84,12 @@
                                 </div>
 
                                 <!-- =========================
-                                                                                        JENIS PENCETAKAN
-                                                                                    ========================== -->
+                                    KATEGORI PRODUK & LAYANAN
+                                ========================== -->
                                 <div>
                                     <p class="text-[11px] font-semibold tracking-[0.16em] uppercase text-zinc-400 mb-3">
-                                        Jenis Pencetakan
+                                        Kategori Produk & Layanan
                                     </p>
-
 
                                     <p x-show="filtersLoading" x-cloak class="text-xs text-zinc-400 mt-3">
                                         Memuat filter...
@@ -98,8 +97,8 @@
 
                                     <div class="space-y-3">
                                         <!-- =========================
-                                                                SEMUA
-                                                            ========================== -->
+                                            SEMUA PRODUK
+                                        ========================== -->
                                         <label
                                             class="flex items-center gap-3
                                                 cursor-pointer group
@@ -116,7 +115,6 @@
                                             <input type="radio" name="printType" value="all" x-model="printType"
                                                 class="sr-only">
 
-
                                             <!-- CUSTOM RADIO -->
                                             <div class="w-5 h-5 shrink-0 rounded-full border-2 flex items-center justify-center transition-all duration-200"
                                                 :class="printType === 'all'
@@ -125,7 +123,6 @@
                                                 <span x-show="printType === 'all'"
                                                     class="h-2.5 w-2.5 rounded-full bg-accent shadow-sm shadow-accent/40"></span>
                                             </div>
-
 
                                             <span
                                                 class="text-sm
@@ -137,12 +134,11 @@
                                                     ?
                                                     'font-semibold text-zinc-900 dark:text-white' :
                                                     ''">
-                                                Semua
+                                                Semua Produk
                                             </span>
                                         </label>
 
                                         <template x-for="engine in engines" :key="engine.id">
-
                                             <label
                                                 class="flex items-center gap-3
                                                     cursor-pointer group
@@ -158,7 +154,6 @@
 
                                                 <input type="radio" name="printType" :value="engine.id"
                                                     x-model="printType" class="sr-only">
-
 
                                                 <!-- CUSTOM RADIO -->
                                                 <div class="w-5 h-5 shrink-0 rounded-full border-2 flex items-center justify-center transition-all duration-200"
@@ -179,86 +174,6 @@
                                                         'font-semibold text-zinc-900 dark:text-white' :
                                                         ''"
                                                     x-text="engine.name">
-                                                </span>
-                                            </label>
-
-                                        </template>
-                                    </div>
-                                </div>
-
-                                <!-- DIVIDER -->
-                                <div class="border-t border-zinc-100 dark:border-zinc-800 my-5">
-                                </div>
-
-                                <!-- =========================
-                                                        KATEGORI PRODUK
-                                                    ========================== -->
-                                <div>
-                                    <p
-                                        class="text-[11px] font-semibold tracking-[0.16em] uppercase
-                                            text-zinc-400 mb-3">
-                                        Kategori Produk
-                                    </p>
-
-                                    <p x-show="filtersLoading" x-cloak class="text-xs text-zinc-400 mt-3">
-                                        Memuat filter...
-                                    </p>
-
-                                    <div class="space-y-3">
-                                        <template x-for="category in categories" :key="category.id">
-
-                                            <label
-                                                class="flex items-center gap-3
-                                                    cursor-pointer group
-                                                    px-3 py-2.5
-                                                    rounded-xl
-                                                    border
-                                                    border-transparent
-                                                    transition-all duration-200
-
-                                                    hover:bg-zinc-100
-                                                    dark:hover:bg-white/5"
-                                                :class="selectedCategories.includes(category.id) ?
-                                                    'bg-accent/10 border-accent/25 dark:bg-accent/10 dark:border-accent/25' :
-                                                    ''">
-
-                                                <!-- CHECKBOX ASLI -->
-                                                <input type="checkbox" :value="category.id" x-model="selectedCategories"
-                                                    class="peer sr-only">
-
-                                                <!-- CUSTOM CHECKBOX -->
-                                                <div
-                                                    class="w-5 h-5 shrink-0 rounded-md border-2 flex items-center justify-center transition-all duration-200 group-hover:border-accent"
-                                                    :style="selectedCategories.includes(category.id)
-                                                        ? 'border-color: #c2a857; background-color: rgba(194, 168, 87, 0.12); box-shadow: 0 0 0 2px rgba(194, 168, 87, 0.12);'
-                                                        : 'border-color: rgba(148, 163, 184, 0.55); background-color: transparent;'">
-
-                                                    <!-- CHECK ICON -->
-                                                    <svg x-show="selectedCategories.includes(category.id)"
-                                                        xmlns="http://www.w3.org/2000/svg"
-                                                        class="w-3.5 h-3.5 transition-transform duration-200"
-                                                        fill="none" viewBox="0 0 24 24" stroke="#c2a857"
-                                                        stroke-width="3.2">
-
-                                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                                            d="M5 12l4 4L19 6" />
-                                                    </svg>
-                                                </div>
-
-                                                <!-- CATEGORY NAME -->
-                                                <span
-                                                    class="text-sm
-                                                        text-zinc-600
-                                                        dark:text-zinc-400
-
-                                                        transition-colors duration-200
-
-                                                        group-hover:text-zinc-900
-                                                        dark:group-hover:text-white"
-                                                    :class="selectedCategories.includes(category.id) ?
-                                                        'font-semibold text-zinc-900 dark:text-white' :
-                                                        ''"
-                                                    x-text="category.name">
                                                 </span>
                                             </label>
                                         </template>
@@ -427,7 +342,7 @@
                                             aria-hidden="true"></div>
                                         <span
                                             class="absolute top-3 left-3 max-w-[75%] truncate rounded-full border border-white/25 bg-zinc-950/45 px-3 py-1.5 text-[11px] font-medium text-white backdrop-blur-md"
-                                            x-text="p.engine_name || 'Large Format'">
+                                            x-text="p.type === 'display' ? 'Display' : (p.engine_name || 'Large Format')">
                                         </span>
                                         <span
                                             class="absolute top-3 right-3 flex h-9 w-9 items-center justify-center rounded-full border border-white/25 bg-zinc-950/40 text-white backdrop-blur-md transition-all duration-300 group-hover:border-accent group-hover:bg-accent"

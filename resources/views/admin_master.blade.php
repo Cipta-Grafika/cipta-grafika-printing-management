@@ -41,7 +41,7 @@
     <script defer="defer" src="{{ asset('js/vendor-fullcalendar.js') }}"></script>
     <script defer="defer" src="{{ asset('js/vendor-chartjs.js') }}"></script>
     <script defer="defer" src="{{ asset('js/vendors.js') }}"></script>
-    <script defer="defer" src="{{ asset('js/2026.js') }}"></script>
+    <script defer="defer" src="{{ asset('js/2026.js') }}?v={{ filemtime(public_path('js/2026.js')) }}"></script>
     <script defer="defer" src="{{ asset('js/sidebar-collapse.js') }}"></script>
     {{-- <script defer="defer" src="{{ asset('js/nav-section-collapse.js') }}"></script> --}}
 
@@ -404,19 +404,19 @@
 
         'admin_gallery_samples' => [
             'active' => 'gallery-sample',
-            'crumbs' => 'Master Data | Galeri Sampel',
+            'crumbs' => 'Master Data | Produk Sampel',
         ],
         'admin_create_gallery_samples' => [
             'active' => 'gallery-sample',
-            'crumbs' => 'Master Data | Galeri Sampel',
+            'crumbs' => 'Master Data | Produk Sampel',
         ],
         'admin_gallery_samples_details' => [
             'active' => 'gallery-sample',
-            'crumbs' => 'Master Data | Galeri Sampel',
+            'crumbs' => 'Master Data | Produk Sampel',
         ],
         'admin_gallery_samples_edit' => [
             'active' => 'gallery-sample',
-            'crumbs' => 'Master Data | Galeri Sampel',
+            'crumbs' => 'Master Data | Produk Sampel',
         ],
 
         'admin_offset_master' => [

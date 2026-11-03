@@ -16,7 +16,7 @@
                     <div class="hero-text">
 
                         <span class="eyebrow">
-                            MASTER · GALERI SAMPEL
+                            MASTER · PRODUK SAMPEL
                         </span>
 
                         <p class="hero-sub">
@@ -36,7 +36,7 @@
                             <div class="card-title-wrap">
 
                                 <span class="eyebrow">
-                                    Informasi Galeri Sampel
+                                    Informasi Produk Sampel
                                 </span>
 
                             </div>
@@ -49,7 +49,7 @@
                             @csrf
 
                             {{-- =========================================================
-                            INFORMASI GALERI SAMPEL
+                            INFORMASI PRODUK SAMPEL
                         ========================================================== --}}
 
                             <div class="form-grid">
@@ -78,6 +78,19 @@
 
                                 </div>
 
+                            </div>
+
+                            {{-- ALIAS JUDUL / TITLE CARD PRODUK --}}
+                            <div class="field" style="margin-top: 16px;">
+                                <label class="field-label" for="title_alias">
+                                    Alias Judul Card Produk <span style="font-weight: 400; color: var(--t-muted);">(Opsional)</span>
+                                </label>
+                                <input type="text" id="title_alias" name="title_alias" class="input"
+                                    placeholder="Contoh: Spanduk Flexi Korea, Banner Roll Up Outdoor, Brosur Premium..."
+                                    value="{{ old('title_alias') }}">
+                                <span style="display: block; margin-top: 5px; font-size: 11px; color: var(--t-muted); line-height: 1.4;">
+                                    <i class="bi bi-info-circle me-1"></i> Jika diisi, teks ini akan menjadi judul utama kartu produk kustom di Landing Page &amp; Katalog Produk. Jika dikosongkan, judul kartu default menggunakan nama Kategori.
+                                </span>
                             </div>
 
 
@@ -561,7 +574,7 @@
 
             /*
             |--------------------------------------------------------------------------
-            | SUBMIT GALERI SAMPEL
+            | SUBMIT PRODUK SAMPEL
             |--------------------------------------------------------------------------
             */
 

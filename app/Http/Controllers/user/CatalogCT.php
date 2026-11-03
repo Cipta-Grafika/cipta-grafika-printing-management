@@ -129,7 +129,8 @@ class CatalogCT extends Controller
                 'g.engine_id',
                 'g.category_id',
                 'e.name as engine_name',
-                'c.name as category_name'
+                'c.name as category_name',
+                DB::raw('MAX(g.title_alias) as title_alias')
             )
             ->selectSub($galleryCover, 'cover_image_id')
             ->groupBy(
@@ -144,16 +145,18 @@ class CatalogCT extends Controller
             ->get();
 
         $galleryItems = $galleryRows->map(function ($row) {
+            $displayTitle = !empty(trim($row->title_alias ?? '')) ? trim($row->title_alias) : $row->category_name;
             return [
                 'type'          => 'gallery',
                 'id'            => (int) $row->category_id,
                 'engine_id'     => (int) $row->engine_id,
-                'title'         => $row->category_name,
+                'title'         => $displayTitle,
+                'title_alias'   => $row->title_alias,
                 'category_name' => $row->category_name,
                 'engine_name'   => $row->engine_name,
                 'length'        => null,
                 'width'         => null,
-                'desc'          => 'Contoh hasil cetak kategori ' . $row->category_name .
+                'desc'          => 'Contoh hasil cetak ' . $displayTitle .
                     ' dengan ' . $row->engine_name . '.',
                 'cover_url'     => $row->cover_image_id
                     ? route('user_gallery_image', $row->cover_image_id)
@@ -304,11 +307,33 @@ class CatalogCT extends Controller
 
     public function filters()
     {
+        $engineLabelMap = [
+            'digital print a3+' => 'Cetak Lembaran (A3+)',
+            'large format'      => 'Spanduk & Format Besar',
+        ];
+
+        $serviceOptions = [];
+
+        // 1. Format Cetak Mesin
         $engines = DB::table('m_engines')
             ->select('id', 'name')
             ->where('status', 'Active')
             ->orderBy('name', 'asc')
             ->get();
+
+        foreach ($engines as $engine) {
+            $key = strtolower(trim($engine->name));
+            $serviceOptions[] = [
+                'id'   => (string) $engine->id,
+                'name' => $engineLabelMap[$key] ?? $engine->name,
+            ];
+        }
+
+        // 2. Display Promosi & Produk Non-Mesin
+        $serviceOptions[] = [
+            'id'   => 'display',
+            'name' => 'Display Promosi',
+        ];
 
         $categories = DB::table('m_categories')
             ->select('id', 'name')
@@ -318,7 +343,7 @@ class CatalogCT extends Controller
         return response()->json([
             'success' => true,
             'data' => [
-                'engines' => $engines,
+                'engines' => $serviceOptions,
                 'categories' => $categories,
             ],
         ]);
@@ -433,7 +458,8 @@ class CatalogCT extends Controller
                 'g.engine_id',
                 'g.category_id',
                 'e.name as engine_name',
-                'c.name as category_name'
+                'c.name as category_name',
+                DB::raw('MAX(g.title_alias) as title_alias')
             )
             ->selectSub($galleryCover, 'cover_image_id')
             ->groupBy(
@@ -447,15 +473,17 @@ class CatalogCT extends Controller
             ->get();
 
         $galleryItems = $galleryRows->map(function ($row) {
+            $displayTitle = !empty(trim($row->title_alias ?? '')) ? trim($row->title_alias) : $row->category_name;
             return [
                 'key'           => 'gallery-' . $row->engine_id . '-' . $row->category_id,
                 'type'          => 'gallery',
                 'engine_id'     => (int) $row->engine_id,
                 'category_id'   => (int) $row->category_id,
-                'title'         => $row->category_name,
+                'title'         => $displayTitle,
+                'title_alias'   => $row->title_alias,
                 'category_name' => $row->category_name,
                 'engine_name'   => $row->engine_name,
-                'desc'          => 'Contoh hasil cetak kategori ' . $row->category_name .
+                'desc'          => 'Contoh hasil cetak ' . $displayTitle .
                     ' dengan ' . $row->engine_name . '.',
                 'cover_url'     => $row->cover_image_id
                     ? route('user_gallery_image', $row->cover_image_id)
@@ -726,6 +754,7 @@ class CatalogCT extends Controller
         $galleryRows = $galleryQuery
             ->select(
                 'g.id',
+                'g.title_alias',
                 'c.name as category_name',
                 'e.name as engine_name'
             )
@@ -746,17 +775,19 @@ class CatalogCT extends Controller
         */
 
         $engineName = $engineId ? $firstRow->engine_name : null;
+        $displayTitle = !empty(trim($firstRow->title_alias ?? '')) ? trim($firstRow->title_alias) : $firstRow->category_name;
 
         $product = [
             'type'   => 'gallery',
-            'title'  => $firstRow->category_name,
+            'title'  => $displayTitle,
+            'title_alias' => $firstRow->title_alias,
             'label'  => $engineId ? $firstRow->engine_name : 'Contoh Hasil Cetak',
             'images' => $galleryRows->map(function ($row) {
                 return route('user_gallery_image', $row->id);
             })->values()->all(),
             'basketItem' => [
                 'id' => 'gallery-' . ($engineId ? $engineId . '-' : '') . $categoryId,
-                'title' => $firstRow->category_name,
+                'title' => $displayTitle,
                 'category' => $firstRow->category_name,
                 'printType' => $engineName ?? 'Large Format',
                 'printTypeLabel' => $engineName ?? 'Large Format',

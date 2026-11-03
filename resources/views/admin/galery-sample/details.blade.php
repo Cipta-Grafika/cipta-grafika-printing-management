@@ -17,11 +17,11 @@
                     <div class="hero-text">
 
                         <span class="eyebrow">
-                            MASTER DATA · GALERI SAMPEL
+                            MASTER DATA · PRODUK SAMPEL
                         </span>
 
                         <h1>
-                            Detail Galeri Sampel
+                            Detail Produk Sampel
                         </h1>
 
                         <p class="hero-sub">
@@ -75,6 +75,18 @@
 
                                 <div class="input">
                                     {{ $category->name }}
+                                </div>
+
+                            </div>
+
+                            <div class="field" style="grid-column: 1 / -1;">
+
+                                <label class="field-label">
+                                    Alias Judul Card Produk
+                                </label>
+
+                                <div class="input">
+                                    {{ !empty($titleAlias) ? $titleAlias : $category->name . ' (Default Menggunakan Nama Kategori)' }}
                                 </div>
 
                             </div>

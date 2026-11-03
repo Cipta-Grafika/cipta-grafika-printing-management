@@ -2198,6 +2198,15 @@
                         const matchPrintType =
                             this.printType === 'all' ||
                             (
+                                this.printType === 'display' &&
+                                (
+                                    project.type === 'display' ||
+                                    project.engine_id === null ||
+                                    project.type === 'calendar' ||
+                                    project.type === 'offset'
+                                )
+                            ) ||
+                            (
                                 project.engine_id !== null &&
                                 String(project.engine_id) === this.printType
                             );
