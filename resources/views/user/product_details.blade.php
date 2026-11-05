@@ -84,6 +84,82 @@
             cursor: not-allowed;
             opacity: 0.5;
         }
+
+        /* Custom Modern Estimator Checkbox (Smooth & Elegant) */
+        .custom-checkbox-card {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .custom-checkbox-box {
+            box-sizing: border-box;
+            transition: all 0.2s ease-in-out;
+        }
+        .custom-checkbox-card:hover .custom-checkbox-box {
+            border-color: #c2a857 !important;
+            background-color: rgba(194, 168, 87, 0.15) !important;
+        }
+        .custom-checkbox-input:checked + .custom-checkbox-box {
+            background-color: #c2a857 !important;
+            border-color: #c2a857 !important;
+            box-shadow: 0 0 12px rgba(194, 168, 87, 0.45) !important;
+        }
+        .custom-checkbox-input:checked + .custom-checkbox-box i {
+            opacity: 1 !important;
+            transform: scale(1) !important;
+            color: #ffffff !important;
+        }
+        .custom-checkbox-card:has(.custom-checkbox-input:checked) {
+            border-color: #c2a857 !important;
+            background-color: rgba(194, 168, 87, 0.08) !important;
+        }
+        .dark .custom-checkbox-card:has(.custom-checkbox-input:checked) {
+            border-color: #c2a857 !important;
+            background-color: rgba(194, 168, 87, 0.14) !important;
+        }
+        .custom-checkbox-input:focus-visible + .custom-checkbox-box {
+            outline: 2px solid #c2a857;
+            outline-offset: 2px;
+        }
+
+        /* Preset Quick Qty Buttons (Gold Active & Smooth Hover) */
+        .nota-quick-qty,
+        .nametag-quick-qty,
+        .plakat-quick-qty,
+        .lanyard-quick-qty {
+            transition: all 0.15s ease-in-out;
+        }
+        .nota-quick-qty:not(.is-active):hover,
+        .nametag-quick-qty:not(.is-active):hover,
+        .plakat-quick-qty:not(.is-active):hover,
+        .lanyard-quick-qty:not(.is-active):hover,
+        .dark .nota-quick-qty:not(.is-active):hover,
+        .dark .nametag-quick-qty:not(.is-active):hover,
+        .dark .plakat-quick-qty:not(.is-active):hover,
+        .dark .lanyard-quick-qty:not(.is-active):hover {
+            border-color: #c2a857 !important;
+            color: #c2a857 !important;
+            background-color: rgba(194, 168, 87, 0.12) !important;
+        }
+        .nota-quick-qty.is-active,
+        .nota-quick-qty.is-active:hover,
+        .dark .nota-quick-qty.is-active,
+        .dark .nota-quick-qty.is-active:hover,
+        .nametag-quick-qty.is-active,
+        .nametag-quick-qty.is-active:hover,
+        .dark .nametag-quick-qty.is-active,
+        .dark .nametag-quick-qty.is-active:hover,
+        .plakat-quick-qty.is-active,
+        .plakat-quick-qty.is-active:hover,
+        .dark .plakat-quick-qty.is-active,
+        .dark .plakat-quick-qty.is-active:hover,
+        .lanyard-quick-qty.is-active,
+        .lanyard-quick-qty.is-active:hover,
+        .dark .lanyard-quick-qty.is-active,
+        .dark .lanyard-quick-qty.is-active:hover {
+            background-color: #c2a857 !important;
+            color: #ffffff !important;
+            border-color: #c2a857 !important;
+            box-shadow: 0 0 10px rgba(194, 168, 87, 0.35) !important;
+        }
     </style>
 
     <script>
@@ -873,6 +949,14 @@
                     @include('user.partials.calendar_estimator')
                 @elseif (!empty($estimator['isBrochure']))
                     @include('user.partials.brosur_estimator')
+                @elseif (!empty($estimator['isLanyard']))
+                    @include('user.partials.lanyard_estimator')
+                @elseif (!empty($estimator['isNameTag']))
+                    @include('user.partials.nametag_estimator')
+                @elseif (!empty($estimator['isPlakat']))
+                    @include('user.partials.plakat_estimator')
+                @elseif (!empty($estimator['isNota']))
+                    @include('user.partials.nota_estimator')
                 @elseif (!empty($estimator['isA3Plus']))
                     @include('user.partials.a3_plus_estimator')
                 @elseif ($product['label'] === 'Display' || $product['label'] === 'Large Format' || !empty($estimator['isLargeFormat']))
@@ -1816,6 +1900,14 @@
             @include('user.partials.calendar_estimator_scripts')
         @elseif (!empty($estimator['isBrochure']))
             @include('user.partials.brosur_estimator_scripts')
+        @elseif (!empty($estimator['isLanyard']))
+            @include('user.partials.lanyard_estimator_scripts')
+        @elseif (!empty($estimator['isNameTag']))
+            @include('user.partials.nametag_estimator_scripts')
+        @elseif (!empty($estimator['isPlakat']))
+            @include('user.partials.plakat_estimator_scripts')
+        @elseif (!empty($estimator['isNota']))
+            @include('user.partials.nota_estimator_scripts')
         @elseif (!empty($estimator['isA3Plus']))
             @include('user.partials.a3_plus_estimator_scripts')
         @else

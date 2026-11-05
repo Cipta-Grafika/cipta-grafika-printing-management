@@ -18,6 +18,9 @@ use App\Http\Controllers\admin\FinishingServiceCT;
 use App\Http\Controllers\admin\GallerySampleCT;
 use App\Http\Controllers\admin\LaminationCT;
 use App\Http\Controllers\admin\LaminationPricingRuleCT;
+use App\Http\Controllers\admin\MerchandiseEstimationCT;
+use App\Http\Controllers\admin\MerchandiseMasterCT;
+use App\Http\Controllers\admin\NotaMasterCT;
 use App\Http\Controllers\admin\LocationCT;
 use App\Http\Controllers\admin\MaterialCT;
 use App\Http\Controllers\admin\MaterialPriceCT;
@@ -227,6 +230,10 @@ Route::middleware('auth')->group(function () {
     // Cetak Kalender Estimation
     Route::get('/admin/estimations/create-calendar', [CalendarEstimationCT::class, 'create'])->name('admin_create_calendar_estimation');
     Route::post('/admin/estimations/calculate-calendar', [CalendarEstimationCT::class, 'calculate'])->name('admin_calculate_calendar_estimate');
+
+    // Merchandise Custom Estimation
+    Route::get('/admin/estimations/create-merchandise', [MerchandiseEstimationCT::class, 'create'])->name('admin_create_merchandise_estimation');
+    Route::post('/admin/estimations/calculate-merchandise', [MerchandiseEstimationCT::class, 'calculate'])->name('admin_calculate_merchandise_estimate');
     Route::get('/admin/estimation/create-lf/get-material-sizes', [EstimationCT::class, 'getMaterialSizes'])->name('admin_get_material_sizes');
     Route::get('/admin/estimation/create-lf/get-laminations', [EstimationCT::class, 'getLaminations'])->name('admin_get_laminations');
     Route::get('/admin/estimation/create-lf/get-lamination-sizes', [EstimationCT::class, 'getLaminationSizes'])->name('admin_get_laminations_sizes');
@@ -426,6 +433,44 @@ Route::middleware('auth')->group(function () {
     Route::delete('/admin/calendar-master/delete-material/{id}', [CalendarMasterCT::class, 'destroyMaterial'])->name('admin_delete_calendar_material');
     Route::delete('/admin/calendar-master/delete-component/{id}', [CalendarMasterCT::class, 'destroyComponent'])->name('admin_delete_calendar_component');
     Route::delete('/admin/calendar-master/delete-rule/{id}', [CalendarMasterCT::class, 'destroyRule'])->name('admin_delete_calendar_rule');
+
+    /*
+    |--------------------------------------------------------------------------
+    | MASTER DATA - MERCHANDISE (LANYARD, PAPAN NAMA, PLAKAT)
+    |--------------------------------------------------------------------------
+    */
+    Route::get('/admin/merchandise-master', [MerchandiseMasterCT::class, 'index'])->name('admin_merchandise_master');
+    Route::post('/admin/merchandise-master/store-lanyard', [MerchandiseMasterCT::class, 'storeLanyardTier'])->name('admin_store_merchandise_lanyard_tier');
+    Route::put('/admin/merchandise-master/update-lanyard/{id}', [MerchandiseMasterCT::class, 'updateLanyardTier'])->name('admin_update_merchandise_lanyard_tier');
+    Route::delete('/admin/merchandise-master/delete-lanyard/{id}', [MerchandiseMasterCT::class, 'destroyLanyardTier'])->name('admin_destroy_merchandise_lanyard_tier');
+
+    // Name Tag (Papan Nama) CRUD routes
+    Route::post('/admin/merchandise-master/store-nametag', [MerchandiseMasterCT::class, 'storeNameTag'])->name('admin_store_merchandise_nametag');
+    Route::put('/admin/merchandise-master/update-nametag/{id}', [MerchandiseMasterCT::class, 'updateNameTag'])->name('admin_update_merchandise_nametag');
+    Route::delete('/admin/merchandise-master/delete-nametag/{id}', [MerchandiseMasterCT::class, 'destroyNameTag'])->name('admin_destroy_merchandise_nametag');
+
+    // Plakat (Akrilik & Kayu) CRUD routes
+    Route::post('/admin/merchandise-master/store-plakat', [MerchandiseMasterCT::class, 'storePlakat'])->name('admin_store_merchandise_plakat');
+    Route::put('/admin/merchandise-master/update-plakat/{id}', [MerchandiseMasterCT::class, 'updatePlakat'])->name('admin_update_merchandise_plakat');
+    Route::delete('/admin/merchandise-master/delete-plakat/{id}', [MerchandiseMasterCT::class, 'destroyPlakat'])->name('admin_destroy_merchandise_plakat');
+
+    // Buku Nota (NCR & HVS) CRUD routes di Merchandise
+    Route::post('/admin/merchandise-master/store-nota', [MerchandiseMasterCT::class, 'storeNota'])->name('admin_store_merchandise_nota');
+    Route::put('/admin/merchandise-master/update-nota/{id}', [MerchandiseMasterCT::class, 'updateNota'])->name('admin_update_merchandise_nota');
+    Route::delete('/admin/merchandise-master/delete-nota/{id}', [MerchandiseMasterCT::class, 'destroyNota'])->name('admin_destroy_merchandise_nota');
+
+    // Alias redirect untuk lanyard master & nota master
+    Route::get('/admin/lanyard-master', function() {
+        return redirect()->route('admin_merchandise_master', ['tab' => 'lanyard']);
+    })->name('admin_lanyard_master');
+
+    Route::get('/admin/nota-master', function() {
+        return redirect()->route('admin_merchandise_master', ['tab' => 'nota']);
+    })->name('admin_nota_master');
+
+    Route::post('/admin/nota-master/store-nota', [MerchandiseMasterCT::class, 'storeNota'])->name('admin_store_nota');
+    Route::put('/admin/nota-master/update-nota/{id}', [MerchandiseMasterCT::class, 'updateNota'])->name('admin_update_nota');
+    Route::delete('/admin/nota-master/delete-nota/{id}', [MerchandiseMasterCT::class, 'destroyNota'])->name('admin_destroy_nota');
 
     /*
     |--------------------------------------------------------------------------

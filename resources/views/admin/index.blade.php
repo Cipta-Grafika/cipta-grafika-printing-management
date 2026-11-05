@@ -155,6 +155,31 @@
             --btn-color: #6d28d9;
         }
 
+        /* Theme: Merchandise & Custom Gift (Amber / Gold Accent) */
+        .estimator-card.theme-merchandise {
+            --accent: #f59e0b;
+            --accent-glow: rgba(245, 158, 11, 0.28);
+            --visual-bg: linear-gradient(135deg, rgba(245, 158, 11, 0.18) 0%, rgba(245, 158, 11, 0.04) 100%);
+            --card-border: rgba(245, 158, 11, 0.35);
+            --card-shadow: rgba(0, 0, 0, 0.3);
+            --chip-bg: rgba(245, 158, 11, 0.1);
+            --chip-border: rgba(245, 158, 11, 0.3);
+            --chip-color: #fcd34d;
+            --btn-bg: rgba(255, 255, 255, 0.04);
+            --btn-border: var(--border);
+            --btn-color: var(--t-base);
+        }
+        [data-theme="light"] .estimator-card.theme-merchandise {
+            --card-border: rgba(245, 158, 11, 0.4);
+            --card-shadow: rgba(245, 158, 11, 0.1);
+            --chip-bg: rgba(245, 158, 11, 0.08);
+            --chip-border: rgba(245, 158, 11, 0.28);
+            --chip-color: #b45309;
+            --btn-bg: #fffbeb;
+            --btn-border: rgba(245, 158, 11, 0.38);
+            --btn-color: #b45309;
+        }
+
         /* Default Fallback */
         .estimator-card.theme-default {
             --accent: #64748b;
@@ -365,7 +390,7 @@
             border-radius: 8px;
             font-size: 12.5px;
             font-weight: 700;
-            color: var(--btn-color);
+            color: var(--btn-color) !important;
             background: var(--btn-bg);
             border: 1.5px solid var(--btn-border);
             text-decoration: none;
@@ -385,6 +410,24 @@
             color: #ffffff !important;
             border-color: var(--accent);
             box-shadow: 0 6px 18px var(--accent-glow);
+            transform: translateY(-2px);
+        }
+
+        /* Khusus Card Merchandise di Tema Dark: Border tombol Buat Estimasi jangan emas (baik normal maupun hover) */
+        [data-theme="dark"] .estimator-card.theme-merchandise .estimator-card__action,
+        :root:not([data-theme="light"]) .estimator-card.theme-merchandise .estimator-card__action {
+            background: rgba(59, 130, 246, 0.12) !important;
+            border: 1.5px solid rgba(59, 130, 246, 0.35) !important;
+            color: #60a5fa !important;
+            box-shadow: none !important;
+        }
+
+        [data-theme="dark"] .estimator-card.theme-merchandise .estimator-card__action:hover,
+        :root:not([data-theme="light"]) .estimator-card.theme-merchandise .estimator-card__action:hover {
+            background: #3b82f6 !important;
+            border: 1.5px solid #3b82f6 !important;
+            color: #ffffff !important;
+            box-shadow: 0 6px 18px rgba(59, 130, 246, 0.35) !important;
             transform: translateY(-2px);
         }
 
@@ -673,6 +716,71 @@
 
                             {{-- ACTION BUTTON --}}
                             <a href="{{ route('admin_create_calendar_estimation') }}" class="estimator-card__action">
+                                <span>Buat Estimasi</span>
+                                <span class="action-arrow">
+                                    <i class="bi bi-arrow-right"></i>
+                                </span>
+                            </a>
+
+                        </div>
+
+                    </article>
+
+                    {{-- 4. MERCHANDISE & CUSTOM GIFT (LANYARD, NAMETAG, PLAKAT, NOTA) --}}
+                    <article class="estimator-card theme-merchandise">
+
+                        <div class="estimator-card__visual">
+
+                            <div class="estimator-card__icon-wrap">
+                                {{-- Gift / Ribbon / Badge SVG Icon --}}
+                                <svg viewBox="0 0 24 24" fill="none">
+                                    <polyline points="20 12 20 22 4 22 4 12" />
+                                    <rect width="20" height="5" x="2" y="7" />
+                                    <line x1="12" x2="12" y1="22" y2="7" />
+                                    <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z" />
+                                    <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z" />
+                                </svg>
+                            </div>
+
+                            <div class="estimator-card__watermark">
+                                <i class="bi bi-gift"></i>
+                            </div>
+
+                            <div class="estimator-status-badge">
+                                <span class="dot"></span>
+                                <span>Aktif</span>
+                            </div>
+
+                        </div>
+
+                        <div class="estimator-card__content">
+
+                            <span class="estimator-card__eyebrow">MERCHANDISE &amp; GIFT</span>
+
+                            <h2 class="estimator-card__title">Merchandise &amp; Custom</h2>
+
+                            <p class="estimator-card__description">
+                                Kalkulasi instan Tali Lanyard &amp; ID Card (24 tier), Papan Nama Dada, Plakat Akrilik UV &amp; Kayu, serta Buku Nota NCR &amp; HVS.
+                            </p>
+
+                            {{-- FEATURE CHIPS --}}
+                            <div class="estimator-chips">
+                                <span class="estimator-chip" title="Tali Lanyard & ID Card (24 Tier)">
+                                    <i class="bi bi-person-badge"></i>
+                                    <span>Tali Lanyard &amp; ID Card</span>
+                                </span>
+                                <span class="estimator-chip" title="Plakat Akrilik & Kayu">
+                                    <i class="bi bi-trophy"></i>
+                                    <span>Plakat Akrilik &amp; Kayu</span>
+                                </span>
+                                <span class="estimator-chip" title="Papan Nama & Nota NCR">
+                                    <i class="bi bi-journal-text"></i>
+                                    <span>Papan Nama &amp; Nota NCR</span>
+                                </span>
+                            </div>
+
+                            {{-- ACTION BUTTON --}}
+                            <a href="{{ route('admin_create_merchandise_estimation') }}" class="estimator-card__action">
                                 <span>Buat Estimasi</span>
                                 <span class="action-arrow">
                                     <i class="bi bi-arrow-right"></i>

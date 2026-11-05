@@ -13,7 +13,11 @@
     @hasSection('meta_image')
         <meta property="og:image" content="@yield('meta_image')">
     @endif
-    <meta name="twitter:card" content="@hasSection('meta_image') summary_large_image @else summary @endif">
+    <meta name="twitter:card" content="@hasSection('meta_image')
+summary_large_image
+@else
+summary
+@endif">
     <meta name="twitter:title" content="@yield('meta_title', 'Cipta Grafika')">
     <meta name="twitter:description" content="@yield('meta_description', 'Layanan percetakan dan estimasi harga dari Cipta Grafika.')">
     @hasSection('meta_image')
@@ -33,6 +37,7 @@
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="{{ asset('vendor/select2/select2.min.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -178,21 +183,32 @@
 
         /* skeleton shimmer */
         @@keyframes skeletonWave {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
+            0% {
+                transform: translateX(-100%);
+            }
+
+            100% {
+                transform: translateX(100%);
+            }
         }
+
         .skeleton-wave {
             position: relative;
             overflow: hidden;
         }
+
         .skeleton-wave::after {
             position: absolute;
-            top: 0; right: 0; bottom: 0; left: 0;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
             transform: translateX(-100%);
             background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.45), transparent);
             animation: skeletonWave 1.6s infinite;
             content: '';
         }
+
         .dark .skeleton-wave::after {
             background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.09), transparent);
         }
@@ -337,7 +353,9 @@
             background: #16294d !important;
         }
 
-        .dark .bg-zinc-850 {
+        .dark .bg-zinc-850,
+        .dark .dark\:bg-zinc-850,
+        .dark\:bg-zinc-850:is(.dark *) {
             background: #16294d !important;
             color-scheme: dark !important;
         }
@@ -363,6 +381,31 @@
         }
 
         /* Dark mode */
+
+        /* SweetAlert Dark Mode & Theme */
+        .dark .swal2-popup {
+            background-color: #16294d !important;
+            color: #ffffff !important;
+            border: 1px solid rgba(255, 255, 255, 0.15) !important;
+        }
+
+        .dark .swal2-title {
+            color: #ffffff !important;
+        }
+
+        .dark .swal2-html-container {
+            color: #cbd5e1 !important;
+        }
+
+        .swal2-confirm {
+            background-color: #c2a857 !important;
+            color: #ffffff !important;
+        }
+
+        .swal2-confirm:hover {
+            background-color: #9f873f !important;
+        }
+
         html.dark select option {
             background-color: #27487f !important;
             color: #fff !important;
@@ -1103,6 +1146,7 @@
                 width: 100%;
             }
         }
+
         .nav-action {
             display: inline-flex;
             align-items: center;
@@ -1185,12 +1229,14 @@
 
                 <div class="flex items-center gap-3">
                     <!-- CART -->
-                    <a href="{{ route('user_baskets') }}"
-                        class="nav-action"
-                        aria-label="Keranjang" title="Keranjang">
+                    <a href="{{ route('user_baskets') }}" class="nav-action relative" aria-label="Keranjang"
+                        title="Keranjang">
+                        <span x-show="baskets.length > 0" x-text="baskets.length"
+                            class="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-accent text-white text-[10px] font-bold flex items-center justify-center leading-none shadow-sm"
+                            style="display: none;"></span>
 
-                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24"
-                            stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                            stroke-width="1.8" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M3 3h2l2.4 12h11.2l2-8H6M9 19h.01M17 19h.01" />
                             <circle cx="9" cy="19" r="1.5" />
@@ -1200,8 +1246,7 @@
                     </a>
 
                     <!-- dark toggle -->
-                    <button type="button" @click="dark=!dark"
-                        class="nav-action"
+                    <button type="button" @click="dark=!dark" class="nav-action"
                         :title="dark ? 'Aktifkan tema terang' : 'Aktifkan tema gelap'"
                         :aria-label="dark ? 'Light mode' : 'Dark mode'">
                         <svg x-show="!dark" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
@@ -1255,12 +1300,14 @@
                 </ul>
                 <div class="flex items-center gap-3">
                     <!-- CART -->
-                    <a href="{{ route('user_baskets') }}"
-                        class="nav-action"
-                        aria-label="Keranjang" title="Keranjang">
+                    <a href="{{ route('user_baskets') }}" class="nav-action relative" aria-label="Keranjang"
+                        title="Keranjang">
+                        <span x-show="baskets.length > 0" x-text="baskets.length"
+                            class="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-accent text-white text-[10px] font-bold flex items-center justify-center leading-none shadow-sm"
+                            style="display: none;"></span>
 
-                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24"
-                            stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                            stroke-width="1.8" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M3 3h2l2.4 12h11.2l2-8H6M9 19h.01M17 19h.01" />
                             <circle cx="9" cy="19" r="1.5" />
@@ -1269,8 +1316,7 @@
 
                     </a>
 
-                    <button type="button" @click="dark=!dark"
-                        class="nav-action"
+                    <button type="button" @click="dark=!dark" class="nav-action"
                         :title="dark ? 'Aktifkan tema terang' : 'Aktifkan tema gelap'"
                         :aria-label="dark ? 'Light mode' : 'Dark mode'">
                         <svg x-show="!dark" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none"
@@ -1362,9 +1408,13 @@
 
     <footer class="border-t border-zinc-100 dark:border-zinc-900">
         <div class="max-w-6xl mx-auto px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p class="text-sm text-zinc-400">© <span id="yr"></span> Cipta Grafika. All rights reserved. <br>
+            {{-- <p class="text-sm text-zinc-400">© <span id="yr"></span> Cipta Grafika. All rights reserved. <br>
                 Developed by <span class="font-bold">Agus
-                    Faisal</span></p>
+                    Faisal</span></p> --}}
+
+            <p class="text-sm text-zinc-400">
+                © <span id="yr"></span> Cipta Grafika. All rights reserved.
+            </p>
         </div>
     </footer>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
@@ -1376,8 +1426,128 @@
                 mm: false,
                 sc: false,
                 s: 'hero',
+                baskets: [],
+
+                loadBaskets() {
+                    const savedBaskets = localStorage.getItem('baskets');
+                    if (savedBaskets) {
+                        try {
+                            this.baskets = JSON.parse(savedBaskets);
+                            const savedItemCount = this.baskets.length;
+                            this.baskets = this.baskets.filter(item => !(
+                                item.id === 4 &&
+                                item.title === 'Kartu Nama' &&
+                                item.category === 'Kartu Nama' &&
+                                item.printType === 'a3' &&
+                                item.printTypeLabel === 'Digital Print A3+'
+                            ));
+
+                            if (this.baskets.length !== savedItemCount) {
+                                this.saveBaskets();
+                            }
+                        } catch (error) {
+                            console.error('Gagal membaca basket:', error);
+                            this.baskets = [];
+                        }
+                    } else {
+                        this.baskets = [];
+                    }
+                },
+
+                saveBaskets() {
+                    localStorage.setItem('baskets', JSON.stringify(this.baskets));
+                    window.dispatchEvent(new CustomEvent('basket-updated'));
+                },
+
+                isInBasket(productId) {
+                    return this.baskets.some(item => item.id === productId);
+                },
+
+                addToBasket(product) {
+                    const existingItem = this.baskets.find(item => item.id === product.id);
+
+                    if (existingItem) {
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'info',
+                                title: 'Sudah di Keranjang',
+                                text: `"${product.title || 'Produk'}" sudah ada di dalam keranjang belanja Anda.`,
+                                confirmButtonText: 'Lihat Keranjang',
+                                confirmButtonColor: '#c2a857',
+                                showCancelButton: true,
+                                cancelButtonText: 'Tutup',
+                                cancelButtonColor: '#64748b',
+                                customClass: {
+                                    popup: 'rounded-2xl',
+                                    confirmButton: 'rounded-xl font-medium px-4 py-2.5',
+                                    cancelButton: 'rounded-xl font-medium px-4 py-2.5'
+                                }
+                            }).then((res) => {
+                                if (res.isConfirmed) {
+                                    window.location.href = "{{ route('user_baskets') }}";
+                                }
+                            });
+                        }
+                        return;
+                    }
+
+                    this.baskets.push({
+                        ...product,
+                        quantity: 1
+                    });
+
+                    this.saveBaskets();
+
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil Masuk Keranjang!',
+                            text: `"${product.title || 'Produk'}" berhasil ditambahkan ke keranjang belanja Anda.`,
+                            showCancelButton: true,
+                            confirmButtonText: '<i class="bi bi-cart-check mr-1.5"></i> Lihat Keranjang',
+                            cancelButtonText: 'Lanjut Belanja',
+                            confirmButtonColor: '#c2a857',
+                            cancelButtonColor: '#64748b',
+                            reverseButtons: true,
+                            customClass: {
+                                popup: 'rounded-2xl',
+                                confirmButton: 'rounded-xl font-medium px-4 py-2.5',
+                                cancelButton: 'rounded-xl font-medium px-4 py-2.5'
+                            }
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                window.location.href = "{{ route('user_baskets') }}";
+                            }
+                        });
+                    }
+                },
+
+                removeFromBasket(productId) {
+                    const removedItem = this.baskets.find(item => item.id === productId);
+                    this.baskets = this.baskets.filter(item => item.id !== productId);
+                    this.saveBaskets();
+
+                    if (typeof Swal !== 'undefined') {
+                        const Toast = Swal.mixin({
+                            toast: true,
+                            position: 'top-end',
+                            showConfirmButton: false,
+                            timer: 2500,
+                            timerProgressBar: true
+                        });
+                        Toast.fire({
+                            icon: 'info',
+                            title: `"${removedItem ? removedItem.title : 'Produk'}" telah dihapus dari keranjang.`
+                        });
+                    }
+                },
 
                 init() {
+                    // load baskets
+                    this.loadBaskets();
+                    window.addEventListener('storage', () => this.loadBaskets());
+                    window.addEventListener('basket-updated', () => this.loadBaskets());
+
                     // dark mode
                     this.dark = localStorage.getItem('theme') === 'dark' ||
                         (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
@@ -2017,6 +2187,7 @@
                         'baskets',
                         JSON.stringify(this.baskets)
                     );
+                    window.dispatchEvent(new CustomEvent('basket-updated'));
 
                 },
 
@@ -2035,9 +2206,27 @@
 
                     if (existingItem) {
 
-                        console.log(
-                            'Produk sudah ada di keranjang'
-                        );
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'info',
+                                title: 'Sudah di Keranjang',
+                                text: `"${product.title || 'Produk'}" sudah ada di dalam keranjang belanja Anda.`,
+                                confirmButtonText: 'Lihat Keranjang',
+                                confirmButtonColor: '#c2a857',
+                                showCancelButton: true,
+                                cancelButtonText: 'Tutup',
+                                cancelButtonColor: '#64748b',
+                                customClass: {
+                                    popup: 'rounded-2xl',
+                                    confirmButton: 'rounded-xl font-medium px-4 py-2.5',
+                                    cancelButton: 'rounded-xl font-medium px-4 py-2.5'
+                                }
+                            }).then((res) => {
+                                if (res.isConfirmed) {
+                                    window.location.href = "{{ route('user_baskets') }}";
+                                }
+                            });
+                        }
 
                         return;
 
@@ -2059,11 +2248,28 @@
 
                     this.saveBaskets();
 
-
-                    console.log(
-                        'Basket berhasil disimpan:',
-                        this.baskets
-                    );
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil Masuk Keranjang!',
+                            text: `"${product.title || 'Produk'}" berhasil ditambahkan ke keranjang belanja Anda.`,
+                            showCancelButton: true,
+                            confirmButtonText: '<i class="bi bi-cart-check mr-1.5"></i> Lihat Keranjang',
+                            cancelButtonText: 'Lanjut Belanja',
+                            confirmButtonColor: '#c2a857',
+                            cancelButtonColor: '#64748b',
+                            reverseButtons: true,
+                            customClass: {
+                                popup: 'rounded-2xl',
+                                confirmButton: 'rounded-xl font-medium px-4 py-2.5',
+                                cancelButton: 'rounded-xl font-medium px-4 py-2.5'
+                            }
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                window.location.href = "{{ route('user_baskets') }}";
+                            }
+                        });
+                    }
 
                 },
 
@@ -2074,12 +2280,28 @@
 
                 removeFromBasket(productId) {
 
+                    const removedItem = this.baskets.find(item => item.id === productId);
+
                     this.baskets = this.baskets.filter(
                         item => item.id !== productId
                     );
 
 
                     this.saveBaskets();
+
+                    if (typeof Swal !== 'undefined') {
+                        const Toast = Swal.mixin({
+                            toast: true,
+                            position: 'top-end',
+                            showConfirmButton: false,
+                            timer: 2500,
+                            timerProgressBar: true
+                        });
+                        Toast.fire({
+                            icon: 'info',
+                            title: `"${removedItem ? removedItem.title : 'Produk'}" telah dihapus dari keranjang.`
+                        });
+                    }
 
                 },
 
@@ -2302,6 +2524,8 @@
                     ========================= */
 
                     this.loadBaskets();
+                    window.addEventListener('storage', () => this.loadBaskets());
+                    window.addEventListener('basket-updated', () => this.loadBaskets());
 
                     /* =========================
                       LOAD FILTERS
@@ -2380,7 +2604,8 @@
                         if (sentinel) {
                             const sentinelObs = new IntersectionObserver((entries) => {
                                 entries.forEach(entry => {
-                                    if (entry.isIntersecting && this.hasMoreProducts && !this.isLoadingMore && !this.productsLoading) {
+                                    if (entry.isIntersecting && this.hasMoreProducts && !this
+                                        .isLoadingMore && !this.productsLoading) {
                                         this.loadMore();
                                     }
                                 });

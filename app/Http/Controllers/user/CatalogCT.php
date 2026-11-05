@@ -31,7 +31,7 @@ class CatalogCT extends Controller
 
     private function landingProducts()
     {
-        $limit = 8;
+        $limit = 12;
 
         /*
     |--------------------------------------------------------------------------
@@ -640,16 +640,24 @@ class CatalogCT extends Controller
 
             $isBrochure = str_contains(strtolower($displayProduct->display_name), 'brosur') || str_contains(strtolower($displayProduct->display_name), 'flyer');
             $isCalendar = str_contains(strtolower($displayProduct->display_name), 'kalender');
-            $isLargeFormat = !$isBrochure && !$isCalendar && (strtolower(trim($engineName)) === 'large format');
-            $isA3Plus = !$isBrochure && !$isCalendar && (strtolower(trim($engineName)) === 'digital print a3+');
+            $isLanyard = str_contains(strtolower($displayProduct->display_name), 'lanyard');
+            $isNameTag = str_contains(strtolower($displayProduct->display_name), 'papan nama') || str_contains(strtolower($displayProduct->display_name), 'name tag');
+            $isPlakat = str_contains(strtolower($displayProduct->display_name), 'plakat');
+            $isNota = str_contains(strtolower($displayProduct->display_name), 'nota');
+            $isLargeFormat = !$isBrochure && !$isCalendar && !$isLanyard && !$isNameTag && !$isPlakat && !$isNota && (strtolower(trim($engineName)) === 'large format');
+            $isA3Plus = !$isBrochure && !$isCalendar && !$isLanyard && !$isNameTag && !$isPlakat && !$isNota && (strtolower(trim($engineName)) === 'digital print a3+');
 
             $estimator = [
                 'type'             => 'display',
-                'engineName'       => $isCalendar ? 'Cetak Kalender (Dinding & Meja)' : ($isBrochure ? 'Cetak Brosur & Flyer' : $engineName),
+                'engineName'       => $isCalendar ? 'Cetak Kalender (Dinding & Meja)' : ($isBrochure ? 'Cetak Brosur & Flyer' : ($isLanyard ? 'Tali Lanyard & ID Card' : ($isNameTag ? 'Papan Nama (Name Tag Dada)' : ($isPlakat ? 'Plakat Akrilik UV & Kayu' : ($isNota ? 'Buku Nota (NCR & HVS)' : $engineName))))),
                 'isLargeFormat'    => $isLargeFormat,
                 'isA3Plus'         => $isA3Plus,
                 'isBrochure'       => $isBrochure,
                 'isCalendar'       => $isCalendar,
+                'isLanyard'        => $isLanyard,
+                'isNameTag'        => $isNameTag,
+                'isPlakat'         => $isPlakat,
+                'isNota'           => $isNota,
                 'isDisplay'        => true,
                 'displayProductId' => (int) $displayProduct->id,
                 'categoryId'       => (int) $displayProduct->category_id,
@@ -709,6 +717,49 @@ class CatalogCT extends Controller
                 'calendarPricingRules' => collect(),
             ];
 
+            $lanyardData = $isLanyard ? [
+                'lanyardTiers' => DB::table('m_lanyard_pricings')
+                    ->where('status', 'active')
+                    ->orderBy('width_type', 'asc')
+                    ->orderBy('package_type', 'asc')
+                    ->orderBy('min_qty', 'asc')
+                    ->get()
+            ] : [
+                'lanyardTiers' => collect(),
+            ];
+
+            $nameTagData = $isNameTag ? [
+                'nameTagItems' => DB::table('m_name_tag_pricings')
+                    ->where('status', 'active')
+                    ->orderBy('id', 'asc')
+                    ->get()
+            ] : [
+                'nameTagItems' => collect(),
+            ];
+
+            $plakatData = $isPlakat ? [
+                'plakatItems' => DB::table('m_plakat_pricings')
+                    ->where('status', 'active')
+                    ->orderBy('material_type', 'asc')
+                    ->orderBy('thickness', 'asc')
+                    ->orderBy('base_type', 'asc')
+                    ->orderBy('box_type', 'asc')
+                    ->get()
+            ] : [
+                'plakatItems' => collect(),
+            ];
+
+            $notaData = $isNota ? [
+                'notaItems' => DB::table('m_nota_pricings')
+                    ->where('status', 'active')
+                    ->orderBy('paper_type', 'asc')
+                    ->orderBy('ply_count', 'asc')
+                    ->orderBy('ink_count', 'asc')
+                    ->get()
+            ] : [
+                'notaItems' => collect(),
+            ];
+
             $activeDiscounts = $isBrochure
                 ? $this->activeBrochureDiscounts()
                 : ($isCalendar
@@ -724,7 +775,7 @@ class CatalogCT extends Controller
                 'locations' => $locations,
                 'vendors'   => $vendors,
                 'activeDiscounts' => $activeDiscounts,
-            ], $a3Data, $brochureData, $calendarData));
+            ], $a3Data, $brochureData, $calendarData, $lanyardData, $nameTagData, $plakatData, $notaData));
         }
 
         /*

@@ -427,6 +427,18 @@
             'active' => 'calendar-master',
             'crumbs' => 'Master Data | Kalender',
         ],
+        'admin_merchandise_master' => [
+            'active' => 'merchandise-master',
+            'crumbs' => 'Master Data | Merchandise',
+        ],
+        'admin_lanyard_master' => [
+            'active' => 'merchandise-master',
+            'crumbs' => 'Master Data | Merchandise',
+        ],
+        'admin_nota_master' => [
+            'active' => 'merchandise-master',
+            'crumbs' => 'Master Data | Merchandise',
+        ],
         'admin_users' => [
             'active' => 'users',
             'crumbs' => 'Management | Pengguna',
@@ -480,9 +492,13 @@
             'active' => 'dashboard',
             'crumbs' => 'Estimasi | Tambah Estimasi Cetak Brosur (Digital & Offset)',
         ],
-        'admin_create_calendar_estimation' => [
+        'admin_create_calendar_estimation' => [
+            'active' => 'dashboard',
+            'crumbs' => 'Estimasi | Tambah Estimasi Cetak Kalender (Dinding & Meja)',
+        ],
+        'admin_create_merchandise_estimation' => [
             'active' => 'dashboard',
-            'crumbs' => 'Estimasi | Tambah Estimasi Cetak Kalender (Dinding & Meja)',
+            'crumbs' => 'Estimasi | Tambah Estimasi Merchandise & Custom Gift',
         ],
         default => [
             'active' => 'dashboard',
@@ -554,7 +570,7 @@
         </div>
     @endif
 
-    @if ($errors->any())
+    @if (isset($errors) && $errors->any())
         <script>
             document.addEventListener('DOMContentLoaded', function() {
 
@@ -599,12 +615,15 @@
             pc_finishing_cuttings: "{{ route('admin_production_cost_finishing_cuttings') }}",
             offset_master: "{{ route('admin_offset_master') }}",
             calendar_master: "{{ route('admin_calendar_master') }}",
+            lanyard_master: "{{ route('admin_lanyard_master') }}",
+            merchandise_master: "{{ route('admin_merchandise_master') }}",
+            nota_master: "{{ route('admin_nota_master') }}",
             users: "{{ route('admin_users') }}"
         };
 
         window.appData = {
-            brandName: @json(Auth::user()->name),
-            brandEmail: @json(Auth::user()->email)
+            brandName: @json(Auth::user()?->name ?? 'Administrator'),
+            brandEmail: @json(Auth::user()?->email ?? 'admin@ciptagrafika.com')
         };
 
         function getInitials(name) {

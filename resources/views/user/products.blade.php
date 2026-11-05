@@ -1,7 +1,7 @@
 @extends('user_master')
 
 @section('contents')
-    <div x-data="products()">
+    <div x-data="products()" @keydown.window.escape="filterOpen = false">
 
         <!-- =========================
                                                                 HERO SECTION
@@ -199,7 +199,7 @@
                                 <label class="relative min-w-0 flex-1">
                                     <span class="sr-only">Cari produk</span>
                                     <input type="text" x-model="search" placeholder="Cari produk..."
-                                        class="w-full rounded-2xl border border-zinc-200/80 dark:border-white/10 bg-zinc-100/80 dark:bg-white/5 py-3 pl-11 pr-10 text-sm text-zinc-900 dark:text-white placeholder:text-zinc-400 focus:border-accent/70 focus:outline-none focus:ring-4 focus:ring-accent/10 transition">
+                                        class="w-full rounded-2xl border border-zinc-200/90 dark:!border-white/15 dark:hover:!border-white/25 bg-zinc-100/80 dark:bg-[#192f56]/90 py-3 pl-11 pr-10 text-sm text-zinc-900 dark:text-white placeholder:text-zinc-400 focus:border-accent/80 dark:focus:!border-accent/80 focus:outline-none focus:ring-4 focus:ring-accent/15 transition-all duration-200 ease-out shadow-sm">
                                     <i class="bi bi-search absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400"
                                         aria-hidden="true"></i>
                                     <button x-show="search" x-cloak type="button" @click="search = ''"
@@ -222,31 +222,37 @@
                             </div>
                         </div>
 
-                        <!-- SEARCH PRODUCT -->
-                        <div class="hidden lg:block mb-6">
+                        <!-- SEARCH PRODUCT (DESKTOP STICKY) -->
+                        <div class="hidden lg:block sticky top-16 z-30 mb-6 -mx-4 px-4 pt-3.5 pb-3 bg-white/90 dark:bg-[#16294d]/95 backdrop-blur-xl border-b border-zinc-200/40 dark:border-white/5 transition-all duration-300">
                             <div class="relative">
                                 <input type="text" x-model="search" placeholder="Cari produk..."
                                     class="w-full
-                                        pl-11 pr-4 py-3.5
+                                        pl-11 pr-10 py-3.5
                                         rounded-2xl
-                                        bg-white dark:bg-zinc-900
-                                        border border-zinc-200 dark:border-zinc-800
+                                        bg-white/95 dark:bg-[#192f56]/90
+                                        border border-zinc-200/90 dark:!border-white/15 dark:hover:!border-white/25
                                         text-sm text-zinc-900 dark:text-white
-                                        placeholder:text-zinc-400
+                                        placeholder:text-zinc-400 dark:placeholder:text-zinc-400
                                         focus:outline-none
-                                        focus:border-accent
-                                        focus:ring-4 focus:ring-accent/10
-                                        transition">
+                                        focus:border-accent/90 dark:focus:!border-accent/80
+                                        focus:ring-4 focus:ring-accent/15
+                                        transition-all duration-200 ease-out shadow-sm">
                                 <!-- SEARCH ICON -->
                                 <svg xmlns="http://www.w3.org/2000/svg"
                                     class="absolute left-4 top-1/2 -translate-y-1/2
                                         w-5 h-5
-                                        text-zinc-400"
+                                        text-zinc-400 pointer-events-none transition-colors duration-200"
                                     fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
 
                                     <path stroke-linecap="round" stroke-linejoin="round"
                                         d="m21 21-4.35-4.35m2.35-5.65a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z" />
                                 </svg>
+                                <!-- CLEAR BUTTON -->
+                                <button x-show="search" x-cloak type="button" @click="search = ''"
+                                    class="absolute right-3.5 top-1/2 -translate-y-1/2 flex h-7 w-7 items-center justify-center rounded-full text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-white/10 transition-all duration-200"
+                                    aria-label="Hapus pencarian">
+                                    <i class="bi bi-x-lg text-xs" aria-hidden="true"></i>
+                                </button>
                             </div>
                         </div>
 
@@ -415,26 +421,20 @@
                             </div>
 
                             <!-- Sentinel Element: Trigger Infinite Scroll otomatis saat terlihat -->
-                            <div id="infiniteSentinel"
-                                x-init="
-                                    const observer = new IntersectionObserver((entries) => {
-                                        if (entries[0].isIntersecting && hasMoreProducts && !isLoadingMore && !productsLoading) {
-                                            loadMore();
-                                        }
-                                    }, { rootMargin: '350px' });
-                                    observer.observe($el);
-                                "
-                                class="h-8 w-full"
-                                x-show="hasMoreProducts">
-                            </div>
+                            <div id="infiniteSentinel" class="h-8 w-full" x-show="hasMoreProducts"></div>
 
                             <!-- Indikator Ketika Semua Produk Selesai Ditampilkan -->
                             <div x-show="!hasMoreProducts && visibleProducts.length > 0" x-cloak
-                                class="py-8 flex flex-col items-center justify-center text-center">
-                                <div class="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-zinc-100 dark:bg-zinc-800/80 border border-zinc-200/80 dark:border-zinc-700/60 text-xs font-medium text-zinc-500 dark:text-zinc-400">
+                                x-transition:enter="transition ease-out duration-300"
+                                x-transition:enter-start="opacity-0 transform translate-y-2"
+                                x-transition:enter-end="opacity-100 transform translate-y-0"
+                                class="py-10 flex items-center justify-center gap-3 text-center">
+                                <div class="h-px w-10 sm:w-20 bg-gradient-to-r from-transparent to-zinc-300/80 dark:to-white/15"></div>
+                                <div class="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-zinc-100/90 dark:bg-white/[0.06] border border-zinc-200/80 dark:border-white/10 backdrop-blur-md text-xs font-medium text-zinc-600 dark:text-zinc-300 shadow-sm transition-all duration-300">
                                     <i class="bi bi-check-circle-fill text-accent text-sm"></i>
-                                    <span>Semua produk telah ditampilkan (<span x-text="visibleProducts.length"></span> produk)</span>
+                                    <span>Semua produk telah ditampilkan (<span x-text="visibleProducts.length" class="font-semibold text-zinc-900 dark:text-white"></span> produk)</span>
                                 </div>
+                                <div class="h-px w-10 sm:w-20 bg-gradient-to-l from-transparent to-zinc-300/80 dark:to-white/15"></div>
                             </div>
                         </div>
 

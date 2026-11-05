@@ -90,6 +90,11 @@
                                     text: "Kalender",
                                     href: window.adminRoutes.calendar_master,
                                 },
+                                {
+                                    key: "merchandise-master",
+                                    text: "Merchandise",
+                                    href: window.adminRoutes.merchandise_master,
+                                },
                             ],
                         },
                         {
@@ -189,7 +194,10 @@
                         {
                             key: "users",
                             text: "Pengguna",
-                            href: (window.adminRoutes && window.adminRoutes.users) ? window.adminRoutes.users : "/admin/users",
+                            href:
+                                window.adminRoutes && window.adminRoutes.users
+                                    ? window.adminRoutes.users
+                                    : "/admin/users",
                             icon: `
                                 <circle cx="12" cy="8" r="4"/>
                                 <path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/>
@@ -290,7 +298,7 @@
                     r && (r.outerHTML = o(a)),
                     i &&
                         (i.outerHTML =
-                            '\n    <footer class="d-footer">\n      <div>© 2026 · Designed by <a href="https://github.com/faisalProject" target="_blank" rel="nofollow noopener noreferrer">Agus Faisal</a></div>\n      <div class="d-footer-meta">\n     </div>\n    </footer>'));
+                            '\n    <footer class="d-footer">\n      <div>© 2026 · Developed by <a href="https://github.com/faisalProject" target="_blank" rel="nofollow noopener noreferrer">Agus Faisal</a></div>\n      <div class="d-footer-meta">\n     </div>\n    </footer>'));
             }
             function r() {
                 const e = document.body;
