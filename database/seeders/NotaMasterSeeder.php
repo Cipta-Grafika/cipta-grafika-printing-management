@@ -218,13 +218,34 @@ class NotaMasterSeeder extends Seeder
             ->first();
 
         if (!$displayExisting) {
+            // Ambil ID Kategori secara dinamis (tanpa hardcode agar aman di semua server/VPS)
+            $category = DB::table('m_categories')
+                ->whereRaw('LOWER(name) LIKE ?', ['%merchandise%'])
+                ->orWhereRaw('LOWER(name) LIKE ?', ['%display%'])
+                ->first() ?? DB::table('m_categories')->first();
+
+            $categoryId = $category ? $category->id : DB::table('m_categories')->insertGetId([
+                'name' => 'Merchandise',
+                'created_by' => 'Administrator',
+                'created_at' => $now,
+                'updated_by' => 'Administrator',
+                'updated_at' => $now,
+            ]);
+
+            $engine = DB::table('m_engines')
+                ->whereRaw('LOWER(name) LIKE ?', ['%offset%'])
+                ->orWhereRaw('LOWER(name) LIKE ?', ['%digital%'])
+                ->first() ?? DB::table('m_engines')->first();
+
+            $location = DB::table('m_locations')->first();
+
             $displayId = DB::table('m_display_products')->insertGetId([
                 'display_name' => 'Buku Nota (NCR & HVS Custom)',
                 'length' => 21.50,
                 'width' => 16.50,
                 'package_qty' => 1,
                 'package_unit' => 'Paket Rim',
-                'category_id' => 236, // Display
+                'category_id' => $categoryId,
                 'status' => 'Active',
                 'created_by' => 'Administrator',
                 'created_at' => $now,
@@ -244,20 +265,22 @@ class NotaMasterSeeder extends Seeder
                 'updated_at' => $now,
             ]);
 
-            // Tambahkan konfigurasi display
-            DB::table('m_display_product_configurations')->insert([
-                'display_product_id' => $displayId,
-                'engine_id' => 70,
-                'location_id' => 54,
-                'sheet_qty' => 1,
-                'cost_rangka' => 0.00,
-                'cost_finishing' => 0.00,
-                'total_cost' => 0.00,
-                'created_by' => 'Administrator',
-                'created_at' => $now,
-                'updated_by' => 'Administrator',
-                'updated_at' => $now,
-            ]);
+            // Tambahkan konfigurasi display jika engine & location tersedia
+            if ($engine && $location) {
+                DB::table('m_display_product_configurations')->insert([
+                    'display_product_id' => $displayId,
+                    'engine_id' => $engine->id,
+                    'location_id' => $location->id,
+                    'sheet_qty' => 1,
+                    'cost_rangka' => 0.00,
+                    'cost_finishing' => 0.00,
+                    'total_cost' => 0.00,
+                    'created_by' => 'Administrator',
+                    'created_at' => $now,
+                    'updated_by' => 'Administrator',
+                    'updated_at' => $now,
+                ]);
+            }
         }
     }
 }
