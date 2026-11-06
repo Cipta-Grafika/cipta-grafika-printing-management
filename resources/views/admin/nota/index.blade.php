@@ -265,6 +265,7 @@
                 opacity: 0;
                 transform: scale(0.96) translateY(-8px);
             }
+
             to {
                 opacity: 1;
                 transform: scale(1) translateY(0);
@@ -360,19 +361,23 @@
                 <div class="merch-hero">
                     <div class="hero-title-row">
                         <div class="hero-left">
-                            <span class="eyebrow" style="font-size: 11px; font-weight: 700; color: var(--primary); letter-spacing: 0.8px;">MASTER DATA · BUKU NOTA</span>
+                            <span class="eyebrow"
+                                style="font-size: 11px; font-weight: 700; color: var(--primary); letter-spacing: 0.8px;">MASTER
+                                DATA · BUKU NOTA</span>
                             <h1>Master Data Buku Nota (NCR &amp; HVS)</h1>
                             <p>
-                                Kelola daftar harga cetak buku nota kantor, faktur penjualan, surat jalan, kwitansi, dan form tanda terima (Bahan NCR Tembus Tanpa Karbon isi 50 sheet &amp; Kertas HVS isi 100 sheet).
+                                Kelola daftar harga cetak buku nota kantor, faktur penjualan, surat jalan, kwitansi, dan
+                                form tanda terima (Bahan NCR Tembus Tanpa Karbon isi 50 sheet &amp; Kertas HVS isi 100
+                                sheet).
                             </p>
                         </div>
 
                         <div class="hero-actions">
-                            <a href="{{ route('user_product_details', ['type' => 'display', 'id' => ($displayNota->id ?? 48)]) }}"
+                            {{-- <a href="{{ route('user_product_details', ['type' => 'display', 'id' => ($displayNota->id ?? 48)]) }}"
                                 target="_blank" class="btn btn--ghost" style="border: 1px solid var(--border);">
                                 <i class="bi bi-box-arrow-up-right"></i>
                                 <span>Lihat Buku Nota di Katalog Pelanggan</span>
-                            </a>
+                            </a> --}}
                             <button type="button" class="btn btn--primary" onclick="openCreateNotaModal()">
                                 <i class="bi bi-plus-lg"></i>
                                 <span>Tambah Varian Nota</span>
@@ -412,7 +417,8 @@
                             <i class="bi bi-file-earmark-text"></i>
                         </div>
                         <div>
-                            <div style="font-size: 11px; color: var(--t-muted); font-weight: 600;">FORM HVS (100 SHEET)</div>
+                            <div style="font-size: 11px; color: var(--t-muted); font-weight: 600;">FORM HVS (100 SHEET)
+                            </div>
                             <div style="font-size: 22px; font-weight: 800; color: var(--t-base);">
                                 {{ $totalHvs }} Varian</div>
                         </div>
@@ -434,7 +440,8 @@
                      TABS NAVIGATION (PERSIS MASTER KALENDER)
                 ========================================================= --}}
                 <div class="calendar-tabs">
-                    <button type="button" class="calendar-tab-btn active" id="tabBtnSemua" onclick="switchNotaTab('semua')">
+                    <button type="button" class="calendar-tab-btn active" id="tabBtnSemua"
+                        onclick="switchNotaTab('semua')">
                         <i class="bi bi-journal-bookmark"></i>
                         <span>Semua Varian Nota</span>
                         <span class="cal-badge-counter">{{ $totalNotas }}</span>
@@ -454,18 +461,24 @@
                 {{-- =========================================================
                      DATA TABLE CONTAINER
                 ========================================================= --}}
-                <div class="card" style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px;">
-                    
+                <div class="card"
+                    style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px;">
+
                     {{-- Action & Quick Info Bar --}}
-                    <div style="display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; justify-content: space-between;">
+                    <div
+                        style="display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; justify-content: space-between;">
                         <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
                             <span style="font-size: 13px; font-weight: 600; color: var(--t-muted); margin-right: 4px;">
                                 <i class="bi bi-funnel"></i> Filter Tinta:
                             </span>
-                            <button type="button" class="nota-filter-pill active" data-filter="">Semua ({{ $totalNotas }})</button>
-                            <button type="button" class="nota-filter-pill" data-filter="1 Tinta">1 Tinta (4 Varian)</button>
-                            <button type="button" class="nota-filter-pill" data-filter="2 Tinta">2 Tinta (4 Varian)</button>
-                            <button type="button" class="nota-filter-pill" data-filter="3 Tinta">3 Tinta (3 Varian)</button>
+                            <button type="button" class="nota-filter-pill active" data-filter="">Semua
+                                ({{ $totalNotas }})</button>
+                            <button type="button" class="nota-filter-pill" data-filter="1 Tinta">1 Tinta (4
+                                Varian)</button>
+                            <button type="button" class="nota-filter-pill" data-filter="2 Tinta">2 Tinta (4
+                                Varian)</button>
+                            <button type="button" class="nota-filter-pill" data-filter="3 Tinta">3 Tinta (3
+                                Varian)</button>
                         </div>
 
                         <button type="button" class="btn btn--primary" onclick="openCreateNotaModal()"
@@ -507,37 +520,44 @@
                                         </td>
                                         <td class="text-center">
                                             @if ($nt->paper_type === 'ncr')
-                                                <span class="badge" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6; font-weight: 700;">
+                                                <span class="badge"
+                                                    style="background: rgba(59, 130, 246, 0.15); color: #3b82f6; font-weight: 700;">
                                                     NCR Tembus
                                                 </span>
                                             @else
-                                                <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; font-weight: 700;">
+                                                <span class="badge"
+                                                    style="background: rgba(16, 185, 129, 0.15); color: #10b981; font-weight: 700;">
                                                     HVS Putih
                                                 </span>
                                             @endif
                                         </td>
                                         <td class="text-center">
-                                            <span class="badge" style="background: var(--bg-surface-2); font-weight: 600;">
+                                            <span class="badge"
+                                                style="background: var(--bg-surface-2); font-weight: 600;">
                                                 {{ $nt->ply_label }}
                                             </span>
                                         </td>
                                         <td class="text-center">
                                             @if ($nt->ink_count === 1)
-                                                <span class="badge" style="background: rgba(100, 116, 139, 0.15); color: #64748b; font-weight: 600;">
+                                                <span class="badge"
+                                                    style="background: rgba(100, 116, 139, 0.15); color: #64748b; font-weight: 600;">
                                                     1 Tinta
                                                 </span>
                                             @elseif ($nt->ink_count === 2)
-                                                <span class="badge" style="background: rgba(217, 119, 6, 0.15); color: #d97706; font-weight: 600;">
+                                                <span class="badge"
+                                                    style="background: rgba(217, 119, 6, 0.15); color: #d97706; font-weight: 600;">
                                                     2 Tinta
                                                 </span>
                                             @else
-                                                <span class="badge" style="background: rgba(139, 92, 246, 0.15); color: #8b5cf6; font-weight: 700;">
+                                                <span class="badge"
+                                                    style="background: rgba(139, 92, 246, 0.15); color: #8b5cf6; font-weight: 700;">
                                                     3 Tinta
                                                 </span>
                                             @endif
                                         </td>
                                         <td class="text-center">
-                                            {{ $nt->sheets_per_book }} {{ $nt->paper_type === 'ncr' ? 'Set/Buku' : 'Lbr/Buku' }}
+                                            {{ $nt->sheets_per_book }}
+                                            {{ $nt->paper_type === 'ncr' ? 'Set/Buku' : 'Lbr/Buku' }}
                                         </td>
                                         <td style="text-align: right; font-weight: 700; color: #c2a857;">
                                             Rp {{ number_format($nt->price, 0, ',', '.') }}
@@ -546,7 +566,8 @@
                                             <span class="badge success">Aktif</span>
                                         </td>
                                         <td class="text-center">
-                                            <div style="display: flex; gap: 6px; justify-content: center; align-items: center;">
+                                            <div
+                                                style="display: flex; gap: 6px; justify-content: center; align-items: center;">
                                                 <button type="button" class="btn-detail-cal"
                                                     onclick='openDetailNotaModal(@json($nt))'
                                                     title="Lihat Detail Nota">
@@ -587,8 +608,10 @@
         <div class="modal-cal-content" style="max-width: 540px;">
             <div class="modal-cal-head">
                 <div>
-                    <span class="eyebrow" style="font-size: 11px; font-weight: 700; letter-spacing: 0.5px;">TAMBAH DATA · MASTER BUKU NOTA</span>
-                    <h3 style="margin: 4px 0 0; font-size: 16px; font-weight: 700; color: var(--t-base);">Tambah Varian Buku Nota</h3>
+                    <span class="eyebrow" style="font-size: 11px; font-weight: 700; letter-spacing: 0.5px;">TAMBAH DATA ·
+                        MASTER BUKU NOTA</span>
+                    <h3 style="margin: 4px 0 0; font-size: 16px; font-weight: 700; color: var(--t-base);">Tambah Varian
+                        Buku Nota</h3>
                 </div>
                 <button type="button" onclick="closeCalModal('modalCreateNota')"
                     style="background: none; border: none; font-size: 20px; cursor: pointer; color: var(--t-muted); line-height: 1;">&times;</button>
@@ -599,13 +622,15 @@
                 <div class="modal-cal-body">
                     <div class="field" style="margin-bottom: 12px;">
                         <label class="field-label">Nama Varian Nota <span class="req">*</span></label>
-                        <input type="text" name="name" class="input" placeholder="Misal: Nota NCR 2 Ply (1 Tinta)" required>
+                        <input type="text" name="name" class="input"
+                            placeholder="Misal: Nota NCR 2 Ply (1 Tinta)" required>
                     </div>
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
                         <div class="field">
                             <label class="field-label">Tipe Kertas <span class="req">*</span></label>
-                            <select name="paper_type" id="createPaperType" class="select select2-modal" required onchange="handlePaperTypeChange('create')">
+                            <select name="paper_type" id="createPaperType" class="select select2-modal" required
+                                onchange="handlePaperTypeChange('create')">
                                 <option value="ncr" selected>NCR (Carbonless Paper)</option>
                                 <option value="hvs">HVS (Kertas Putih Single)</option>
                             </select>
@@ -636,15 +661,16 @@
 
                         <div class="field">
                             <label class="field-label">Isi Sheet per Buku <span class="req">*</span></label>
-                            <input type="number" name="sheets_per_book" id="createSheetsPerBook" class="input" value="50" min="1" required>
+                            <input type="number" name="sheets_per_book" id="createSheetsPerBook" class="input"
+                                value="50" min="1" required>
                         </div>
                     </div>
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
                         <div class="field">
                             <label class="field-label">Harga per Paket Rim (Rp) <span class="req">*</span></label>
-                            <input type="text" name="price" class="input input-rupiah" placeholder="Rp 329.000" required
-                                style="font-size: 15px; font-weight: 700; color: #c2a857;">
+                            <input type="text" name="price" class="input input-rupiah" placeholder="Rp 329.000"
+                                required style="font-size: 15px; font-weight: 700; color: #c2a857;">
                         </div>
 
                         <div class="field">
@@ -663,7 +689,8 @@
                 </div>
 
                 <div class="modal-cal-foot">
-                    <button type="button" class="btn btn--ghost" onclick="closeCalModal('modalCreateNota')">Batal</button>
+                    <button type="button" class="btn btn--ghost"
+                        onclick="closeCalModal('modalCreateNota')">Batal</button>
                     <button type="submit" id="btnSaveCreateNota" class="btn btn--primary">
                         <i class="bi bi-check2"></i>
                         <span>Simpan Data</span>
@@ -680,8 +707,10 @@
         <div class="modal-cal-content" style="max-width: 540px;">
             <div class="modal-cal-head">
                 <div>
-                    <span class="eyebrow" style="font-size: 11px; font-weight: 700; letter-spacing: 0.5px;">UBAH DATA · MASTER BUKU NOTA</span>
-                    <h3 style="margin: 4px 0 0; font-size: 16px; font-weight: 700; color: var(--t-base);" id="editNotaHeading">
+                    <span class="eyebrow" style="font-size: 11px; font-weight: 700; letter-spacing: 0.5px;">UBAH DATA ·
+                        MASTER BUKU NOTA</span>
+                    <h3 style="margin: 4px 0 0; font-size: 16px; font-weight: 700; color: var(--t-base);"
+                        id="editNotaHeading">
                         Edit Varian Buku Nota
                     </h3>
                 </div>
@@ -703,7 +732,8 @@
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
                         <div class="field">
                             <label class="field-label">Tipe Kertas <span class="req">*</span></label>
-                            <select id="editPaperType" name="paper_type" class="select select2-modal" required onchange="handlePaperTypeChange('edit')">
+                            <select id="editPaperType" name="paper_type" class="select select2-modal" required
+                                onchange="handlePaperTypeChange('edit')">
                                 <option value="ncr">NCR (Carbonless Paper)</option>
                                 <option value="hvs">HVS (Kertas Putih Single)</option>
                             </select>
@@ -734,7 +764,8 @@
 
                         <div class="field">
                             <label class="field-label">Isi Sheet per Buku <span class="req">*</span></label>
-                            <input type="number" id="editSheetsPerBook" name="sheets_per_book" class="input" min="1" required>
+                            <input type="number" id="editSheetsPerBook" name="sheets_per_book" class="input"
+                                min="1" required>
                         </div>
                     </div>
 
@@ -778,8 +809,11 @@
         <div class="modal-cal-content" style="max-width: 520px;">
             <div class="modal-cal-head">
                 <div>
-                    <span class="eyebrow" id="notaDetailEyebrow" style="font-size: 11px; font-weight: 700; letter-spacing: 0.5px;">DETAIL · SPESIFIKASI BUKU NOTA</span>
-                    <h3 style="margin: 4px 0 0; font-size: 16px; font-weight: 700; color: var(--t-base);" id="notaDetailTitle">
+                    <span class="eyebrow" id="notaDetailEyebrow"
+                        style="font-size: 11px; font-weight: 700; letter-spacing: 0.5px;">DETAIL · SPESIFIKASI BUKU
+                        NOTA</span>
+                    <h3 style="margin: 4px 0 0; font-size: 16px; font-weight: 700; color: var(--t-base);"
+                        id="notaDetailTitle">
                         Detail Varian Buku Nota
                     </h3>
                 </div>
@@ -811,26 +845,33 @@
         <div class="modal-cal-content" style="max-width: 440px;">
             <div class="modal-cal-head" style="border-bottom: 1px solid var(--border);">
                 <div>
-                    <span class="eyebrow" style="font-size: 11px; font-weight: 700; letter-spacing: 0.5px;">HAPUS DATA · MASTER BUKU NOTA</span>
-                    <h3 style="margin: 4px 0 0; font-size: 16px; font-weight: 700; color: var(--t-base);">Konfirmasi Hapus</h3>
+                    <span class="eyebrow" style="font-size: 11px; font-weight: 700; letter-spacing: 0.5px;">HAPUS DATA ·
+                        MASTER BUKU NOTA</span>
+                    <h3 style="margin: 4px 0 0; font-size: 16px; font-weight: 700; color: var(--t-base);">Konfirmasi Hapus
+                    </h3>
                 </div>
                 <button type="button" onclick="closeCalModal('modalDeleteNota')"
                     style="background: none; border: none; font-size: 20px; cursor: pointer; color: var(--t-muted); line-height: 1;">&times;</button>
             </div>
             <div class="modal-cal-body" style="padding: 22px;">
                 <div style="display: flex; gap: 16px; align-items: flex-start;">
-                    <div style="width: 48px; height: 48px; min-width: 48px; border-radius: 12px; background: rgba(239, 68, 68, 0.12); color: #ef4444; display: flex; align-items: center; justify-content: center; font-size: 22px;">
+                    <div
+                        style="width: 48px; height: 48px; min-width: 48px; border-radius: 12px; background: rgba(239, 68, 68, 0.12); color: #ef4444; display: flex; align-items: center; justify-content: center; font-size: 22px;">
                         <i class="bi bi-trash3-fill"></i>
                     </div>
                     <div>
-                        <h4 style="margin: 0 0 6px; font-size: 15px; font-weight: 700; color: var(--t-base);">Apakah Anda Yakin?</h4>
+                        <h4 style="margin: 0 0 6px; font-size: 15px; font-weight: 700; color: var(--t-base);">Apakah Anda
+                            Yakin?</h4>
                         <p style="margin: 0; font-size: 13px; color: var(--t-muted); line-height: 1.5;">
-                            Anda akan menghapus varian nota <strong id="deleteNotaTargetName" style="color: var(--t-base);"></strong>. Data yang sudah dihapus tidak dapat dipulihkan kembali.
+                            Anda akan menghapus varian nota <strong id="deleteNotaTargetName"
+                                style="color: var(--t-base);"></strong>. Data yang sudah dihapus tidak dapat dipulihkan
+                            kembali.
                         </p>
                     </div>
                 </div>
             </div>
-            <div class="modal-cal-foot" style="padding: 14px 20px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; background: var(--bg-muted);">
+            <div class="modal-cal-foot"
+                style="padding: 14px 20px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; background: var(--bg-muted);">
                 <button type="button" class="btn btn--ghost" onclick="closeCalModal('modalDeleteNota')">Batal</button>
                 <button type="button" class="btn btn--danger" id="btnConfirmDeleteNota" onclick="executeDeleteNota()"
                     style="padding: 8px 16px; border-radius: 6px; border: none; background: #dc2626; color: #ffffff; cursor: pointer; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 6px;">
@@ -846,7 +887,10 @@
     ========================================================= --}}
     <script>
         let currentActiveNota = null;
-        let notaItemToDelete = { id: null, name: '' };
+        let notaItemToDelete = {
+            id: null,
+            name: ''
+        };
 
         // Helper Format Rupiah
         function formatRupiahDisplay(val) {
@@ -974,12 +1018,17 @@
             document.getElementById('notaDetailTitle').textContent = nt.name;
 
             container.innerHTML += makeDetailRow('Nama Varian', nt.name);
-            container.innerHTML += makeDetailRow('Tipe Kertas', nt.paper_type === 'ncr' ? '📑 NCR Tembus Otomatis' : '📄 Kertas HVS Putih');
+            container.innerHTML += makeDetailRow('Tipe Kertas', nt.paper_type === 'ncr' ? '📑 NCR Tembus Otomatis' :
+                '📄 Kertas HVS Putih');
             container.innerHTML += makeDetailRow('Jumlah Rangkap', `${nt.ply_count} Ply (${nt.ply_label})`);
             container.innerHTML += makeDetailRow('Jumlah Warna Tinta', `${nt.ink_count} Warna (${nt.ink_label})`);
-            container.innerHTML += makeDetailRow('Isi per Buku', `${nt.sheets_per_book} ${nt.paper_type === 'ncr' ? 'Set/Buku' : 'Lembar/Buku'}`);
-            container.innerHTML += makeDetailRow('Harga Satuan', `<span style="color: #c2a857; font-weight: 700; font-size: 14px;">${formatRupiahDisplay(nt.price)}</span> / Paket Rim`);
-            container.innerHTML += makeDetailRow('Status Katalog', nt.status === 'active' ? '<span class="badge success">Aktif</span>' : '<span class="badge">Nonaktif</span>');
+            container.innerHTML += makeDetailRow('Isi per Buku',
+                `${nt.sheets_per_book} ${nt.paper_type === 'ncr' ? 'Set/Buku' : 'Lembar/Buku'}`);
+            container.innerHTML += makeDetailRow('Harga Satuan',
+                `<span style="color: #c2a857; font-weight: 700; font-size: 14px;">${formatRupiahDisplay(nt.price)}</span> / Paket Rim`
+                );
+            container.innerHTML += makeDetailRow('Status Katalog', nt.status === 'active' ?
+                '<span class="badge success">Aktif</span>' : '<span class="badge">Nonaktif</span>');
 
             if (nt.description) {
                 container.innerHTML += makeDetailSectionTitle('Deskripsi & Spesifikasi');
@@ -1042,34 +1091,34 @@
             const token = $('meta[name="csrf-token"]').attr('content') || $('input[name="_token"]').val();
 
             fetch(`/admin/nota-master/delete-nota/${id}`, {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': token,
-                    'Accept': 'application/json'
-                }
-            })
-            .then(res => res.json())
-            .then(data => {
-                $btn.prop('disabled', false).html(origHtml);
-                closeCalModal('modalDeleteNota');
-
-                if (data.success) {
-                    if (typeof showToast === 'function') {
-                        showToast('success', data.message || 'Varian Nota berhasil dihapus!');
-                    } else {
-                        alert(data.message || 'Varian Nota berhasil dihapus!');
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': token,
+                        'Accept': 'application/json'
                     }
-                    setTimeout(() => location.reload(), 400);
-                } else {
-                    alert('Gagal: ' + (data.message || 'Terjadi kesalahan saat menghapus data.'));
-                }
-            })
-            .catch(err => {
-                $btn.prop('disabled', false).html(origHtml);
-                closeCalModal('modalDeleteNota');
-                alert('Terjadi kesalahan jaringan: ' + err.message);
-            });
+                })
+                .then(res => res.json())
+                .then(data => {
+                    $btn.prop('disabled', false).html(origHtml);
+                    closeCalModal('modalDeleteNota');
+
+                    if (data.success) {
+                        if (typeof showToast === 'function') {
+                            showToast('success', data.message || 'Varian Nota berhasil dihapus!');
+                        } else {
+                            alert(data.message || 'Varian Nota berhasil dihapus!');
+                        }
+                        setTimeout(() => location.reload(), 400);
+                    } else {
+                        alert('Gagal: ' + (data.message || 'Terjadi kesalahan saat menghapus data.'));
+                    }
+                })
+                .catch(err => {
+                    $btn.prop('disabled', false).html(origHtml);
+                    closeCalModal('modalDeleteNota');
+                    alert('Terjadi kesalahan jaringan: ' + err.message);
+                });
         }
 
         // Document Ready Initialization
@@ -1086,8 +1135,7 @@
                                 target: 0
                             }
                         },
-                        columnDefs: [
-                            {
+                        columnDefs: [{
                                 className: 'dtr-control',
                                 orderable: false,
                                 searchable: false,
@@ -1188,49 +1236,53 @@
                 const origHtml = $btn.html();
                 $btn.prop('disabled', true).html('<i class="bi bi-arrow-repeat spin"></i> Menyimpan...');
 
-                const token = $('meta[name="csrf-token"]').attr('content') || $('input[name="_token"]').val();
+                const token = $('meta[name="csrf-token"]').attr('content') || $('input[name="_token"]')
+                .val();
                 const rawPrice = $('input[name="price"]', this).val();
                 const formData = {
                     name: $('input[name="name"]', this).val(),
                     paper_type: $('select[name="paper_type"]', this).val(),
                     ply_count: $('select[name="ply_count"]', this).val(),
-                    ply_label: $('#createPlyLabel').val() || ($('select[name="ply_count"]', this).val() + ' Ply'),
+                    ply_label: $('#createPlyLabel').val() || ($('select[name="ply_count"]', this)
+                    .val() + ' Ply'),
                     ink_count: $('select[name="ink_count"]', this).val(),
-                    ink_label: $('#createInkLabel').val() || ($('select[name="ink_count"]', this).val() + ' Tinta'),
+                    ink_label: $('#createInkLabel').val() || ($('select[name="ink_count"]', this)
+                    .val() + ' Tinta'),
                     sheets_per_book: $('input[name="sheets_per_book"]', this).val(),
                     price: cleanRupiahValue(rawPrice),
                     status: $('select[name="status"]', this).val() || 'active',
                     description: $('textarea[name="description"]', this).val()
                 };
 
-                fetch('{{ route("admin_store_nota") }}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': token,
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify(formData)
-                })
-                .then(res => res.json())
-                .then(data => {
-                    $btn.prop('disabled', false).html(origHtml);
-                    if (data.success) {
-                        closeCalModal('modalCreateNota');
-                        if (typeof showToast === 'function') {
-                            showToast('success', data.message || 'Varian Nota berhasil ditambahkan!');
+                fetch('{{ route('admin_store_nota') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': token,
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify(formData)
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        $btn.prop('disabled', false).html(origHtml);
+                        if (data.success) {
+                            closeCalModal('modalCreateNota');
+                            if (typeof showToast === 'function') {
+                                showToast('success', data.message ||
+                                    'Varian Nota berhasil ditambahkan!');
+                            } else {
+                                alert(data.message || 'Varian Nota berhasil ditambahkan!');
+                            }
+                            setTimeout(() => location.reload(), 400);
                         } else {
-                            alert(data.message || 'Varian Nota berhasil ditambahkan!');
+                            alert('Gagal: ' + (data.message || 'Terjadi kesalahan.'));
                         }
-                        setTimeout(() => location.reload(), 400);
-                    } else {
-                        alert('Gagal: ' + (data.message || 'Terjadi kesalahan.'));
-                    }
-                })
-                .catch(err => {
-                    $btn.prop('disabled', false).html(origHtml);
-                    alert('Terjadi kesalahan jaringan: ' + err.message);
-                });
+                    })
+                    .catch(err => {
+                        $btn.prop('disabled', false).html(origHtml);
+                        alert('Terjadi kesalahan jaringan: ' + err.message);
+                    });
             });
 
             // Form Submit Edit Nota
@@ -1241,7 +1293,8 @@
                 const origHtml = $btn.html();
                 $btn.prop('disabled', true).html('<i class="bi bi-arrow-repeat spin"></i> Menyimpan...');
 
-                const token = $('meta[name="csrf-token"]').attr('content') || $('input[name="_token"]').val();
+                const token = $('meta[name="csrf-token"]').attr('content') || $('input[name="_token"]')
+                .val();
                 const rawPrice = $('#editNotaPrice').val();
                 const formData = {
                     name: $('#editNotaName').val(),
@@ -1257,33 +1310,34 @@
                 };
 
                 fetch(`/admin/nota-master/update-nota/${id}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': token,
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify(formData)
-                })
-                .then(res => res.json())
-                .then(data => {
-                    $btn.prop('disabled', false).html(origHtml);
-                    if (data.success) {
-                        closeCalModal('modalEditNota');
-                        if (typeof showToast === 'function') {
-                            showToast('success', data.message || 'Varian Nota berhasil diperbarui!');
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': token,
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify(formData)
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        $btn.prop('disabled', false).html(origHtml);
+                        if (data.success) {
+                            closeCalModal('modalEditNota');
+                            if (typeof showToast === 'function') {
+                                showToast('success', data.message ||
+                                'Varian Nota berhasil diperbarui!');
+                            } else {
+                                alert(data.message || 'Varian Nota berhasil diperbarui!');
+                            }
+                            setTimeout(() => location.reload(), 400);
                         } else {
-                            alert(data.message || 'Varian Nota berhasil diperbarui!');
+                            alert('Gagal: ' + (data.message || 'Terjadi kesalahan.'));
                         }
-                        setTimeout(() => location.reload(), 400);
-                    } else {
-                        alert('Gagal: ' + (data.message || 'Terjadi kesalahan.'));
-                    }
-                })
-                .catch(err => {
-                    $btn.prop('disabled', false).html(origHtml);
-                    alert('Terjadi kesalahan jaringan: ' + err.message);
-                });
+                    })
+                    .catch(err => {
+                        $btn.prop('disabled', false).html(origHtml);
+                        alert('Terjadi kesalahan jaringan: ' + err.message);
+                    });
             });
         });
     </script>

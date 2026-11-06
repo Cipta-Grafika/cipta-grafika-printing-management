@@ -450,12 +450,12 @@
                     </div>
 
                     <div class="hero-actions">
-                        <a id="heroCustomerCatalogLink"
+                        {{-- <a id="heroCustomerCatalogLink"
                             href="{{ route('user_product_details', ['type' => 'display', 'id' => ($displayLanyard->id ?? 45)]) }}"
                             target="_blank" class="btn btn--ghost" style="display: inline-flex; align-items: center; gap: 8px;">
                             <i class="bi bi-box-arrow-up-right"></i>
                             <span id="labelHeroCatalog">Lihat Lanyard di Katalog Pelanggan</span>
-                        </a>
+                        </a> --}}
 
                         <button type="button" class="btn btn--primary" id="btnHeroMainCreate" onclick="openActiveCreateModal()"
                             style="display: inline-flex; align-items: center; gap: 8px;">
