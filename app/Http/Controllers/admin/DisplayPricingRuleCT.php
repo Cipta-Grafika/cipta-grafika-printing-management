@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Exception;
 use App\Exports\DisplayPricingRulesExport;
 use Maatwebsite\Excel\Facades\Excel;
@@ -51,6 +52,13 @@ class DisplayPricingRuleCT extends Controller
 
         $data['vendors'] = DB::table('m_vendors')
             ->orderBy('name')->where('status', 'Active')->get();
+
+        $data['filterEngines'] = DB::table('m_engines as e')
+            ->join('m_display_pricing_rules as r', 'r.engine_id', '=', 'e.id')
+            ->select('e.id', 'e.name')->distinct()->orderBy('e.name')->get();
+        $data['filterLocations'] = DB::table('m_locations as l')
+            ->join('m_display_pricing_rules as r', 'r.location_id', '=', 'l.id')
+            ->select('l.id', 'l.name')->distinct()->orderBy('l.name')->get();
 
         return view('admin.display-pricing-rule.index')->with($data);
     }
@@ -126,9 +134,15 @@ class DisplayPricingRuleCT extends Controller
     |--------------------------------------------------------------------------
     */
 
-        $search = $request->input('search.value');
+        foreach (['engine_id' => 'a.engine_id', 'location_id' => 'a.location_id'] as $filter => $column) {
+            $value = $request->input($filter);
+            if ($value !== null && $value !== '' && $value !== 'all') {
+                $query->where($column, $value);
+            }
+        }
+        $search = trim((string) $request->input('search.value', ''));
 
-        if (!empty($search)) {
+        if ($search !== '') {
             $search = strtolower($search);
 
             $query->where(function ($q) use ($search) {
@@ -163,8 +177,8 @@ class DisplayPricingRuleCT extends Controller
     |--------------------------------------------------------------------------
     */
 
-        $start = (int) $request->input('start', 0);
-        $length = (int) $request->input('length', 10);
+        $start = max(0, (int) $request->input('start', 0));
+        $length = min(100, max(1, (int) $request->input('length', 10)));
 
         /*
     |--------------------------------------------------------------------------
@@ -172,22 +186,25 @@ class DisplayPricingRuleCT extends Controller
     |--------------------------------------------------------------------------
     */
 
-        $pricingRules = $query
-            ->orderBy(
-                'd.name',
-                'asc'
-            )
-            ->orderBy(
-                'c.name',
-                'asc'
-            )
-            ->orderBy(
-                'b.name',
-                'asc'
-            )
+        $columns = [2 => 'd.name', 3 => 'c.name', 4 => 'b.name', 5 => 'jumlah_markup'];
+        $column = $columns[(int) $request->input('order.0.column', -1)] ?? null;
+        $direction = $request->input('order.0.dir', 'asc');
+        if (!in_array($direction, ['asc', 'desc'], true)) {
+            $direction = 'asc';
+        }
+        if ($column) {
+            $query->orderBy($column, $direction);
+        }
+        $pricingRules = $query->orderBy('d.name')->orderBy('c.name')->orderBy('b.name')
             ->offset($start)
             ->limit($length)
             ->get();
+        foreach ($pricingRules as $row) {
+            $row->member_ids = DB::table('m_display_pricing_rules')
+                ->where('engine_id', $row->engine_id)->where('location_id', $row->location_id)
+                ->where('category_id', $row->category_id)->orderBy('id')->pluck('id')
+                ->map(fn ($id) => (int) $id)->all();
+        }
 
         /*
     |--------------------------------------------------------------------------
@@ -361,83 +378,81 @@ class DisplayPricingRuleCT extends Controller
         $category_id
     ) {
         $this->displayCategoryForId($category_id);
-
-        try {
-
-            DB::transaction(function () use (
-                $engine_id,
-                $location_id,
-                $category_id
-            ) {
-
-                /*
-            |--------------------------------------------------------------------------
-            | AMBIL DATA MARKUP DISPLAY
-            |--------------------------------------------------------------------------
-            */
-
-                $pricingRules = DB::table('m_display_pricing_rules')
-                    ->where('engine_id', $engine_id)
-                    ->where('location_id', $location_id)
-                    ->where('category_id', $category_id)
-                    ->get();
-
-
-                /*
-            |--------------------------------------------------------------------------
-            | CEK DATA
-            |--------------------------------------------------------------------------
-            */
-
-                if ($pricingRules->isEmpty()) {
-
-                    throw new Exception(
-                        'Data markup Display tidak ditemukan.'
-                    );
-                }
-
-
-                /*
-            |--------------------------------------------------------------------------
-            | HAPUS SELURUH MARKUP DISPLAY
-            |--------------------------------------------------------------------------
-            |
-            | Satu group terdiri dari:
-            |
-            | - engine
-            | - location
-            | - category
-            |
-            | Seluruh child pricing rule dalam group tersebut
-            | dihapus sekaligus.
-            |
-            */
-
-                DB::table('m_display_pricing_rules')
-                    ->where('engine_id', $engine_id)
-                    ->where('location_id', $location_id)
-                    ->where('category_id', $category_id)
-                    ->delete();
-            });
-
-
-            /*
-        |--------------------------------------------------------------------------
-        | SUCCESS RESPONSE
-        |--------------------------------------------------------------------------
-        */
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Markup Display berhasil dihapus.'
-            ]);
-        } catch (Exception $e) {
-
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage()
-            ], 422);
+        $ids = DB::table('m_display_pricing_rules')->where('engine_id', $engine_id)
+            ->where('location_id', $location_id)->where('category_id', $category_id)
+            ->orderBy('id')->pluck('id')->map(fn ($id) => (int) $id)->all();
+        if (!$ids) {
+            return response()->json(['success' => false, 'message' => 'Data markup Display tidak ditemukan.'], 404);
         }
+        return $this->deleteGroups([[
+            'engine_id' => $engine_id, 'location_id' => $location_id,
+            'category_id' => $category_id, 'member_ids' => $ids,
+        ]]);
+    }
+
+    public function bulkDestroy(Request $request)
+    {
+        $validated = $request->validate([
+            'groups' => ['required', 'array', 'min:1', 'max:1000'],
+            'groups.*.engine_id' => ['required', 'integer', 'min:1'],
+            'groups.*.location_id' => ['required', 'integer', 'min:1'],
+            'groups.*.category_id' => ['required', 'integer', 'min:1'],
+            'groups.*.member_ids' => ['required', 'array', 'min:1', 'max:1000'],
+            'groups.*.member_ids.*' => ['required', 'integer', 'min:1'],
+        ]);
+        return $this->deleteGroups($validated['groups']);
+    }
+
+    private function deleteGroups(array $groups)
+    {
+        return DB::transaction(function () use ($groups) {
+            $categoryId = $this->displayCategory()->id;
+            $ids = [];
+            foreach ($groups as $group) {
+                if ((int) $group['category_id'] !== (int) $categoryId) {
+                    return response()->json(['success' => false, 'message' => 'Kategori Display tidak valid. Tidak ada data yang dihapus.'], 422);
+                }
+                $expected = array_map('intval', $group['member_ids']);
+                sort($expected);
+                $current = DB::table('m_display_pricing_rules')->where('engine_id', $group['engine_id'])
+                    ->where('location_id', $group['location_id'])->where('category_id', $categoryId)
+                    ->orderBy('id')->lockForUpdate()->pluck('id')->map(fn ($id) => (int) $id)->all();
+                if (!$current || $current !== $expected) {
+                    return response()->json(['success' => false, 'message' => 'Kelompok pricing rule berubah atau tidak ditemukan. Tidak ada data yang dihapus.'], 422);
+                }
+                if (DB::table('m_display_product_configurations')->where('engine_id', $group['engine_id'])
+                    ->where('location_id', $group['location_id'])->exists()) {
+                    return response()->json(['success' => false, 'message' => 'Pricing rule masih digunakan oleh konfigurasi produk Display. Tidak ada data yang dihapus.'], 422);
+                }
+                $ids = array_merge($ids, $current);
+            }
+            if (count($ids) !== count(array_unique($ids))) {
+                return response()->json(['success' => false, 'message' => 'Pilihan pricing rule duplikat. Tidak ada data yang dihapus.'], 422);
+            }
+            foreach (Schema::getTables() as $table) {
+                if ($table['name'] === 'm_display_pricing_rules') {
+                    continue;
+                }
+                $tableName = $table['schema_qualified_name'];
+                $columns = Schema::hasColumn($tableName, 'display_pricing_rule_id') ? ['display_pricing_rule_id'] : [];
+                foreach (Schema::getForeignKeys($tableName) as $foreignKey) {
+                    if ($foreignKey['foreign_table'] === 'm_display_pricing_rules') {
+                        foreach ($foreignKey['foreign_columns'] as $index => $column) {
+                            if ($column === 'id') {
+                                $columns[] = $foreignKey['columns'][$index];
+                            }
+                        }
+                    }
+                }
+                foreach (array_unique($columns) as $column) {
+                    if (DB::table($tableName)->whereIn($column, $ids)->exists()) {
+                        return response()->json(['success' => false, 'message' => 'Pricing rule masih digunakan data lain. Tidak ada data yang dihapus.'], 422);
+                    }
+                }
+            }
+            DB::table('m_display_pricing_rules')->whereIn('id', $ids)->delete();
+            return response()->json(['success' => true, 'message' => 'Markup Display berhasil dihapus.']);
+        });
     }
 
     public function details(

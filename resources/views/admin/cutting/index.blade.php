@@ -1,6 +1,7 @@
 @extends('admin_master')
 
 @section('contents')
+    <link rel="stylesheet" href="{{ asset('css/cutting-index.css') }}">
     <style>
         .material-row-top--cutting {
             display: grid;
@@ -134,63 +135,57 @@
         <div class="main">
             <div data-shell-topbar></div>
             <main class="content">
-                <section class="hero">
+                <section class="hero cat-hero-compact">
                     <div class="hero-text"><span class="eyebrow">MASTER DATA · JASA POTONG</span>
                         <p class="hero-sub">Kelola data jasa potong yang tersedia untuk digunakan pada proses produksi dan
                             perhitungan estimasi harga.</p>
                     </div>
-                    <div class="hero-actions">
-                        <a href="{{ route('admin_export_cuttings') }}" class="btn btn--ghost" id="btnExportCutting">
-                            <svg viewBox="0 0 24 24">
-                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                                <path d="M7 10l5 5 5-5" />
-                                <path d="M12 15V3" />
-                            </svg>
-                            Export
-                        </a>
-                        <a href="{{ asset('templates/template_jasa_potong.xlsx') }}" class="btn btn--ghost">
-                            <svg viewBox="0 0 24 24">
-                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                                <path d="M7 10l5 5 5-5" />
-                                <path d="M12 15V3" />
-                            </svg>
-                            Download Template
-                        </a>
-                        <button type="button" class="btn btn--ghost" id="btnImportCutting">
-                            <svg viewBox="0 0 24 24">
-                                <path d="M12 16V3" />
-                                <path d="m7 8 5-5 5 5" />
-                                <path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6" />
-                            </svg>
-                            Import
-                        </button>
-                        <button type="button" class="btn btn--primary" id="btnTambahCutting">
-                            <svg viewBox="0 0 24 24">
-                                <path d="M12 5v14M5 12h14" />
-                            </svg>
-                            Tambah Jasa Potong
-                        </button>
-                    </div>
                 </section>
                 <div class="grid">
-                    <section class="col-12 card">
-                        <table id="cuttingTable" class="display data-table">
-                            <thead>
-                                <tr>
-                                    <th></th>
-                                    <th>No</th>
-                                    <th>Nama Jasa Potong</th>
-                                    <th style="text-align: center;">Total Ukuran</th>
-                                    <th>Status</th>
-                                    <th>Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
+                    <section class="col-12 card cat-card-container">
+                        <div class="cat-card-header">
+                            <div class="cat-card-header-main"><div class="cat-card-title-wrap">
+                                <div class="cat-card-icon"><i class="bi bi-scissors"></i></div>
+                                <div><div class="cat-title-row"><h3 class="cat-card-title">Daftar Jasa Potong</h3><span class="cat-badge-total"><span class="cat-pulse-dot"></span><span id="cuttingTotalCount">Memuat data...</span></span></div>
+                                    <p class="cat-card-desc">Master jasa potong untuk produksi dan perhitungan estimasi harga.</p></div>
+                            </div></div>
+                            <div class="cat-card-actions">
+                                <a id="btnExportCutting" href="{{ route('admin_export_cuttings') }}" class="cat-btn-head" title="Export Excel"><i class="bi bi-download"></i><span>Export</span></a>
+                                <a href="{{ asset('templates/template_jasa_potong.xlsx') }}" class="cat-btn-head" title="Download Template Excel"><i class="bi bi-download"></i><span>Template</span></a>
+                                <button type="button" class="cat-btn-head" id="btnImportCutting"><i class="bi bi-upload"></i><span>Import</span></button>
+                                <button type="button" class="cat-btn-head-primary" id="btnTambahCutting"><i class="bi bi-plus-lg"></i><span>Tambah Jasa Potong</span></button>
+                            </div>
+                        </div>
+                        <div class="cat-bulk-toolbar" id="cuttingBulkToolbar" style="display: none;">
+                            <div class="cat-bulk-info"><span class="cat-bulk-badge" id="cuttingBulkCount">0 terpilih</span><span class="cat-bulk-text">Jasa potong yang dipilih siap untuk tindakan massal</span></div>
+                            <div class="cat-bulk-actions"><button type="button" class="btn btn--ghost btn--sm" id="cancelCuttingSelection"><i class="bi bi-x-circle me-1"></i> Batal Pilihan</button><button type="button" class="btn btn--danger btn--sm" id="bulkDeleteCuttings"><i class="bi bi-trash3-fill me-1"></i> Hapus Terpilih</button></div>
+                        </div>
+                        <div class="cat-filter-card">
+                            <div class="cat-filter-group-left">
+                                <div class="cat-search-box"><i class="bi bi-search cat-search-icon"></i><input type="text" id="cuttingSearch" class="cat-filter-input" placeholder="Cari nama, status, atau pembuat..." aria-label="Cari jasa potong"><button type="button" id="clearCuttingSearch" class="cat-clear-btn" title="Hapus pencarian" aria-label="Hapus pencarian" style="display: none;"><i class="bi bi-x-circle-fill"></i></button></div>
+                                <div class="cat-select-box"><i class="bi bi-person-fill cat-select-icon"></i><select id="cuttingCreator" class="select2" style="width: 100%;" aria-label="Filter pembuat"><option value="all">Semua Pembuat</option>@foreach ($creators as $creator)<option value="{{ $creator }}">{{ $creator }}</option>@endforeach</select></div>
+                                <div class="cat-filter-subgroup"><div class="cat-select-box"><i class="bi bi-calendar3 cat-select-icon"></i><select id="cuttingPeriod" class="select2" style="width: 100%;" aria-label="Filter periode pembuatan"><option value="all">Semua Periode</option><option value="today">Hari Ini</option><option value="7_days">7 Hari Terakhir</option><option value="month">Bulan Ini</option><option value="year">Tahun Ini</option></select></div><button type="button" id="resetCuttingFilters" class="cat-btn-reset" title="Reset semua filter"><i class="bi bi-arrow-counterclockwise"></i><span>Reset</span></button></div>
+                            </div>
+                            <div class="cat-filter-group-right"><div class="cat-length-box"><span class="cat-length-label">Baris:</span><select id="cuttingPageLength" class="select2" style="width: 76px;" aria-label="Jumlah baris"><option value="10">10</option><option value="25">25</option><option value="50">50</option><option value="100">100</option></select></div></div>
+                        </div>
+                        <div class="cat-table-wrap"><table id="cuttingTable" class="cat-modern-table" style="width: 100%;" data-url="{{ route('admin_data_cuttings') }}" data-bulk-url="{{ route('admin_bulk_destroy_cuttings') }}">
+                            <thead><tr>
+                                <th class="cat-th-check text-center"><label class="cat-custom-checkbox" title="Pilih semua di halaman ini"><input type="checkbox" id="checkAllCuttings" aria-label="Pilih semua jasa potong di halaman ini"><span class="cat-checkbox-mark"><svg class="check-icon" viewBox="0 0 14 14" fill="none"><path d="M2.5 7.5L5.5 10.5L11.5 3.5" stroke="#fff" stroke-width="2.2"/></svg><svg class="minus-icon" viewBox="0 0 14 14" fill="none"><path d="M3 7H11" stroke="#fff" stroke-width="2.2"/></svg></span></label></th>
+                                <th class="cat-th-no text-center">No</th><th style="min-width: 220px;">Nama Jasa Potong</th><th style="min-width: 130px;">Total Ukuran</th><th style="min-width: 120px;">Status</th><th style="min-width: 170px;">Dibuat Oleh</th><th style="min-width: 150px;">Dibuat Pada</th><th class="text-center" style="width: 140px;">Aksi</th>
+                            </tr></thead><tbody></tbody>
+                        </table></div>
                     </section>
                 </div>
             </main>
             <div data-shell-footer></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modalBulkDeleteCuttings">
+        <div class="modal-dialog modal-delete">
+            <div class="modal-header"><div><span class="eyebrow">MASTER DATA · JASA POTONG</span><br><span class="eyebrow">Hapus Jasa Potong Terpilih</span></div><button type="button" class="modal-close" id="closeBulkDeleteCuttings" aria-label="Tutup"><i class="bi bi-x-lg"></i></button></div>
+            <div class="modal-body"><div class="delete-confirmation"><div class="delete-icon"><i class="bi bi-trash3-fill"></i></div><div class="delete-content"><h3>Hapus jasa potong terpilih?</h3><p id="bulkDeleteCuttingDescription"></p><p>Jasa potong yang masih memiliki ukuran atau digunakan oleh data lain tidak dapat dihapus.</p></div></div></div>
+            <div class="modal-footer"><button type="button" class="btn btn--ghost" id="cancelBulkDeleteCuttings">Batal</button><button type="button" class="btn btn--danger" id="confirmBulkDeleteCuttings">Hapus Terpilih</button></div>
         </div>
     </div>
 
@@ -596,6 +591,7 @@
                             Apakah kamu yakin ingin menghapus jasa potong ini?
                             Data yang sudah dihapus tidak dapat dikembalikan.
                         </p>
+                        <p>Jasa potong yang masih memiliki ukuran atau digunakan oleh data lain tidak dapat dihapus.</p>
                     </div>
                 </div>
             </div>
@@ -857,181 +853,9 @@
 @endsection
 
 @section('scripts')
+    <script src="{{ asset('js/cutting-index.js') }}"></script>
     <script>
-        let cuttingTable;
-
         document.addEventListener('DOMContentLoaded', function() {
-            /*
-            |--------------------------------------------------------------------------
-            | DATATABLE JASA POTONG
-            |--------------------------------------------------------------------------
-            */
-            cuttingTable = new DataTable('#cuttingTable', {
-                processing: true,
-                serverSide: true,
-                ordering: false,
-
-                responsive: {
-                    details: {
-                        type: 'column',
-                        target: 0
-                    }
-                },
-
-                ajax: {
-                    url: "{{ route('admin_data_cuttings') }}",
-                    type: "GET"
-                },
-
-                columns: [{
-                        data: null,
-                        defaultContent: '',
-                        className: 'dtr-control',
-                        orderable: false,
-                        searchable: false,
-                        responsivePriority: 1
-                    },
-                    {
-                        data: null,
-                        orderable: false,
-                        searchable: false,
-                        responsivePriority: 1,
-                        className: 'text-center',
-                        render: function(data, type, row, meta) {
-                            const pageInfo = cuttingTable.page.info();
-                            return pageInfo.start + meta.row + 1;
-                        }
-                    },
-                    {
-                        data: 'name',
-                        responsivePriority: 1,
-                        render: function(data) {
-                            return `
-                                <div>
-                                    ${data ?? '-'}
-                                </div>
-                            `;
-                        },
-                        createdCell: function(td) {
-                            td.style.whiteSpace = 'normal';
-                            td.style.wordBreak = 'break-word';
-                            td.style.overflowWrap = 'break-word';
-                        }
-                    },
-                    {
-                        data: 'total_sizes',
-                        responsivePriority: 100,
-                        className: 'text-center',
-                        render: function(data) {
-                            return data ?? 0;
-                        },
-                        createdCell: function(td) {
-                            td.style.textAlign = 'center';
-                        }
-                    },
-                    {
-                        data: 'status',
-                        responsivePriority: 100,
-                        render: function(data) {
-                            const statusClass =
-                                data === 'Active' ? 'success' : 'danger';
-
-                            return `
-                                <span class="badge ${statusClass} dot">
-                                    ${data}
-                                </span>
-                            `;
-                        }
-                    },
-                    {
-                        data: 'id',
-                        orderable: false,
-                        searchable: false,
-                        responsivePriority: 100,
-                        className: 'text-center',
-                        render: function(data, type, row) {
-                            return `
-                                <div
-                                    class="data-cell-actions"
-                                    style="
-                                        display: flex;
-                                        align-items: center;
-                                        justify-content: center;
-                                        gap: 5px;
-                                    "
-                                >
-                                    <!-- VIEW -->
-                                    <button
-                                        type="button"
-                                        class="btn--icon btn-view-cutting"
-                                        data-id="${data}"
-                                        aria-label="View"
-                                    >
-                                        <i class="bi bi-arrows-fullscreen"></i>
-                                    </button>
-
-                                    <!-- EDIT -->
-                                    <button
-                                        type="button"
-                                        class="btn--icon btn-edit-cutting"
-                                        data-id="${data}"
-                                        aria-label="Edit"
-                                    >
-                                        <i class="bi bi-pen"></i>
-                                    </button>
-
-                                    <!-- DELETE -->
-                                    <button
-                                        type="button"
-                                        class="btn--icon btn-delete-cutting"
-                                        data-id="${data}"
-                                        aria-label="Hapus"
-                                    >
-                                        <i class="bi bi-trash3-fill"></i>
-                                    </button>
-                                </div>
-                            `;
-                        }
-                    }
-                ],
-
-                columnDefs: [{
-                    targets: 0,
-                    className: 'dtr-control'
-                }],
-
-                pageLength: 10,
-                lengthMenu: [10, 25, 50, 100],
-
-                layout: {
-                    topStart: 'pageLength',
-                    topEnd: 'search',
-                    bottomStart: 'info',
-                    bottomEnd: 'paging'
-                },
-
-                language: {
-                    search: 'Search:',
-                    lengthMenu: '_MENU_ entries per page',
-                    info: 'Showing _START_ to _END_ of _TOTAL_ entries',
-                    infoEmpty: 'Showing 0 to 0 of 0 entries',
-                    zeroRecords: 'Data jasa potong tidak ditemukan',
-                    processing: 'Memuat data...',
-                    searchPlaceholder: 'Cari jasa potong...'
-                },
-
-                initComplete: function() {
-                    $(this)
-                        .closest('.dt-container, .dataTables_wrapper')
-                        .find('.dt-search input, .dataTables_filter input')
-                        .css({
-                            'padding': '9px 14px',
-                            'border-radius': '8px',
-                            'border': '1px solid #e2e8f0'
-                        });
-                }
-            });
-
             /*
             |--------------------------------------------------------------------------
             | MODAL TAMBAH JASA POTONG
@@ -2199,6 +2023,8 @@
                         }
 
                         if (response.ok && result && result.success) {
+                            selectedCuttingIds.delete(Number(cuttingIdToDelete));
+                            updateCuttingSelection();
                             tutupDeleteCuttingModal();
                             if (cuttingTable) {
                                 cuttingTable.ajax.reload(null, false);

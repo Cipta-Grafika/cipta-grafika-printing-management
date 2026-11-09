@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use App\Imports\LocationsImport;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\LocationsExport;
@@ -16,7 +17,14 @@ class LocationCT extends Controller
 {
     public function index()
     {
-        return view('admin.location.index');
+        $creators = DB::table('m_locations')
+            ->whereNotNull('created_by')
+            ->where('created_by', '!=', '')
+            ->distinct()
+            ->orderBy('created_by')
+            ->pluck('created_by');
+
+        return view('admin.location.index', compact('creators'));
     }
 
     public function data(Request $request)
@@ -38,6 +46,22 @@ class LocationCT extends Controller
 
         $query = DB::table('m_locations');
 
+        $creator = $request->input('creator');
+        if ($creator && $creator !== 'all') {
+            $query->where('created_by', $creator);
+        }
+
+        $period = $request->input('period');
+        if ($period === 'today') {
+            $query->whereDate('created_at', Carbon::today());
+        } elseif ($period === '7_days') {
+            $query->where('created_at', '>=', Carbon::now()->subDays(7));
+        } elseif ($period === 'month') {
+            $query->where('created_at', '>=', Carbon::now()->startOfMonth());
+        } elseif ($period === 'year') {
+            $query->where('created_at', '>=', Carbon::now()->startOfYear());
+        }
+
 
         /*
     |--------------------------------------------------------------------------
@@ -45,9 +69,9 @@ class LocationCT extends Controller
     |--------------------------------------------------------------------------
     */
 
-        $search = $request->input('search.value');
+        $search = trim((string) $request->input('search.value', ''));
 
-        if (!empty($search)) {
+        if ($search !== '') {
 
             $query->where(function ($q) use ($search) {
 
@@ -86,15 +110,14 @@ class LocationCT extends Controller
 
         $columns = [
 
-            0 => 'id',
-            1 => 'name',
-            2 => 'status',
-            3 => 'created_by',
-            4 => 'created_at',
+            2 => 'name',
+            3 => 'status',
+            4 => 'created_by',
+            5 => 'created_at',
 
         ];
 
-        $orderColumnIndex = (int) $request->input('order.0.column', 1);
+        $orderColumnIndex = (int) $request->input('order.0.column', 2);
 
         $orderColumn = $columns[$orderColumnIndex] ?? 'name';
 
@@ -119,9 +142,9 @@ class LocationCT extends Controller
     |--------------------------------------------------------------------------
     */
 
-        $start = (int) $request->input('start', 0);
+        $start = max(0, (int) $request->input('start', 0));
 
-        $length = (int) $request->input('length', 10);
+        $length = min(100, max(1, (int) $request->input('length', 10)));
 
 
         /*
@@ -131,15 +154,8 @@ class LocationCT extends Controller
     */
 
         $locations = $query
-            ->orderByRaw("
-                CASE
-                    WHEN status = 'Active' THEN 1
-                    WHEN status = 'Inactive' THEN 2
-                    ELSE 3
-                END
-            ")
-
             ->orderBy($orderColumn, $orderDirection)
+            ->orderBy('id')
 
             ->offset($start)
 
@@ -381,59 +397,69 @@ class LocationCT extends Controller
 
     public function destroy(int $id)
     {
-        /*
-    |--------------------------------------------------------------------------
-    | CARI LOKASI
-    |--------------------------------------------------------------------------
-    */
+        return $this->deleteLocations([$id]);
+    }
 
-        $location = DB::table('m_locations')
-            ->where('id', $id)
-            ->first();
+    public function bulkDestroy(Request $request)
+    {
+        $validated = $request->validate([
+            'ids' => ['required', 'array', 'min:1', 'max:1000'],
+            'ids.*' => ['required', 'integer', 'min:1', 'distinct'],
+        ]);
 
+        return $this->deleteLocations(array_map('intval', $validated['ids']));
+    }
 
-        /*
-    |--------------------------------------------------------------------------
-    | JIKA LOKASI TIDAK DITEMUKAN
-    |--------------------------------------------------------------------------
-    */
+    private function deleteLocations(array $ids)
+    {
+        return DB::transaction(function () use ($ids) {
+            $locations = DB::table('m_locations')->whereIn('id', $ids)->lockForUpdate()->get();
 
-        if (!$location) {
+            if ($locations->count() !== count($ids)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Sebagian lokasi tidak ditemukan. Tidak ada data yang dihapus.',
+                ], 404);
+            }
+
+            // Check actual foreign keys as well as unconstrained location_id columns.
+            foreach (Schema::getTables() as $table) {
+                if ($table['name'] === 'm_locations') {
+                    continue;
+                }
+
+                $tableName = $table['schema_qualified_name'];
+                $columns = [];
+                if (Schema::hasColumn($tableName, 'location_id')) {
+                    $columns[] = 'location_id';
+                }
+                foreach (Schema::getForeignKeys($tableName) as $foreignKey) {
+                    if ($foreignKey['foreign_table'] === 'm_locations') {
+                        foreach ($foreignKey['foreign_columns'] as $index => $foreignColumn) {
+                            if ($foreignColumn === 'id') {
+                                $columns[] = $foreignKey['columns'][$index];
+                            }
+                        }
+                    }
+                }
+
+                foreach (array_unique($columns) as $column) {
+                    if (DB::table($tableName)->whereIn($column, $ids)->exists()) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Lokasi tidak dapat dihapus karena masih digunakan oleh data lain. Tidak ada data yang dihapus.',
+                        ], 422);
+                    }
+                }
+            }
+
+            $deleted = DB::table('m_locations')->whereIn('id', $ids)->delete();
 
             return response()->json([
-
-                'success' => false,
-
-                'message' => 'Lokasi tidak ditemukan.'
-
-            ], 404);
-        }
-
-
-        /*
-    |--------------------------------------------------------------------------
-    | HAPUS LOKASI
-    |--------------------------------------------------------------------------
-    */
-
-        DB::table('m_locations')
-            ->where('id', $id)
-            ->delete();
-
-
-        /*
-    |--------------------------------------------------------------------------
-    | RESPONSE
-    |--------------------------------------------------------------------------
-    */
-
-        return response()->json([
-
-            'success' => true,
-
-            'message' => 'Lokasi berhasil dihapus.'
-
-        ]);
+                'success' => true,
+                'message' => $deleted === 1 ? 'Lokasi berhasil dihapus.' : "{$deleted} lokasi berhasil dihapus.",
+            ]);
+        });
     }
 
     public function import(Request $request)

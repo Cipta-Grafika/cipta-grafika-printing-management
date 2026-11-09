@@ -12,7 +12,32 @@ class ProductionCostFinishingCuttingCT extends Controller
 {
     public function index()
     {
-        return view("admin.production-cost-finishing-cutting.index");
+        $data['filterLocations'] = DB::table('m_locations')
+            ->where('status', 'Active')
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        return view("admin.production-cost-finishing-cutting.index")->with($data);
+    }
+
+    private function applyIndexLocationFilter(Request $request, $query): void
+    {
+        $locationId = $request->input('location_id');
+        if ($locationId !== null && $locationId !== '' && $locationId !== 'all' && ctype_digit((string) $locationId)) {
+            $query->where('pc.location_id', (int) $locationId);
+        }
+    }
+
+    private function applyIndexOrdering(Request $request, $query, array $orderColumns): void
+    {
+        $orderColumn = (int) $request->input('order.0.column', 2);
+        $orderDirection = strtolower((string) $request->input('order.0.dir', 'asc')) === 'desc' ? 'desc' : 'asc';
+
+        $query->orderBy($orderColumns[$orderColumn] ?? 'e.name', $orderDirection)
+            ->orderBy('e.name')
+            ->orderBy('l.name')
+            ->orderBy('v.name')
+            ->orderBy('pc.id');
     }
 
     public function data(Request $request)
@@ -33,11 +58,13 @@ class ProductionCostFinishingCuttingCT extends Controller
                 'e.name as engine_name',
                 'l.name as location_names',
                 'v.name as vendor_name',
-                DB::raw('COUNT(DISTINCT d.cutting_id) as cutting_count')
+                DB::raw('COUNT(DISTINCT d.cutting_id) as cutting_count'),
+                DB::raw('COUNT(DISTINCT d.category_id) as category_count')
             )
             ->groupBy('pc.id', 'e.id', 'e.name', 'l.name', 'v.name');
 
         $totalRecords = (clone $query)->get()->count();
+        $this->applyIndexLocationFilter($request, $query);
         $search = $request->input('search.value');
 
         if (!empty($search)) {
@@ -64,13 +91,15 @@ class ProductionCostFinishingCuttingCT extends Controller
         }
 
         $totalFiltered = (clone $query)->get()->count();
+        $this->applyIndexOrdering($request, $query, [
+            2 => 'e.name',
+            3 => 'l.name',
+            4 => 'category_count',
+            5 => 'cutting_count',
+        ]);
         $data = $query
-            ->orderBy('e.name')
-            ->orderBy('l.name')
-            ->orderBy('v.name')
-            ->orderBy('pc.id')
-            ->offset((int) $request->input('start', 0))
-            ->limit((int) $request->input('length', 10))
+            ->offset(max(0, (int) $request->input('start', 0)))
+            ->limit(min(100, max(1, (int) $request->input('length', 10))))
             ->get();
 
         $categoryNames = DB::table('m_digital_cutting_production_cost_details as d')
@@ -1057,6 +1086,7 @@ class ProductionCostFinishingCuttingCT extends Controller
             ->groupBy('pc.id', 'e.id', 'e.name', 'l.name', 'v.name');
 
         $totalRecords = (clone $query)->get()->count();
+        $this->applyIndexLocationFilter($request, $query);
         $search = $request->input('search.value');
 
         if (!empty($search)) {
@@ -1076,13 +1106,14 @@ class ProductionCostFinishingCuttingCT extends Controller
         }
 
         $totalFiltered = (clone $query)->get()->count();
+        $this->applyIndexOrdering($request, $query, [
+            2 => 'e.name',
+            3 => 'l.name',
+            4 => 'category_count',
+        ]);
         $data = $query
-            ->orderBy('e.name')
-            ->orderBy('l.name')
-            ->orderBy('v.name')
-            ->orderBy('pc.id')
-            ->offset((int) $request->input('start', 0))
-            ->limit((int) $request->input('length', 10))
+            ->offset(max(0, (int) $request->input('start', 0)))
+            ->limit(min(100, max(1, (int) $request->input('length', 10))))
             ->get();
 
         $categoryNames = DB::table('m_digital_potong_production_cost_categories as d')
@@ -1188,6 +1219,97 @@ class ProductionCostFinishingCuttingCT extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Terjadi kesalahan saat menghapus data ongkos produksi potong.'
+            ], 500);
+        }
+    }
+
+    public function bulkDestroy(Request $request)
+    {
+        $validated = $request->validate([
+            'cutting' => ['sometimes', 'array', 'max:100'],
+            'cutting.*' => ['required', 'integer', 'min:1', 'distinct'],
+            'potong' => ['sometimes', 'array', 'max:100'],
+            'potong.*' => ['required', 'integer', 'min:1', 'distinct'],
+        ]);
+
+        $cuttingIds = array_values(array_unique(array_map('intval', $validated['cutting'] ?? [])));
+        $potongIds = array_values(array_unique(array_map('intval', $validated['potong'] ?? [])));
+        $selectedCount = count($cuttingIds) + count($potongIds);
+
+        if ($selectedCount === 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Pilih setidaknya satu biaya jasa potong.'
+            ], 422);
+        }
+
+        if ($selectedCount > 100) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Maksimal 100 biaya jasa potong dapat dihapus sekaligus.'
+            ], 422);
+        }
+
+        try {
+            return DB::transaction(function () use ($cuttingIds, $potongIds, $selectedCount) {
+                $lockedCuttingIds = $cuttingIds
+                    ? DB::table('m_digital_cutting_production_costs')->whereIn('id', $cuttingIds)->lockForUpdate()->pluck('id')
+                    : collect();
+                $lockedPotongIds = $potongIds
+                    ? DB::table('m_digital_potong_production_costs')->whereIn('id', $potongIds)->lockForUpdate()->pluck('id')
+                    : collect();
+
+                if ($lockedCuttingIds->count() !== count($cuttingIds) || $lockedPotongIds->count() !== count($potongIds)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Sebagian data biaya jasa potong sudah berubah atau tidak ditemukan. Tidak ada data yang dihapus.'
+                    ], 422);
+                }
+
+                if ($cuttingIds) {
+                    $detailIds = DB::table('m_digital_cutting_production_cost_details')
+                        ->whereIn('digital_cutting_production_cost_id', $cuttingIds)
+                        ->pluck('id');
+
+                    if ($detailIds->isNotEmpty()) {
+                        DB::table('m_digital_cutting_production_cost_prices')
+                            ->whereIn('digital_cutting_production_cost_detail_id', $detailIds)
+                            ->delete();
+                        DB::table('m_digital_cutting_production_cost_details')
+                            ->whereIn('id', $detailIds)
+                            ->delete();
+                    }
+
+                    DB::table('m_digital_cutting_production_costs')->whereIn('id', $cuttingIds)->delete();
+                }
+
+                if ($potongIds) {
+                    $categoryIds = DB::table('m_digital_potong_production_cost_categories')
+                        ->whereIn('digital_potong_production_cost_id', $potongIds)
+                        ->pluck('id');
+
+                    if ($categoryIds->isNotEmpty()) {
+                        DB::table('m_digital_potong_production_cost_prices')
+                            ->whereIn('digital_potong_production_cost_category_id', $categoryIds)
+                            ->delete();
+                        DB::table('m_digital_potong_production_cost_categories')
+                            ->whereIn('id', $categoryIds)
+                            ->delete();
+                    }
+
+                    DB::table('m_digital_potong_production_costs')->whereIn('id', $potongIds)->delete();
+                }
+
+                return response()->json([
+                    'success' => true,
+                    'message' => $selectedCount . ' biaya jasa potong berhasil dihapus.'
+                ]);
+            });
+        } catch (\Throwable $e) {
+            report($e);
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat menghapus biaya jasa potong terpilih.'
             ], 500);
         }
     }

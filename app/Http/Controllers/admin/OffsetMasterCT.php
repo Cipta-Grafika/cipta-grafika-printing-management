@@ -74,12 +74,22 @@ class OffsetMasterCT extends Controller
             });
         }
 
+        $this->applyIndexFilters($query, $request);
+
         $totalFiltered = $query->count();
 
-        $start = (int) $request->input('start', 0);
-        $length = (int) $request->input('length', 10);
+        [$start, $length] = $this->paginationBounds($request);
+        $this->applyIndexOrdering($query, $request, [
+            2 => 'material_code',
+            3 => 'material_name',
+            4 => ['length', 'width'],
+            5 => 'gramature',
+            6 => 'paper_type',
+            7 => 'price_per_plano',
+            8 => 'status',
+        ]);
 
-        $materials = $query->orderBy('id', 'asc')
+        $materials = $query
             ->offset($start)
             ->limit($length)
             ->get();
@@ -105,6 +115,108 @@ class OffsetMasterCT extends Controller
         }
         $clean = preg_replace('/[^\d]/', '', (string) $value);
         return (float) $clean;
+    }
+
+    /**
+     * Tabel master offset yang boleh dihapus massal (key = data-type di halaman index).
+     */
+    protected const BULK_DELETE_TABLES = [
+        'plano'        => ['table' => 'm_offset_plano_materials', 'label' => 'kertas plano'],
+        'plate'        => ['table' => 'm_offset_plates', 'label' => 'plat CTP'],
+        'print_cost'   => ['table' => 'm_offset_print_costs', 'label' => 'profil mesin'],
+        'pricing_rule' => ['table' => 'm_offset_pricing_rules', 'label' => 'pricing rule'],
+        'product'      => ['table' => 'm_offset_products', 'label' => 'produk cetak'],
+    ];
+
+    protected function applyIndexFilters($query, Request $request): void
+    {
+        $status = strtolower(trim((string) $request->input('status', '')));
+
+        if (in_array($status, ['active', 'inactive'], true)) {
+            $query->whereRaw('LOWER(status) = ?', [$status]);
+        }
+
+        $period = $request->input('period');
+        if ($period === 'today') {
+            $query->whereDate('created_at', Carbon::today());
+        } elseif ($period === '7_days') {
+            $query->where('created_at', '>=', Carbon::now()->subDays(7));
+        } elseif ($period === 'month') {
+            $query->where('created_at', '>=', Carbon::now()->startOfMonth());
+        } elseif ($period === 'year') {
+            $query->where('created_at', '>=', Carbon::now()->startOfYear());
+        }
+    }
+
+    /**
+     * Sorting server-side berbasis whitelist index kolom DataTables (0 = checkbox, 1 = No).
+     */
+    protected function applyIndexOrdering($query, Request $request, array $columnMap): void
+    {
+        $columnIndex = $request->input('order.0.column');
+        $columns = is_numeric($columnIndex) ? ($columnMap[(int) $columnIndex] ?? null) : null;
+
+        if ($columns !== null) {
+            $direction = strtolower((string) $request->input('order.0.dir')) === 'desc' ? 'desc' : 'asc';
+
+            foreach ((array) $columns as $column) {
+                $query->orderBy($column, $direction);
+            }
+        }
+
+        $query->orderBy('id', 'asc');
+    }
+
+    protected function paginationBounds(Request $request): array
+    {
+        $start = max(0, (int) $request->input('start', 0));
+        $length = (int) $request->input('length', 10);
+        $length = $length < 1 ? 10 : min(100, $length);
+
+        return [$start, $length];
+    }
+
+    /**
+     * Bulk Delete: Hapus beberapa data master offset sekaligus (atomik).
+     */
+    public function bulkDestroy(Request $request)
+    {
+        $validated = $request->validate([
+            'type'  => 'required|string|in:' . implode(',', array_keys(self::BULK_DELETE_TABLES)),
+            'ids'   => 'required|array|min:1|max:100',
+            'ids.*' => 'required|integer|min:1|distinct',
+        ]);
+
+        $config = self::BULK_DELETE_TABLES[$validated['type']];
+        $ids = array_values(array_unique(array_map('intval', $validated['ids'])));
+
+        $deleted = DB::transaction(function () use ($config, $ids) {
+            $existingIds = DB::table($config['table'])
+                ->whereIn('id', $ids)
+                ->lockForUpdate()
+                ->pluck('id')
+                ->map(fn ($id) => (int) $id)
+                ->all();
+
+            if (count($existingIds) !== count($ids)) {
+                return null;
+            }
+
+            return DB::table($config['table'])->whereIn('id', $ids)->delete();
+        });
+
+        if ($deleted === null) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Sebagian data ' . $config['label'] . ' tidak ditemukan. Muat ulang halaman lalu coba lagi.',
+            ], 422);
+        }
+
+        return response()->json([
+            'success' => true,
+            'deleted' => $deleted,
+            'message' => $deleted . ' data ' . $config['label'] . ' berhasil dihapus!',
+        ]);
     }
 
     /**
@@ -218,12 +330,20 @@ class OffsetMasterCT extends Controller
             });
         }
 
+        $this->applyIndexFilters($query, $request);
+
         $totalFiltered = $query->count();
 
-        $start = (int) $request->input('start', 0);
-        $length = (int) $request->input('length', 10);
+        [$start, $length] = $this->paginationBounds($request);
+        $this->applyIndexOrdering($query, $request, [
+            2 => 'plate_code',
+            3 => 'plate_name',
+            4 => 'machine_name',
+            5 => 'price_per_plate',
+            6 => 'status',
+        ]);
 
-        $plates = $query->orderBy('id', 'asc')
+        $plates = $query
             ->offset($start)
             ->limit($length)
             ->get();
@@ -320,12 +440,22 @@ class OffsetMasterCT extends Controller
             });
         }
 
+        $this->applyIndexFilters($query, $request);
+
         $totalFiltered = $query->count();
 
-        $start = (int) $request->input('start', 0);
-        $length = (int) $request->input('length', 10);
+        [$start, $length] = $this->paginationBounds($request);
+        $this->applyIndexOrdering($query, $request, [
+            2 => 'name',
+            3 => ['press_sheet_width', 'press_sheet_length'],
+            4 => 'default_insheet_sheets',
+            5 => 'click_rate_per_color',
+            6 => 'min_print_per_color',
+            7 => 'cutting_fee_per_rim',
+            8 => 'status',
+        ]);
 
-        $printCosts = $query->orderBy('id', 'asc')
+        $printCosts = $query
             ->offset($start)
             ->limit($length)
             ->get();
@@ -433,12 +563,22 @@ class OffsetMasterCT extends Controller
             });
         }
 
+        $this->applyIndexFilters($query, $request);
+
         $totalFiltered = $query->count();
 
-        $start = (int) $request->input('start', 0);
-        $length = (int) $request->input('length', 10);
+        [$start, $length] = $this->paginationBounds($request);
+        $this->applyIndexOrdering($query, $request, [
+            2 => 'rule_name',
+            3 => 'category_name',
+            4 => ['min_rim', 'max_rim'],
+            5 => 'markup_general',
+            6 => 'markup_division',
+            7 => 'rounding_value',
+            8 => 'status',
+        ]);
 
-        $rules = $query->orderBy('id', 'asc')
+        $rules = $query
             ->offset($start)
             ->limit($length)
             ->get();
@@ -471,12 +611,23 @@ class OffsetMasterCT extends Controller
             });
         }
 
+        $this->applyIndexFilters($query, $request);
+
         $totalFiltered = $query->count();
 
-        $start = (int) $request->input('start', 0);
-        $length = (int) $request->input('length', 10);
+        [$start, $length] = $this->paginationBounds($request);
+        $this->applyIndexOrdering($query, $request, [
+            2 => 'product_code',
+            3 => 'product_name',
+            4 => 'category',
+            5 => ['final_length', 'final_width'],
+            6 => 'sheet_per_rim',
+            7 => 'plano_cut_yield',
+            8 => ['print_sheet_length', 'print_sheet_width'],
+            9 => 'status',
+        ]);
 
-        $products = $query->orderBy('id', 'asc')
+        $products = $query
             ->offset($start)
             ->limit($length)
             ->get();

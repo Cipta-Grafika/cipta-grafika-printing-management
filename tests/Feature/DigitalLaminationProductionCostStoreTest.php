@@ -1338,6 +1338,53 @@ class DigitalLaminationProductionCostStoreTest extends TestCase
         $this->assertStringNotContainsString('Hapus, export, template', $html);
     }
 
+    public function test_index_renders_category_style_filters_selection_and_bulk_route(): void
+    {
+        $html = app(ProductionCostFinishingLaminationCT::class)->index()->render();
+
+        foreach ([
+            'productionCostLaminationSearch',
+            'productionCostLaminationEngineFilter',
+            'productionCostLaminationLocationFilter',
+            'productionCostLaminationPageLength',
+            'checkAllProductionCostLaminations',
+            'productionCostLaminationBulkToolbar',
+            'modalBulkDeleteProductionCostLaminations',
+        ] as $id) {
+            $this->assertStringContainsString('id="' . $id . '"', $html);
+        }
+
+        $this->assertStringContainsString('class="cat-modern-table"', $html);
+        $this->assertStringContainsString(route('admin_bulk_destroy_pc_finishing_laminations'), $html);
+    }
+
+    public function test_bulk_delete_removes_only_selected_digital_lamination_headers(): void
+    {
+        $firstId = DB::table('m_digital_lamination_production_costs')->insertGetId([
+            'engine_id' => 1,
+            'location_id' => 1,
+            'vendor_id' => null,
+            'created_by' => 'Test',
+            'created_at' => now(),
+        ]);
+        $otherId = DB::table('m_digital_lamination_production_costs')->insertGetId([
+            'engine_id' => 1,
+            'location_id' => 2,
+            'vendor_id' => null,
+            'created_by' => 'Test',
+            'created_at' => now(),
+        ]);
+
+        $response = app(ProductionCostFinishingLaminationCT::class)->bulkDestroy(
+            Request::create('/admin/production-cost-finishing-laminations/bulk-delete', 'POST', [
+                'digital_print_a3' => [$firstId],
+            ])
+        );
+
+        $this->assertTrue($response->getData(true)['success']);
+        $this->assertSame([$otherId], DB::table('m_digital_lamination_production_costs')->pluck('id')->all());
+    }
+
     public function test_outsourcing_edit_preserves_vendor_scope_and_other_vendor_data(): void
     {
         $configuration = $this->configuration();

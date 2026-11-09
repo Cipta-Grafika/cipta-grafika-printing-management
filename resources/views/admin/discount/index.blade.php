@@ -1,31 +1,79 @@
 @extends('admin_master')
 @section('contents')
+    <link rel="stylesheet" href="{{ asset('css/discount-index.css') }}">
     <div class="shell">
         <div data-shell-sidebar></div>
         <div class="main">
             <div data-shell-topbar></div>
             <main class="content">
-                <section class="hero">
+                <section class="hero cat-hero-compact">
                     <div class="hero-text"><span class="eyebrow">KONFIGURASI · DISKON</span>
                         <p class="hero-sub">Kelola diskon dan promo berdasarkan periode berlaku serta cakupan mesin dan
                             kategori produk.</p>
                     </div>
 
-                    <div class="hero-actions" style="display: flex; justify-content: right;">
-                        <button type="button" class="btn btn--primary" id="btnTambahDiskon">
-                            <svg viewBox="0 0 24 24">
-                                <path d="M12 5v14M5 12h14" />
-                            </svg>
-                            Tambah Diskon
-                        </button>
-                    </div>
                 </section>
                 <div class="grid">
-                    <section class="col-12 card">
-                        <table id="discountTable" class="display data-table">
+                    <section class="col-12 card cat-card-container">
+                        <div class="cat-card-header">
+                            <div class="cat-card-header-main">
+                                <div class="cat-card-title-wrap">
+                                    <div class="cat-card-icon"><i class="bi bi-percent"></i></div>
+                                    <div>
+                                        <div class="cat-title-row">
+                                            <h3 class="cat-card-title">Daftar Diskon</h3>
+                                            <span class="cat-badge-total"><span class="cat-pulse-dot"></span><span id="discountTotalCount">Memuat data...</span></span>
+                                        </div>
+                                        <p class="cat-card-desc">Kelola promo, periode berlaku, dan cakupan diskon.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="cat-card-actions">
+                                <button type="button" class="cat-btn-head-primary" id="btnTambahDiskon"><i class="bi bi-plus-lg"></i><span>Tambah Diskon</span></button>
+                            </div>
+                        </div>
+                        <div class="cat-bulk-toolbar" id="discountBulkToolbar" style="display: none;">
+                            <div class="cat-bulk-info"><span class="cat-bulk-badge" id="discountBulkCount">0 terpilih</span><span class="cat-bulk-text">Diskon yang dipilih siap untuk tindakan massal</span></div>
+                            <div class="cat-bulk-actions">
+                                <button type="button" class="btn btn--ghost btn--sm" id="cancelDiscountSelection"><i class="bi bi-x-circle me-1"></i> Batal Pilihan</button>
+                                <button type="button" class="btn btn--danger btn--sm" id="bulkDeleteDiscounts"><i class="bi bi-trash3-fill me-1"></i> Hapus Terpilih</button>
+                            </div>
+                        </div>
+                        <div class="cat-filter-card">
+                            <div class="cat-filter-group-left">
+                                <div class="cat-search-box">
+                                    <i class="bi bi-search cat-search-icon"></i>
+                                    <input type="text" id="discountSearch" class="cat-filter-input" placeholder="Cari diskon, mesin, kategori, atau pembuat..." aria-label="Cari diskon">
+                                    <button type="button" id="clearDiscountSearch" class="cat-clear-btn" title="Hapus pencarian" aria-label="Hapus pencarian" style="display: none;"><i class="bi bi-x-circle-fill"></i></button>
+                                </div>
+                                <div class="cat-select-box">
+                                    <i class="bi bi-person-fill cat-select-icon"></i>
+                                    <select id="discountCreator" class="select2" style="width: 100%;" aria-label="Filter pembuat">
+                                        <option value="all">Semua Pembuat</option>
+                                        @foreach ($creators ?? [] as $creator)
+                                            <option value="{{ $creator }}">{{ $creator }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="cat-filter-subgroup">
+                                    <div class="cat-select-box">
+                                        <i class="bi bi-calendar3 cat-select-icon"></i>
+                                        <select id="discountPeriod" class="select2" style="width: 100%;" aria-label="Filter periode pembuatan">
+                                            <option value="all">Semua Periode</option><option value="today">Hari Ini</option><option value="7_days">7 Hari Terakhir</option><option value="month">Bulan Ini</option><option value="year">Tahun Ini</option>
+                                        </select>
+                                    </div>
+                                    <button type="button" id="resetDiscountFilters" class="cat-btn-reset" title="Reset semua filter"><i class="bi bi-arrow-counterclockwise"></i><span>Reset</span></button>
+                                </div>
+                            </div>
+                            <div class="cat-filter-group-right"><div class="cat-length-box"><span class="cat-length-label">Baris:</span>
+                                <select id="discountPageLength" class="select2" style="width: 76px;" aria-label="Jumlah baris"><option value="10">10</option><option value="25">25</option><option value="50">50</option><option value="100">100</option></select>
+                            </div></div>
+                        </div>
+                        <div class="cat-table-wrap">
+                        <table id="discountTable" class="cat-modern-table" style="width: 100%;" data-bulk-url="{{ route('admin_bulk_destroy_discounts') }}">
                             <thead>
                                 <tr>
-                                    <th></th>
+                                    <th class="cat-th-check text-center"><label class="cat-custom-checkbox" title="Pilih semua di halaman ini"><input type="checkbox" id="checkAllDiscounts" aria-label="Pilih semua diskon di halaman ini"><span class="cat-checkbox-mark"><svg class="check-icon" viewBox="0 0 14 14" fill="none"><path d="M2.5 7.5L5.5 10.5L11.5 3.5" stroke="#fff" stroke-width="2.2"/></svg><svg class="minus-icon" viewBox="0 0 14 14" fill="none"><path d="M3 7H11" stroke="#fff" stroke-width="2.2"/></svg></span></label></th>
                                     <th>No</th>
                                     <th>Nama Diskon</th>
                                     <th>Diskon</th>
@@ -33,15 +81,28 @@
                                     <th>Cakupan</th>
                                     <th>Status</th>
                                     <th>Dibuat Oleh</th>
+                                    <th>Dibuat Pada</th>
                                     <th>Aksi</th>
                                 </tr>
                             </thead>
                             <tbody></tbody>
                         </table>
+                        </div>
                     </section>
                 </div>
             </main>
             <div data-shell-footer></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modalBulkDeleteDiscounts">
+        <div class="modal-dialog modal-delete">
+            <div class="modal-header">
+                <div><span class="eyebrow">KONFIGURASI · DISKON</span><br><span class="eyebrow">Hapus Diskon Terpilih</span></div>
+                <button type="button" class="modal-close" id="closeBulkDeleteDiscounts" aria-label="Tutup"><svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+            </div>
+            <div class="modal-body"><div class="delete-confirmation"><div class="delete-icon"><i class="bi bi-trash3-fill"></i></div><div class="delete-content"><h3>Hapus diskon terpilih?</h3><p id="bulkDeleteDiscountDescription"></p><p>Cakupan mesin dan kategori milik diskon juga akan dihapus. Diskon yang masih digunakan oleh data lain tidak dapat dihapus.</p></div></div></div>
+            <div class="modal-footer"><button type="button" class="btn btn--ghost" id="cancelBulkDeleteDiscounts">Batal</button><button type="button" class="btn btn--danger" id="confirmBulkDeleteDiscounts"><i class="bi bi-trash3-fill"></i> Hapus Terpilih</button></div>
         </div>
     </div>
 
@@ -268,40 +329,41 @@
             discountTable = new DataTable('#discountTable', {
                 processing: true,
                 serverSide: true,
-                ordering: false,
-                responsive: {
-                    details: {
-                        type: 'column',
-                        target: 0
-                    }
-                },
+                ordering: true,
+                order: [],
+                stripeClasses: [],
                 ajax: {
                     url: "{{ route('admin_data_discounts') }}",
-                    type: 'GET'
+                    type: 'GET',
+                    data: function(data) {
+                        data.creator = document.getElementById('discountCreator').value;
+                        data.period = document.getElementById('discountPeriod').value;
+                    }
                 },
                 columns: [{
-                        data: null,
-                        defaultContent: '',
-                        className: 'dtr-control',
+                        data: 'id',
+                        className: 'text-center cat-td-check',
                         orderable: false,
                         searchable: false,
-                        responsivePriority: 1
+                        render: function(data, type, row) {
+                            return `<label class="cat-custom-checkbox"><input type="checkbox" class="discount-row-check" value="${Number(data)}" aria-label="Pilih diskon ${escapeHtml(row.name)}" ${selectedDiscountIds.has(Number(data)) ? 'checked' : ''}><span class="cat-checkbox-mark"><svg class="check-icon" viewBox="0 0 14 14" fill="none"><path d="M2.5 7.5L5.5 10.5L11.5 3.5" stroke="#fff" stroke-width="2.2"/></svg></span></label>`;
+                        }
                     },
                     {
                         data: null,
                         orderable: false,
                         searchable: false,
                         responsivePriority: 1,
-                        className: 'text-center',
+                        className: 'text-center cat-td-no',
                         render: function(data, type, row, meta) {
-                            return discountTable.page.info().start + meta.row + 1;
+                            return `<span class="cat-num-pill">${meta.settings._iDisplayStart + meta.row + 1}</span>`;
                         }
                     },
                     {
                         data: 'name',
                         responsivePriority: 1,
                         render: function(data) {
-                            return `<div class="discount-name">${escapeHtml(data)}</div>`;
+                            return `<div class="cat-cell-name-box"><div class="cat-icon-symbol"><i class="bi bi-percent"></i></div><div class="cat-name-details"><span class="cat-name-primary">${escapeHtml(data)}</span><span class="cat-name-badge">Promo Diskon</span></div></div>`;
                         },
                         createdCell: function(td) {
                             td.style.whiteSpace = 'normal';
@@ -338,6 +400,7 @@
                     },
                     {
                         data: 'engines',
+                        orderable: false,
                         responsivePriority: 3,
                         className: 'text-center',
                         render: function(data) {
@@ -379,9 +442,22 @@
                     {
                         data: 'created_by',
                         responsivePriority: 100,
-                        className: 'text-center',
+                        className: 'cat-td-creator',
                         render: function(data) {
-                            return escapeHtml(data || '-');
+                            const name = (data || '').trim() || 'Administrator';
+                            const words = name.split(/\s+/);
+                            const initials = words.length > 1 ? words[0][0] + words[1][0] : words[0].substring(0, 2);
+                            const colors = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#6366f1', '#14b8a6'];
+                            let hash = 0;
+                            for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+                            return `<div class="cat-user-badge"><span class="cat-user-avatar" style="background: ${colors[Math.abs(hash) % colors.length]};">${escapeHtml(initials.toUpperCase())}</span><div class="cat-user-info"><span class="cat-user-name">${escapeHtml(name)}</span><span class="cat-user-role">Administrator</span></div></div>`;
+                        }
+                    },
+                    {
+                        data: 'created_at',
+                        className: 'cat-td-date',
+                        render: function(data) {
+                            return data ? `<span class="cat-date-chip"><i class="bi bi-calendar3"></i><span>${formatDate(data)}</span></span>` : '-';
                         }
                     },
                     {
@@ -392,17 +468,17 @@
                         className: 'text-center',
                         render: function(data, type, row) {
                             return `
-                                <div class="discount-actions">
-                                    <button type="button" class="btn--icon btn-view-discount"
+                                <div class="cat-action-group">
+                                    <button type="button" class="cat-btn-action cat-btn-edit btn-view-discount"
                                         data-url="${detailUrlTemplate.replace(':id', encodeURIComponent(data))}"
                                         aria-label="Detail" title="Detail">
                                         <i class="bi bi-arrows-fullscreen"></i>
                                     </button>
-                                    <button type="button" class="btn--icon btn-edit-discount"
+                                    <button type="button" class="cat-btn-action cat-btn-edit btn-edit-discount"
                                         data-id="${escapeHtml(data)}" aria-label="Edit" title="Edit">
                                         <i class="bi bi-pen"></i>
                                     </button>
-                                    <button type="button" class="btn--icon btn-delete-discount"
+                                    <button type="button" class="cat-btn-action cat-btn-del btn-delete-discount"
                                         data-id="${escapeHtml(data)}" data-name="${escapeHtml(row.name)}"
                                         aria-label="Hapus" title="Hapus">
                                         <i class="bi bi-trash3-fill"></i>
@@ -412,36 +488,20 @@
                         }
                     }
                 ],
-                columnDefs: [{
-                    targets: 0,
-                    className: 'dtr-control'
-                }],
                 pageLength: 10,
                 lengthMenu: [10, 25, 50, 100],
                 layout: {
-                    topStart: 'pageLength',
-                    topEnd: 'search',
+                    topStart: null,
+                    topEnd: null,
                     bottomStart: 'info',
                     bottomEnd: 'paging'
                 },
                 language: {
-                    search: 'Search:',
-                    lengthMenu: '_MENU_ entries per page',
-                    info: 'Showing _START_ to _END_ of _TOTAL_ entries',
-                    infoEmpty: 'Showing 0 to 0 of 0 entries',
+                    info: 'Menampilkan _START_ sampai _END_ dari _TOTAL_ diskon',
+                    infoEmpty: 'Menampilkan 0 sampai 0 dari 0 diskon',
                     zeroRecords: 'Data diskon tidak ditemukan',
                     emptyTable: 'Belum ada data diskon',
-                    processing: 'Memuat data...',
-                    searchPlaceholder: 'Cari diskon...'
-                },
-                initComplete: function() {
-                    $(this).closest('.dt-container, .dataTables_wrapper')
-                        .find('.dt-search input, .dataTables_filter input')
-                        .css({
-                            'padding': '9px 14px',
-                            'border-radius': '8px',
-                            'border': '1px solid #e2e8f0'
-                        });
+                    processing: 'Memuat data...'
                 }
             });
         });
@@ -879,6 +939,7 @@
                     deletingDiscount = false;
 
                     if (response.ok && result.success) {
+                        selectedDiscountIds.delete(Number(discountIdToDelete));
                         closeDeleteModal();
                         discountTable.ajax.reload(null, false);
                         showToast('success', result.message);
@@ -901,4 +962,5 @@
             });
         });
     </script>
+    <script src="{{ asset('js/discount-index.js') }}"></script>
 @endsection

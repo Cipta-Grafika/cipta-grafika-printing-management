@@ -481,7 +481,7 @@ class DiscountStoreTest extends TestCase
         $this->assertStringContainsString('id="modalEditDiskon"', $html);
         $this->assertStringContainsString('id="editDiscountCode"', $html);
         $this->assertStringContainsString('btn-edit-discount', $html);
-        $this->assertStringNotContainsString('<th>Dibuat Pada</th>', $html);
+        $this->assertStringContainsString('<th>Dibuat Pada</th>', $html);
     }
 
     public function test_details_renders_discount_summary_and_scopes(): void

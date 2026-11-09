@@ -155,5 +155,89 @@ class DiscountIndexTest extends TestCase
 
         $this->assertStringContainsString('id="discountTable"', $html);
         $this->assertStringContainsString(route('admin_data_discounts'), $html);
+        foreach (['discountSearch', 'discountCreator', 'discountPeriod', 'discountPageLength', 'checkAllDiscounts', 'modalBulkDeleteDiscounts', 'btnTambahDiskon', 'modalEditDiskon', 'modalDeleteDiskon'] as $id) {
+            $this->assertStringContainsString('id="'.$id.'"', $html);
+        }
+        $this->assertStringContainsString(route('admin_bulk_destroy_discounts'), $html);
+    }
+
+    public function test_creator_and_creation_period_filters_and_sorting(): void
+    {
+        \Illuminate\Support\Carbon::setTestNow('2026-11-07 12:00:00');
+        DB::table('m_discounts')->where('id', 1)->update(['created_by' => 'Alice', 'created_at' => '2026-11-07 10:00:00']);
+        DB::table('m_discounts')->where('id', 2)->update(['created_by' => 'Bob', 'created_at' => '2026-11-02 10:00:00']);
+        DB::table('m_discounts')->where('id', 3)->update(['created_by' => 'Alice', 'created_at' => '2026-10-01 10:00:00']);
+
+        $filtered = $this->fetch(['creator' => 'Alice', 'period' => 'today']);
+        $this->assertSame(3, $filtered['recordsTotal']);
+        $this->assertSame(1, $filtered['recordsFiltered']);
+        $this->assertSame([1], array_column($filtered['data'], 'id'));
+        $this->assertSame([1, 2], array_column($this->fetch(['period' => '7_days', 'order' => [['column' => 2, 'dir' => 'desc']]])['data'], 'id'));
+        $this->assertSame(2, $this->fetch(['period' => 'month'])['recordsFiltered']);
+        $this->assertSame(3, $this->fetch(['period' => 'year'])['recordsFiltered']);
+        $this->assertSame([3, 2, 1], array_column($this->fetch(['order' => [['column' => 3, 'dir' => 'asc']]])['data'], 'id'));
+        \Illuminate\Support\Carbon::setTestNow();
+    }
+
+    public function test_bulk_delete_removes_only_selected_discounts_and_their_scopes(): void
+    {
+        $response = (new DiscountCT())->bulkDestroy(Request::create('/', 'POST', ['ids' => [1, 2]]));
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertSame([3], DB::table('m_discounts')->pluck('id')->all());
+        $this->assertSame([3], DB::table('m_discount_scopes')->pluck('discount_id')->all());
+        $this->assertSame(2, DB::table('m_engines')->count());
+        $this->assertSame(3, DB::table('m_categories')->count());
+    }
+
+    public function test_bulk_delete_is_atomic_for_missing_or_referenced_discounts(): void
+    {
+        $controller = new DiscountCT();
+        $response = $controller->bulkDestroy(Request::create('/', 'POST', ['ids' => [1, 99]]));
+        $this->assertSame(404, $response->getStatusCode());
+
+        Schema::create('discount_references', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('promotion_id')->constrained('m_discounts')->cascadeOnDelete();
+        });
+        DB::table('discount_references')->insert(['promotion_id' => 2]);
+        $response = $controller->bulkDestroy(Request::create('/', 'POST', ['ids' => [1, 2]]));
+        $this->assertSame(422, $response->getStatusCode());
+        $this->assertSame(3, DB::table('m_discounts')->count());
+        $this->assertSame(4, DB::table('m_discount_scopes')->count());
+        $this->assertSame(1, DB::table('discount_references')->count());
+    }
+
+    public function test_single_delete_protects_references_to_discount_scopes(): void
+    {
+        Schema::create('scope_references', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('scope_id')->constrained('m_discount_scopes')->cascadeOnDelete();
+        });
+        $scopeId = DB::table('m_discount_scopes')->where('discount_id', 1)->value('id');
+        DB::table('scope_references')->insert(['scope_id' => $scopeId]);
+        $this->assertSame(422, (new DiscountCT())->destroy(1)->getStatusCode());
+        $this->assertSame(3, DB::table('m_discounts')->count());
+        $this->assertSame(4, DB::table('m_discount_scopes')->count());
+        $this->assertSame(1, DB::table('scope_references')->count());
+    }
+
+    public function test_single_delete_protects_unconstrained_discount_references(): void
+    {
+        Schema::create('unconstrained_discount_references', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('discount_id');
+        });
+        DB::table('unconstrained_discount_references')->insert(['discount_id' => 1]);
+        $this->assertSame(422, (new DiscountCT())->destroy(1)->getStatusCode());
+        $this->assertSame(3, DB::table('m_discounts')->count());
+        $this->assertSame(4, DB::table('m_discount_scopes')->count());
+        $this->assertSame(1, DB::table('unconstrained_discount_references')->count());
+    }
+
+    public function test_bulk_delete_rejects_invalid_input_without_changing_data(): void
+    {
+        $this->postJson(route('admin_bulk_destroy_discounts'), ['ids' => [1, 1]])->assertUnprocessable();
+        $this->postJson(route('admin_bulk_destroy_discounts'), ['ids' => []])->assertUnprocessable();
+        $this->assertSame(3, DB::table('m_discounts')->count());
     }
 }

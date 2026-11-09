@@ -11,6 +11,122 @@ use Illuminate\Support\Facades\Log;
 
 class CalendarMasterCT extends Controller
 {
+    private const INDEX_TABLES = [
+        'product' => [
+            'table' => 'm_calendar_products',
+            'label' => 'produk kalender',
+            'columns' => ['calendar_type', 'product_name', ['final_width', 'final_height'], 'orientation', 'digital_up', 'offset_machine', ['offset_up', 'offset_up_bw'], 'recommended_plano', 'default_leaf_count', 'status'],
+            'search' => ['calendar_type', 'product_name', 'size_label', 'orientation', 'offset_machine', 'recommended_plano', 'status'],
+            'order' => 'product_name',
+        ],
+        'material' => [
+            'table' => 'm_calendar_materials',
+            'label' => 'bahan kertas',
+            'columns' => ['material_name', 'category', 'digital_cost_print_1_side', 'digital_cost_print_2_side', 'digital_paper_cost', 'offset_price_65x90', 'offset_price_65x100', 'offset_price_109x79', 'status'],
+            'search' => ['material_code', 'material_name', 'category', 'status'],
+            'order' => 'material_name',
+        ],
+        'component' => [
+            'table' => 'm_calendar_components',
+            'label' => 'komponen finishing',
+            'columns' => ['component_code', 'name', 'component_type', 'unit', 'price', 'minimum_fee', 'description', 'status'],
+            'search' => ['component_code', 'name', 'component_type', 'unit', 'description', 'status'],
+            'order' => 'name',
+        ],
+        'rule' => [
+            'table' => 'm_calendar_pricing_rules',
+            'label' => 'pricing rule',
+            'columns' => ['rule_name', 'min_qty', 'max_qty', 'markup_percent', 'rounding_value', 'status'],
+            'search' => ['rule_name', 'label', 'status'],
+            'order' => 'min_qty',
+        ],
+    ];
+
+    public function data(Request $request, string $type)
+    {
+        abort_unless(isset(self::INDEX_TABLES[$type]), 404);
+        $config = self::INDEX_TABLES[$type];
+        $query = DB::table($config['table']);
+        $total = (clone $query)->count();
+
+        $search = trim((string) $request->input('search.value', ''));
+        if ($search !== '') {
+            $query->where(function ($query) use ($config, $search) {
+                $columns = array_unique(array_merge($config['search'], array_merge(...array_map(
+                    fn ($column) => (array) $column, $config['columns']
+                ))));
+                foreach ($columns as $column) {
+                    $query->orWhereRaw("LOWER(CAST($column AS TEXT)) LIKE ?", ['%' . mb_strtolower($search) . '%']);
+                }
+            });
+        }
+        $status = strtolower((string) $request->input('status', ''));
+        if (in_array($status, ['active', 'inactive'], true)) {
+            $query->whereRaw('LOWER(status) = ?', [$status]);
+        }
+        switch ($request->input('period')) {
+            case 'today':
+                $query->whereDate('created_at', Carbon::today());
+                break;
+            case '7_days':
+                $query->where('created_at', '>=', Carbon::now()->subDays(7)->startOfDay());
+                break;
+            case 'month':
+                $query->whereMonth('created_at', Carbon::now()->month)->whereYear('created_at', Carbon::now()->year);
+                break;
+            case 'year':
+                $query->whereYear('created_at', Carbon::now()->year);
+                break;
+        }
+        $filtered = (clone $query)->count();
+        $column = (int) $request->input('order.0.column', -1);
+        $direction = strtolower((string) $request->input('order.0.dir', 'asc')) === 'desc' ? 'desc' : 'asc';
+        $sort = $config['columns'][$column - 2] ?? $config['order'];
+        foreach ((array) $sort as $field) {
+            $query->orderBy($field, $direction);
+        }
+        $rows = $query->orderBy('id')->offset(max(0, (int) $request->input('start', 0)))
+            ->limit(max(1, min(100, (int) $request->input('length', 10))))->get();
+
+        return response()->json([
+            'draw' => (int) $request->input('draw', 0),
+            'recordsTotal' => $total,
+            'recordsFiltered' => $filtered,
+            'data' => $rows,
+        ]);
+    }
+
+    public function bulkDestroy(Request $request)
+    {
+        $validated = $request->validate([
+            'type' => 'required|string|in:' . implode(',', array_keys(self::INDEX_TABLES)),
+            'ids' => 'required|array|min:1|max:100',
+            'ids.*' => 'required|integer|min:1|distinct',
+        ]);
+        $config = self::INDEX_TABLES[$validated['type']];
+
+        try {
+            return DB::transaction(function () use ($validated, $config) {
+                $ids = DB::table($config['table'])->whereIn('id', $validated['ids'])->lockForUpdate()->pluck('id');
+                if ($ids->count() !== count($validated['ids'])) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Sebagian data ' . $config['label'] . ' tidak ditemukan. Tidak ada data yang dihapus. Muat ulang tabel dan coba lagi.',
+                    ], 422);
+                }
+                $deleted = DB::table($config['table'])->whereIn('id', $ids)->delete();
+                return response()->json([
+                    'success' => true,
+                    'deleted' => $deleted,
+                    'message' => $deleted . ' ' . $config['label'] . ' berhasil dihapus.',
+                ]);
+            });
+        } catch (\Throwable $e) {
+            Log::error('Gagal menghapus massal master kalender', ['type' => $validated['type'], 'exception' => $e]);
+            return response()->json(['success' => false, 'message' => 'Gagal menghapus data kalender. Tidak ada data yang dihapus.'], 500);
+        }
+    }
+
     /**
      * Tampilkan halaman index Master Kalender (4 Tab: Produk, Bahan, Komponen, Rules)
      */
@@ -20,11 +136,6 @@ class CalendarMasterCT extends Controller
         $data['totalMaterials'] = DB::table('m_calendar_materials')->count();
         $data['totalComponents'] = DB::table('m_calendar_components')->count();
         $data['totalRules'] = DB::table('m_calendar_pricing_rules')->count();
-
-        $data['products'] = DB::table('m_calendar_products')->orderBy('id', 'asc')->get();
-        $data['materials'] = DB::table('m_calendar_materials')->orderBy('id', 'asc')->get();
-        $data['components'] = DB::table('m_calendar_components')->orderBy('id', 'asc')->get();
-        $data['pricingRules'] = DB::table('m_calendar_pricing_rules')->orderBy('min_qty', 'asc')->get();
 
         return view('admin.calendar.index', $data);
     }

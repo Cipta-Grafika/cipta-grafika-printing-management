@@ -1,6 +1,7 @@
 @extends('admin_master')
 
 @section('contents')
+    <link rel="stylesheet" href="{{ asset('css/production-cost-finishing-index.css') }}">
     <style>
         .calendar-tabs {
             display: flex;
@@ -72,103 +73,6 @@
             flex-shrink: 0;
         }
 
-        /* ACTION BUTTONS IN DATATABLE (PERSIS MASTER KALENDER) */
-        .btn-detail-cal {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 32px;
-            height: 32px;
-            border-radius: 6px;
-            color: var(--t-base);
-            transition: opacity 0.2s ease, transform 0.1s ease, color 0.15s ease;
-            font-size: 14px;
-            cursor: pointer;
-            border: none;
-            background: transparent;
-        }
-
-        .btn-detail-cal:hover {
-            opacity: 0.9;
-            transform: scale(1.08);
-            color: var(--primary);
-        }
-
-        .btn-edit-cal {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 32px;
-            height: 32px;
-            border-radius: 6px;
-            color: var(--t-base);
-            transition: opacity 0.2s ease, transform 0.1s ease, color 0.15s ease;
-            font-size: 14px;
-            cursor: pointer;
-            border: none;
-            background: transparent;
-        }
-
-        .btn-edit-cal:hover {
-            opacity: 0.9;
-            transform: scale(1.08);
-            color: #d97706;
-        }
-
-        .btn-delete-cal {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 32px;
-            height: 32px;
-            border-radius: 6px;
-            color: var(--t-base);
-            transition: opacity 0.2s ease, transform 0.1s ease, color 0.15s ease;
-            font-size: 14px;
-            cursor: pointer;
-            border: none;
-            background: transparent;
-        }
-
-        .btn-delete-cal:hover {
-            opacity: 0.9;
-            transform: scale(1.08);
-            color: var(--danger, #ef4444);
-        }
-
-        .merch-filter-pill,
-        .merch-filter-pill-plakat,
-        .merch-filter-pill-nota {
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 12.5px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.15s ease;
-            border: 1px solid var(--border);
-            background: var(--bg-card);
-            color: var(--t-muted);
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .merch-filter-pill:hover,
-        .merch-filter-pill-plakat:hover,
-        .merch-filter-pill-nota:hover {
-            color: var(--t-base);
-            border-color: var(--primary);
-        }
-
-        .merch-filter-pill.active,
-        .merch-filter-pill-plakat.active,
-        .merch-filter-pill-nota.active {
-            background: var(--primary);
-            color: #ffffff;
-            border-color: var(--primary);
-            font-weight: 600;
-        }
-
         /* =========================================================
            MODAL DIALOGS (OVERLAY POPUP DI TENGAH LAYAR)
         ========================================================= */
@@ -238,8 +142,12 @@
         }
 
         /* SELECT2 THEME FIXES INSIDE MODAL */
-        .select2-container {
+        .modal-cal .select2-container.select2 {
             width: 100% !important;
+        }
+
+        .cat-length-box .select2-container {
+            width: 76px !important;
         }
 
         .select2-container--default .select2-selection--single {
@@ -440,7 +348,7 @@
                 {{-- =========================================================
                      HERO SECTION
                 ========================================================= --}}
-                <section class="hero">
+                <section class="hero cat-hero-compact">
                     <div class="hero-text">
                         <span class="eyebrow">MASTER DATA · MERCHANDISE</span>
                         <h1 class="hero-title" style="margin: 6px 0 8px;">Master Data Merchandise</h1>
@@ -457,13 +365,6 @@
                             <span id="labelHeroCatalog">Lihat Lanyard di Katalog Pelanggan</span>
                         </a> --}}
 
-                        <button type="button" class="btn btn--primary" id="btnHeroMainCreate" onclick="openActiveCreateModal()"
-                            style="display: inline-flex; align-items: center; gap: 8px;">
-                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M12 5v14M5 12h14" />
-                            </svg>
-                            <span id="labelHeroMainCreate">Tambah Tier Lanyard</span>
-                        </button>
                     </div>
                 </section>
 
@@ -499,7 +400,7 @@
                         </div>
                         <div>
                             <div style="font-size: 11px; color: var(--t-muted); font-weight: 600;">PLAKAT AKRILIK &amp; KAYU</div>
-                            <div style="font-size: 22px; font-weight: 800; color: var(--t-base);">
+                            <div id="statTotalPlakats" style="font-size: 22px; font-weight: 800; color: var(--t-base);">
                                 {{ $totalPlakats }} Tipe</div>
                         </div>
                     </div>
@@ -545,481 +446,29 @@
                 {{-- =========================================================
                      TAB CONTENT WRAPPER
                 ========================================================= --}}
-                <div class="card" style="margin-top: 16px;">
-
-                    {{-- =====================================================
-                         TAB 1: LANYARD
-                    ===================================================== --}}
-                    <div id="tabContentLanyard" class="merch-tab-pane">
-                        
-                        {{-- Action & Quick Filter Bar --}}
-                        <div style="display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; justify-content: space-between;">
-                            <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
-                                <span style="font-size: 13px; font-weight: 600; color: var(--t-muted); margin-right: 4px;">
-                                    <i class="bi bi-funnel"></i> Filter Cepat:
-                                </span>
-                                <button type="button" class="merch-filter-pill active" data-filter="">Semua ({{ $totalLanyardTiers }})</button>
-                                <button type="button" class="merch-filter-pill" data-filter="2.0 cm">Lebar 2.0 cm</button>
-                                <button type="button" class="merch-filter-pill" data-filter="2.5 cm">Lebar 2.5 cm</button>
-                                <button type="button" class="merch-filter-pill" data-filter="Hanya Tali">Hanya Tali</button>
-                                <button type="button" class="merch-filter-pill" data-filter="1 Set">1 Set Komplit</button>
-                            </div>
-
-                            <button type="button" class="btn btn--primary" onclick="openCreateLanyardModal()"
-                                style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; font-size: 12.5px;">
-                                <i class="bi bi-plus-lg"></i>
-                                <span>Tambah Tier Baru</span>
-                            </button>
-                        </div>
-
-                        {{-- Responsive DataTable Lanyard --}}
-                        <div class="table-responsive">
-                            <table id="merchLanyardTable" class="data-table display responsive nowrap" style="width: 100%;">
-                                <thead>
-                                    <tr>
-                                        <th style="width: 28px;"></th>
-                                        <th style="width: 45px;" class="text-center">No</th>
-                                        <th class="text-center" style="width: 110px;">Lebar Tali</th>
-                                        <th class="text-center" style="width: 150px;">Jenis Paket</th>
-                                        <th>Rentang Kuantiti (Tier)</th>
-                                        <th class="text-center">Min Qty</th>
-                                        <th class="text-center">Max Qty</th>
-                                        <th style="text-align: right;">Harga Satuan</th>
-                                        <th class="text-center" style="width: 105px;">Aksi</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach ($allLanyardTiers as $tier)
-                                        <tr id="row-tier-{{ $tier->id }}">
-                                            <td class="dtr-control"></td>
-                                            <td class="text-center">{{ $loop->iteration }}</td>
-                                            <td class="text-center">
-                                                <span class="badge {{ $tier->width_type === '2cm' ? 'primary' : 'success' }}" style="font-weight: 600;">
-                                                    {{ $tier->width_type === '2cm' ? '2.0 cm' : '2.5 cm' }}
-                                                </span>
-                                            </td>
-                                            <td class="text-center">
-                                                @if ($tier->package_type === 'tali')
-                                                    <span class="badge" style="background: rgba(194, 168, 87, 0.15); color: #c2a857; font-weight: 600;">
-                                                        Hanya Tali
-                                                    </span>
-                                                @else
-                                                    <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; font-weight: 600;">
-                                                        1 Set (Holder + PVC)
-                                                    </span>
-                                                @endif
-                                            </td>
-                                            <td><strong>{{ $tier->tier_label }}</strong></td>
-                                            <td class="text-center">{{ $tier->min_qty }} pcs</td>
-                                            <td class="text-center">{{ $tier->max_qty ? $tier->max_qty . ' pcs' : 'Tak hingga (>100)' }}</td>
-                                            <td style="text-align: right; font-weight: 700; color: #c2a857;">
-                                                Rp {{ number_format($tier->price, 0, ',', '.') }}
-                                            </td>
-                                            <td class="text-center">
-                                                <div style="display: flex; gap: 6px; justify-content: center; align-items: center;">
-                                                    <button type="button" class="btn-detail-cal"
-                                                        onclick='openDetailLanyardModal(@json($tier))'
-                                                        title="Lihat Detail Tier">
-                                                        <i class="bi bi-eye"></i>
-                                                    </button>
-                                                    <button type="button" class="btn-edit-cal"
-                                                        onclick='openEditLanyardModal(@json($tier))'
-                                                        title="Ubah Data Tier">
-                                                        <i class="bi bi-pen"></i>
-                                                    </button>
-                                                    <button type="button" class="btn-delete-cal"
-                                                        onclick='confirmDeleteLanyard({{ $tier->id }}, "{{ addslashes($tier->tier_label) }} (Lebar {{ $tier->width_type }} {{ $tier->package_type == 'tali' ? 'Tali Saja' : '1 Set' }})")'
-                                                        title="Hapus Tier">
-                                                        <i class="bi bi-trash3-fill"></i>
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    
-
-                    
-
-                    {{-- =====================================================
-                         TAB 2: PAPAN NAMA (NAME TAG DADA) - FULL CRUD
-                    ===================================================== --}}
-                    <div id="tabContentPapanNama" class="merch-tab-pane" style="display: none;">
-                        
-                        {{-- Action & Quick Info Bar --}}
-                        <div style="display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; justify-content: space-between;">
-                            <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
-                                <span style="font-size: 13px; font-weight: 600; color: var(--t-muted); margin-right: 4px;">
-                                    <i class="bi bi-person-badge"></i> Data Master Papan Nama Dada ({{ $totalNameTags }} Varian Terdaftar)
-                                </span>
-                            </div>
-
-                            <button type="button" class="btn btn--primary" onclick="openCreateNameTagModal()"
-                                style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; font-size: 12.5px;">
-                                <i class="bi bi-plus-lg"></i>
-                                <span>Tambah Varian Papan Nama</span>
-                            </button>
-                        </div>
-
-                        {{-- Responsive DataTable Papan Nama --}}
-                        <div class="table-responsive">
-                            <table id="merchNameTagTable" class="data-table display responsive nowrap" style="width: 100%;">
-                                <thead>
-                                    <tr>
-                                        <th style="width: 28px;"></th>
-                                        <th style="width: 45px;" class="text-center">No</th>
-                                        <th>Nama Varian Papan Nama</th>
-                                        <th class="text-center" style="width: 130px;">Tipe Bahan</th>
-                                        <th>Pilihan Pengait</th>
-                                        <th class="text-center" style="width: 100px;">Min. Order</th>
-                                        <th style="text-align: right;">Harga Satuan</th>
-                                        <th class="text-center" style="width: 80px;">Status</th>
-                                        <th class="text-center" style="width: 105px;">Aksi</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach ($allNameTags as $nt)
-                                        <tr id="row-nametag-{{ $nt->id }}">
-                                            <td class="dtr-control"></td>
-                                            <td class="text-center">{{ $loop->iteration }}</td>
-                                            <td>
-                                                <strong>{{ $nt->name }}</strong>
-                                                @if (!empty($nt->description))
-                                                    <div style="font-size: 11.5px; color: var(--t-muted); margin-top: 2px;">
-                                                        {{ Str::limit($nt->description, 60) }}
-                                                    </div>
-                                                @endif
-                                            </td>
-                                            <td class="text-center">
-                                                @if ($nt->type_code === 'biasa')
-                                                    <span class="badge" style="background: rgba(100, 116, 139, 0.15); color: #64748b; font-weight: 600;">
-                                                        Akrilik Biasa
-                                                    </span>
-                                                @elseif ($nt->type_code === 'resin')
-                                                    <span class="badge" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6; font-weight: 600;">
-                                                        Resin Cembung
-                                                    </span>
-                                                @else
-                                                    <span class="badge" style="background: rgba(194, 168, 87, 0.2); color: #c2a857; font-weight: 700;">
-                                                        Resin Emas
-                                                    </span>
-                                                @endif
-                                            </td>
-                                            <td>
-                                                <div style="display: flex; gap: 4px; flex-wrap: wrap;">
-                                                    <span class="badge" style="font-size: 11px; background: var(--bg-surface-2);">🧷 Peniti</span>
-                                                    <span class="badge" style="font-size: 11px; background: var(--bg-surface-2);">🧲 Magnet</span>
-                                                </div>
-                                            </td>
-                                            <td class="text-center">{{ $nt->min_order_qty }} pcs</td>
-                                            <td style="text-align: right; font-weight: 700; color: #c2a857;">
-                                                Rp {{ number_format($nt->price, 0, ',', '.') }}
-                                            </td>
-                                            <td class="text-center">
-                                                <span class="badge success">Aktif</span>
-                                            </td>
-                                            <td class="text-center">
-                                                <div style="display: flex; gap: 6px; justify-content: center; align-items: center;">
-                                                    <button type="button" class="btn-detail-cal"
-                                                        onclick='openDetailNameTagModal(@json($nt))'
-                                                        title="Lihat Detail Varian">
-                                                        <i class="bi bi-eye"></i>
-                                                    </button>
-                                                    <button type="button" class="btn-edit-cal"
-                                                        onclick='openEditNameTagModal(@json($nt))'
-                                                        title="Ubah Data Varian">
-                                                        <i class="bi bi-pen"></i>
-                                                    </button>
-                                                    <button type="button" class="btn-delete-cal"
-                                                        onclick='confirmDeleteNameTag({{ $nt->id }}, "{{ addslashes($nt->name) }}")'
-                                                        title="Hapus Varian">
-                                                        <i class="bi bi-trash3-fill"></i>
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    
-
-                    
-
-                    {{-- =====================================================
-                         TAB 3: PLAKAT (AKRILIK & KAYU)
-                    ===================================================== --}}
-                    <div id="tabContentPlakat" class="merch-tab-pane" style="display: none;">
-                        
-                        {{-- Action & Quick Info Bar --}}
-                        <div style="display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; justify-content: space-between;">
-                            <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
-                                <span style="font-size: 13px; font-weight: 600; color: var(--t-muted); margin-right: 4px;">
-                                    <i class="bi bi-funnel"></i> Filter:
-                                </span>
-                                <button type="button" class="merch-filter-pill-plakat active" data-filter="">Semua ({{ $totalPlakats }})</button>
-                                <button type="button" class="merch-filter-pill-plakat" data-filter="Tanpa Box">Akrilik Tanpa Box</button>
-                                <button type="button" class="merch-filter-pill-plakat" data-filter="Box Beludru">Akrilik + Box</button>
-                                <button type="button" class="merch-filter-pill-plakat" data-filter="Kayu Solid">Plakat Kayu</button>
-                            </div>
-
-                            <button type="button" class="btn btn--primary" onclick="openCreatePlakatModal()"
-                                style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; font-size: 12.5px;">
-                                <i class="bi bi-plus-lg"></i>
-                                <span>Tambah Varian Plakat</span>
-                            </button>
-                        </div>
-
-                        {{-- Responsive DataTable Plakat --}}
-                        <div class="table-responsive">
-                            <table id="merchPlakatTable" class="data-table display responsive nowrap" style="width: 100%;">
-                                <thead>
-                                    <tr>
-                                        <th style="width: 28px;"></th>
-                                        <th style="width: 45px;" class="text-center">No</th>
-                                        <th>Nama Varian Plakat</th>
-                                        <th class="text-center" style="width: 110px;">Bahan</th>
-                                        <th class="text-center" style="width: 85px;">Tebal</th>
-                                        <th class="text-center" style="width: 130px;">Dudukan</th>
-                                        <th class="text-center" style="width: 120px;">Kemasan</th>
-                                        <th class="text-center" style="width: 95px;">Ukuran</th>
-                                        <th style="text-align: right;">Harga Satuan</th>
-                                        <th class="text-center" style="width: 80px;">Status</th>
-                                        <th class="text-center" style="width: 105px;">Aksi</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach ($allPlakats as $pk)
-                                        <tr id="row-plakat-{{ $pk->id }}">
-                                            <td class="dtr-control"></td>
-                                            <td class="text-center">{{ $loop->iteration }}</td>
-                                            <td>
-                                                <strong>{{ $pk->name }}</strong>
-                                                @if (!empty($pk->description))
-                                                    <div style="font-size: 11.5px; color: var(--t-muted); margin-top: 2px;">
-                                                        {{ Str::limit($pk->description, 60) }}
-                                                    </div>
-                                                @endif
-                                            </td>
-                                            <td class="text-center">
-                                                @if ($pk->material_type === 'kayu')
-                                                    <span class="badge" style="background: rgba(180, 83, 9, 0.15); color: #b45309; font-weight: 700;">
-                                                        Kayu Solid
-                                                    </span>
-                                                @else
-                                                    <span class="badge" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6; font-weight: 600;">
-                                                        Akrilik UV
-                                                    </span>
-                                                @endif
-                                            </td>
-                                            <td class="text-center">
-                                                <span class="badge" style="background: var(--bg-surface-2); font-weight: 600;">
-                                                    {{ strtoupper($pk->thickness) }}
-                                                </span>
-                                            </td>
-                                            <td class="text-center">
-                                                @if ($pk->base_type === 'hitam')
-                                                    <span class="badge" style="background: rgba(15, 23, 42, 0.7); color: #ffffff; font-weight: 600;">
-                                                        Dudukan Hitam
-                                                    </span>
-                                                @elseif ($pk->base_type === 'kayu')
-                                                    <span class="badge" style="background: rgba(180, 83, 9, 0.15); color: #b45309; font-weight: 600;">
-                                                        Dudukan Kayu
-                                                    </span>
-                                                @else
-                                                    <span class="badge" style="background: rgba(100, 116, 139, 0.15); color: #64748b; font-weight: 600;">
-                                                        Dudukan Akrilik
-                                                    </span>
-                                                @endif
-                                            </td>
-                                            <td class="text-center">
-                                                @if ($pk->box_type === 'box')
-                                                    <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; font-weight: 700;">
-                                                        <i class="bi bi-box2-fill"></i> Box Beludru
-                                                    </span>
-                                                @else
-                                                    <span class="badge" style="background: rgba(100, 116, 139, 0.1); color: var(--t-muted);">
-                                                        Tanpa Box
-                                                    </span>
-                                                @endif
-                                            </td>
-                                            <td class="text-center">{{ $pk->dimensions }}</td>
-                                            <td style="text-align: right; font-weight: 700; color: #c2a857;">
-                                                Rp {{ number_format($pk->price, 0, ',', '.') }}
-                                            </td>
-                                            <td class="text-center">
-                                                <span class="badge success">Aktif</span>
-                                            </td>
-                                            <td class="text-center">
-                                                <div style="display: flex; gap: 6px; justify-content: center; align-items: center;">
-                                                    <button type="button" class="btn-detail-cal"
-                                                        onclick='openDetailPlakatModal(@json($pk))'
-                                                        title="Lihat Detail Plakat">
-                                                        <i class="bi bi-eye"></i>
-                                                    </button>
-                                                    <button type="button" class="btn-edit-cal"
-                                                        onclick='openEditPlakatModal(@json($pk))'
-                                                        title="Ubah Data Plakat">
-                                                        <i class="bi bi-pen"></i>
-                                                    </button>
-                                                    <button type="button" class="btn-delete-cal"
-                                                        onclick='confirmDeletePlakat({{ $pk->id }}, "{{ addslashes($pk->name) }}")'
-                                                        title="Hapus Plakat">
-                                                        <i class="bi bi-trash3-fill"></i>
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-
-
-
-                    
-
-                
-                    
-
-                    
-
-                
-                    {{-- =====================================================
-                         TAB 4: BUKU NOTA (NCR & HVS)
-                    ===================================================== --}}
-                    <div id="tabContentNota" class="merch-tab-pane" style="display: none;">
-                        
-                        {{-- Action & Quick Info Bar --}}
-                        <div style="display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; justify-content: space-between;">
-                            <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
-                                <span style="font-size: 13px; font-weight: 600; color: var(--t-muted); margin-right: 4px;">
-                                    <i class="bi bi-funnel"></i> Filter:
-                                </span>
-                                <button type="button" class="merch-filter-pill-nota active" data-filter="">Semua ({{ $totalNotas }})</button>
-                                <button type="button" class="merch-filter-pill-nota" data-filter="NCR Tembus">NCR Tembus ({{ $ncrNotas->count() }})</button>
-                                <button type="button" class="merch-filter-pill-nota" data-filter="HVS Putih">HVS Putih ({{ $hvsNotas->count() }})</button>
-                                <button type="button" class="merch-filter-pill-nota" data-filter="1 Tinta">1 Tinta</button>
-                                <button type="button" class="merch-filter-pill-nota" data-filter="2 Tinta">2 Tinta</button>
-                                <button type="button" class="merch-filter-pill-nota" data-filter="3 Tinta">3 Tinta</button>
-                            </div>
-
-                            <button type="button" class="btn btn--primary" onclick="openCreateNotaModal()"
-                                style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; font-size: 12.5px;">
-                                <i class="bi bi-plus-lg"></i>
-                                <span>Tambah Varian Nota</span>
-                            </button>
-                        </div>
-
-                        {{-- Responsive DataTable Nota --}}
-                        <div class="table-responsive">
-                            <table id="merchNotaTable" class="data-table display responsive nowrap" style="width: 100%;">
-                                <thead>
-                                    <tr>
-                                        <th style="width: 28px;"></th>
-                                        <th style="width: 45px;" class="text-center">No</th>
-                                        <th>Nama Varian Buku Nota</th>
-                                        <th class="text-center" style="width: 110px;">Bahan Kertas</th>
-                                        <th class="text-center" style="width: 90px;">Rangkap (Ply)</th>
-                                        <th class="text-center" style="width: 110px;">Warna Tinta</th>
-                                        <th class="text-center" style="width: 120px;">Isi / Buku</th>
-                                        <th style="text-align: right;">Harga Satuan (Per Rim)</th>
-                                        <th class="text-center" style="width: 80px;">Status</th>
-                                        <th class="text-center" style="width: 105px;">Aksi</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach ($allNotas as $nt)
-                                        <tr id="row-nota-{{ $nt->id }}">
-                                            <td class="dtr-control"></td>
-                                            <td class="text-center">{{ $loop->iteration }}</td>
-                                            <td>
-                                                <strong>{{ $nt->name }}</strong>
-                                                @if (!empty($nt->description))
-                                                    <div style="font-size: 11.5px; color: var(--t-muted); margin-top: 2px;">
-                                                        {{ Str::limit($nt->description, 60) }}
-                                                    </div>
-                                                @endif
-                                            </td>
-                                            <td class="text-center">
-                                                @if ($nt->paper_type === 'ncr')
-                                                    <span class="badge" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6; font-weight: 700;">
-                                                        NCR Tembus
-                                                    </span>
-                                                @else
-                                                    <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; font-weight: 700;">
-                                                        HVS Putih
-                                                    </span>
-                                                @endif
-                                            </td>
-                                            <td class="text-center">
-                                                <span class="badge" style="background: var(--bg-surface-2); font-weight: 600;">
-                                                    {{ $nt->ply_label }}
-                                                </span>
-                                            </td>
-                                            <td class="text-center">
-                                                @if ($nt->ink_count === 1)
-                                                    <span class="badge" style="background: rgba(100, 116, 139, 0.15); color: #64748b; font-weight: 600;">
-                                                        1 Tinta
-                                                    </span>
-                                                @elseif ($nt->ink_count === 2)
-                                                    <span class="badge" style="background: rgba(217, 119, 6, 0.15); color: #d97706; font-weight: 600;">
-                                                        2 Tinta
-                                                    </span>
-                                                @else
-                                                    <span class="badge" style="background: rgba(139, 92, 246, 0.15); color: #8b5cf6; font-weight: 700;">
-                                                        3 Tinta
-                                                    </span>
-                                                @endif
-                                            </td>
-                                            <td class="text-center">
-                                                {{ $nt->sheets_per_book }} {{ $nt->paper_type === 'ncr' ? 'Set/Buku' : 'Lbr/Buku' }}
-                                            </td>
-                                            <td style="text-align: right; font-weight: 700; color: #c2a857;">
-                                                Rp {{ number_format($nt->price, 0, ',', '.') }}
-                                            </td>
-                                            <td class="text-center">
-                                                <span class="badge success">Aktif</span>
-                                            </td>
-                                            <td class="text-center">
-                                                <div style="display: flex; gap: 6px; justify-content: center; align-items: center;">
-                                                    <button type="button" class="btn-detail-cal"
-                                                        onclick='openDetailNotaModal(@json($nt))'
-                                                        title="Lihat Detail Nota">
-                                                        <i class="bi bi-eye"></i>
-                                                    </button>
-                                                    <button type="button" class="btn-edit-cal"
-                                                        onclick='openEditNotaModal(@json($nt))'
-                                                        title="Ubah Data Nota">
-                                                        <i class="bi bi-pen"></i>
-                                                    </button>
-                                                    <button type="button" class="btn-delete-cal"
-                                                        onclick='confirmDeleteNota({{ $nt->id }}, "{{ addslashes($nt->name) }}")'
-                                                        title="Hapus Nota">
-                                                        <i class="bi bi-trash3-fill"></i>
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
+                @include('admin.merchandise.tables')
 
             </main>
 
             <div data-shell-footer></div>
 
+        </div>
+    </div>
+
+    <div id="modalBulkDeleteMerchandise" class="modal-cal">
+        <div class="modal-cal-content" style="max-width:440px;">
+            <div class="modal-cal-head">
+                <h3 id="bulkDeleteMerchandiseTitle" style="margin:0;font-size:16px;">Hapus data terpilih?</h3>
+                <button type="button" id="closeBulkDeleteMerchandise" class="btn btn--ghost" aria-label="Tutup">&times;</button>
+            </div>
+            <div class="modal-cal-body">
+                <p id="bulkDeleteMerchandiseDescription" style="margin:0;"></p>
+            </div>
+            <div class="modal-cal-foot">
+                <button type="button" id="cancelBulkDeleteMerchandise" class="btn btn--ghost">Batal</button>
+                <button type="button" id="confirmBulkDeleteMerchandise" class="btn btn--danger"
+                    data-url="{{ route('admin_bulk_delete_merchandise') }}" data-csrf="{{ csrf_token() }}">Ya, Hapus Terpilih</button>
+            </div>
         </div>
     </div>
 
@@ -2210,7 +1659,7 @@
                     $.fn.dataTable.tables({
                         visible: true,
                         api: true
-                    }).columns.adjust().responsive.recalc();
+                    }).columns.adjust();
                 }
             }, 50);
         }
@@ -2571,76 +2020,6 @@
 
         // Inisialisasi jQuery & DataTables
         $(document).ready(function() {
-            function initMerchDataTable(selector, placeholder) {
-                if (!$.fn.DataTable.isDataTable(selector)) {
-                    return $(selector).DataTable({
-                        pageLength: 10,
-                        lengthMenu: [10, 25, 50, 100],
-                        ordering: true,
-                        responsive: {
-                            details: {
-                                type: 'column',
-                                target: 0
-                            }
-                        },
-                        columnDefs: [
-                            {
-                                className: 'dtr-control',
-                                orderable: false,
-                                searchable: false,
-                                targets: 0
-                            },
-                            {
-                                orderable: false,
-                                searchable: false,
-                                responsivePriority: 1,
-                                targets: -1
-                            }
-                        ],
-                        layout: {
-                            topStart: 'pageLength',
-                            topEnd: 'search',
-                            bottomStart: 'info',
-                            bottomEnd: 'paging'
-                        },
-                        language: {
-                            search: 'Search:',
-                            lengthMenu: '_MENU_ entries per page',
-                            info: 'Showing _START_ to _END_ of _TOTAL_ entries',
-                            infoEmpty: 'Showing 0 to 0 of 0 entries',
-                            zeroRecords: 'Data tidak ditemukan',
-                            processing: 'Memuat data...',
-                            searchPlaceholder: placeholder || 'Cari data...'
-                        },
-                        initComplete: function() {
-                            $(this).closest('.dt-container, .dataTables_wrapper')
-                                .find('.dt-search input, .dataTables_filter input')
-                                .css({
-                                    'padding': '8px 14px',
-                                    'border-radius': '8px'
-                                });
-                        }
-                    });
-                }
-            }
-
-            // Inisialisasi Ketiga Table (Lanyard, Papan Nama, Plakat)
-            window.merchTableLanyard = initMerchDataTable('#merchLanyardTable', 'Cari tier, ukuran, paket, harga...');
-            window.merchTableNameTag = initMerchDataTable('#merchNameTagTable', 'Cari nama, bahan, pengait, harga...');
-            window.merchTablePlakat  = initMerchDataTable('#merchPlakatTable',  'Cari nama, bahan, tebal, dudukan, kemasan, harga...');
-            window.merchTableNota    = initMerchDataTable('#merchNotaTable',    'Cari varian, kertas, ply, tinta, harga...');
-
-            // Filter Cepat Pills Nota
-            $('.merch-filter-pill-nota').on('click', function() {
-                $('.merch-filter-pill-nota').removeClass('active');
-                $(this).addClass('active');
-
-                const filterVal = $(this).data('filter');
-                if (window.merchTableNota) {
-                    window.merchTableNota.search(filterVal).draw();
-                }
-            });
-
             // Auto-switch tab from URL query param (?tab=nota / ?tab=plakat / etc.)
             const urlParams = new URLSearchParams(window.location.search);
             const initialTab = urlParams.get('tab');
@@ -2743,28 +2122,6 @@
                     $btn.prop('disabled', false).html(origHtml);
                     alert('Terjadi kesalahan jaringan: ' + err.message);
                 });
-            });
-
-            // Filter Cepat Pills Lanyard
-            $('.merch-filter-pill').on('click', function() {
-                $('.merch-filter-pill').removeClass('active');
-                $(this).addClass('active');
-
-                const filterVal = $(this).data('filter');
-                if (window.merchTableLanyard) {
-                    window.merchTableLanyard.search(filterVal).draw();
-                }
-            });
-
-            // Filter Cepat Pills Plakat
-            $('.merch-filter-pill-plakat').on('click', function() {
-                $('.merch-filter-pill-plakat').removeClass('active');
-                $(this).addClass('active');
-
-                const filterVal = $(this).data('filter');
-                if (window.merchTablePlakat) {
-                    window.merchTablePlakat.search(filterVal).draw();
-                }
             });
 
             // Live Format Rupiah saat pengguna mengetik (Persis Kalender)
@@ -3250,4 +2607,5 @@
         }
 
     </script>
+    <script src="{{ asset('js/merchandise-index.js') }}"></script>
 @endsection

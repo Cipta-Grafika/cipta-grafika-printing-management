@@ -12,7 +12,54 @@ class ProductionCostFinishingDisplayCT extends Controller
 {
     public function index()
     {
-        return view('admin.production-cost-finishing-display.index');
+        $data['filterLocations'] = DB::table('m_locations')
+            ->where('status', 'Active')
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        $data['filterCategories'] = DB::table('m_categories')
+            ->whereIn('id', DB::table('m_display_products')->select('category_id'))
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        return view('admin.production-cost-finishing-display.index')->with($data);
+    }
+
+    private function applyIndexFilters(Request $request, $query): void
+    {
+        foreach (['location_id' => 'cfg.location_id', 'category_id' => 'products.category_id'] as $input => $column) {
+            $value = $request->input($input);
+            if ($value !== null && $value !== '' && $value !== 'all' && ctype_digit((string) $value)) {
+                $query->where($column, (int) $value);
+            }
+        }
+    }
+
+    private function applyIndexOrdering(Request $request, $query): void
+    {
+        $orderColumn = (int) $request->input('order.0.column', 2);
+        $orderDirection = strtolower((string) $request->input('order.0.dir', 'asc')) === 'desc' ? 'desc' : 'asc';
+
+        switch ($orderColumn) {
+            case 3:
+                $query->orderBy('categories.name', $orderDirection);
+                break;
+            case 4:
+                $query->orderBy('locations.name', $orderDirection)->orderBy('engines.name', $orderDirection);
+                break;
+            case 5:
+                $query->orderBy('products.width', $orderDirection)->orderBy('products.length', $orderDirection);
+                break;
+            case 6:
+                $query->orderByRaw(
+                    'COALESCE(components.material_count, 0) + COALESCE(components.lamination_count, 0) ' . $orderDirection
+                );
+                break;
+            default:
+                $query->orderBy('products.display_name', $orderDirection);
+        }
+
+        $query->orderBy('products.display_name')->orderBy('cfg.id', 'desc');
     }
 
     public function create()
@@ -168,6 +215,8 @@ class ProductionCostFinishingDisplayCT extends Controller
 
         $search = trim($request->input('search.value', ''));
 
+        $this->applyIndexFilters($request, $query);
+
         if ($search !== '') {
             $searchValue = '%' . mb_strtolower($search, 'UTF-8') . '%';
 
@@ -233,14 +282,7 @@ class ProductionCostFinishingDisplayCT extends Controller
     |--------------------------------------------------------------------------
     */
 
-        $query->orderByRaw("
-        CASE
-            WHEN products.status = 'Active' THEN 0
-            ELSE 1
-        END
-    ")
-            ->orderBy('products.display_name', 'asc')
-            ->orderBy('cfg.id', 'desc');
+        $this->applyIndexOrdering($request, $query);
 
 
         /*
@@ -1046,6 +1088,58 @@ class ProductionCostFinishingDisplayCT extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Display Product gagal dihapus. Data mungkin masih digunakan oleh proses lain.'
+            ], 500);
+        }
+    }
+
+    public function bulkDestroy(Request $request)
+    {
+        $validated = $request->validate([
+            'ids' => ['required', 'array', 'min:1', 'max:100'],
+            'ids.*' => ['required', 'integer', 'min:1', 'distinct'],
+        ]);
+
+        $ids = array_values(array_unique(array_map('intval', $validated['ids'])));
+
+        try {
+            return DB::transaction(function () use ($ids) {
+                $lockedIds = DB::table('m_display_products')
+                    ->whereIn('id', $ids)
+                    ->lockForUpdate()
+                    ->pluck('id');
+
+                if ($lockedIds->count() !== count($ids)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Sebagian data biaya display sudah berubah atau tidak ditemukan. Tidak ada data yang dihapus.'
+                    ], 422);
+                }
+
+                $configurationIds = DB::table('m_display_product_configurations')
+                    ->whereIn('display_product_id', $ids)
+                    ->pluck('id');
+
+                if ($configurationIds->isNotEmpty()) {
+                    DB::table('m_display_product_component_prices')
+                        ->whereIn('configuration_id', $configurationIds)
+                        ->delete();
+                }
+
+                DB::table('m_display_product_components')->whereIn('display_product_id', $ids)->delete();
+                DB::table('m_display_product_configurations')->whereIn('display_product_id', $ids)->delete();
+                DB::table('m_display_product_prices')->whereIn('display_product_id', $ids)->delete();
+
+                return response()->json([
+                    'success' => true,
+                    'message' => count($ids) . ' biaya display berhasil dihapus.'
+                ]);
+            });
+        } catch (\Throwable $e) {
+            Log::error('Gagal menghapus biaya display terpilih: ' . $e->getMessage(), ['display_product_ids' => $ids]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat menghapus biaya display terpilih.'
             ], 500);
         }
     }

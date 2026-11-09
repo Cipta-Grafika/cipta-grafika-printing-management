@@ -1,6 +1,7 @@
 @extends('admin_master')
 
 @section('contents')
+    <link rel="stylesheet" href="{{ asset('css/production-cost-finishing-index.css') }}">
     <style>
         /* TABS THEME COMPATIBILITY */
         .offset-tabs {
@@ -220,6 +221,11 @@
             width: 100% !important;
         }
 
+        /* Wrapper dropdown select2 (tanpa kelas .select2) tidak boleh 100% agar tidak memicu scroll horizontal */
+        .select2-container:not(.select2) {
+            width: auto !important;
+        }
+
         .select2-container--default .select2-selection--single {
             background-color: var(--bg-card) !important;
             border: 1px solid var(--border) !important;
@@ -270,57 +276,13 @@
             padding: 6px 10px !important;
         }
 
-        /* ACTION BUTTONS IN DATATABLE */
-        .btn-detail-offset {
-            border-radius: 6px;
-            padding: 6px 8px;
-            /* border: 1px solid var(--border); */
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            /* transition: opacity 0.2s ease, transform 0.1s ease; */
-            /* background: var(--bg-hover, rgba(59, 130, 246, 0.08)); */
-            /* color: var(--primary, #3b82f6); */
+        /* DATATABLE FILTER (pola master kategori) */
+        .cat-length-box .select2-container {
+            width: 76px !important;
         }
 
-        .btn-detail-offset:hover {
-            opacity: 0.85;
-            transform: scale(1.05);
-        }
-
-        .btn-edit-offset {
-            border-radius: 6px;
-            padding: 6px 8px;
-            /* border: 1px solid var(--border); */
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            /* transition: opacity 0.2s ease, transform 0.1s ease; */
-            /* background: var(--bg-hover, rgba(245, 158, 11, 0.08)); */
-            /* color: #d97706; */
-        }
-
-        .btn-edit-offset:hover {
-            opacity: 0.85;
-            transform: scale(1.05);
-        }
-
-        .btn-delete-offset {
-            border-radius: 6px;
-            padding: 6px 8px;
-            border: none;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            transition: opacity 0.2s ease, transform 0.1s ease;
-        }
-
-        .btn-delete-offset:hover {
-            opacity: 0.85;
-            transform: scale(1.05);
+        .offset-table-section .cat-card-container {
+            min-width: 0;
         }
     </style>
 
@@ -331,7 +293,7 @@
             <main class="content">
 
                 {{-- HERO SECTION --}}
-                <section class="hero">
+                <section class="hero cat-hero-compact">
                     <div class="hero-text">
                         <span class="eyebrow">MASTER DATA · OFFSET PRINTING</span>
                         <p class="hero-sub">
@@ -403,17 +365,6 @@
                                     id="badgeCountProducts">{{ $totalProducts ?? 0 }}</span>
                             </button>
                         </div>
-                    </div>
-
-                    {{-- HERO ACTIONS (DYNAMIC TAMBAH BUTTON) --}}
-                    <div class="hero-actions" style="display: flex; justify-content: flex-end; align-items: flex-start;">
-                        <button type="button" class="btn btn--primary" id="btnMainCreate">
-                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <path d="M12 5v14M5 12h14" />
-                            </svg>
-                            <span id="labelMainCreate">Tambah Kertas Plano</span>
-                        </button>
                     </div>
                 </section>
 
@@ -489,191 +440,246 @@
                     </div>
                 </div>
 
-                {{-- SECTION 1: TAB KERTAS PLANO --}}
-                <div class="offset-table-section active" id="tabPlano">
-                    <div class="grid">
-                        <section class="col-12 card">
-                            <div
-                                style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
-                                <div>
-                                    <h3 style="margin: 0; font-size: 16px; font-weight: 600; color: var(--t-base);">Daftar
-                                        Kertas Plano Offset</h3>
-                                    <p style="margin: 4px 0 0; font-size: 13px; color: var(--t-muted);">Master bahan
-                                        lembaran plano baku yang digunakan untuk kalkulasi cetak mesin offset.</p>
-                                </div>
-                            </div>
-                            <div class="table-responsive">
-                                <table id="offsetPlanoTable" class="data-table display responsive nowrap"
-                                    style="width: 100%;">
-                                    <thead>
-                                        <tr>
-                                            <th style="width: 32px;"></th>
-                                            <th style="width: 50px;" class="text-center">No</th>
-                                            <th>Kode</th>
-                                            <th>Nama Bahan</th>
-                                            <th class="text-center">Ukuran Plano (P x L)</th>
-                                            <th class="text-center">Gramatur</th>
-                                            <th class="text-center">Jenis</th>
-                                            <th class="text-end">Harga Satuan Plano</th>
-                                            <th class="text-center">Status</th>
-                                            <th class="text-center" style="width: 70px;">Aksi</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody></tbody>
-                                </table>
-                            </div>
-                        </section>
-                    </div>
-                </div>
+                {{-- TABEL MASTER OFFSET PER TAB (pola DataTable master kategori) --}}
+                @php
+                    $offsetTabs = [
+                        [
+                            'section' => 'tabPlano',
+                            'prefix' => 'offsetPlano',
+                            'active' => true,
+                            'icon' => 'bi-file-earmark-text-fill',
+                            'title' => 'Daftar Kertas Plano Offset',
+                            'desc' => 'Master bahan lembaran plano baku yang digunakan untuk kalkulasi cetak mesin offset.',
+                            'add' => 'Tambah Kertas Plano',
+                            'modal' => 'modalTambahPlano',
+                            'entity' => 'Kertas plano',
+                            'search' => 'Cari kode, nama bahan, jenis, atau status...',
+                            'columns' => [
+                                ['label' => 'Kode', 'class' => 'cat-th-date text-center', 'width' => 130],
+                                ['label' => 'Nama Bahan', 'class' => 'cat-th-name', 'width' => 230],
+                                ['label' => 'Ukuran Plano (P x L)', 'class' => 'cat-th-date text-center', 'width' => 160],
+                                ['label' => 'Gramatur', 'class' => 'cat-th-date text-center', 'width' => 120],
+                                ['label' => 'Jenis', 'class' => 'cat-th-date text-center', 'width' => 130],
+                                ['label' => 'Harga Satuan Plano', 'class' => 'cat-th-date text-end', 'width' => 160],
+                                ['label' => 'Status', 'class' => 'cat-th-date text-center', 'width' => 110],
+                            ],
+                        ],
+                        [
+                            'section' => 'tabPlates',
+                            'prefix' => 'offsetPlates',
+                            'active' => false,
+                            'icon' => 'bi-grid-1x2-fill',
+                            'title' => 'Daftar Plat CTP Offset',
+                            'desc' => 'Master plat cetak CTP per warna untuk cetak offset (CMYK = 4 plat per job).',
+                            'add' => 'Tambah Plat CTP',
+                            'modal' => 'modalTambahPlate',
+                            'entity' => 'Plat CTP',
+                            'search' => 'Cari kode, nama plat, mesin, atau status...',
+                            'columns' => [
+                                ['label' => 'Kode Plat', 'class' => 'cat-th-date text-center', 'width' => 130],
+                                ['label' => 'Nama Plat CTP', 'class' => 'cat-th-name', 'width' => 230],
+                                ['label' => 'Mesin Terkait', 'class' => 'cat-th-creator', 'width' => 190],
+                                ['label' => 'Harga per Plat', 'class' => 'cat-th-date text-end', 'width' => 150],
+                                ['label' => 'Status', 'class' => 'cat-th-date text-center', 'width' => 110],
+                            ],
+                        ],
+                        [
+                            'section' => 'tabPrintCosts',
+                            'prefix' => 'offsetPrintCosts',
+                            'active' => false,
+                            'icon' => 'bi-printer-fill',
+                            'title' => 'Parameter Operasional & Tarif Mesin Offset',
+                            'desc' => 'Ukuran lembar potong mesin, toleransi insheet setelan awal, tarif klik per warna, dan ongkos potong.',
+                            'add' => 'Tambah Profil Mesin',
+                            'modal' => 'modalTambahPrintCost',
+                            'entity' => 'Profil mesin',
+                            'search' => 'Cari nama profil mesin atau status...',
+                            'columns' => [
+                                ['label' => 'Nama Profil Mesin', 'class' => 'cat-th-name', 'width' => 230],
+                                ['label' => 'Ukuran Cetak Mesin', 'class' => 'cat-th-date text-center', 'width' => 160],
+                                ['label' => 'Insheet Setelan', 'class' => 'cat-th-date text-center', 'width' => 140],
+                                ['label' => 'Tarif per Klik/Warna', 'class' => 'cat-th-date text-end', 'width' => 160],
+                                ['label' => 'Minim per Warna', 'class' => 'cat-th-date text-end', 'width' => 150],
+                                ['label' => 'Ongkos Potong / Rim', 'class' => 'cat-th-date text-end', 'width' => 160],
+                                ['label' => 'Status', 'class' => 'cat-th-date text-center', 'width' => 110],
+                            ],
+                        ],
+                        [
+                            'section' => 'tabPricingRules',
+                            'prefix' => 'offsetPricingRules',
+                            'active' => false,
+                            'icon' => 'bi-percent',
+                            'title' => 'Aturan Markup & Harga Jual Offset',
+                            'desc' => 'Ketentuan persentase margin keuntungan untuk Harga Jual Umum dan Harga Divisi.',
+                            'add' => 'Tambah Pricing Rule',
+                            'modal' => 'modalTambahPricingRule',
+                            'entity' => 'Pricing rule',
+                            'search' => 'Cari nama aturan, kategori, atau status...',
+                            'columns' => [
+                                ['label' => 'Nama Aturan', 'class' => 'cat-th-name', 'width' => 230],
+                                ['label' => 'Kategori', 'class' => 'cat-th-date text-center', 'width' => 150],
+                                ['label' => 'Rentang Rim', 'class' => 'cat-th-date text-center', 'width' => 140],
+                                ['label' => 'Markup Umum', 'class' => 'cat-th-date text-center', 'width' => 130],
+                                ['label' => 'Markup Divisi', 'class' => 'cat-th-date text-center', 'width' => 130],
+                                ['label' => 'Pembulatan', 'class' => 'cat-th-date text-end', 'width' => 140],
+                                ['label' => 'Status', 'class' => 'cat-th-date text-center', 'width' => 110],
+                            ],
+                        ],
+                        [
+                            'section' => 'tabProducts',
+                            'prefix' => 'offsetProducts',
+                            'active' => false,
+                            'icon' => 'bi-journal-richtext',
+                            'title' => 'Daftar Produk Cetak / Brosur Offset',
+                            'desc' => 'Identitas spesifikasi produk cetak lembaran, ukuran jadi, dan rasio potong (up) per lembar mesin.',
+                            'add' => 'Tambah Produk Cetak',
+                            'modal' => 'modalTambahProduct',
+                            'entity' => 'Produk cetak',
+                            'search' => 'Cari kode, nama produk, kategori, atau status...',
+                            'columns' => [
+                                ['label' => 'Kode', 'class' => 'cat-th-date text-center', 'width' => 130],
+                                ['label' => 'Nama Produk', 'class' => 'cat-th-name', 'width' => 250],
+                                ['label' => 'Kategori', 'class' => 'cat-th-date text-center', 'width' => 130],
+                                ['label' => 'Ukuran Jadi (P x L)', 'class' => 'cat-th-date text-center', 'width' => 150],
+                                ['label' => 'Qty / Rim (Kolom F)', 'class' => 'cat-th-date text-center', 'width' => 170],
+                                ['label' => 'Plano Yield', 'class' => 'cat-th-date text-center', 'width' => 160],
+                                ['label' => 'Lembar Mesin', 'class' => 'cat-th-date text-center', 'width' => 150],
+                                ['label' => 'Status', 'class' => 'cat-th-date text-center', 'width' => 110],
+                            ],
+                        ],
+                    ];
+                @endphp
 
-                {{-- SECTION 2: TAB PLAT CTP --}}
-                <div class="offset-table-section" id="tabPlates">
-                    <div class="grid">
-                        <section class="col-12 card">
-                            <div
-                                style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
-                                <div>
-                                    <h3 style="margin: 0; font-size: 16px; font-weight: 600; color: var(--t-base);">Daftar
-                                        Plat CTP Offset</h3>
-                                    <p style="margin: 4px 0 0; font-size: 13px; color: var(--t-muted);">Master plat cetak
-                                        CTP per warna untuk cetak offset (CMYK = 4 plat per job).</p>
+                @foreach ($offsetTabs as $tab)
+                    @php($p = $tab['prefix'])
+                    <div class="offset-table-section {{ $tab['active'] ? 'active' : '' }}" id="{{ $tab['section'] }}">
+                        <div class="grid">
+                            <section class="col-12 card cat-card-container">
+                                <div class="cat-card-header">
+                                    <div class="cat-card-header-main">
+                                        <div class="cat-card-title-wrap">
+                                            <div class="cat-card-icon"><i class="bi {{ $tab['icon'] }}"></i></div>
+                                            <div>
+                                                <div class="cat-title-row">
+                                                    <h3 class="cat-card-title">{{ $tab['title'] }}</h3>
+                                                    <span class="cat-badge-total">
+                                                        <span class="cat-pulse-dot"></span>
+                                                        <span id="{{ $p }}TotalCount">Memuat data...</span>
+                                                    </span>
+                                                </div>
+                                                <p class="cat-card-desc">{{ $tab['desc'] }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="cat-card-actions">
+                                        <button type="button" class="cat-btn-head-primary offset-btn-create"
+                                            data-open-modal="{{ $tab['modal'] }}">
+                                            <i class="bi bi-plus-lg"></i><span>{{ $tab['add'] }}</span>
+                                        </button>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="table-responsive">
-                                <table id="offsetPlatesTable" class="data-table display responsive nowrap"
-                                    style="width: 100%;">
-                                    <thead>
-                                        <tr>
-                                            <th style="width: 32px;"></th>
-                                            <th style="width: 50px;" class="text-center">No</th>
-                                            <th>Kode Plat</th>
-                                            <th>Nama Plat CTP</th>
-                                            <th>Mesin Terkait</th>
-                                            <th class="text-end">Harga per Plat</th>
-                                            <th class="text-center">Status</th>
-                                            <th class="text-center" style="width: 70px;">Aksi</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody></tbody>
-                                </table>
-                            </div>
-                        </section>
-                    </div>
-                </div>
 
-                {{-- SECTION 3: TAB TARIF CETAK & MESIN --}}
-                <div class="offset-table-section" id="tabPrintCosts">
-                    <div class="grid">
-                        <section class="col-12 card">
-                            <div
-                                style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
-                                <div>
-                                    <h3 style="margin: 0; font-size: 16px; font-weight: 600; color: var(--t-base);">
-                                        Parameter Operasional & Tarif Mesin Offset</h3>
-                                    <p style="margin: 4px 0 0; font-size: 13px; color: var(--t-muted);">Ukuran lembar
-                                        potong mesin, toleransi insheet setelan awal, tarif klik per warna, dan ongkos
-                                        potong.</p>
+                                <div class="cat-bulk-toolbar" id="{{ $p }}BulkToolbar" style="display:none;">
+                                    <div class="cat-bulk-info">
+                                        <span class="cat-bulk-badge" id="{{ $p }}BulkCount">0 terpilih</span>
+                                        <span class="cat-bulk-text">{{ $tab['entity'] }} terpilih siap untuk tindakan massal</span>
+                                    </div>
+                                    <div class="cat-bulk-actions">
+                                        <button type="button" class="btn btn--ghost btn--sm" id="{{ $p }}CancelSelection">
+                                            <i class="bi bi-x-circle me-1"></i>Batal Pilihan
+                                        </button>
+                                        <button type="button" class="btn btn--danger btn--sm" id="{{ $p }}BulkDelete">
+                                            <i class="bi bi-trash3-fill me-1"></i>Hapus Terpilih
+                                        </button>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="table-responsive">
-                                <table id="offsetPrintCostsTable" class="data-table display responsive nowrap"
-                                    style="width: 100%;">
-                                    <thead>
-                                        <tr>
-                                            <th style="width: 32px;"></th>
-                                            <th style="width: 50px;" class="text-center">No</th>
-                                            <th>Nama Profil Mesin</th>
-                                            <th class="text-center">Ukuran Cetak Mesin</th>
-                                            <th class="text-center">Insheet Setelan</th>
-                                            <th class="text-end">Tarif per Klik/Warna</th>
-                                            <th class="text-end">Minim per Warna</th>
-                                            <th class="text-end">Ongkos Potong / Rim</th>
-                                            <th class="text-center">Status</th>
-                                            <th class="text-center" style="width: 70px;">Aksi</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody></tbody>
-                                </table>
-                            </div>
-                        </section>
-                    </div>
-                </div>
 
-                {{-- SECTION 4: TAB PRICING RULES --}}
-                <div class="offset-table-section" id="tabPricingRules">
-                    <div class="grid">
-                        <section class="col-12 card">
-                            <div
-                                style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
-                                <div>
-                                    <h3 style="margin: 0; font-size: 16px; font-weight: 600; color: var(--t-base);">Aturan
-                                        Markup & Harga Jual Offset</h3>
-                                    <p style="margin: 4px 0 0; font-size: 13px; color: var(--t-muted);">Ketentuan
-                                        persentase margin keuntungan untuk Harga Jual Umum dan Harga Divisi.</p>
+                                <div class="cat-filter-card">
+                                    <div class="cat-filter-group-left">
+                                        <div class="cat-search-box">
+                                            <i class="bi bi-search cat-search-icon"></i>
+                                            <input type="text" id="{{ $p }}Search" class="cat-filter-input"
+                                                placeholder="{{ $tab['search'] }}" aria-label="Cari {{ strtolower($tab['entity']) }}">
+                                            <button type="button" id="{{ $p }}ClearSearch" class="cat-clear-btn"
+                                                title="Hapus pencarian" aria-label="Hapus pencarian" style="display:none;">
+                                                <i class="bi bi-x-circle-fill"></i>
+                                            </button>
+                                        </div>
+                                        <div class="cat-select-box">
+                                            <i class="bi bi-toggle-on cat-select-icon"></i>
+                                            <select id="{{ $p }}Status" class="select2" style="width:100%;"
+                                                aria-label="Filter status">
+                                                <option value="all">Semua Status</option>
+                                                <option value="active">Active</option>
+                                                <option value="inactive">Inactive</option>
+                                            </select>
+                                        </div>
+                                        <div class="cat-filter-subgroup">
+                                            <div class="cat-select-box">
+                                                <i class="bi bi-calendar3 cat-select-icon"></i>
+                                                <select id="{{ $p }}Period" class="select2" style="width:100%;"
+                                                    aria-label="Filter periode">
+                                                    <option value="all">Semua Periode</option>
+                                                    <option value="today">Hari Ini</option>
+                                                    <option value="7_days">7 Hari Terakhir</option>
+                                                    <option value="month">Bulan Ini</option>
+                                                    <option value="year">Tahun Ini</option>
+                                                </select>
+                                            </div>
+                                            <button type="button" id="{{ $p }}Reset" class="cat-btn-reset"
+                                                title="Reset semua filter">
+                                                <i class="bi bi-arrow-counterclockwise"></i><span>Reset</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="cat-filter-group-right">
+                                        <div class="cat-length-box">
+                                            <span class="cat-length-label">Baris:</span>
+                                            <select id="{{ $p }}PageLength" class="select2" style="width:76px;"
+                                                aria-label="Jumlah baris">
+                                                <option value="10" selected>10</option>
+                                                <option value="25">25</option>
+                                                <option value="50">50</option>
+                                                <option value="100">100</option>
+                                            </select>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="table-responsive">
-                                <table id="offsetPricingRulesTable" class="data-table display responsive nowrap"
-                                    style="width: 100%;">
-                                    <thead>
-                                        <tr>
-                                            <th style="width: 32px;"></th>
-                                            <th style="width: 50px;" class="text-center">No</th>
-                                            <th>Nama Aturan</th>
-                                            <th>Kategori</th>
-                                            <th class="text-center">Rentang Rim</th>
-                                            <th class="text-center">Markup Umum</th>
-                                            <th class="text-center">Markup Divisi</th>
-                                            <th class="text-end">Pembulatan</th>
-                                            <th class="text-center">Status</th>
-                                            <th class="text-center" style="width: 70px;">Aksi</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody></tbody>
-                                </table>
-                            </div>
-                        </section>
-                    </div>
-                </div>
 
-                {{-- SECTION 5: TAB PRODUK CETAK (BROSUR / FLYER) --}}
-                <div class="offset-table-section" id="tabProducts">
-                    <div class="grid">
-                        <section class="col-12 card">
-                            <div
-                                style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
-                                <div>
-                                    <h3 style="margin: 0; font-size: 16px; font-weight: 600; color: var(--t-base);">Daftar
-                                        Produk Cetak / Brosur Offset</h3>
-                                    <p style="margin: 4px 0 0; font-size: 13px; color: var(--t-muted);">Identitas spesifikasi
-                                        produk cetak lembaran, ukuran jadi, dan rasio potong (up) per lembar mesin.</p>
+                                <div class="cat-table-wrap">
+                                    <table id="{{ $p }}Table" class="cat-modern-table" style="width:100%">
+                                        <thead>
+                                            <tr>
+                                                <th class="cat-th-check text-center">
+                                                    <label class="cat-custom-checkbox" title="Pilih Semua di Halaman Ini">
+                                                        <input type="checkbox" id="{{ $p }}CheckAll"
+                                                            aria-label="Pilih semua {{ strtolower($tab['entity']) }} di halaman ini">
+                                                        <span class="cat-checkbox-mark">
+                                                            <svg class="check-icon" viewBox="0 0 14 14" fill="none">
+                                                                <path d="M2.5 7.5L5.5 10.5L11.5 3.5" stroke="#ffffff"
+                                                                    stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+                                                            </svg>
+                                                            <svg class="minus-icon" viewBox="0 0 14 14" fill="none">
+                                                                <path d="M3 7H11" stroke="#ffffff" stroke-width="2.2"
+                                                                    stroke-linecap="round" />
+                                                            </svg>
+                                                        </span>
+                                                    </label>
+                                                </th>
+                                                <th class="cat-th-no text-center" style="width:60px;">No</th>
+                                                @foreach ($tab['columns'] as $column)
+                                                    <th class="{{ $column['class'] }}" style="min-width:{{ $column['width'] }}px;">{{ $column['label'] }}</th>
+                                                @endforeach
+                                                <th class="cat-th-actions text-center" style="width:130px;">Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                    </table>
                                 </div>
-                            </div>
-                            <div class="table-responsive">
-                                <table id="offsetProductsTable" class="data-table display responsive nowrap"
-                                    style="width: 100%;">
-                                    <thead>
-                                        <tr>
-                                            <th style="width: 32px;"></th>
-                                            <th style="width: 50px;" class="text-center">No</th>
-                                            <th>Kode</th>
-                                            <th>Nama Produk</th>
-                                            <th>Kategori</th>
-                                            <th class="text-center">Ukuran Jadi (P × L)</th>
-                                            <th class="text-center">Qty / Rim (Kolom F)</th>
-                                            <th class="text-center">Plano Yield</th>
-                                            <th class="text-center">Lembar Mesin</th>
-                                            <th class="text-center">Status</th>
-                                            <th class="text-center" style="width: 70px;">Aksi</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody></tbody>
-                                </table>
-                            </div>
-                        </section>
+                            </section>
+                        </div>
                     </div>
-                </div>
-
+                @endforeach
             </main>
             <div data-shell-footer></div>
         </div>
@@ -1129,6 +1135,43 @@
                 <button type="button" class="btn btn--danger" id="btnConfirmDeleteOffset">
                     <i class="bi bi-trash3-fill"></i>
                     <span>Hapus Data</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    {{-- ========================================================= --}}
+    {{-- MODAL: KONFIRMASI HAPUS MASSAL DATA OFFSET                --}}
+    {{-- ========================================================= --}}
+    <div class="modal-overlay" id="modalBulkDeleteOffset">
+        <div class="modal-dialog modal-delete">
+            <div class="modal-header">
+                <div>
+                    <span class="eyebrow">MASTER DATA · OFFSET</span><br>
+                    <span class="eyebrow">Hapus Pilihan</span>
+                </div>
+                <button type="button" class="modal-close" id="closeBulkDeleteOffset" aria-label="Tutup">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 6 6 18" />
+                        <path d="m6 6 12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="delete-confirmation">
+                    <div class="delete-icon"><i class="bi bi-trash3-fill"></i></div>
+                    <div class="delete-content">
+                        <h3 id="bulkDeleteOffsetTitle">Hapus data terpilih?</h3>
+                        <p id="bulkDeleteOffsetDescription"></p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn--ghost" id="cancelBulkDeleteOffset">Batal</button>
+                <button type="button" class="btn btn--danger" id="confirmBulkDeleteOffset"
+                    data-bulk-url="{{ route('admin_bulk_delete_offset') }}">
+                    <i class="bi bi-trash3-fill"></i> Hapus
                 </button>
             </div>
         </div>
@@ -1821,23 +1864,35 @@
                         labelMainCreate.textContent = createLabel || 'Tambah Data';
                     }
 
-                    // Adjust and recalculate responsive DataTables on tab switch
+                    // Sesuaikan lebar kolom DataTable saat tab berganti
                     setTimeout(() => {
                         $.fn.dataTable.tables({
                             visible: true,
                             api: true
-                        }).columns.adjust().responsive.recalc();
+                        }).columns.adjust();
                     }, 50);
                 });
             });
 
-            // Open Active Modal
-            btnMainCreate.addEventListener('click', function() {
-                const targetModal = document.getElementById(currentModalId);
+            function openCreateModal(modalId) {
+                const targetModal = document.getElementById(modalId);
                 if (targetModal) {
                     targetModal.classList.add('is-open');
                     initModalSelect2();
                 }
+            }
+
+            // Open Active Modal
+            if (btnMainCreate) {
+                btnMainCreate.addEventListener('click', function() {
+                    openCreateModal(currentModalId);
+                });
+            }
+
+            document.querySelectorAll('.offset-btn-create[data-open-modal]').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    openCreateModal(this.getAttribute('data-open-modal'));
+                });
             });
 
             // Close Modals
@@ -2072,6 +2127,9 @@
                     },
                     success: function(res) {
                         $('#modalDeleteOffset').removeClass('is-open');
+                        if (offsetSelections[itemToDelete.type]) {
+                            offsetSelections[itemToDelete.type].delete(Number(itemToDelete.id));
+                        }
                         if (typeof showToast === 'function') {
                             showToast('success', res.message || 'Data berhasil dihapus!');
                         }
@@ -2124,142 +2182,418 @@
                 });
             });
 
-            // 1. DataTable Kertas Plano (Responsive Mobile Support)
-            const tablePlano = $('#offsetPlanoTable').DataTable({
-                processing: true,
-                serverSide: true,
-                ordering: false,
-                responsive: {
-                    details: {
-                        type: 'column',
-                        target: 0
+            /*
+            |--------------------------------------------------------------------------
+            | DATATABLE MASTER OFFSET (pola master kategori)
+            |--------------------------------------------------------------------------
+            */
+            const escapeHtml = DataTable.render.text().display;
+            const offsetMaxSelected = 100;
+            const offsetSelections = {};
+            const offsetCheckMark = `
+                <span class="cat-checkbox-mark">
+                    <svg class="check-icon" viewBox="0 0 14 14" fill="none">
+                        <path d="M2.5 7.5L5.5 10.5L11.5 3.5" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </span>`;
+
+            function offsetNumber(value) {
+                const number = Number(value);
+                if (value === null || value === undefined || value === '' || !Number.isFinite(number)) {
+                    return '-';
+                }
+                return number.toLocaleString('id-ID', {
+                    maximumFractionDigits: 2
+                });
+            }
+
+            function offsetChip(icon, text) {
+                return `
+                    <span class="cat-date-chip">
+                        <i class="bi ${icon}"></i>
+                        <span>${escapeHtml(String(text))}</span>
+                    </span>
+                `;
+            }
+
+            function offsetNameBox(icon, primary, badge, note) {
+                const noteHtml = note ?
+                    `<span style="font-size: 11px; color: var(--t-muted); max-width: 260px; white-space: normal;">${escapeHtml(note)}</span>` :
+                    '';
+                return `
+                    <div class="cat-cell-name-box">
+                        <div class="cat-icon-symbol"><i class="bi ${icon}"></i></div>
+                        <div class="cat-name-details">
+                            <span class="cat-name-primary">${escapeHtml(primary || '-')}</span>
+                            <span class="cat-name-badge">${escapeHtml(badge)}</span>
+                            ${noteHtml}
+                        </div>
+                    </div>
+                `;
+            }
+
+            function offsetMoney(data, type) {
+                if (type !== 'display') {
+                    return Number(data) || 0;
+                }
+                return `<span style="font-weight: 600; color: var(--t-base);">${escapeHtml(formatRupiah(data))}</span>`;
+            }
+
+            function offsetStatus(data, type) {
+                const status = (data || 'active').toString().toLowerCase();
+                if (type !== 'display') {
+                    return status;
+                }
+                const isActive = status === 'active';
+                const label = isActive ? 'Active' : (status === 'inactive' ? 'Inactive' : data);
+                return `<span class="badge ${isActive ? 'success' : 'danger'} dot">${escapeHtml(label)}</span>`;
+            }
+
+            function createOffsetTable(cfg) {
+                const p = cfg.prefix;
+                const tableElement = document.getElementById(`${p}Table`);
+                const tableWrap = tableElement.closest('.cat-table-wrap');
+                const searchInput = document.getElementById(`${p}Search`);
+                const clearSearchButton = document.getElementById(`${p}ClearSearch`);
+                const statusFilter = document.getElementById(`${p}Status`);
+                const periodFilter = document.getElementById(`${p}Period`);
+                const pageLength = document.getElementById(`${p}PageLength`);
+                const bulkToolbar = document.getElementById(`${p}BulkToolbar`);
+                const bulkCount = document.getElementById(`${p}BulkCount`);
+                const checkAll = document.getElementById(`${p}CheckAll`);
+                const checkAllLabel = checkAll.closest('.cat-custom-checkbox');
+                const rowCheckClass = `${p}-row-check`;
+                const selected = new Set();
+                offsetSelections[cfg.type] = selected;
+
+                function updateSelectionUI() {
+                    bulkToolbar.style.display = selected.size ? 'flex' : 'none';
+                    bulkCount.textContent = `${selected.size} terpilih`;
+
+                    const checkboxes = tableElement.querySelectorAll(`.${rowCheckClass}`);
+                    let checkedCount = 0;
+                    checkboxes.forEach((checkbox) => {
+                        const isSelected = selected.has(Number(checkbox.value));
+                        checkbox.checked = isSelected;
+                        checkbox.closest('tr')?.classList.toggle('is-selected', isSelected);
+                        if (isSelected) checkedCount++;
+                    });
+
+                    checkAll.checked = checkboxes.length > 0 && checkedCount === checkboxes.length;
+                    checkAll.indeterminate = checkedCount > 0 && checkedCount < checkboxes.length;
+                    checkAllLabel.classList.toggle('is-indeterminate', checkAll.indeterminate);
+                }
+
+                function centerProcessingIndicator() {
+                    const indicator = document.getElementById(`${tableElement.id}_processing`);
+                    if (indicator && indicator.parentElement !== tableWrap) {
+                        indicator.classList.add('cat-processing-centered');
+                        tableWrap.appendChild(indicator);
                     }
-                },
-                ajax: {
-                    url: "{{ route('admin_data_offset_plano') }}",
-                    type: "GET"
-                },
+                }
+
+                $(`#${p}Status, #${p}Period`).select2({
+                    width: '100%',
+                    minimumResultsForSearch: Infinity
+                });
+                $(`#${p}PageLength`).select2({
+                    width: '76px',
+                    minimumResultsForSearch: -1
+                });
+
+                $(tableElement).on('processing.dt', centerProcessingIndicator);
+
+                const table = new DataTable(tableElement, {
+                    processing: true,
+                    serverSide: true,
+                    ordering: true,
+                    order: cfg.defaultOrder,
+                    ajax: {
+                        url: cfg.url,
+                        type: 'GET',
+                        data: function(d) {
+                            d.status = statusFilter.value === 'all' ? '' : statusFilter.value;
+                            d.period = periodFilter.value === 'all' ? '' : periodFilter.value;
+                        }
+                    },
+                    columns: [{
+                            data: null,
+                            orderable: false,
+                            searchable: false,
+                            className: 'text-center cat-td-check',
+                            render: function(data, type, row) {
+                                const id = Number(row.id);
+                                return `
+                                    <label class="cat-custom-checkbox">
+                                        <input type="checkbox" class="${rowCheckClass}" value="${id}"
+                                            ${selected.has(id) ? 'checked' : ''}
+                                            aria-label="Pilih ${escapeHtml(cfg.entity)} ${escapeHtml(row[cfg.nameField] || '')}">
+                                        ${offsetCheckMark}
+                                    </label>
+                                `;
+                            }
+                        },
+                        {
+                            data: null,
+                            orderable: false,
+                            searchable: false,
+                            className: 'text-center cat-td-no',
+                            render: function(data, type, row, meta) {
+                                return `<span class="cat-num-pill">${meta.settings._iDisplayStart + meta.row + 1}</span>`;
+                            }
+                        },
+                        ...cfg.columns,
+                        {
+                            data: 'id',
+                            orderable: false,
+                            searchable: false,
+                            className: 'text-center cat-td-actions',
+                            render: function(data, type, row) {
+                                const id = Number(data);
+                                const name = escapeHtml(row[cfg.nameField] || '');
+                                return `
+                                    <div class="cat-action-group">
+                                        <button type="button" class="cat-btn-action cat-btn-view btn-detail-offset" data-type="${cfg.type}"
+                                            aria-label="View" title="Lihat detail ${escapeHtml(cfg.entity)}">
+                                            <i class="bi bi-arrows-fullscreen"></i>
+                                        </button>
+                                        <button type="button" class="cat-btn-action cat-btn-edit btn-edit-offset" data-type="${cfg.type}"
+                                            aria-label="Edit" title="Edit ${escapeHtml(cfg.entity)}">
+                                            <i class="bi bi-pen"></i>
+                                        </button>
+                                        <button type="button" class="cat-btn-action cat-btn-del btn-delete-offset" data-id="${id}"
+                                            data-type="${cfg.type}" data-name="${name}" aria-label="Hapus" title="Hapus ${escapeHtml(cfg.entity)}">
+                                            <i class="bi bi-trash3-fill"></i>
+                                        </button>
+                                    </div>
+                                `;
+                            }
+                        }
+                    ],
+                    pageLength: 10,
+                    layout: {
+                        topStart: null,
+                        topEnd: null,
+                        bottomStart: 'info',
+                        bottomEnd: 'paging'
+                    },
+                    language: {
+                        info: `Menampilkan _START_ sampai _END_ dari _TOTAL_ ${cfg.entity}`,
+                        infoEmpty: `Menampilkan 0 sampai 0 dari 0 ${cfg.entity}`,
+                        zeroRecords: `Data ${cfg.entity} tidak ditemukan`,
+                        processing: 'Memuat data...'
+                    },
+                    drawCallback: function() {
+                        centerProcessingIndicator();
+                    }
+                });
+                centerProcessingIndicator();
+
+                table.on('draw', function() {
+                    const total = table.page.info().recordsTotal;
+                    const totalEl = document.getElementById(`${p}TotalCount`);
+                    if (totalEl) {
+                        totalEl.textContent = `${total.toLocaleString('id-ID')} Total ${cfg.totalLabel}`;
+                    }
+                    $(`#${cfg.badgeId}`).text(total);
+                    $(`#${cfg.statId}`).text(total);
+                    updateSelectionUI();
+                });
+
+                let searchTimer;
+                searchInput.addEventListener('input', function() {
+                    const query = searchInput.value.trim();
+                    clearSearchButton.style.display = query.length > 0 ? 'flex' : 'none';
+                    clearTimeout(searchTimer);
+                    searchTimer = setTimeout(() => table.search(query).draw(), 250);
+                });
+                clearSearchButton.addEventListener('click', function() {
+                    clearTimeout(searchTimer);
+                    searchInput.value = '';
+                    clearSearchButton.style.display = 'none';
+                    table.search('').draw();
+                    searchInput.focus();
+                });
+                $(`#${p}Status, #${p}Period`).on('change', function() {
+                    table.ajax.reload(null, true);
+                });
+                $(pageLength).on('change', function() {
+                    table.page.len(Number(pageLength.value)).draw();
+                });
+                document.getElementById(`${p}Reset`).addEventListener('click', function() {
+                    clearTimeout(searchTimer);
+                    searchInput.value = '';
+                    clearSearchButton.style.display = 'none';
+                    $(`#${p}Status, #${p}Period`).val('all').trigger('change.select2');
+                    $(pageLength).val('10').trigger('change.select2');
+                    selected.clear();
+                    table.search('').order(cfg.defaultOrder).page.len(10).ajax.reload(null, true);
+                });
+
+                $(tableElement).on('change', `.${rowCheckClass}`, function() {
+                    const id = Number(this.value);
+                    if (this.checked && !selected.has(id) && selected.size >= offsetMaxSelected) {
+                        this.checked = false;
+                        showToast('error', `Maksimal ${offsetMaxSelected} ${cfg.entity} dapat dipilih sekaligus.`);
+                        return;
+                    }
+                    if (this.checked) selected.add(id);
+                    else selected.delete(id);
+                    updateSelectionUI();
+                });
+                checkAll.addEventListener('change', function() {
+                    let reachedLimit = false;
+                    tableElement.querySelectorAll(`.${rowCheckClass}`).forEach((checkbox) => {
+                        const id = Number(checkbox.value);
+                        if (!checkAll.checked) {
+                            selected.delete(id);
+                        } else if (!selected.has(id)) {
+                            if (selected.size >= offsetMaxSelected) reachedLimit = true;
+                            else selected.add(id);
+                        }
+                    });
+                    updateSelectionUI();
+                    if (reachedLimit) {
+                        showToast('error', `Maksimal ${offsetMaxSelected} ${cfg.entity} dapat dipilih sekaligus.`);
+                    }
+                });
+                document.getElementById(`${p}CancelSelection`).addEventListener('click', function() {
+                    selected.clear();
+                    updateSelectionUI();
+                });
+                document.getElementById(`${p}BulkDelete`).addEventListener('click', function() {
+                    openOffsetBulkDelete({
+                        type: cfg.type,
+                        entity: cfg.entity,
+                        table: table,
+                        selected: selected,
+                        refresh: updateSelectionUI
+                    });
+                });
+
+                return table;
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | BULK DELETE MASTER OFFSET
+            |--------------------------------------------------------------------------
+            */
+            const offsetBulkModal = document.getElementById('modalBulkDeleteOffset');
+            const confirmOffsetBulkButton = document.getElementById('confirmBulkDeleteOffset');
+            let activeOffsetBulk = null;
+            let isOffsetBulkDeleting = false;
+
+            function closeOffsetBulkModal() {
+                if (!isOffsetBulkDeleting) offsetBulkModal.classList.remove('is-open');
+            }
+
+            function openOffsetBulkDelete(context) {
+                const count = context.selected.size;
+                if (!count) return;
+                activeOffsetBulk = context;
+                document.getElementById('bulkDeleteOffsetTitle').textContent = `Hapus ${context.entity} terpilih?`;
+                document.getElementById('bulkDeleteOffsetDescription').textContent =
+                    `${count} ${context.entity} terpilih akan dihapus permanen. Data yang sudah dihapus tidak dapat dikembalikan.`;
+                offsetBulkModal.classList.add('is-open');
+            }
+
+            ['closeBulkDeleteOffset', 'cancelBulkDeleteOffset'].forEach((id) => {
+                document.getElementById(id).addEventListener('click', closeOffsetBulkModal);
+            });
+
+            confirmOffsetBulkButton.addEventListener('click', async function() {
+                if (isOffsetBulkDeleting || !activeOffsetBulk || !activeOffsetBulk.selected.size) return;
+                const context = activeOffsetBulk;
+                isOffsetBulkDeleting = true;
+                confirmOffsetBulkButton.disabled = true;
+                const originalContent = confirmOffsetBulkButton.innerHTML;
+                confirmOffsetBulkButton.innerHTML = `
+                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    Menghapus...
+                `;
+                const payload = new FormData();
+                payload.append('type', context.type);
+                context.selected.forEach((id) => payload.append('ids[]', id));
+
+                try {
+                    const response = await fetch(confirmOffsetBulkButton.dataset.bulkUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: payload
+                    });
+                    const result = await response.json();
+                    if (!response.ok || !result.success) {
+                        throw new Error(result.message || `${context.entity} gagal dihapus.`);
+                    }
+
+                    context.selected.clear();
+                    context.refresh();
+                    isOffsetBulkDeleting = false;
+                    closeOffsetBulkModal();
+                    context.table.ajax.reload(null, false);
+                    showToast('success', result.message);
+                } catch (error) {
+                    showToast('error', error.message || `Terjadi kesalahan saat menghapus ${context.entity}.`);
+                } finally {
+                    isOffsetBulkDeleting = false;
+                    confirmOffsetBulkButton.disabled = false;
+                    confirmOffsetBulkButton.innerHTML = originalContent;
+                }
+            });
+
+            const tablePlano = createOffsetTable({
+                type: 'plano',
+                prefix: 'offsetPlano',
+                url: "{{ route('admin_data_offset_plano') }}",
+                entity: 'kertas plano',
+                totalLabel: 'Kertas Plano',
+                nameField: 'material_name',
+                badgeId: 'badgeCountPlano',
+                statId: 'statValPlano',
+                defaultOrder: [[3, 'asc']],
                 columns: [{
-                        data: null,
-                        defaultContent: '',
-                        className: 'dtr-control',
-                        orderable: false,
-                        searchable: false,
-                        responsivePriority: 1
-                    },
-                    {
-                        data: null,
-                        orderable: false,
-                        searchable: false,
-                        responsivePriority: 1,
-                        className: 'text-center',
-                        render: function(data, type, row, meta) {
-                            return meta.row + meta.settings._iDisplayStart + 1;
-                        }
-                    },
-                    {
                         data: 'material_code',
-                        render: function(data) {
-                            return data ? '<strong>' + data + '</strong>' : '-';
-                        }
+                        className: 'text-center cat-td-date',
+                        render: (data, type) => type !== 'display' ? (data || '') : offsetChip('bi-upc-scan', data || '-')
                     },
                     {
                         data: 'material_name',
-                        responsivePriority: 1,
-                        render: function(data) {
-                            return '<span style="font-weight: 600; color: var(--t-base);">' + (
-                                data || '-') + '</span>';
-                        }
+                        className: 'cat-td-name',
+                        render: (data, type) => type !== 'display' ? (data || '') : offsetNameBox('bi-file-earmark-text-fill', data, 'Kertas Plano')
                     },
                     {
-                        data: null,
-                        className: 'text-center',
-                        render: function(data, type, row) {
-                            return (row.length || '-') + ' × ' + (row.width || '-') + ' cm';
+                        data: 'length',
+                        className: 'text-center cat-td-date',
+                        render: (data, type, row) => {
+                            const size = `${offsetNumber(row.length)} × ${offsetNumber(row.width)} cm`;
+                            return type !== 'display' ? size : offsetChip('bi-aspect-ratio', size);
                         }
                     },
                     {
                         data: 'gramature',
-                        className: 'text-center',
-                        render: function(data) {
-                            return data ? data + ' gsm' : '-';
-                        }
+                        className: 'text-center cat-td-date',
+                        render: (data, type) => type !== 'display' ? (data || 0) : offsetChip('bi-layers-fill', data ? `${offsetNumber(data)} gsm` : '-')
                     },
                     {
                         data: 'paper_type',
-                        className: 'text-center',
-                        render: function(data) {
-                            return data || '-';
-                        }
+                        className: 'text-center cat-td-date',
+                        render: (data, type) => type !== 'display' ? (data || '') : offsetChip('bi-tag-fill', data || '-')
                     },
                     {
                         data: 'price_per_plano',
                         className: 'text-end',
-                        responsivePriority: 2,
-                        render: function(data) {
-                            return '<span style="font-weight: 600; color: var(--t-base);">' +
-                                formatRupiah(data) + '</span>';
-                        }
+                        render: offsetMoney
                     },
                     {
                         data: 'status',
                         className: 'text-center',
-                        responsivePriority: 2,
-                        render: function(data) {
-                            const isAct = (data || '').toLowerCase() === 'active';
-                            return '<span class="' + (isAct ? 'badge-active' : 'badge-inactive') +
-                                '">' + (data || 'Active') + '</span>';
-                        }
-                    },
-                    {
-                        data: null,
-                        orderable: false,
-                        searchable: false,
-                        responsivePriority: 1,
-                        className: 'text-center',
-                        render: function(data, type, row) {
-                            return `
-                                <div style="display: flex; justify-content: center; gap: 6px;">
-                                    <button type="button" class="btn-detail-offset" data-type="plano" title="Lihat Detail">
-                                        <i class="bi bi-eye"></i>
-                                    </button>
-                                    <button type="button" class="btn-edit-offset" data-type="plano" title="Edit Data">
-                                        <i class="bi bi-pen"></i>
-                                    </button>
-                                    <button type="button" class="btn-delete-offset" data-id="${row.id}" data-type="plano" data-name="${row.material_name}" title="Hapus">
-                                        <i class="bi bi-trash3-fill"></i>
-                                    </button>
-                                </div>
-                            `;
-                        }
+                        render: offsetStatus
                     }
-                ],
-                pageLength: 10,
-                lengthMenu: [10, 25, 50, 100],
-                layout: {
-                    topStart: 'pageLength',
-                    topEnd: 'search',
-                    bottomStart: 'info',
-                    bottomEnd: 'paging'
-                },
-                language: {
-                    search: 'Search:',
-                    lengthMenu: '_MENU_ entries per page',
-                    info: 'Showing _START_ to _END_ of _TOTAL_ entries',
-                    infoEmpty: 'Showing 0 to 0 of 0 entries',
-                    zeroRecords: 'Data kertas plano tidak ditemukan',
-                    processing: 'Memuat data...',
-                    searchPlaceholder: 'Cari kertas plano...'
-                },
-                initComplete: function() {
-                    $(this).closest('.dt-container, .dataTables_wrapper')
-                        .find('.dt-search input, .dataTables_filter input')
-                        .css({
-                            'padding': '9px 14px',
-                            'border-radius': '8px',
-                            'border': '1px solid #e2e8f0'
-                        });
-                }
+                ]
             });
 
             // Form Submit: Tambah Kertas Plano
@@ -2305,127 +2639,53 @@
                 });
             });
 
-            // 2. DataTable Plat CTP (Responsive Mobile Support)
-            const tablePlates = $('#offsetPlatesTable').DataTable({
-                processing: true,
-                serverSide: true,
-                ordering: false,
-                responsive: {
-                    details: {
-                        type: 'column',
-                        target: 0
-                    }
-                },
-                ajax: {
-                    url: "{{ route('admin_data_offset_plates') }}",
-                    type: "GET"
-                },
+            const tablePlates = createOffsetTable({
+                type: 'plate',
+                prefix: 'offsetPlates',
+                url: "{{ route('admin_data_offset_plates') }}",
+                entity: 'plat CTP',
+                totalLabel: 'Plat CTP',
+                nameField: 'plate_name',
+                badgeId: 'badgeCountPlates',
+                statId: 'statValPlates',
+                defaultOrder: [[3, 'asc']],
                 columns: [{
-                        data: null,
-                        defaultContent: '',
-                        className: 'dtr-control',
-                        orderable: false,
-                        searchable: false,
-                        responsivePriority: 1
-                    },
-                    {
-                        data: null,
-                        orderable: false,
-                        searchable: false,
-                        responsivePriority: 1,
-                        className: 'text-center',
-                        render: function(data, type, row, meta) {
-                            return meta.row + meta.settings._iDisplayStart + 1;
-                        }
-                    },
-                    {
                         data: 'plate_code',
-                        render: function(data) {
-                            return data ? '<strong>' + data + '</strong>' : '-';
-                        }
+                        className: 'text-center cat-td-date',
+                        render: (data, type) => type !== 'display' ? (data || '') : offsetChip('bi-upc-scan', data || '-')
                     },
                     {
                         data: 'plate_name',
-                        responsivePriority: 1,
-                        render: function(data) {
-                            return '<span style="font-weight: 600; color: var(--t-base);">' + (
-                                data || '-') + '</span>';
-                        }
+                        className: 'cat-td-name',
+                        render: (data, type) => type !== 'display' ? (data || '') : offsetNameBox('bi-grid-1x2-fill', data, 'Plat CTP')
                     },
                     {
                         data: 'machine_name',
-                        render: function(data) {
-                            return data || '-';
+                        className: 'cat-td-creator',
+                        render: (data, type) => {
+                            if (type !== 'display') return data || '';
+                            return `
+                                <div class="cat-user-badge">
+                                    <span class="cat-user-avatar" style="background: #2563eb;"><i class="bi bi-printer-fill"></i></span>
+                                    <div class="cat-user-info">
+                                        <span class="cat-user-name">${escapeHtml(data || '-')}</span>
+                                        <span class="cat-user-role">Mesin Offset</span>
+                                    </div>
+                                </div>
+                            `;
                         }
                     },
                     {
                         data: 'price_per_plate',
                         className: 'text-end',
-                        responsivePriority: 2,
-                        render: function(data) {
-                            return '<span style="font-weight: 600; color: var(--t-base);">' +
-                                formatRupiah(data) + '</span>';
-                        }
+                        render: offsetMoney
                     },
                     {
                         data: 'status',
                         className: 'text-center',
-                        responsivePriority: 2,
-                        render: function(data) {
-                            const isAct = (data || '').toLowerCase() === 'active';
-                            return '<span class="' + (isAct ? 'badge-active' : 'badge-inactive') +
-                                '">' + (data || 'Active') + '</span>';
-                        }
-                    },
-                    {
-                        data: null,
-                        orderable: false,
-                        searchable: false,
-                        responsivePriority: 1,
-                        className: 'text-center',
-                        render: function(data, type, row) {
-                            return `
-                                <div style="display: flex; justify-content: center; gap: 6px;">
-                                    <button type="button" class="btn-detail-offset" data-type="plate" title="Lihat Detail">
-                                        <i class="bi bi-eye"></i>
-                                    </button>
-                                    <button type="button" class="btn-edit-offset" data-type="plate" title="Edit Data">
-                                        <i class="bi bi-pen"></i>
-                                    </button>
-                                    <button type="button" class="btn-delete-offset" data-id="${row.id}" data-type="plate" data-name="${row.plate_name}" title="Hapus">
-                                        <i class="bi bi-trash3-fill"></i>
-                                    </button>
-                                </div>
-                            `;
-                        }
+                        render: offsetStatus
                     }
-                ],
-                pageLength: 10,
-                lengthMenu: [10, 25, 50, 100],
-                layout: {
-                    topStart: 'pageLength',
-                    topEnd: 'search',
-                    bottomStart: 'info',
-                    bottomEnd: 'paging'
-                },
-                language: {
-                    search: 'Search:',
-                    lengthMenu: '_MENU_ entries per page',
-                    info: 'Showing _START_ to _END_ of _TOTAL_ entries',
-                    infoEmpty: 'Showing 0 to 0 of 0 entries',
-                    zeroRecords: 'Data plat CTP tidak ditemukan',
-                    processing: 'Memuat data...',
-                    searchPlaceholder: 'Cari plat CTP...'
-                },
-                initComplete: function() {
-                    $(this).closest('.dt-container, .dataTables_wrapper')
-                        .find('.dt-search input, .dataTables_filter input')
-                        .css({
-                            'padding': '9px 14px',
-                            'border-radius': '8px',
-                            'border': '1px solid #e2e8f0'
-                        });
-                }
+                ]
             });
 
             // Form Submit: Tambah Plat CTP
@@ -2466,143 +2726,55 @@
                 });
             });
 
-            // 3. DataTable Parameter Cetak & Potong (Responsive Mobile Support)
-            const tablePrintCosts = $('#offsetPrintCostsTable').DataTable({
-                processing: true,
-                serverSide: true,
-                ordering: false,
-                responsive: {
-                    details: {
-                        type: 'column',
-                        target: 0
-                    }
-                },
-                ajax: {
-                    url: "{{ route('admin_data_offset_print_costs') }}",
-                    type: "GET"
-                },
+            const tablePrintCosts = createOffsetTable({
+                type: 'print_cost',
+                prefix: 'offsetPrintCosts',
+                url: "{{ route('admin_data_offset_print_costs') }}",
+                entity: 'profil mesin',
+                totalLabel: 'Profil Mesin',
+                nameField: 'name',
+                badgeId: 'badgeCountPrintCosts',
+                statId: 'statValPrintCosts',
+                defaultOrder: [[2, 'asc']],
                 columns: [{
-                        data: null,
-                        defaultContent: '',
-                        className: 'dtr-control',
-                        orderable: false,
-                        searchable: false,
-                        responsivePriority: 1
-                    },
-                    {
-                        data: null,
-                        orderable: false,
-                        searchable: false,
-                        responsivePriority: 1,
-                        className: 'text-center',
-                        render: function(data, type, row, meta) {
-                            return meta.row + meta.settings._iDisplayStart + 1;
-                        }
-                    },
-                    {
                         data: 'name',
-                        responsivePriority: 1,
-                        render: function(data) {
-                            return '<span style="font-weight: 600; color: var(--t-base);">' + (
-                                data || '-') + '</span>';
-                        }
+                        className: 'cat-td-name',
+                        render: (data, type) => type !== 'display' ? (data || '') : offsetNameBox('bi-printer-fill', data, 'Profil Mesin')
                     },
                     {
-                        data: null,
-                        className: 'text-center',
-                        render: function(data, type, row) {
-                            return (row.press_sheet_width || '-') + ' × ' + (row
-                                .press_sheet_length || '-') + ' cm';
+                        data: 'press_sheet_width',
+                        className: 'text-center cat-td-date',
+                        render: (data, type, row) => {
+                            const size = `${offsetNumber(row.press_sheet_width)} × ${offsetNumber(row.press_sheet_length)} cm`;
+                            return type !== 'display' ? size : offsetChip('bi-aspect-ratio', size);
                         }
                     },
                     {
                         data: 'default_insheet_sheets',
-                        className: 'text-center',
-                        render: function(data) {
-                            return (data || 0) + ' lembar';
-                        }
+                        className: 'text-center cat-td-date',
+                        render: (data, type) => type !== 'display' ? (data || 0) : offsetChip('bi-stack', `${offsetNumber(data || 0)} lembar`)
                     },
                     {
                         data: 'click_rate_per_color',
                         className: 'text-end',
-                        render: function(data) {
-                            return formatRupiah(data);
-                        }
+                        render: offsetMoney
                     },
                     {
                         data: 'min_print_per_color',
                         className: 'text-end',
-                        responsivePriority: 2,
-                        render: function(data) {
-                            return formatRupiah(data);
-                        }
+                        render: offsetMoney
                     },
                     {
                         data: 'cutting_fee_per_rim',
                         className: 'text-end',
-                        render: function(data) {
-                            return formatRupiah(data);
-                        }
+                        render: offsetMoney
                     },
                     {
                         data: 'status',
                         className: 'text-center',
-                        responsivePriority: 2,
-                        render: function(data) {
-                            const isAct = (data || '').toLowerCase() === 'active';
-                            return '<span class="' + (isAct ? 'badge-active' : 'badge-inactive') +
-                                '">' + (data || 'Active') + '</span>';
-                        }
-                    },
-                    {
-                        data: null,
-                        orderable: false,
-                        searchable: false,
-                        responsivePriority: 1,
-                        className: 'text-center',
-                        render: function(data, type, row) {
-                            return `
-                                <div style="display: flex; justify-content: center; gap: 6px;">
-                                    <button type="button" class="btn-detail-offset" data-type="print_cost" title="Lihat Detail">
-                                        <i class="bi bi-eye"></i>
-                                    </button>
-                                    <button type="button" class="btn-edit-offset" data-type="print_cost" title="Edit Data">
-                                        <i class="bi bi-pen"></i>
-                                    </button>
-                                    <button type="button" class="btn-delete-offset" data-id="${row.id}" data-type="print_cost" data-name="${row.name}" title="Hapus">
-                                        <i class="bi bi-trash3-fill"></i>
-                                    </button>
-                                </div>
-                            `;
-                        }
+                        render: offsetStatus
                     }
-                ],
-                pageLength: 10,
-                lengthMenu: [10, 25, 50, 100],
-                layout: {
-                    topStart: 'pageLength',
-                    topEnd: 'search',
-                    bottomStart: 'info',
-                    bottomEnd: 'paging'
-                },
-                language: {
-                    search: 'Search:',
-                    lengthMenu: '_MENU_ entries per page',
-                    info: 'Showing _START_ to _END_ of _TOTAL_ entries',
-                    infoEmpty: 'Showing 0 to 0 of 0 entries',
-                    zeroRecords: 'Data profil mesin tidak ditemukan',
-                    processing: 'Memuat data...',
-                    searchPlaceholder: 'Cari profil mesin...'
-                },
-                initComplete: function() {
-                    $(this).closest('.dt-container, .dataTables_wrapper')
-                        .find('.dt-search input, .dataTables_filter input')
-                        .css({
-                            'padding': '9px 14px',
-                            'border-radius': '8px',
-                            'border': '1px solid #e2e8f0'
-                        });
-                }
+                ]
             });
 
             // Form Submit: Tambah Profil Mesin Cetak
@@ -2646,300 +2818,122 @@
                 });
             });
 
-            // 4. DataTable Pricing Rules (Responsive Mobile Support)
-            const tablePricingRules = $('#offsetPricingRulesTable').DataTable({
-                processing: true,
-                serverSide: true,
-                ordering: false,
-                responsive: {
-                    details: {
-                        type: 'column',
-                        target: 0
-                    }
-                },
-                ajax: {
-                    url: "{{ route('admin_data_offset_pricing_rules') }}",
-                    type: "GET"
-                },
+            const tablePricingRules = createOffsetTable({
+                type: 'pricing_rule',
+                prefix: 'offsetPricingRules',
+                url: "{{ route('admin_data_offset_pricing_rules') }}",
+                entity: 'pricing rule',
+                totalLabel: 'Pricing Rule',
+                nameField: 'rule_name',
+                badgeId: 'badgeCountPricingRules',
+                statId: 'statValPricingRules',
+                defaultOrder: [[2, 'asc']],
                 columns: [{
-                        data: null,
-                        defaultContent: '',
-                        className: 'dtr-control',
-                        orderable: false,
-                        searchable: false,
-                        responsivePriority: 1
-                    },
-                    {
-                        data: null,
-                        orderable: false,
-                        searchable: false,
-                        responsivePriority: 1,
-                        className: 'text-center',
-                        render: function(data, type, row, meta) {
-                            return meta.row + meta.settings._iDisplayStart + 1;
-                        }
-                    },
-                    {
                         data: 'rule_name',
-                        responsivePriority: 1,
-                        render: function(data) {
-                            return '<span style="font-weight: 600; color: var(--t-base);">' + (
-                                data || '-') + '</span>';
-                        }
+                        className: 'cat-td-name',
+                        render: (data, type) => type !== 'display' ? (data || '') : offsetNameBox('bi-percent', data, 'Pricing Rule')
                     },
                     {
                         data: 'category_name',
-                        render: function(data) {
-                            return data || '-';
-                        }
+                        className: 'text-center cat-td-date',
+                        render: (data, type) => type !== 'display' ? (data || '') : offsetChip('bi-folder-fill', data || '-')
                     },
                     {
-                        data: null,
-                        className: 'text-center',
-                        render: function(data, type, row) {
-                            return (row.min_rim || 1) + ' – ' + (row.max_rim || 10) + ' Rim';
+                        data: 'min_rim',
+                        className: 'text-center cat-td-date',
+                        render: (data, type, row) => {
+                            const range = `${row.min_rim || 1} – ${row.max_rim || 10} Rim`;
+                            return type !== 'display' ? range : offsetChip('bi-arrow-left-right', range);
                         }
                     },
                     {
                         data: 'markup_general',
                         className: 'text-center',
-                        responsivePriority: 2,
-                        render: function(data) {
-                            return '<span style="font-weight: 600; color: var(--primary);">' + (
-                                data || 0) + '%</span>';
-                        }
+                        render: (data, type) => type !== 'display' ? (Number(data) || 0) :
+                            `<span style="font-weight: 600; color: var(--primary);">${escapeHtml(offsetNumber(data || 0))}%</span>`
                     },
                     {
                         data: 'markup_division',
                         className: 'text-center',
-                        render: function(data) {
-                            return '<span style="font-weight: 600; color: var(--success);">' + (
-                                data || 0) + '%</span>';
-                        }
+                        render: (data, type) => type !== 'display' ? (Number(data) || 0) :
+                            `<span style="font-weight: 600; color: var(--success);">${escapeHtml(offsetNumber(data || 0))}%</span>`
                     },
                     {
                         data: 'rounding_value',
                         className: 'text-end',
-                        render: function(data) {
-                            return formatRupiah(data);
-                        }
+                        render: offsetMoney
                     },
                     {
                         data: 'status',
                         className: 'text-center',
-                        responsivePriority: 2,
-                        render: function(data) {
-                            const isAct = (data || '').toLowerCase() === 'active';
-                            return '<span class="' + (isAct ? 'badge-active' : 'badge-inactive') +
-                                '">' + (data || 'Active') + '</span>';
-                        }
-                    },
-                    {
-                        data: null,
-                        orderable: false,
-                        searchable: false,
-                        responsivePriority: 1,
-                        className: 'text-center',
-                        render: function(data, type, row) {
-                            return `
-                                <div style="display: flex; justify-content: center; gap: 6px;">
-                                    <button type="button" class="btn-detail-offset" data-type="pricing_rule" title="Lihat Detail">
-                                        <i class="bi bi-eye"></i>
-                                    </button>
-                                    <button type="button" class="btn-edit-offset" data-type="pricing_rule" title="Edit Data">
-                                        <i class="bi bi-pen"></i>
-                                    </button>
-                                    <button type="button" class="btn-delete-offset" data-id="${row.id}" data-type="pricing_rule" data-name="${row.rule_name}" title="Hapus">
-                                        <i class="bi bi-trash3-fill"></i>
-                                    </button>
-                                </div>
-                            `;
-                        }
+                        render: offsetStatus
                     }
-                ],
-                pageLength: 10,
-                lengthMenu: [10, 25, 50, 100],
-                layout: {
-                    topStart: 'pageLength',
-                    topEnd: 'search',
-                    bottomStart: 'info',
-                    bottomEnd: 'paging'
-                },
-                language: {
-                    search: 'Search:',
-                    lengthMenu: '_MENU_ entries per page',
-                    info: 'Showing _START_ to _END_ of _TOTAL_ entries',
-                    infoEmpty: 'Showing 0 to 0 of 0 entries',
-                    zeroRecords: 'Data aturan ongkos cetak tidak ditemukan',
-                    processing: 'Memuat data...',
-                    searchPlaceholder: 'Cari aturan ongkos cetak...'
-                },
-                initComplete: function() {
-                    $(this).closest('.dt-container, .dataTables_wrapper')
-                        .find('.dt-search input, .dataTables_filter input')
-                        .css({
-                            'padding': '9px 14px',
-                            'border-radius': '8px',
-                            'border': '1px solid #e2e8f0'
-                        });
-                }
+                ]
             });
 
             // DataTable 5: Master Produk Cetak Offset (Brosur / Flyer)
-            const tableProducts = $('#offsetProductsTable').DataTable({
-                processing: true,
-                serverSide: true,
-                responsive: {
-                    details: {
-                        type: 'column',
-                        target: 0
-                    }
-                },
-                ajax: {
-                    url: "{{ route('admin_data_offset_products') }}",
-                    type: "GET"
-                },
-                order: [
-                    [1, 'asc']
-                ],
-                columns: [
-                    {
-                        data: null,
-                        defaultContent: '',
-                        className: 'dtr-control',
-                        orderable: false,
-                        searchable: false,
-                        responsivePriority: 1
-                    },
-                    {
-                        data: null,
-                        orderable: false,
-                        searchable: false,
-                        className: 'text-center',
-                        responsivePriority: 2,
-                        render: function(data, type, row, meta) {
-                            return meta.row + meta.settings._iDisplayStart + 1;
-                        }
-                    },
-                    {
+            const tableProducts = createOffsetTable({
+                type: 'product',
+                prefix: 'offsetProducts',
+                url: "{{ route('admin_data_offset_products') }}",
+                entity: 'produk cetak',
+                totalLabel: 'Produk Cetak',
+                nameField: 'product_name',
+                badgeId: 'badgeCountProducts',
+                statId: 'statValProducts',
+                defaultOrder: [[3, 'asc']],
+                columns: [{
                         data: 'product_code',
-                        responsivePriority: 2,
-                        render: function(data) {
-                            return data ?
-                                `<code style="font-weight: 600; padding: 2px 6px; background: var(--bg-muted); border: 1px solid var(--border); border-radius: 4px;">${data}</code>` :
-                                '-';
-                        }
+                        className: 'text-center cat-td-date',
+                        render: (data, type) => type !== 'display' ? (data || '') : offsetChip('bi-upc-scan', data || '-')
                     },
                     {
                         data: 'product_name',
-                        responsivePriority: 1,
-                        render: function(data, type, row) {
-                            return `
-                                <div style="font-weight: 600; color: var(--t-base);">${data}</div>
-                                <div style="font-size: 11px; color: var(--t-muted); max-width: 260px; white-space: normal;">${row.description || ''}</div>
-                            `;
-                        }
+                        className: 'cat-td-name',
+                        render: (data, type, row) => type !== 'display' ? (data || '') :
+                            offsetNameBox('bi-journal-richtext', data, 'Produk Cetak', row.description || '')
                     },
                     {
                         data: 'category',
-                        className: 'text-center',
-                        responsivePriority: 3,
-                        render: function(data) {
-                            return `<span style="display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; background: var(--bg-hover); color: var(--primary); border: 1px solid var(--border);">${data || 'Brosur'}</span>`;
-                        }
+                        className: 'text-center cat-td-date',
+                        render: (data, type) => type !== 'display' ? (data || '') : offsetChip('bi-folder-fill', data || 'Brosur')
                     },
                     {
-                        data: null,
-                        className: 'text-center',
-                        responsivePriority: 2,
-                        render: function(data, type, row) {
-                            return `<span style="font-weight: 600;">${row.final_length} × ${row.final_width} cm</span>`;
+                        data: 'final_length',
+                        className: 'text-center cat-td-date',
+                        render: (data, type, row) => {
+                            const size = `${offsetNumber(row.final_length)} × ${offsetNumber(row.final_width)} cm`;
+                            return type !== 'display' ? size : offsetChip('bi-aspect-ratio', size);
                         }
                     },
                     {
                         data: 'sheet_per_rim',
-                        className: 'text-center',
-                        responsivePriority: 2,
-                        render: function(data, type, row) {
+                        className: 'text-center cat-td-date',
+                        render: (data, type, row) => {
                             const sheets = data || Math.round(500 / (row.up_per_sheet || 1));
-                            return `<span style="display: inline-block; padding: 3px 10px; border-radius: 999px; background: rgba(59, 130, 246, 0.12); color: #2563eb; font-weight: 700; font-size: 12px;">${sheets} lbr <span style="font-size: 11px; font-weight: 500; opacity: 0.85;">(${row.up_per_sheet || 1} Up)</span></span>`;
+                            const text = `${offsetNumber(sheets)} lbr (${row.up_per_sheet || 1} Up)`;
+                            return type !== 'display' ? sheets : offsetChip('bi-files', text);
                         }
                     },
                     {
                         data: 'plano_cut_yield',
-                        className: 'text-center',
-                        responsivePriority: 3,
-                        render: function(data) {
-                            return `<span style="color: var(--t-muted); font-size: 13px;">${data || 4} Lembar / Plano</span>`;
-                        }
+                        className: 'text-center cat-td-date',
+                        render: (data, type) => type !== 'display' ? (data || 4) : offsetChip('bi-scissors', `${data || 4} Lembar / Plano`)
                     },
                     {
-                        data: null,
-                        className: 'text-center',
-                        responsivePriority: 3,
-                        render: function(data, type, row) {
-                            return `<span style="font-size: 12px; color: var(--t-muted);">${row.print_sheet_length} × ${row.print_sheet_width} cm</span>`;
+                        data: 'print_sheet_length',
+                        className: 'text-center cat-td-date',
+                        render: (data, type, row) => {
+                            const size = `${offsetNumber(row.print_sheet_length)} × ${offsetNumber(row.print_sheet_width)} cm`;
+                            return type !== 'display' ? size : offsetChip('bi-aspect-ratio', size);
                         }
                     },
                     {
                         data: 'status',
                         className: 'text-center',
-                        responsivePriority: 2,
-                        render: function(data) {
-                            const isAct = (data || '').toLowerCase() === 'active';
-                            return '<span class="' + (isAct ? 'badge-active' : 'badge-inactive') +
-                                '">' + (data || 'Active') + '</span>';
-                        }
-                    },
-                    {
-                        data: null,
-                        orderable: false,
-                        searchable: false,
-                        responsivePriority: 1,
-                        className: 'text-center',
-                        render: function(data, type, row) {
-                            return `
-                                <div style="display: flex; justify-content: center; gap: 6px;">
-                                    <button type="button" class="btn-detail-offset" data-type="product" title="Lihat Detail">
-                                        <i class="bi bi-eye"></i>
-                                    </button>
-                                    <button type="button" class="btn-edit-offset" data-type="product" title="Edit Data">
-                                        <i class="bi bi-pen"></i>
-                                    </button>
-                                    <button type="button" class="btn-delete-offset" data-id="${row.id}" data-type="product" data-name="${row.product_name}" title="Hapus">
-                                        <i class="bi bi-trash3-fill"></i>
-                                    </button>
-                                </div>
-                            `;
-                        }
+                        render: offsetStatus
                     }
-                ],
-                pageLength: 10,
-                lengthMenu: [10, 25, 50, 100],
-                layout: {
-                    topStart: 'pageLength',
-                    topEnd: 'search',
-                    bottomStart: 'info',
-                    bottomEnd: 'paging'
-                },
-                language: {
-                    search: 'Search:',
-                    lengthMenu: '_MENU_ entries per page',
-                    info: 'Showing _START_ to _END_ of _TOTAL_ entries',
-                    infoEmpty: 'Showing 0 to 0 of 0 entries',
-                    zeroRecords: 'Data produk offset tidak ditemukan',
-                    processing: 'Memuat data...',
-                    searchPlaceholder: 'Cari produk offset...'
-                },
-                initComplete: function() {
-                    $(this).closest('.dt-container, .dataTables_wrapper')
-                        .find('.dt-search input, .dataTables_filter input')
-                        .css({
-                            'padding': '9px 14px',
-                            'border-radius': '8px',
-                            'border': '1px solid #e2e8f0'
-                        });
-                }
+                ]
             });
 
             // Form Submit: Tambah Pricing Rule

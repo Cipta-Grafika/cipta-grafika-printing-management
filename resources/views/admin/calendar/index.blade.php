@@ -1,6 +1,7 @@
 @extends('admin_master')
 
 @section('contents')
+    <link rel="stylesheet" href="{{ asset('css/production-cost-finishing-index.css') }}">
     <style>
         .calendar-tabs {
             display: flex;
@@ -77,88 +78,6 @@
             font-size: 20px;
         }
 
-        .table-custom {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 13px;
-        }
-
-        .table-custom th {
-            padding: 12px 14px;
-            text-align: left;
-            border-bottom: 2px solid var(--border);
-            background: var(--bg-surface-2);
-            color: var(--t-base);
-            font-weight: 600;
-        }
-
-        .table-custom td {
-            padding: 12px 14px;
-            border-bottom: 1px solid var(--border);
-            color: var(--t-base);
-        }
-
-        .btn-detail-cal {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 32px;
-            height: 32px;
-            border-radius: 6px;
-            color: var(--t-base);
-            transition: opacity 0.2s ease, transform 0.1s ease, color 0.15s ease;
-            font-size: 14px;
-            cursor: pointer;
-            /* transition: all 0.15s ease; */
-        }
-
-        .btn-detail-cal:hover {
-            opacity: 0.9;
-            transform: scale(1.08);
-            color: var(--primary);
-        }
-
-        .btn-edit-cal {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 32px;
-            height: 32px;
-            border-radius: 6px;
-            color: var(--t-base);
-            transition: opacity 0.2s ease, transform 0.1s ease, color 0.15s ease;
-            font-size: 14px;
-            cursor: pointer;
-            /* transition: all 0.15s ease; */
-        }
-
-        .btn-edit-cal:hover {
-            opacity: 0.9;
-            transform: scale(1.08);
-            color: #d97706;
-        }
-
-        .btn-delete-cal {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 32px;
-            height: 32px;
-            border-radius: 6px;
-            color: var(--t-base);
-            transition: opacity 0.2s ease, transform 0.1s ease, color 0.15s ease;
-            font-size: 14px;
-            cursor: pointer;
-            border: none;
-            background: transparent;
-        }
-
-        .btn-delete-cal:hover {
-            opacity: 0.9;
-            transform: scale(1.08);
-            color: var(--danger, #ef4444);
-        }
-
         .modal-cal {
             position: fixed;
             inset: 0;
@@ -212,8 +131,12 @@
         }
 
         /* SELECT2 THEME FIXES INSIDE MODAL */
-        .select2-container {
+        .modal-cal .select2-container.select2 {
             width: 100% !important;
+        }
+
+        .cat-length-box .select2-container {
+            width: 76px !important;
         }
 
         .select2-container--default .select2-selection--single {
@@ -275,7 +198,7 @@
             <main class="content">
 
                 {{-- HERO --}}
-                <section class="hero"
+                <section class="hero cat-hero-compact"
                     style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
                     <div class="hero-text" style="flex: 1; min-width: 280px;">
                         <span class="eyebrow" style="color: var(--primary); font-weight: 700;">
@@ -288,16 +211,6 @@
                             Kelola ukuran produk, tarif bahan kertas, aksesoris/finishing, dan margin keuntungan kalender
                             secara terpusat dan 100% dinamis.
                         </p>
-                    </div>
-                    <div>
-                        <button type="button" class="btn btn--primary" id="btnMainCreateCal"
-                            onclick="openActiveCreateModal()" style="display: inline-flex; align-items: center; gap: 8px;">
-                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <path d="M12 5v14M5 12h14" />
-                            </svg>
-                            <span id="labelMainCreateCal">Tambah Ukuran Produk</span>
-                        </button>
                     </div>
                 </section>
 
@@ -375,277 +288,143 @@
                 </div>
 
                 {{-- TAB CONTENT WRAPPER --}}
-                <div class="card" style="margin-top: 16px;">
-
-                    {{-- TAB 1: PRODUK & UKURAN --}}
-                    <div id="tabContentProducts" class="cal-tab-pane">
-                        <div class="table-responsive">
-                            <table id="calendarProductsTable" class="data-table display responsive nowrap"
-                                style="width: 100%;">
-                                <thead>
-                                    <tr>
-                                        <th style="width: 28px;"></th>
-                                        <th style="width: 45px;" class="text-center">ID</th>
-                                        <th class="text-center" style="width: 85px;">Kategori</th>
-                                        <th>Nama Produk</th>
-                                        <th class="text-center">Ukuran (cm)</th>
-                                        <th class="text-center">Orientasi</th>
-                                        <th class="text-center">Up A3+</th>
-                                        <th>Mesin Offset</th>
-                                        <th class="text-center">Up Offset</th>
-                                        <th class="text-center">Plano</th>
-                                        <th class="text-center">Def. Lembar</th>
-                                        <th class="text-center" style="width: 105px;">Aksi</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach ($products as $p)
-                                        <tr id="row-product-{{ $p->id }}">
-                                            <td class="dtr-control"></td>
-                                            <td class="text-center">{{ $p->id }}</td>
-                                            <td class="text-center">
-                                                <span
-                                                    class="badge {{ $p->calendar_type === 'meja' ? 'primary' : 'success' }}"
-                                                    style="text-transform: uppercase;">
-                                                    {{ $p->calendar_type }}
+                @php
+                    $calendarTabs = [
+                        ['key' => 'products', 'suffix' => 'Products', 'type' => 'product', 'name' => 'product_name',
+                            'icon' => 'bi-calendar2-range', 'title' => 'Daftar Ukuran & Produk Kalender',
+                            'desc' => 'Ukuran jadi, orientasi, kapasitas digital dan offset, serta plano rekomendasi.',
+                            'entity' => 'Produk Kalender', 'add' => 'Tambah Ukuran Produk', 'order' => 3,
+                            'columns' => ['Kategori', 'Nama Produk', 'Ukuran (cm)', 'Orientasi', 'Up A3+', 'Mesin Offset', 'Up Offset', 'Plano', 'Def. Lembar', 'Status']],
+                        ['key' => 'materials', 'suffix' => 'Materials', 'type' => 'material', 'name' => 'material_name',
+                            'icon' => 'bi-file-earmark-text', 'title' => 'Daftar Tarif Bahan Kertas Kalender',
+                            'desc' => 'Tarif cetak digital A3+, harga kertas, dan harga plano untuk cetak offset.',
+                            'entity' => 'Bahan Kertas', 'add' => 'Tambah Bahan Kertas', 'order' => 2,
+                            'columns' => ['Nama Kertas', 'Kategori', 'Print 1 Sisi A3+', 'Print 2 Sisi A3+', 'Kertas A3+', 'Plano 65x90', 'Plano 65x100', 'Plano 109x79', 'Status']],
+                        ['key' => 'components', 'suffix' => 'Components', 'type' => 'component', 'name' => 'name',
+                            'icon' => 'bi-tools', 'title' => 'Daftar Aksesoris & Jilid Finishing',
+                            'desc' => 'Komponen pendukung kalender, tarif satuan, dan biaya minimum finishing.',
+                            'entity' => 'Komponen Finishing', 'add' => 'Tambah Komponen Finishing', 'order' => 3,
+                            'columns' => ['Kode', 'Nama Komponen', 'Tipe', 'Satuan', 'Harga Satuan', 'Min. Biaya', 'Keterangan', 'Status']],
+                        ['key' => 'rules', 'suffix' => 'Rules', 'type' => 'rule', 'name' => 'rule_name',
+                            'icon' => 'bi-percent', 'title' => 'Daftar Pricing Rules Kalender',
+                            'desc' => 'Rentang kuantitas pesanan, markup keuntungan, dan pembulatan harga jual.',
+                            'entity' => 'Pricing Rule', 'add' => 'Tambah Pricing Rule', 'order' => 3,
+                            'columns' => ['Nama Aturan Tier', 'Min Qty', 'Max Qty', 'Markup Keuntungan', 'Pembulatan Rupiah', 'Status']],
+                    ];
+                @endphp
+                @foreach ($calendarTabs as $tab)
+                    @php $p = 'calendar' . $tab['suffix']; @endphp
+                    <div id="tabContent{{ $tab['suffix'] }}" class="cal-tab-pane" style="margin-top:16px;{{ $loop->first ? '' : 'display:none;' }}">
+                        <section class="card cat-card-container" data-calendar-type="{{ $tab['type'] }}"
+                            data-prefix="{{ $p }}" data-entity="{{ $tab['entity'] }}" data-name-field="{{ $tab['name'] }}"
+                            data-default-order="{{ $tab['order'] }}" data-url="{{ route('admin_data_calendar', $tab['type']) }}">
+                            <div class="cat-card-header">
+                                <div class="cat-card-header-main">
+                                    <div class="cat-card-title-wrap">
+                                        <div class="cat-card-icon"><i class="bi {{ $tab['icon'] }}"></i></div>
+                                        <div>
+                                            <div class="cat-title-row">
+                                                <h3 class="cat-card-title">{{ $tab['title'] }}</h3>
+                                                <span class="cat-badge-total"><span class="cat-pulse-dot"></span><span id="{{ $p }}TotalCount">Memuat data...</span></span>
+                                            </div>
+                                            <p class="cat-card-desc">{{ $tab['desc'] }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="cat-card-actions">
+                                    <button type="button" class="cat-btn-head-primary" onclick="openActiveCreateModal()">
+                                        <i class="bi bi-plus-lg"></i><span>{{ $tab['add'] }}</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="cat-bulk-toolbar" id="{{ $p }}BulkToolbar" style="display:none;">
+                                <div class="cat-bulk-info">
+                                    <span class="cat-bulk-badge" id="{{ $p }}BulkCount">0 terpilih</span>
+                                    <span class="cat-bulk-text">{{ $tab['entity'] }} terpilih siap untuk tindakan massal</span>
+                                </div>
+                                <div class="cat-bulk-actions">
+                                    <button type="button" class="btn btn--ghost btn--sm" id="{{ $p }}CancelSelection"><i class="bi bi-x-circle me-1"></i>Batal Pilihan</button>
+                                    <button type="button" class="btn btn--danger btn--sm" id="{{ $p }}BulkDelete"><i class="bi bi-trash3-fill me-1"></i>Hapus Terpilih</button>
+                                </div>
+                            </div>
+                            <div class="cat-filter-card">
+                                <div class="cat-filter-group-left">
+                                    <div class="cat-search-box">
+                                        <i class="bi bi-search cat-search-icon"></i>
+                                        <input type="text" id="{{ $p }}Search" class="cat-filter-input" placeholder="Cari {{ strtolower($tab['entity']) }}..." aria-label="Cari {{ strtolower($tab['entity']) }}">
+                                        <button type="button" id="{{ $p }}ClearSearch" class="cat-clear-btn" title="Hapus pencarian" aria-label="Hapus pencarian" style="display:none;"><i class="bi bi-x-circle-fill"></i></button>
+                                    </div>
+                                    <div class="cat-select-box">
+                                        <i class="bi bi-toggle-on cat-select-icon"></i>
+                                        <select id="{{ $p }}Status" aria-label="Filter status">
+                                            <option value="all">Semua Status</option><option value="active">Active</option><option value="inactive">Inactive</option>
+                                        </select>
+                                    </div>
+                                    <div class="cat-filter-subgroup">
+                                        <div class="cat-select-box">
+                                            <i class="bi bi-calendar3 cat-select-icon"></i>
+                                            <select id="{{ $p }}Period" aria-label="Filter periode">
+                                                <option value="all">Semua Periode</option><option value="today">Hari Ini</option>
+                                                <option value="7_days">7 Hari Terakhir</option><option value="month">Bulan Ini</option><option value="year">Tahun Ini</option>
+                                            </select>
+                                        </div>
+                                        <button type="button" id="{{ $p }}Reset" class="cat-btn-reset" title="Reset semua filter"><i class="bi bi-arrow-counterclockwise"></i><span>Reset</span></button>
+                                    </div>
+                                </div>
+                                <div class="cat-filter-group-right">
+                                    <div class="cat-length-box">
+                                        <span class="cat-length-label">Baris:</span>
+                                        <select id="{{ $p }}PageLength" aria-label="Jumlah baris">
+                                            <option value="10">10</option><option value="25">25</option><option value="50">50</option><option value="100">100</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="cat-table-wrap">
+                                <table id="{{ $p }}Table" class="cat-modern-table" style="width:100%;">
+                                    <thead><tr>
+                                        <th class="cat-th-check text-center" style="width:48px;">
+                                            <label class="cat-custom-checkbox">
+                                                <input type="checkbox" id="{{ $p }}CheckAll" aria-label="Pilih semua {{ strtolower($tab['entity']) }} di halaman ini">
+                                                <span class="cat-checkbox-mark">
+                                                    <svg class="check-icon" viewBox="0 0 14 14" fill="none"><path d="M2.5 7.5L5.5 10.5L11.5 3.5" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                                    <svg class="minus-icon" viewBox="0 0 14 14" fill="none"><path d="M3 7H11" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round"/></svg>
                                                 </span>
-                                            </td>
-                                            <td><strong>{{ $p->product_name }}</strong></td>
-                                            <td class="text-center">{{ $p->final_width }} x {{ $p->final_height }}</td>
-                                            <td class="text-center" style="text-transform: capitalize;">
-                                                {{ $p->orientation }}</td>
-                                            <td class="text-center">
-                                                @if ($p->digital_available)
-                                                    <span>{{ $p->digital_up }} up</span>
-                                                @else
-                                                    <span
-                                                        style="color: var(--t-muted); font-size: 11.5px; font-style: italic;">Over
-                                                        Area</span>
-                                                @endif
-                                            </td>
-                                            <td>{{ $p->offset_machine }}</td>
-                                            <td class="text-center">{{ $p->offset_up }} up
-                                                {{ $p->offset_up_bw ? '(BW: ' . $p->offset_up_bw . ')' : '' }}</td>
-                                            <td class="text-center">{{ $p->recommended_plano }}</td>
-                                            <td class="text-center">{{ $p->default_leaf_count }} lbr</td>
-                                            <td class="text-center">
-                                                <div
-                                                    style="display: flex; gap: 6px; justify-content: center; align-items: center;">
-                                                    <button type="button" class="btn-detail-cal"
-                                                        onclick='openDetailModal("product", @json($p))'
-                                                        title="Lihat Detail">
-                                                        <i class="bi bi-eye"></i>
-                                                    </button>
-                                                    <button type="button" class="btn-edit-cal"
-                                                        onclick='openEditProductModal(@json($p))'
-                                                        title="Ubah Parameter">
-                                                        <i class="bi bi-pen"></i>
-                                                    </button>
-                                                    <button type="button" class="btn-delete-cal"
-                                                        onclick='confirmDeleteCalendar("product", {{ $p->id }}, "{{ addslashes($p->product_name) }}")'
-                                                        title="Hapus Produk">
-                                                        <i class="bi bi-trash3-fill"></i>
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
+                                            </label>
+                                        </th>
+                                        <th class="cat-th-no text-center" style="width:60px;">No</th>
+                                        @foreach ($tab['columns'] as $column)
+                                            <th class="{{ str_starts_with($column, 'Nama') ? 'cat-th-name' : 'cat-th-date text-center' }}"
+                                                style="width:{{ str_starts_with($column, 'Nama') ? 250 : 150 }}px;">{{ $column }}</th>
+                                        @endforeach
+                                        <th class="cat-th-actions text-center" style="width:130px;">Aksi</th>
+                                    </tr></thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </section>
                     </div>
-
-                    {{-- TAB 2: BAHAN KERTAS --}}
-                    <div id="tabContentMaterials" class="cal-tab-pane" style="display: none;">
-                        <div class="table-responsive">
-                            <table id="calendarMaterialsTable" class="data-table display responsive nowrap"
-                                style="width: 100%;">
-                                <thead>
-                                    <tr>
-                                        <th style="width: 28px;"></th>
-                                        <th style="width: 45px;" class="text-center">ID</th>
-                                        <th>Nama Kertas</th>
-                                        <th class="text-center" style="width: 80px;">Kat.</th>
-                                        <th class="text-end">Print 1 Sisi A3+</th>
-                                        <th class="text-end">Print 2 Sisi A3+</th>
-                                        <th class="text-end">Kertas A3+</th>
-                                        <th class="text-end">Plano 65x90</th>
-                                        <th class="text-end">Plano 65x100</th>
-                                        <th class="text-end">Plano 109x79</th>
-                                        <th class="text-center" style="width: 105px;">Aksi</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach ($materials as $m)
-                                        <tr id="row-material-{{ $m->id }}">
-                                            <td class="dtr-control"></td>
-                                            <td class="text-center">{{ $m->id }}</td>
-                                            <td><strong>{{ $m->material_name }}</strong></td>
-                                            <td class="text-center"><span class="badge">{{ $m->category }}</span></td>
-                                            <td class="text-end">Rp
-                                                {{ number_format($m->digital_cost_print_1_side, 0, ',', '.') }}</td>
-                                            <td class="text-end">Rp
-                                                {{ number_format($m->digital_cost_print_2_side, 0, ',', '.') }}</td>
-                                            <td class="text-end">Rp
-                                                {{ number_format($m->digital_paper_cost, 0, ',', '.') }}</td>
-                                            <td class="text-end">
-                                                {{ $m->offset_price_65x90 ? 'Rp ' . number_format($m->offset_price_65x90, 0, ',', '.') : '-' }}
-                                            </td>
-                                            <td class="text-end">
-                                                {{ $m->offset_price_65x100 ? 'Rp ' . number_format($m->offset_price_65x100, 0, ',', '.') : '-' }}
-                                            </td>
-                                            <td class="text-end">
-                                                {{ $m->offset_price_109x79 ? 'Rp ' . number_format($m->offset_price_109x79, 0, ',', '.') : '-' }}
-                                            </td>
-                                            <td class="text-center">
-                                                <div
-                                                    style="display: flex; gap: 6px; justify-content: center; align-items: center;">
-                                                    <button type="button" class="btn-detail-cal"
-                                                        onclick='openDetailModal("material", @json($m))'
-                                                        title="Lihat Detail">
-                                                        <i class="bi bi-eye"></i>
-                                                    </button>
-                                                    <button type="button" class="btn-edit-cal"
-                                                        onclick='openEditMaterialModal(@json($m))'
-                                                        title="Ubah Tarif">
-                                                        <i class="bi bi-pen"></i>
-                                                    </button>
-                                                    <button type="button" class="btn-delete-cal"
-                                                        onclick='confirmDeleteCalendar("material", {{ $m->id }}, "{{ addslashes($m->material_name) }}")'
-                                                        title="Hapus Bahan Kertas">
-                                                        <i class="bi bi-trash3-fill"></i>
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    {{-- TAB 3: KOMPONEN & AKSESORIS --}}
-                    <div id="tabContentComponents" class="cal-tab-pane" style="display: none;">
-                        <div class="table-responsive">
-                            <table id="calendarComponentsTable" class="data-table display responsive nowrap"
-                                style="width: 100%;">
-                                <thead>
-                                    <tr>
-                                        <th style="width: 28px;"></th>
-                                        <th style="width: 90px;">Kode</th>
-                                        <th>Nama Komponen</th>
-                                        <th class="text-center" style="width: 90px;">Tipe</th>
-                                        <th class="text-center" style="width: 70px;">Satuan</th>
-                                        <th class="text-end">Harga Satuan</th>
-                                        <th class="text-end">Min. Biaya</th>
-                                        <th>Keterangan</th>
-                                        <th class="text-center" style="width: 105px;">Aksi</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach ($components as $c)
-                                        <tr id="row-component-{{ $c->id }}">
-                                            <td class="dtr-control"></td>
-                                            <td><code>{{ $c->component_code }}</code></td>
-                                            <td><strong>{{ $c->name }}</strong></td>
-                                            <td class="text-center"><span class="badge">{{ $c->component_type }}</span>
-                                            </td>
-                                            <td class="text-center">{{ $c->unit }}</td>
-                                            <td class="text-end" style="font-weight: 700;">Rp
-                                                {{ number_format($c->price, $c->price < 10 ? 2 : 0, ',', '.') }}</td>
-                                            <td class="text-end">
-                                                {{ $c->minimum_fee > 0 ? 'Rp ' . number_format($c->minimum_fee, 0, ',', '.') : '-' }}
-                                            </td>
-                                            <td style="font-size: 12px; color: var(--t-muted);">{{ $c->description }}</td>
-                                            <td class="text-center">
-                                                <div
-                                                    style="display: flex; gap: 6px; justify-content: center; align-items: center;">
-                                                    <button type="button" class="btn-detail-cal"
-                                                        onclick='openDetailModal("component", @json($c))'
-                                                        title="Lihat Detail">
-                                                        <i class="bi bi-eye"></i>
-                                                    </button>
-                                                    <button type="button" class="btn-edit-cal"
-                                                        onclick='openEditComponentModal(@json($c))'
-                                                        title="Ubah Tarif">
-                                                        <i class="bi bi-pen"></i>
-                                                    </button>
-                                                    <button type="button" class="btn-delete-cal"
-                                                        onclick='confirmDeleteCalendar("component", {{ $c->id }}, "{{ addslashes($c->name) }}")'
-                                                        title="Hapus Komponen">
-                                                        <i class="bi bi-trash3-fill"></i>
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    {{-- TAB 4: PRICING RULES --}}
-                    <div id="tabContentRules" class="cal-tab-pane" style="display: none;">
-                        <div class="table-responsive">
-                            <table id="calendarRulesTable" class="data-table display responsive nowrap"
-                                style="width: 100%;">
-                                <thead>
-                                    <tr>
-                                        <th style="width: 28px;"></th>
-                                        <th style="width: 45px;" class="text-center">ID</th>
-                                        <th>Nama Aturan Tier</th>
-                                        <th class="text-center">Min Qty</th>
-                                        <th class="text-center">Max Qty</th>
-                                        <th class="text-center">Markup Keuntungan</th>
-                                        <th class="text-end">Pembulatan Rupiah</th>
-                                        <th class="text-center" style="width: 105px;">Aksi</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach ($pricingRules as $r)
-                                        <tr id="row-rule-{{ $r->id }}">
-                                            <td class="dtr-control"></td>
-                                            <td class="text-center">{{ $r->id }}</td>
-                                            <td><strong>{{ $r->rule_name }}</strong></td>
-                                            <td class="text-center">{{ number_format($r->min_qty, 0, ',', '.') }} pcs</td>
-                                            <td class="text-center">
-                                                {{ $r->max_qty ? number_format($r->max_qty, 0, ',', '.') . ' pcs' : 'Tak Terbatas' }}
-                                            </td>
-                                            <td class="text-center" style="font-weight: 800; color: var(--primary);">
-                                                +{{ $r->markup_percent }}%</td>
-                                            <td class="text-end">Rp {{ number_format($r->rounding_value, 0, ',', '.') }}
-                                            </td>
-                                            <td class="text-center">
-                                                <div
-                                                    style="display: flex; gap: 6px; justify-content: center; align-items: center;">
-                                                    <button type="button" class="btn-detail-cal"
-                                                        onclick='openDetailModal("rule", @json($r))'
-                                                        title="Lihat Detail">
-                                                        <i class="bi bi-eye"></i>
-                                                    </button>
-                                                    <button type="button" class="btn-edit-cal"
-                                                        onclick='openEditRuleModal(@json($r))'
-                                                        title="Ubah Markup">
-                                                        <i class="bi bi-pen"></i>
-                                                    </button>
-                                                    <button type="button" class="btn-delete-cal"
-                                                        onclick='confirmDeleteCalendar("rule", {{ $r->id }}, "Aturan Markup Tier Qty {{ $r->min_qty }} - {{ $r->max_qty ? $r->max_qty : '+' }} pcs")'
-                                                        title="Hapus Aturan">
-                                                        <i class="bi bi-trash3-fill"></i>
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                </div>
+                @endforeach
 
             </main>
             <div data-shell-footer></div>
+        </div>
+    </div>
+
+    <div id="modalBulkDeleteCalendar" class="modal-cal">
+        <div class="modal-cal-content" style="max-width:440px;">
+            <div class="modal-cal-head">
+                <h3 id="bulkDeleteCalendarTitle" style="margin:0;font-size:16px;">Hapus data terpilih?</h3>
+                <button type="button" id="closeBulkDeleteCalendar" class="btn btn--ghost" aria-label="Tutup">&times;</button>
+            </div>
+            <div class="modal-cal-body">
+                <p id="bulkDeleteCalendarDescription" style="margin:0;"></p>
+            </div>
+            <div class="modal-cal-foot">
+                <button type="button" id="cancelBulkDeleteCalendar" class="btn btn--ghost">Batal</button>
+                <button type="button" id="confirmBulkDeleteCalendar" class="btn btn--danger"
+                    data-url="{{ route('admin_bulk_delete_calendar') }}" data-csrf="{{ csrf_token() }}">Ya, Hapus Terpilih</button>
+            </div>
         </div>
     </div>
 
@@ -1384,18 +1163,6 @@
             document.querySelectorAll('.calendar-tab-btn').forEach(btn => btn.classList.remove('active'));
             document.querySelectorAll('.cal-tab-pane').forEach(pane => pane.style.display = 'none');
 
-            const labelMap = {
-                'products': 'Tambah Ukuran Produk',
-                'materials': 'Tambah Bahan Kertas',
-                'components': 'Tambah Komponen Finishing',
-                'rules': 'Tambah Pricing Rule'
-            };
-
-            const btnLabel = document.getElementById('labelMainCreateCal');
-            if (btnLabel && labelMap[tabName]) {
-                btnLabel.textContent = labelMap[tabName];
-            }
-
             if (tabName === 'products') {
                 document.getElementById('tabBtnProducts').classList.add('active');
                 document.getElementById('tabContentProducts').style.display = 'block';
@@ -1410,13 +1177,13 @@
                 document.getElementById('tabContentRules').style.display = 'block';
             }
 
-            // Recalculate and adjust responsive DataTables on tab switch (referensi offset)
+            // Sesuaikan lebar kolom setelah tab yang tersembunyi ditampilkan.
             setTimeout(() => {
                 if (typeof $.fn.dataTable !== 'undefined') {
                     $.fn.dataTable.tables({
                         visible: true,
                         api: true
-                    }).columns.adjust().responsive.recalc();
+                    }).columns.adjust();
                 }
             }, 50);
         }
@@ -1630,68 +1397,6 @@
                     alert('Terjadi kesalahan jaringan: ' + err.message);
                 });
         }
-
-        // Inisialisasi DataTables Responsif untuk Seluruh Tab Kalender
-        $(document).ready(function() {
-            function initCalDataTable(selector, placeholder) {
-                if (!$.fn.DataTable.isDataTable(selector)) {
-                    return $(selector).DataTable({
-                        pageLength: 10,
-                        lengthMenu: [10, 25, 50, 100],
-                        ordering: true,
-                        responsive: {
-                            details: {
-                                type: 'column',
-                                target: 0
-                            }
-                        },
-                        columnDefs: [{
-                                className: 'dtr-control',
-                                orderable: false,
-                                searchable: false,
-                                targets: 0
-                            },
-                            {
-                                orderable: false,
-                                searchable: false,
-                                responsivePriority: 1,
-                                targets: -1
-                            }
-                        ],
-                        layout: {
-                            topStart: 'pageLength',
-                            topEnd: 'search',
-                            bottomStart: 'info',
-                            bottomEnd: 'paging'
-                        },
-                        language: {
-                            search: 'Search:',
-                            lengthMenu: '_MENU_ entries per page',
-                            info: 'Showing _START_ to _END_ of _TOTAL_ entries',
-                            infoEmpty: 'Showing 0 to 0 of 0 entries',
-                            zeroRecords: 'Data tidak ditemukan',
-                            processing: 'Memuat data...',
-                            searchPlaceholder: placeholder || 'Cari data...'
-                        },
-                        initComplete: function() {
-                            $(this).closest('.dt-container, .dataTables_wrapper')
-                                .find('.dt-search input, .dataTables_filter input')
-                                .css({
-                                    'padding': '8px 14px',
-                                    'border-radius': '8px'
-                                });
-                        }
-                    });
-                }
-            }
-
-            window.calTables = {
-                product: initCalDataTable('#calendarProductsTable', 'Cari ukuran produk...'),
-                material: initCalDataTable('#calendarMaterialsTable', 'Cari bahan kertas...'),
-                component: initCalDataTable('#calendarComponentsTable', 'Cari komponen finishing...'),
-                rule: initCalDataTable('#calendarRulesTable', 'Cari aturan tier markup...')
-            };
-        });
 
         function closeCalModal(id) {
             const el = document.getElementById(id);
@@ -2278,23 +1983,8 @@
                             showToast('success', res.message || 'Data berhasil dihapus!');
                         }
 
-                        const $row = $('#row-' + targetType + '-' + targetId);
-
-                        if (window.calTables && window.calTables[targetType]) {
-                            window.calTables[targetType].row($row).remove().draw(false);
-                        } else {
-                            $row.remove();
-                        }
-
-                        if (targetType === 'product') {
-                            decrementCounter('badgeCountProducts', 'statTotalProducts');
-                        } else if (targetType === 'material') {
-                            decrementCounter('badgeCountMaterials', 'statTotalMaterials');
-                        } else if (targetType === 'component') {
-                            decrementCounter('badgeCountComponents', 'statTotalComponents');
-                        } else if (targetType === 'rule') {
-                            decrementCounter('badgeCountRules', 'statTotalRules');
-                        }
+                        window.calSelections[targetType].delete(Number(targetId));
+                        window.calTables[targetType].ajax.reload(null, false);
 
                         // Simpan tab aktif saat ini ke sessionStorage sebelum reload
                         const tabKeyMap = {
@@ -2326,17 +2016,6 @@
                 });
         }
 
-        function decrementCounter(badgeId, statId) {
-            const $badge = $('#' + badgeId);
-            const $stat = $('#' + statId);
-            if ($badge.length) {
-                const cur = Math.max(0, (parseInt($badge.text()) || 1) - 1);
-                $badge.text(cur);
-            }
-            if ($stat.length) {
-                const cur = Math.max(0, (parseInt($stat.text()) || 1) - 1);
-                $stat.text(cur);
-            }
-        }
     </script>
+    <script src="{{ asset('js/calendar-index.js') }}"></script>
 @endsection

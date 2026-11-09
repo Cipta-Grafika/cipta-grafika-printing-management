@@ -6,28 +6,140 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
 class MerchandiseMasterCT extends Controller
 {
+    private const INDEX_TABLES = [
+        'lanyard' => [
+            'table' => 'm_lanyard_pricings', 'label' => 'tier lanyard',
+            'columns' => ['width_type', 'package_type', 'tier_label', 'min_qty', 'max_qty', 'price', 'status'],
+            'search' => ['width_type', 'package_type', 'tier_label', 'min_qty', 'max_qty', 'price', 'status'],
+            'order' => ['width_type', 'package_type', 'min_qty'],
+            'filters' => ['width_2cm' => ['width_type', '2cm'], 'width_25cm' => ['width_type', '2.5cm'], 'tali' => ['package_type', 'tali'], 'set' => ['package_type', 'set']],
+            'aliases' => ['width_type' => ['2cm' => '2.0 cm', '2.5cm' => '2.5 cm'], 'package_type' => ['tali' => 'Hanya Tali', 'set' => '1 Set (Holder + PVC)']],
+        ],
+        'nametag' => [
+            'table' => 'm_name_tag_pricings', 'label' => 'papan nama',
+            'columns' => ['name', 'type_code', 'fastener_options', 'min_order_qty', 'price', 'status'],
+            'search' => ['name', 'type_code', 'fastener_options', 'min_order_qty', 'price', 'description', 'status'],
+            'order' => ['name'],
+            'filters' => ['biasa' => ['type_code', 'biasa'], 'resin' => ['type_code', 'resin'], 'resin_emas' => ['type_code', 'resin_emas']],
+            'aliases' => ['type_code' => ['biasa' => 'Akrilik Biasa', 'resin' => 'Resin Cembung', 'resin_emas' => 'Resin Emas']],
+        ],
+        'plakat' => [
+            'table' => 'm_plakat_pricings', 'label' => 'plakat',
+            'columns' => ['name', 'material_type', 'thickness', 'base_type', 'box_type', 'dimensions', 'price', 'status'],
+            'search' => ['name', 'material_type', 'thickness', 'base_type', 'box_type', 'dimensions', 'price', 'description', 'status'],
+            'order' => ['material_type', 'thickness', 'base_type', 'box_type'],
+            'filters' => ['tanpa_box' => ['box_type', 'tanpa_box'], 'box' => ['box_type', 'box'], 'kayu' => ['material_type', 'kayu']],
+            'aliases' => ['material_type' => ['akrilik' => 'Akrilik UV', 'kayu' => 'Kayu Solid'], 'box_type' => ['tanpa_box' => 'Tanpa Box', 'box' => 'Box Beludru']],
+        ],
+        'nota' => [
+            'table' => 'm_nota_pricings', 'label' => 'buku nota',
+            'columns' => ['name', 'paper_type', 'ply_count', 'ink_count', 'sheets_per_book', 'price', 'status'],
+            'search' => ['name', 'paper_type', 'ply_count', 'ply_label', 'ink_count', 'ink_label', 'sheets_per_book', 'price', 'description', 'status'],
+            'order' => ['paper_type', 'ply_count', 'ink_count'],
+            'filters' => ['ncr' => ['paper_type', 'ncr'], 'hvs' => ['paper_type', 'hvs'], 'ink_1' => ['ink_count', 1], 'ink_2' => ['ink_count', 2], 'ink_3' => ['ink_count', 3]],
+            'aliases' => ['paper_type' => ['ncr' => 'NCR Tembus', 'hvs' => 'HVS Putih']],
+        ],
+    ];
+
+    public function data(Request $request, string $type)
+    {
+        abort_unless(isset(self::INDEX_TABLES[$type]), 404);
+        $config = self::INDEX_TABLES[$type];
+        $query = DB::table($config['table']);
+        $total = (clone $query)->count();
+        $search = mb_strtolower(trim((string) $request->input('search.value', '')));
+        if ($search !== '') {
+            $query->where(function ($query) use ($config, $search) {
+                foreach ($config['search'] as $column) {
+                    $query->orWhereRaw("LOWER(CAST($column AS TEXT)) LIKE ?", ['%' . $search . '%']);
+                }
+                foreach ($config['aliases'] as $column => $aliases) {
+                    foreach ($aliases as $value => $label) {
+                        if (str_contains(mb_strtolower($label), $search)) {
+                            $query->orWhere($column, $value);
+                        }
+                    }
+                }
+            });
+        }
+        $status = strtolower((string) $request->input('status', ''));
+        if (in_array($status, ['active', 'inactive'], true)) {
+            $query->whereRaw('LOWER(status) = ?', [$status]);
+        }
+        $variant = (string) $request->input('variant', '');
+        if (isset($config['filters'][$variant])) {
+            [$column, $value] = $config['filters'][$variant];
+            $query->where($column, $value);
+        }
+        switch ($request->input('period')) {
+            case 'today':
+                $query->whereDate('created_at', Carbon::today());
+                break;
+            case '7_days':
+                $query->where('created_at', '>=', Carbon::now()->subDays(7)->startOfDay());
+                break;
+            case 'month':
+                $query->whereMonth('created_at', Carbon::now()->month)->whereYear('created_at', Carbon::now()->year);
+                break;
+            case 'year':
+                $query->whereYear('created_at', Carbon::now()->year);
+                break;
+        }
+        $filtered = (clone $query)->count();
+        $column = (int) $request->input('order.0.column', -1);
+        $direction = strtolower((string) $request->input('order.0.dir', 'asc')) === 'desc' ? 'desc' : 'asc';
+        $sort = $config['columns'][$column - 2] ?? $config['order'];
+        foreach ((array) $sort as $field) {
+            $query->orderBy($field, $direction);
+        }
+        $rows = $query->orderBy('id')->offset(max(0, (int) $request->input('start', 0)))
+            ->limit(max(1, min(100, (int) $request->input('length', 10))))->get();
+        return response()->json([
+            'draw' => (int) $request->input('draw', 0),
+            'recordsTotal' => $total, 'recordsFiltered' => $filtered, 'data' => $rows,
+        ]);
+    }
+
+    public function bulkDestroy(Request $request)
+    {
+        $validated = $request->validate([
+            'type' => 'required|string|in:' . implode(',', array_keys(self::INDEX_TABLES)),
+            'ids' => 'required|array|min:1|max:100',
+            'ids.*' => 'required|integer|min:1|distinct',
+        ]);
+        $config = self::INDEX_TABLES[$validated['type']];
+        try {
+            return DB::transaction(function () use ($validated, $config) {
+                $ids = DB::table($config['table'])->whereIn('id', $validated['ids'])->lockForUpdate()->pluck('id');
+                if ($ids->count() !== count($validated['ids'])) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Sebagian data ' . $config['label'] . ' tidak ditemukan. Tidak ada data yang dihapus. Muat ulang tabel dan coba lagi.',
+                    ], 422);
+                }
+                $deleted = DB::table($config['table'])->whereIn('id', $ids)->delete();
+                return response()->json([
+                    'success' => true, 'deleted' => $deleted,
+                    'message' => $deleted . ' ' . $config['label'] . ' berhasil dihapus.',
+                ]);
+            });
+        } catch (\Throwable $e) {
+            Log::error('Gagal menghapus massal master merchandise', ['type' => $validated['type'], 'exception' => $e]);
+            return response()->json(['success' => false, 'message' => 'Gagal menghapus data merchandise. Tidak ada data yang dihapus.'], 500);
+        }
+    }
+
     /**
      * Tampilkan halaman Master Data Merchandise (Lanyard, Papan Nama, Plakat)
      */
     public function index()
     {
-        $rows = DB::table('m_lanyard_pricings')
-            ->orderBy('width_type', 'asc')
-            ->orderBy('package_type', 'asc')
-            ->orderBy('min_qty', 'asc')
-            ->get();
-
-        $data['allLanyardTiers'] = $rows;
-        $data['tiers2cmTali'] = $rows->where('width_type', '2cm')->where('package_type', 'tali')->values();
-        $data['tiers2cmSet']  = $rows->where('width_type', '2cm')->where('package_type', 'set')->values();
-        $data['tiers25cmTali'] = $rows->where('width_type', '2.5cm')->where('package_type', 'tali')->values();
-        $data['tiers25cmSet']  = $rows->where('width_type', '2.5cm')->where('package_type', 'set')->values();
-
-        $data['totalLanyardTiers'] = $rows->count();
+        $data['totalLanyardTiers'] = DB::table('m_lanyard_pricings')->count();
 
         // Ambil info produk display lanyard jika ada
         $data['displayLanyard'] = DB::table('m_display_products')
@@ -35,11 +147,7 @@ class MerchandiseMasterCT extends Controller
             ->first();
 
         // Ambil data Papan Nama (Name Tag Dada)
-        $nameTags = DB::table('m_name_tag_pricings')
-            ->orderBy('id', 'asc')
-            ->get();
-        $data['allNameTags'] = $nameTags;
-        $data['totalNameTags'] = $nameTags->count();
+        $data['totalNameTags'] = DB::table('m_name_tag_pricings')->count();
 
         // Ambil info produk display papan nama jika ada
         $data['displayNameTag'] = DB::table('m_display_products')
@@ -47,14 +155,7 @@ class MerchandiseMasterCT extends Controller
             ->first();
 
         // Ambil data Plakat Akrilik & Kayu
-        $plakats = DB::table('m_plakat_pricings')
-            ->orderBy('material_type', 'asc')
-            ->orderBy('thickness', 'asc')
-            ->orderBy('base_type', 'asc')
-            ->orderBy('box_type', 'asc')
-            ->get();
-        $data['allPlakats'] = $plakats;
-        $data['totalPlakats'] = $plakats->count();
+        $data['totalPlakats'] = DB::table('m_plakat_pricings')->count();
 
         // Ambil info produk display plakat jika ada
         $data['displayPlakat'] = DB::table('m_display_products')
@@ -62,15 +163,7 @@ class MerchandiseMasterCT extends Controller
             ->first();
 
         // Ambil data Buku Nota (NCR & HVS)
-        $notas = DB::table('m_nota_pricings')
-            ->orderBy('paper_type', 'asc')
-            ->orderBy('ply_count', 'asc')
-            ->orderBy('ink_count', 'asc')
-            ->get();
-        $data['allNotas'] = $notas;
-        $data['ncrNotas'] = $notas->where('paper_type', 'ncr')->values();
-        $data['hvsNotas'] = $notas->where('paper_type', 'hvs')->values();
-        $data['totalNotas'] = $notas->count();
+        $data['totalNotas'] = DB::table('m_nota_pricings')->count();
 
         // Ambil info produk display nota jika ada
         $data['displayNota'] = DB::table('m_display_products')
@@ -600,4 +693,3 @@ class MerchandiseMasterCT extends Controller
         return redirect()->back()->with('success', 'Varian Buku Nota berhasil dihapus.');
     }
 }
-

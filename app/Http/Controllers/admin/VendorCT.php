@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+use Carbon\Carbon;
 use App\Exports\VendorsExport;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\VendorsImport;
@@ -14,7 +16,14 @@ class VendorCT extends Controller
 {
     public function index()
     {
-        return view('admin.vendor.index');
+        $creators = DB::table('m_vendors')
+            ->whereNotNull('created_by')
+            ->where('created_by', '!=', '')
+            ->distinct()
+            ->orderBy('created_by')
+            ->pluck('created_by');
+
+        return view('admin.vendor.index', compact('creators'));
     }
 
     public function store(Request $request)
@@ -264,6 +273,21 @@ class VendorCT extends Controller
 
         $query = DB::table('m_vendors');
 
+        $creator = $request->input('creator');
+        if ($creator && $creator !== 'all') {
+            $query->where('created_by', $creator);
+        }
+
+        $period = $request->input('period');
+        if ($period === 'today') {
+            $query->whereDate('created_at', Carbon::today());
+        } elseif ($period === '7_days') {
+            $query->where('created_at', '>=', Carbon::now()->subDays(7));
+        } elseif ($period === 'month') {
+            $query->where('created_at', '>=', Carbon::now()->startOfMonth());
+        } elseif ($period === 'year') {
+            $query->where('created_at', '>=', Carbon::now()->startOfYear());
+        }
 
         /*
     |--------------------------------------------------------------------------
@@ -271,9 +295,9 @@ class VendorCT extends Controller
     |--------------------------------------------------------------------------
     */
 
-        $search = $request->input('search.value');
+        $search = trim((string) $request->input('search.value', ''));
 
-        if (!empty($search)) {
+        if ($search !== '') {
 
             $query->where(function ($query) use ($search) {
 
@@ -287,6 +311,10 @@ class VendorCT extends Controller
                     )
                     ->orWhereRaw(
                         'LOWER(status) LIKE ?',
+                        ['%' . strtolower($search) . '%']
+                    )
+                    ->orWhereRaw(
+                        'LOWER(created_by) LIKE ?',
                         ['%' . strtolower($search) . '%']
                     );
             });
@@ -310,16 +338,16 @@ class VendorCT extends Controller
 
         $columns = [
 
-            0 => 'id',
-            1 => 'name',
-            2 => 'contact',
-            3 => 'status',
-            4 => 'created_at',
+            2 => 'name',
+            3 => 'contact',
+            4 => 'status',
+            5 => 'created_by',
+            6 => 'created_at',
 
         ];
 
 
-        $orderColumnIndex = (int) $request->input('order.0.column', 1);
+        $orderColumnIndex = (int) $request->input('order.0.column', 2);
 
         $orderColumn = $columns[$orderColumnIndex] ?? 'name';
 
@@ -344,9 +372,9 @@ class VendorCT extends Controller
     |--------------------------------------------------------------------------
     */
 
-        $start = (int) $request->input('start', 0);
+        $start = max(0, (int) $request->input('start', 0));
 
-        $length = (int) $request->input('length', 10);
+        $length = min(100, max(1, (int) $request->input('length', 10)));
 
 
         /*
@@ -356,8 +384,8 @@ class VendorCT extends Controller
     */
 
         $vendors = $query
-            ->orderByRaw("CASE WHEN status = 'Active' THEN 0 ELSE 1 END")
             ->orderBy($orderColumn, $orderDirection)
+            ->orderBy('id')
             ->offset($start)
             ->limit($length)
             ->get();
@@ -384,59 +412,66 @@ class VendorCT extends Controller
 
     public function destroy($id)
     {
-        /*
-    |--------------------------------------------------------------------------
-    | CEK DATA VENDOR
-    |--------------------------------------------------------------------------
-    */
+        return $this->deleteVendors([(int) $id]);
+    }
 
-        $vendor = DB::table('m_vendors')
-            ->where('id', $id)
-            ->first();
+    public function bulkDestroy(Request $request)
+    {
+        $validated = $request->validate([
+            'ids' => ['required', 'array', 'min:1', 'max:1000'],
+            'ids.*' => ['required', 'integer', 'min:1', 'distinct'],
+        ]);
 
+        return $this->deleteVendors(array_map('intval', $validated['ids']));
+    }
 
-        /*
-    |--------------------------------------------------------------------------
-    | JIKA DATA TIDAK DITEMUKAN
-    |--------------------------------------------------------------------------
-    */
+    private function deleteVendors(array $ids)
+    {
+        return DB::transaction(function () use ($ids) {
+            $vendors = DB::table('m_vendors')->whereIn('id', $ids)->lockForUpdate()->get();
 
-        if (!$vendor) {
+            if ($vendors->count() !== count($ids)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Sebagian vendor tidak ditemukan. Tidak ada data yang dihapus.',
+                ], 404);
+            }
+
+            // Protect constrained references and vendor_id columns without a foreign key.
+            foreach (Schema::getTables() as $table) {
+                if ($table['name'] === 'm_vendors') {
+                    continue;
+                }
+
+                $tableName = $table['schema_qualified_name'];
+                $columns = Schema::hasColumn($tableName, 'vendor_id') ? ['vendor_id'] : [];
+                foreach (Schema::getForeignKeys($tableName) as $foreignKey) {
+                    if ($foreignKey['foreign_table'] === 'm_vendors') {
+                        foreach ($foreignKey['foreign_columns'] as $index => $foreignColumn) {
+                            if ($foreignColumn === 'id') {
+                                $columns[] = $foreignKey['columns'][$index];
+                            }
+                        }
+                    }
+                }
+
+                foreach (array_unique($columns) as $column) {
+                    if (DB::table($tableName)->whereIn($column, $ids)->exists()) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Vendor tidak dapat dihapus karena masih digunakan oleh data lain. Tidak ada data yang dihapus.',
+                        ], 422);
+                    }
+                }
+            }
+
+            $deleted = DB::table('m_vendors')->whereIn('id', $ids)->delete();
 
             return response()->json([
-
-                'success' => false,
-
-                'message' => 'Data vendor tidak ditemukan.'
-
-            ], 404);
-        }
-
-
-        /*
-    |--------------------------------------------------------------------------
-    | HAPUS DATA
-    |--------------------------------------------------------------------------
-    */
-
-        DB::table('m_vendors')
-            ->where('id', $id)
-            ->delete();
-
-
-        /*
-    |--------------------------------------------------------------------------
-    | RESPONSE
-    |--------------------------------------------------------------------------
-    */
-
-        return response()->json([
-
-            'success' => true,
-
-            'message' => 'Vendor berhasil dihapus.'
-
-        ]);
+                'success' => true,
+                'message' => $deleted === 1 ? 'Vendor berhasil dihapus.' : "{$deleted} vendor berhasil dihapus.",
+            ]);
+        });
     }
 
     /*

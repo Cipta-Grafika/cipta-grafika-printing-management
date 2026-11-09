@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+use Carbon\Carbon;
 use Illuminate\Validation\ValidationException;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\CuttingsExport;
@@ -16,7 +18,9 @@ class CuttingCT extends Controller
 {
     public function index()
     {
-        return view('admin.cutting.index');
+        $creators = DB::table('m_cuttings')->whereNotNull('created_by')
+            ->where('created_by', '!=', '')->distinct()->orderBy('created_by')->pluck('created_by');
+        return view('admin.cutting.index', compact('creators'));
     }
 
     public function data(Request $request)
@@ -40,6 +44,8 @@ class CuttingCT extends Controller
                 'm_cuttings.id',
                 'm_cuttings.name',
                 'm_cuttings.status',
+                'm_cuttings.created_by',
+                'm_cuttings.created_at',
                 DB::raw('
                 (
                     SELECT COUNT(*)
@@ -55,9 +61,24 @@ class CuttingCT extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $search = $request->input('search.value');
+        $creator = $request->input('creator');
+        if ($creator && $creator !== 'all') {
+            $query->where('m_cuttings.created_by', $creator);
+        }
+        $period = $request->input('period');
+        if ($period === 'today') {
+            $query->whereDate('m_cuttings.created_at', Carbon::today());
+        } elseif ($period === '7_days') {
+            $query->where('m_cuttings.created_at', '>=', Carbon::now()->subDays(7));
+        } elseif ($period === 'month') {
+            $query->where('m_cuttings.created_at', '>=', Carbon::now()->startOfMonth());
+        } elseif ($period === 'year') {
+            $query->where('m_cuttings.created_at', '>=', Carbon::now()->startOfYear());
+        }
 
-        if (!empty($search)) {
+        $search = trim((string) $request->input('search.value', ''));
+
+        if ($search !== '') {
             $query->where(function ($q) use ($search) {
                 $searchValue = strtolower($search);
 
@@ -67,6 +88,10 @@ class CuttingCT extends Controller
                 )
                     ->orWhereRaw(
                         'LOWER(m_cuttings.status) LIKE ?',
+                        ['%' . $searchValue . '%']
+                    )
+                    ->orWhereRaw(
+                        'LOWER(m_cuttings.created_by) LIKE ?',
                         ['%' . $searchValue . '%']
                     );
             });
@@ -86,8 +111,8 @@ class CuttingCT extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $start = (int) $request->input('start', 0);
-        $length = (int) $request->input('length', 10);
+        $start = max(0, (int) $request->input('start', 0));
+        $length = min(100, max(1, (int) $request->input('length', 10)));
 
         /*
         |--------------------------------------------------------------------------
@@ -95,11 +120,25 @@ class CuttingCT extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $cuttings = $query
-            ->orderByRaw(
-                "CASE WHEN m_cuttings.status = 'Active' THEN 0 ELSE 1 END"
-            )
-            ->orderBy('m_cuttings.name', 'asc')
+        $columns = [
+            2 => 'm_cuttings.name',
+            3 => 'total_sizes',
+            4 => 'm_cuttings.status',
+            5 => 'm_cuttings.created_by',
+            6 => 'm_cuttings.created_at',
+        ];
+        $orderColumn = $columns[(int) $request->input('order.0.column', -1)] ?? null;
+        $direction = $request->input('order.0.dir', 'asc');
+        if (!in_array($direction, ['asc', 'desc'], true)) {
+            $direction = 'asc';
+        }
+        if ($orderColumn) {
+            $query->orderBy($orderColumn, $direction);
+        } else {
+            $query->orderByRaw("CASE WHEN m_cuttings.status = 'Active' THEN 0 ELSE 1 END")
+                ->orderBy('m_cuttings.name');
+        }
+        $cuttings = $query->orderBy('m_cuttings.id')
             ->offset($start)
             ->limit($length)
             ->get();
@@ -739,44 +778,55 @@ class CuttingCT extends Controller
 
     public function destroy($id)
     {
-        DB::beginTransaction();
+        return $this->deleteCuttings([(int) $id]);
+    }
 
-        try {
-            // Lock master jasa potong
-            $cutting = DB::table('m_cuttings')
-                ->where('id', $id)
-                ->lockForUpdate()
-                ->first();
+    public function bulkDestroy(Request $request)
+    {
+        $validated = $request->validate([
+            'ids' => ['required', 'array', 'min:1', 'max:1000'],
+            'ids.*' => ['required', 'integer', 'min:1', 'distinct'],
+        ]);
+        return $this->deleteCuttings(array_map('intval', $validated['ids']));
+    }
 
-            if (!$cutting) {
-                DB::rollBack();
-
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Data jasa potong tidak ditemukan.'
-                ], 404);
+    private function deleteCuttings(array $ids)
+    {
+        return DB::transaction(function () use ($ids) {
+            $cuttings = DB::table('m_cuttings')->whereIn('id', $ids)->lockForUpdate()->get(['id']);
+            if ($cuttings->count() !== count($ids)) {
+                return response()->json(['success' => false, 'message' => 'Sebagian jasa potong tidak ditemukan. Tidak ada data yang dihapus.'], 404);
             }
-
-            // Hapus master jasa potong
-            // m_cutting_sizes akan ikut terhapus melalui ON DELETE CASCADE
-            DB::table('m_cuttings')
-                ->where('id', $id)
-                ->delete();
-
-            DB::commit();
-
+            foreach (Schema::getTables() as $table) {
+                if ($table['name'] === 'm_cuttings') {
+                    continue;
+                }
+                $tableName = $table['schema_qualified_name'];
+                $columns = Schema::hasColumn($tableName, 'cutting_id') ? ['cutting_id'] : [];
+                foreach (Schema::getForeignKeys($tableName) as $foreignKey) {
+                    if ($foreignKey['foreign_table'] === 'm_cuttings') {
+                        foreach ($foreignKey['foreign_columns'] as $index => $foreignColumn) {
+                            if ($foreignColumn === 'id') {
+                                $columns[] = $foreignKey['columns'][$index];
+                            }
+                        }
+                    }
+                }
+                foreach (array_unique($columns) as $column) {
+                    if (DB::table($tableName)->whereIn($column, $ids)->exists()) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Jasa potong tidak dapat dihapus karena masih memiliki ukuran atau digunakan oleh data lain. Tidak ada data yang dihapus.',
+                        ], 422);
+                    }
+                }
+            }
+            $deleted = DB::table('m_cuttings')->whereIn('id', $ids)->delete();
             return response()->json([
                 'success' => true,
-                'message' => 'Jasa potong berhasil dihapus.'
+                'message' => $deleted === 1 ? 'Jasa potong berhasil dihapus.' : "{$deleted} jasa potong berhasil dihapus.",
             ]);
-        } catch (\Throwable $e) {
-            DB::rollBack();
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Jasa potong gagal dihapus. Silakan coba lagi.'
-            ], 500);
-        }
+        });
     }
 
     public function export()

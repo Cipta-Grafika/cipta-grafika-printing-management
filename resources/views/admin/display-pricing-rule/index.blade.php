@@ -1,71 +1,48 @@
 @extends('admin_master')
 
 @section('contents')
+    <link rel="stylesheet" href="{{ asset('css/display-pricing-rule-index.css') }}">
     <div class="shell">
         <div data-shell-sidebar></div>
         <div class="main">
             <div data-shell-topbar></div>
             <main class="content">
-                <section class="hero">
+                <section class="hero cat-hero-compact">
                     <div class="hero-text"><span class="eyebrow">HARGA MARKUP · DISPLAY</span>
                         {{-- <h1 class="hero-title">Daftar Material</h1> --}}
                         <p class="hero-sub">Kelola dan pantau data rangka Display yang digunakan dalam proses produksi dan
                             perhitungan biaya.</p>
                     </div>
-                    <div class="hero-actions"><a href="{{ route('admin_export_display_pricing_rules') }}"
-                            class="btn btn--ghost"><svg viewBox="0 0 24 24">
-                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                                <path d="M7 10l5 5 5-5" />
-                                <path d="M12 15V3" />
-                            </svg> Export</a>
-                        <a href="{{ asset('templates/template_markup_display.xlsx') }}" class="btn btn--ghost">
-
-                            <svg viewBox="0 0 24 24">
-                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                                <path d="M7 10l5 5 5-5" />
-                                <path d="M12 15V3" />
-                            </svg>
-
-                            Download Template
-
-                        </a>
-                        <button class="btn btn--ghost" id="btnImportDisplayPricingRules"><svg viewBox="0 0 24 24">
-                                <path d="M12 16V3" />
-                                <path d="m7 8 5-5 5 5" />
-                                <path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6" />
-                            </svg> Import</button>
-
-                        <button type="button" class="btn btn--primary" id="btnTambahDisplayMarkup">
-                            <svg viewBox="0 0 24 24">
-                                <path d="M12 5v14M5 12h14" />
-                            </svg>
-                            Tambah Markup
-                        </button>
-                    </div>
                 </section>
                 <div class="grid">
-                    <section class="col-12 card">
-                        <table id="displayPricingRuleTable" class="data-table">
-                            <thead>
-                                <tr>
-                                    <th></th>
-                                    <th>No</th>
-                                    <th>Mesin</th>
-                                    <th>Lokasi</th>
-                                    <th>Kategori</th>
-                                    <th style="text-align: center;">Jumlah Markup</th>
-                                    <th>Aksi</th>
-                                </tr>
-                            </thead>
-
-                            <tbody></tbody>
-                        </table>
+                    <section class="col-12 card cat-card-container">
+                        <div class="cat-card-header">
+                            <div class="cat-card-header-main"><div class="cat-card-title-wrap"><div class="cat-card-icon"><i class="bi bi-tags-fill"></i></div><div><div class="cat-title-row"><h3 class="cat-card-title">Daftar Pricing Rule Display</h3><span class="cat-badge-total"><span class="cat-pulse-dot"></span><span id="displayPricingRuleTotalCount">Memuat data...</span></span></div><p class="cat-card-desc">Kelompok markup Display berdasarkan mesin, lokasi, dan kategori.</p></div></div></div>
+                            <div class="cat-card-actions">
+                                <a href="{{ route('admin_export_display_pricing_rules') }}" class="cat-btn-head"><i class="bi bi-download"></i><span>Export</span></a>
+                                <a href="{{ asset('templates/template_markup_display.xlsx') }}" class="cat-btn-head"><i class="bi bi-download"></i><span>Template</span></a>
+                                <button type="button" class="cat-btn-head" id="btnImportDisplayPricingRules"><i class="bi bi-upload"></i><span>Import</span></button>
+                                <button type="button" class="cat-btn-head-primary" id="btnTambahDisplayMarkup"><i class="bi bi-plus-lg"></i><span>Tambah Markup</span></button>
+                            </div>
+                        </div>
+                        <div class="cat-bulk-toolbar" id="displayPricingRuleBulkToolbar" style="display:none"><div class="cat-bulk-info"><span class="cat-bulk-badge" id="displayPricingRuleBulkCount">0 terpilih</span><span class="cat-bulk-text">Kelompok yang dipilih siap untuk tindakan massal</span></div><div class="cat-bulk-actions"><button type="button" class="btn btn--ghost btn--sm" id="cancelDisplayPricingRuleSelection">Batal Pilihan</button><button type="button" class="btn btn--danger btn--sm" id="bulkDeleteDisplayPricingRules">Hapus Terpilih</button></div></div>
+                        <div class="cat-filter-card"><div class="cat-filter-group-left">
+                            <div class="cat-search-box"><i class="bi bi-search cat-search-icon"></i><input id="displayPricingRuleSearch" type="text" class="cat-filter-input" placeholder="Cari mesin, lokasi, atau kategori..." aria-label="Cari pricing rule Display"><button type="button" id="clearDisplayPricingRuleSearch" class="cat-clear-btn" style="display:none" aria-label="Hapus pencarian"><i class="bi bi-x-circle-fill"></i></button></div>
+                            <div class="cat-select-box"><i class="bi bi-gear-fill cat-select-icon"></i><select id="displayPricingRuleEngineFilter" class="select2" aria-label="Filter mesin"><option value="all">Semua Mesin</option>@foreach ($filterEngines as $engine)<option value="{{ $engine->id }}">{{ $engine->name }}</option>@endforeach</select></div>
+                            <div class="cat-filter-subgroup"><div class="cat-select-box"><i class="bi bi-geo-alt-fill cat-select-icon"></i><select id="displayPricingRuleLocationFilter" class="select2" aria-label="Filter lokasi"><option value="all">Semua Lokasi</option>@foreach ($filterLocations as $location)<option value="{{ $location->id }}">{{ $location->name }}</option>@endforeach</select></div><button type="button" class="cat-btn-reset" id="resetDisplayPricingRuleFilters" title="Reset semua filter"><i class="bi bi-arrow-counterclockwise"></i><span>Reset</span></button></div>
+                        </div><div class="cat-filter-group-right"><div class="cat-length-box"><span class="cat-length-label">Baris:</span><select id="displayPricingRulePageLength" class="select2" aria-label="Jumlah baris"><option>10</option><option>25</option><option>50</option><option>100</option></select></div></div></div>
+                        <div class="cat-table-wrap"><table id="displayPricingRuleTable" class="cat-modern-table" style="width:100%" data-url="{{ route('admin_data_display_pricing_rule') }}" data-bulk-url="{{ route('admin_bulk_destroy_display_pricing_rules') }}"><thead><tr>
+                            <th class="cat-th-check text-center"><label class="cat-custom-checkbox" title="Pilih semua di halaman ini"><input type="checkbox" id="checkAllDisplayPricingRules" aria-label="Pilih semua pricing rule Display di halaman ini"><span class="cat-checkbox-mark"><svg class="check-icon" viewBox="0 0 14 14" fill="none"><path d="M2.5 7.5L5.5 10.5L11.5 3.5" stroke="#fff" stroke-width="2.2"/></svg><svg class="minus-icon" viewBox="0 0 14 14" fill="none"><path d="M3 7H11" stroke="#fff" stroke-width="2.2"/></svg></span></label></th>
+                            <th class="cat-th-no text-center">No</th><th style="min-width:170px">Mesin</th><th style="min-width:150px">Lokasi</th><th style="min-width:180px">Kategori</th><th style="min-width:130px">Jumlah Markup</th><th style="min-width:140px" class="text-center">Aksi</th>
+                        </tr></thead><tbody></tbody></table></div>
                     </section>
                 </div>
             </main>
             <div data-shell-footer></div>
         </div>
     </div>
+
+    <div class="modal-overlay" id="modalBulkDeleteDisplayPricingRules"><div class="modal-dialog modal-delete"><div class="modal-header"><div><span class="eyebrow">HARGA MARKUP · DISPLAY</span><br><span class="eyebrow">Hapus Pricing Rule Terpilih</span></div><button type="button" class="modal-close" id="closeBulkDeleteDisplayPricingRules" aria-label="Tutup"><i class="bi bi-x-lg"></i></button></div><div class="modal-body"><div class="delete-confirmation"><div class="delete-icon"><i class="bi bi-trash3-fill"></i></div><div class="delete-content"><h3>Hapus kelompok pricing rule?</h3><p id="bulkDeleteDisplayPricingRuleDescription"></p><p>Seluruh pilihan ditolak jika satu kelompok digunakan konfigurasi produk atau data lain, atau telah berubah.</p></div></div></div><div class="modal-footer"><button type="button" class="btn btn--ghost" id="cancelBulkDeleteDisplayPricingRules">Batal</button><button type="button" class="btn btn--danger" id="confirmBulkDeleteDisplayPricingRules">Hapus Terpilih</button></div></div></div>
 
     <!--
                                                                             |--------------------------------------------------------------------------
@@ -459,6 +436,7 @@
                             dan kategori ini? Data yang sudah dihapus
                             tidak dapat dikembalikan.
                         </p>
+                        <p>Pricing rule yang masih digunakan konfigurasi produk atau data lain tidak dapat dihapus.</p>
 
                     </div>
 
@@ -918,178 +896,11 @@
 @endsection
 
 @section('scripts')
+    <script src="{{ asset('js/display-pricing-rule-index.js') }}"></script>
     <script>
-        let displayPricingRuleTable;
+
 
         $(document).ready(function() {
-
-            displayPricingRuleTable = $('#displayPricingRuleTable').DataTable({
-                processing: true,
-                serverSide: true,
-                ordering: false,
-                responsive: {
-                    details: {
-                        type: 'column',
-                        target: 0
-                    }
-                },
-
-                ajax: {
-                    url: "{{ route('admin_data_display_pricing_rule') }}",
-                    type: 'GET'
-                },
-
-                columns: [
-
-                    // Responsive control
-                    {
-                        data: null,
-                        defaultContent: '',
-                        className: 'control',
-                        orderable: false,
-                        searchable: false
-                    },
-
-                    // No
-                    {
-                        data: null,
-                        orderable: false,
-                        searchable: false,
-                        render: function(data, type, row, meta) {
-                            return meta.row + meta.settings._iDisplayStart + 1;
-                        }
-                    },
-
-                    // Mesin
-                    {
-                        data: 'engine_name',
-                        name: 'engine_name',
-                        defaultContent: '-',
-                        render: function(data) {
-                            return data || '-';
-                        }
-                    },
-
-                    // Lokasi
-                    {
-                        data: 'location_name',
-                        name: 'location_name',
-                        defaultContent: '-',
-                        render: function(data) {
-                            return data || '-';
-                        }
-                    },
-
-                    // Kategori
-                    {
-                        data: 'category_name',
-                        name: 'category_name',
-                        defaultContent: '-',
-                        render: function(data) {
-                            return data || '-';
-                        }
-                    },
-
-                    // Jumlah Markup
-                    {
-                        data: 'jumlah_markup',
-                        name: 'jumlah_markup',
-                        className: 'text-center',
-                        render: function(data) {
-                            return Number(data || 0).toLocaleString('id-ID');
-                        },
-                        createdCell: function(td, cellData, rowData, row, col) {
-                            $(td).css('text-align', 'center');
-                        }
-                    },
-
-                    // Aksi
-                    {
-                        data: null,
-                        orderable: false,
-                        searchable: false,
-                        className: 'text-center',
-                        render: function(data, type, row) {
-
-                            return `
-                        <div class="table-actions">
-
-                            <button
-                                type="button"
-                                class="btn--icon btn-detail-display-pricing-rule"
-                                data-engine-id="${row.engine_id}"
-                                data-location-id="${row.location_id}"
-                                data-category-id="${row.category_id}"
-                                aria-label="Detail"
-                            >
-                                <i class="bi bi-arrows-fullscreen"></i>
-                            </button>
-
-                            <button
-                                type="button"
-                                class="btn--icon btn-edit-display-pricing-rule"
-                                data-engine-id="${row.engine_id}"
-                                data-location-id="${row.location_id}"
-                                data-category-id="${row.category_id}"
-                                aria-label="Edit"
-                            >
-                                <i class="bi bi-pen"></i>
-                            </button>
-
-                            <button
-                                type="button"
-                                class="btn--icon btn-delete-display-pricing-rule"
-                                data-engine-id="${row.engine_id}"
-                                data-location-id="${row.location_id}"
-                                data-category-id="${row.category_id}"
-                                aria-label="Hapus"
-                            >
-                                <i class="bi bi-trash3-fill"></i>
-                            </button>
-
-                        </div>
-                    `;
-                        }
-                    }
-
-                ],
-
-                pageLength: 10,
-
-                lengthMenu: [
-                    [10, 25, 50, 100],
-                    [10, 25, 50, 100]
-                ],
-
-                layout: {
-                    topStart: 'pageLength',
-                    topEnd: 'search',
-                    bottomStart: 'info',
-                    bottomEnd: 'paging'
-                },
-
-                language: {
-                    search: 'Search:',
-                    lengthMenu: '_MENU_ entries per page',
-                    info: 'Showing _START_ to _END_ of _TOTAL_ entries',
-                    infoEmpty: 'Showing 0 to 0 of 0 entries',
-                    zeroRecords: 'Data markup display tidak ditemukan',
-                    processing: 'Memuat data...',
-                    searchPlaceholder: 'Cari mesin, lokasi atau kategori...'
-                },
-
-                initComplete: function() {
-
-                    const searchInput = $('#displayPricingRuleTable_filter input');
-
-                    searchInput.css({
-                        'padding': '9px 14px',
-                        'border-radius': '8px',
-                        'border': '1px solid #e2e8f0'
-                    });
-                }
-            });
-
 
             /*
             |--------------------------------------------------------------------------
@@ -3487,6 +3298,7 @@
                             response.ok &&
                             result.success
                         ) {
+                            clearDisplayPricingRuleSelection();
 
                             /*
                             |--------------------------------------------------------------------------

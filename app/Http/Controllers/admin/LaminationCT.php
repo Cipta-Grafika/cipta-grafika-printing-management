@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\LaminationsExport;
 use App\Imports\LaminationsImport;
@@ -20,6 +21,8 @@ class LaminationCT extends Controller
         $data['engines'] = DB::table('m_engines')->where('status', 'Active')->orderBy('name')->get();
         $data['locations'] = DB::table('m_locations')->where('status', 'Active')->orderBy('name')->get();
         $data['categories'] = DB::table('m_categories')->get();
+        $data['creators'] = DB::table('m_laminations')->whereNotNull('created_by')
+            ->where('created_by', '!=', '')->distinct()->orderBy('created_by')->pluck('created_by');
 
         return view('admin.lamination.index')->with($data);
     }
@@ -46,6 +49,8 @@ class LaminationCT extends Controller
                 'm_laminations.lamination_code',
                 'm_laminations.name',
                 'm_laminations.status',
+                'm_laminations.created_by',
+                'm_laminations.created_at',
                 DB::raw('
                 (
                     SELECT COUNT(*)
@@ -61,9 +66,24 @@ class LaminationCT extends Controller
     |--------------------------------------------------------------------------
     */
 
-        $search = $request->input('search.value');
+        $creator = $request->input('creator');
+        if ($creator && $creator !== 'all') {
+            $query->where('m_laminations.created_by', $creator);
+        }
+        $period = $request->input('period');
+        if ($period === 'today') {
+            $query->whereDate('m_laminations.created_at', Carbon::today());
+        } elseif ($period === '7_days') {
+            $query->where('m_laminations.created_at', '>=', Carbon::now()->subDays(7));
+        } elseif ($period === 'month') {
+            $query->where('m_laminations.created_at', '>=', Carbon::now()->startOfMonth());
+        } elseif ($period === 'year') {
+            $query->where('m_laminations.created_at', '>=', Carbon::now()->startOfYear());
+        }
 
-        if (!empty($search)) {
+        $search = trim((string) $request->input('search.value', ''));
+
+        if ($search !== '') {
             $query->where(function ($q) use ($search) {
                 $searchValue = strtolower($search);
 
@@ -77,6 +97,10 @@ class LaminationCT extends Controller
                     )
                     ->orWhereRaw(
                         'LOWER(m_laminations.status) LIKE ?',
+                        ['%' . $searchValue . '%']
+                    )
+                    ->orWhereRaw(
+                        'LOWER(m_laminations.created_by) LIKE ?',
                         ['%' . $searchValue . '%']
                     );
             });
@@ -96,8 +120,8 @@ class LaminationCT extends Controller
     |--------------------------------------------------------------------------
     */
 
-        $start = (int) $request->input('start', 0);
-        $length = (int) $request->input('length', 10);
+        $start = max(0, (int) $request->input('start', 0));
+        $length = min(100, max(1, (int) $request->input('length', 10)));
 
         /*
     |--------------------------------------------------------------------------
@@ -105,11 +129,26 @@ class LaminationCT extends Controller
     |--------------------------------------------------------------------------
     */
 
-        $laminations = $query
-            ->orderByRaw(
-                "CASE WHEN m_laminations.status = 'Active' THEN 0 ELSE 1 END"
-            )
-            ->orderBy('m_laminations.name', 'asc')
+        $columns = [
+            2 => 'm_laminations.lamination_code',
+            3 => 'm_laminations.name',
+            4 => 'total_sizes',
+            5 => 'm_laminations.status',
+            6 => 'm_laminations.created_by',
+            7 => 'm_laminations.created_at',
+        ];
+        $orderColumn = $columns[(int) $request->input('order.0.column', -1)] ?? null;
+        $direction = $request->input('order.0.dir', 'asc');
+        if (!in_array($direction, ['asc', 'desc'], true)) {
+            $direction = 'asc';
+        }
+        if ($orderColumn) {
+            $query->orderBy($orderColumn, $direction);
+        } else {
+            $query->orderByRaw("CASE WHEN m_laminations.status = 'Active' THEN 0 ELSE 1 END")
+                ->orderBy('m_laminations.name');
+        }
+        $laminations = $query->orderBy('m_laminations.id')
             ->offset($start)
             ->limit($length)
             ->get();
@@ -975,47 +1014,56 @@ class LaminationCT extends Controller
 
     public function destroy($id)
     {
-        DB::beginTransaction();
+        return $this->deleteLaminations([(int) $id]);
+    }
 
-        try {
+    public function bulkDestroy(Request $request)
+    {
+        $validated = $request->validate([
+            'ids' => ['required', 'array', 'min:1', 'max:1000'],
+            'ids.*' => ['required', 'integer', 'min:1', 'distinct'],
+        ]);
+        return $this->deleteLaminations(array_map('intval', $validated['ids']));
+    }
 
-            // Lock master laminasi
-            $lamination = DB::table('m_laminations')
-                ->where('id', $id)
-                ->lockForUpdate()
-                ->first();
-
-            if (!$lamination) {
-                DB::rollBack();
-
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Data laminasi tidak ditemukan.'
-                ], 404);
+    private function deleteLaminations(array $ids)
+    {
+        return DB::transaction(function () use ($ids) {
+            $laminations = DB::table('m_laminations')->whereIn('id', $ids)->lockForUpdate()->get(['id']);
+            if ($laminations->count() !== count($ids)) {
+                return response()->json(['success' => false, 'message' => 'Sebagian laminasi tidak ditemukan. Tidak ada data yang dihapus.'], 404);
             }
 
-            // Hapus master laminasi
-            // m_lamination_sizes akan ikut terhapus
-            // melalui ON DELETE CASCADE.
-            DB::table('m_laminations')
-                ->where('id', $id)
-                ->delete();
-
-            DB::commit();
-
+            foreach (Schema::getTables() as $table) {
+                if ($table['name'] === 'm_laminations') {
+                    continue;
+                }
+                $tableName = $table['schema_qualified_name'];
+                $columns = Schema::hasColumn($tableName, 'lamination_id') ? ['lamination_id'] : [];
+                foreach (Schema::getForeignKeys($tableName) as $foreignKey) {
+                    if ($foreignKey['foreign_table'] === 'm_laminations') {
+                        foreach ($foreignKey['foreign_columns'] as $index => $foreignColumn) {
+                            if ($foreignColumn === 'id') {
+                                $columns[] = $foreignKey['columns'][$index];
+                            }
+                        }
+                    }
+                }
+                foreach (array_unique($columns) as $column) {
+                    if (DB::table($tableName)->whereIn($column, $ids)->exists()) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Laminasi tidak dapat dihapus karena masih memiliki ukuran atau digunakan oleh data lain. Tidak ada data yang dihapus.',
+                        ], 422);
+                    }
+                }
+            }
+            $deleted = DB::table('m_laminations')->whereIn('id', $ids)->delete();
             return response()->json([
                 'success' => true,
-                'message' => 'Laminasi berhasil dihapus.'
+                'message' => $deleted === 1 ? 'Laminasi berhasil dihapus.' : "{$deleted} laminasi berhasil dihapus.",
             ]);
-        } catch (\Throwable $e) {
-
-            DB::rollBack();
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Laminasi gagal dihapus. Silakan coba lagi.'
-            ], 500);
-        }
+        });
     }
 
     public function export()

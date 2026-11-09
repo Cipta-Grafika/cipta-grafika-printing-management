@@ -1,81 +1,105 @@
 @extends('admin_master')
 @section('contents')
+    <link rel="stylesheet" href="{{ asset('css/location-index.css') }}">
     <div class="shell">
         <div data-shell-sidebar></div>
         <div class="main">
             <div data-shell-topbar></div>
             <main class="content">
-                <section class="hero">
+                <section class="hero cat-hero-compact">
                     <div class="hero-text"><span class="eyebrow">MASTER DATA · LOKASI</span>
                         {{-- <h1 class="hero-title">Lokasi</h1> --}}
                         <p class="hero-sub">Kelola dan pantau seluruh lokasi operasional yang digunakan dalam pengelolaan
                             data dan proses bisnis perusahaan.</p>
                     </div>
-                    <div class="hero-actions"><button class="btn btn--ghost" id="btnExportLokasi"><svg viewBox="0 0 24 24">
-                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                                <path d="M7 10l5 5 5-5" />
-                                <path d="M12 15V3" />
-                            </svg> Export</button>
-                        <a href="{{ asset('templates/template_lokasi.xlsx') }}" class="btn btn--ghost">
-
-                            <svg viewBox="0 0 24 24">
-                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                                <path d="M7 10l5 5 5-5" />
-                                <path d="M12 15V3" />
-                            </svg>
-
-                            Download Template
-
-                        </a>
-                        <button class="btn btn--ghost" id="btnImportLocation"><svg viewBox="0 0 24 24">
-                                <path d="M12 16V3" />
-                                <path d="m7 8 5-5 5 5" />
-                                <path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6" />
-                            </svg> Import</button>
-                        <button type="button" class="btn btn--primary" id="btnTambahLokasi">
-
-                            <svg viewBox="0 0 24 24">
-                                <path d="M12 5v14M5 12h14" />
-                            </svg>
-
-                            Tambah Lokasi
-
-                        </button>
-                    </div>
                 </section>
                 <div class="grid">
-                    <section class="col-12 card">
-                        <table id="locationTable" class="display data-table">
-
-                            <thead>
-
-                                <tr>
-
-                                    <th></th>
-
-                                    <th>No</th>
-
-                                    <th>Nama Lokasi</th>
-
-                                    <th>Status</th>
-
-                                    <th>Dibuat Oleh</th>
-
-                                    <th>Dibuat Pada</th>
-
-                                    <th>Aksi</th>
-
-                                </tr>
-
-                            </thead>
-
-                            <tbody></tbody>
-
-                        </table>
+                    <section class="col-12 card cat-card-container">
+                        <div class="cat-card-header">
+                            <div class="cat-card-header-main">
+                                <div class="cat-card-title-wrap">
+                                    <div class="cat-card-icon"><i class="bi bi-geo-alt-fill"></i></div>
+                                    <div>
+                                        <div class="cat-title-row">
+                                            <h3 class="cat-card-title">Daftar Lokasi</h3>
+                                            <span class="cat-badge-total"><span class="cat-pulse-dot"></span><span id="locationTotalCount">Memuat data...</span></span>
+                                        </div>
+                                        <p class="cat-card-desc">Master lokasi operasional untuk pengelolaan data dan proses bisnis.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="cat-card-actions">
+                                <button type="button" class="cat-btn-head" id="btnExportLokasi" title="Export Excel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg><span>Export</span></button>
+                                <a href="{{ asset('templates/template_lokasi.xlsx') }}" class="cat-btn-head" title="Download Template Excel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg><span>Template</span></a>
+                                <button type="button" class="cat-btn-head" id="btnImportLocation" title="Import Excel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 16V3"/><path d="m7 8 5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg><span>Import</span></button>
+                                <button type="button" class="cat-btn-head-primary" id="btnTambahLokasi"><i class="bi bi-plus-lg"></i><span>Tambah Lokasi</span></button>
+                            </div>
+                        </div>
+                        <div class="cat-bulk-toolbar" id="locationBulkToolbar" style="display: none;">
+                            <div class="cat-bulk-info"><span class="cat-bulk-badge" id="locationBulkCount">0 terpilih</span><span class="cat-bulk-text">Lokasi yang dipilih siap untuk tindakan massal</span></div>
+                            <div class="cat-bulk-actions">
+                                <button type="button" class="btn btn--ghost btn--sm" id="cancelLocationSelection"><i class="bi bi-x-circle me-1"></i> Batal Pilihan</button>
+                                <button type="button" class="btn btn--danger btn--sm" id="bulkDeleteLocations"><i class="bi bi-trash3-fill me-1"></i> Hapus Terpilih</button>
+                            </div>
+                        </div>
+                        <div class="cat-filter-card">
+                            <div class="cat-filter-group-left">
+                                <div class="cat-search-box">
+                                    <i class="bi bi-search cat-search-icon"></i>
+                                    <input type="text" id="locationSearch" class="cat-filter-input" placeholder="Cari nama, status, atau pembuat..." aria-label="Cari lokasi">
+                                    <button type="button" id="clearLocationSearch" class="cat-clear-btn" title="Hapus pencarian" style="display: none;"><i class="bi bi-x-circle-fill"></i></button>
+                                </div>
+                                <div class="cat-select-box">
+                                    <i class="bi bi-person-fill cat-select-icon"></i>
+                                    <select id="locationCreator" class="select2" style="width: 100%;" aria-label="Filter pembuat">
+                                        <option value="all">Semua Pembuat</option>
+                                        @foreach ($creators as $creator)
+                                            <option value="{{ $creator }}">{{ $creator }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="cat-filter-subgroup">
+                                    <div class="cat-select-box">
+                                        <i class="bi bi-calendar3 cat-select-icon"></i>
+                                        <select id="locationPeriod" class="select2" style="width: 100%;" aria-label="Filter periode">
+                                            <option value="all">Semua Periode</option><option value="today">Hari Ini</option><option value="7_days">7 Hari Terakhir</option><option value="month">Bulan Ini</option><option value="year">Tahun Ini</option>
+                                        </select>
+                                    </div>
+                                    <button type="button" id="resetLocationFilters" class="cat-btn-reset" title="Reset semua filter"><i class="bi bi-arrow-counterclockwise"></i><span>Reset</span></button>
+                                </div>
+                            </div>
+                            <div class="cat-filter-group-right"><div class="cat-length-box"><span class="cat-length-label">Baris:</span>
+                                <select id="locationPageLength" class="select2" style="width: 76px;" aria-label="Jumlah baris"><option value="10">10</option><option value="25">25</option><option value="50">50</option><option value="100">100</option></select>
+                            </div></div>
+                        </div>
+                        <div class="cat-table-wrap">
+                            <table id="locationTable" class="cat-modern-table" style="width: 100%;" data-url="{{ route('admin_data_locations') }}" data-bulk-url="{{ route('admin_bulk_destroy_locations') }}">
+                                <thead><tr>
+                                    <th class="cat-th-check text-center"><label class="cat-custom-checkbox" title="Pilih semua di halaman ini"><input type="checkbox" id="checkAllLocations" aria-label="Pilih semua lokasi di halaman ini"><span class="cat-checkbox-mark"><svg class="check-icon" viewBox="0 0 14 14" fill="none"><path d="M2.5 7.5L5.5 10.5L11.5 3.5" stroke="#fff" stroke-width="2.2"/></svg><svg class="minus-icon" viewBox="0 0 14 14" fill="none"><path d="M3 7H11" stroke="#fff" stroke-width="2.2"/></svg></span></label></th>
+                                    <th class="cat-th-no text-center" style="width: 60px;">No</th>
+                                    <th style="min-width: 220px;">Nama Lokasi</th>
+                                    <th style="min-width: 120px;">Status</th>
+                                    <th style="min-width: 170px;">Dibuat Oleh</th>
+                                    <th style="min-width: 150px;">Dibuat Pada</th>
+                                    <th class="text-center" style="width: 110px;">Aksi</th>
+                                </tr></thead><tbody></tbody>
+                            </table>
+                        </div>
                     </section>
                 </div>
             </main>
             <div data-shell-footer></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modalBulkDeleteLocations">
+        <div class="modal-dialog modal-delete">
+            <div class="modal-header">
+                <div><span class="eyebrow">MASTER DATA · LOKASI</span><br><span class="eyebrow">Hapus Lokasi Terpilih</span></div>
+                <button type="button" class="modal-close" id="closeBulkDeleteLocations" aria-label="Tutup"><svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+            </div>
+            <div class="modal-body"><div class="delete-confirmation"><div class="delete-icon"><i class="bi bi-trash3-fill"></i></div><div class="delete-content"><h3>Hapus lokasi terpilih?</h3><p id="bulkDeleteLocationDescription"></p><p>Lokasi yang masih digunakan oleh data lain tidak dapat dihapus.</p></div></div></div>
+            <div class="modal-footer"><button type="button" class="btn btn--ghost" id="cancelBulkDeleteLocations">Batal</button><button type="button" class="btn btn--danger" id="confirmBulkDeleteLocations"><i class="bi bi-trash3-fill"></i> Hapus Terpilih</button></div>
         </div>
     </div>
 
@@ -527,395 +551,8 @@
 @endsection
 
 @section('scripts')
+    <script src="{{ asset('js/location-index.js') }}"></script>
     <script>
-        let locationTable;
-        document.addEventListener('DOMContentLoaded', function() {
-
-            locationTable = new DataTable('#locationTable', {
-
-                processing: true,
-
-                serverSide: true,
-
-                ordering: false,
-
-
-                /*
-                |--------------------------------------------------------------------------
-                | RESPONSIVE
-                |--------------------------------------------------------------------------
-                */
-
-                responsive: {
-
-                    details: {
-
-                        type: 'column',
-
-                        target: 0
-
-                    }
-
-                },
-
-
-                /*
-                |--------------------------------------------------------------------------
-                | AJAX
-                |--------------------------------------------------------------------------
-                */
-
-                ajax: {
-
-                    url: "{{ route('admin_data_locations') }}",
-
-                    type: "GET"
-
-                },
-
-
-                /*
-                |--------------------------------------------------------------------------
-                | COLUMNS
-                |--------------------------------------------------------------------------
-                */
-
-                columns: [
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | RESPONSIVE CONTROL
-                    |--------------------------------------------------------------------------
-                    */
-
-                    {
-
-                        data: null,
-
-                        defaultContent: '',
-
-                        className: 'dtr-control',
-
-                        orderable: false,
-
-                        searchable: false,
-
-                        responsivePriority: 1
-
-                    },
-
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | NOMOR
-                    |--------------------------------------------------------------------------
-                    */
-
-                    {
-
-                        data: null,
-
-                        orderable: false,
-
-                        searchable: false,
-
-                        responsivePriority: 1,
-
-                        className: 'text-center',
-
-                        render: function(data, type, row, meta) {
-
-                            const pageInfo = locationTable.page.info();
-
-                            return pageInfo.start + meta.row + 1;
-
-                        }
-
-                    },
-
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | NAMA LOKASI
-                    |--------------------------------------------------------------------------
-                    */
-
-                    {
-
-                        data: 'name',
-
-                        responsivePriority: 1,
-
-                        createdCell: function(td) {
-
-                            td.style.whiteSpace = 'normal';
-
-                            td.style.wordBreak = 'break-word';
-
-                            td.style.overflowWrap = 'break-word';
-
-                        }
-
-                    },
-
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | STATUS
-                    |--------------------------------------------------------------------------
-                    */
-
-                    {
-                        data: 'status',
-
-                        responsivePriority: 1,
-
-                        // className: 'text-center',
-
-                        render: function(data) {
-
-                            const statusClass =
-                                data === 'Active' ?
-                                'success' :
-                                'danger';
-
-                            return `
-                                <span class="badge ${statusClass} dot" style="font-weight: 400;">
-                                    ${data}
-                                </span>
-                            `;
-                        }
-                    },
-
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | DIBUAT OLEH
-                    |--------------------------------------------------------------------------
-                    */
-
-                    {
-
-                        data: 'created_by',
-
-                        responsivePriority: 100
-
-                    },
-
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | DIBUAT PADA
-                    |--------------------------------------------------------------------------
-                    */
-
-                    {
-
-                        data: 'created_at',
-
-                        responsivePriority: 100,
-
-                        render: function(data) {
-
-                            if (!data) {
-
-                                return '-';
-
-                            }
-
-                            const date = new Date(data);
-
-                            return date.toLocaleDateString('id-ID', {
-
-                                day: '2-digit',
-
-                                month: '2-digit',
-
-                                year: 'numeric'
-
-                            }).replace(/\//g, '-');
-
-                        }
-
-                    },
-
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | AKSI
-                    |--------------------------------------------------------------------------
-                    */
-
-                    {
-
-                        data: 'id',
-
-                        orderable: false,
-
-                        searchable: false,
-
-                        responsivePriority: 1,
-
-                        className: 'text-center',
-
-                        render: function(data, type, row) {
-
-                            return `
-
-                        <div
-                            class="data-cell-actions"
-                            style="
-                                display: flex;
-                                justify-content: center;
-                                align-items: center;
-                                gap: 5px;
-                            "
-                        >
-
-                            <!-- EDIT -->
-
-                            <button
-                                type="button"
-                                class="btn--icon btn-edit-location"
-                                data-id="${data}"
-                                data-name="${row.name}"
-                                data-status="${row.status}"
-                                aria-label="Edit"
-                            >
-
-                                <i class="bi bi-pen"></i>
-
-
-                            </button>
-
-
-                            <!-- HAPUS -->
-
-                            <button
-                                type="button"
-                                class="btn--icon btn-delete-location"
-                                data-id="${data}"
-                                aria-label="Hapus"
-                            >
-
-                                <i class="bi bi-trash3-fill"></i>
-
-                            </button>
-
-                        </div>
-
-                    `;
-
-                        }
-
-                    }
-
-                ],
-
-
-                /*
-                |--------------------------------------------------------------------------
-                | COLUMN DEFINITION
-                |--------------------------------------------------------------------------
-                */
-
-                columnDefs: [
-
-                    {
-
-                        targets: 0,
-
-                        className: 'dtr-control'
-
-                    }
-
-                ],
-
-
-                /*
-                |--------------------------------------------------------------------------
-                | PAGE LENGTH
-                |--------------------------------------------------------------------------
-                */
-
-                pageLength: 10,
-
-
-                /*
-                |--------------------------------------------------------------------------
-                | PAGE LENGTH OPTIONS
-                |--------------------------------------------------------------------------
-                */
-
-                lengthMenu: [
-
-                    10,
-
-                    25,
-
-                    50,
-
-                    100
-
-                ],
-
-
-                /*
-                |--------------------------------------------------------------------------
-                | LAYOUT
-                |--------------------------------------------------------------------------
-                */
-
-                layout: {
-
-                    topStart: 'pageLength',
-
-                    topEnd: 'search',
-
-                    bottomStart: 'info',
-
-                    bottomEnd: 'paging'
-
-                },
-
-
-                /*
-                |--------------------------------------------------------------------------
-                | LANGUAGE
-                |--------------------------------------------------------------------------
-                */
-
-                language: {
-
-                    search: 'Search:',
-
-                    lengthMenu: '_MENU_ entries per page',
-
-                    info: 'Showing _START_ to _END_ of _TOTAL_ entries',
-
-                    infoEmpty: 'Showing 0 to 0 of 0 entries',
-
-                    zeroRecords: 'Data lokasi tidak ditemukan',
-
-                    processing: 'Memuat data...',
-
-                    searchPlaceholder: 'Cari lokasi...'
-
-                },
-                initComplete: function() {
-                    $(this).closest('.dt-container, .dataTables_wrapper')
-                        .find('.dt-search input, .dataTables_filter input')
-                        .css({
-                            'padding': '9px 14px',
-                            'border-radius': '8px',
-                            'border': '1px solid #e2e8f0'
-                        });
-                }
-
-            });
-
-        });
-
         document.addEventListener('DOMContentLoaded', function() {
 
             const btnImport = document.getElementById('btnImportLocation');
@@ -1537,6 +1174,8 @@
                         */
 
                         if (response.ok && result.success) {
+
+                            selectedLocationIds.delete(Number(locationIdToDelete));
 
                             /*
                             | Tutup Modal

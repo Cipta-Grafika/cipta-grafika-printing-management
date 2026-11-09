@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Auth;
 use Exception;
 use App\Exports\DigitalPricingRulesExport;
@@ -170,9 +171,20 @@ class PricingRulesCT extends Controller
     |--------------------------------------------------------------------------
     */
 
-        $search = $request->input('search.value');
+        foreach (['location_id' => 'c.id', 'category_id' => 'b.id', 'vendor_id' => 'v.id'] as $filter => $column) {
+            $value = $request->input($filter);
+            if ($value !== null && $value !== '' && $value !== 'all') {
+                if ($filter === 'vendor_id' && $value === 'none') {
+                    $query->whereNull('a.vendor_id');
+                } else {
+                    $query->where($column, $value);
+                }
+            }
+        }
 
-        if (!empty($search)) {
+        $search = trim((string) $request->input('search.value', ''));
+
+        if ($search !== '') {
 
             $search = strtolower($search);
 
@@ -216,9 +228,9 @@ class PricingRulesCT extends Controller
     |--------------------------------------------------------------------------
     */
 
-        $start = (int) $request->input('start', 0);
+        $start = max(0, (int) $request->input('start', 0));
 
-        $length = (int) $request->input('length', 10);
+        $length = min(100, max(1, (int) $request->input('length', 10)));
 
         /*
     |--------------------------------------------------------------------------
@@ -226,33 +238,35 @@ class PricingRulesCT extends Controller
     |--------------------------------------------------------------------------
     */
 
-        $pricingRules = $query
-
-            ->orderBy(
-                'd.name',
-                'asc'
-            )
-
-            ->orderBy(
-                'c.name',
-                'asc'
-            )
-
-            ->orderBy(
-                'v.name',
-                'asc'
-            )
-
-            ->orderBy(
-                'b.name',
-                'asc'
-            )
-
+        $columns = [2 => 'd.name', 3 => 'c.name', 4 => 'v.name', 5 => 'b.name', 6 => 'jumlah_markup'];
+        $orderColumn = $columns[(int) $request->input('order.0.column', -1)] ?? null;
+        $direction = $request->input('order.0.dir', 'asc');
+        if (!in_array($direction, ['asc', 'desc'], true)) {
+            $direction = 'asc';
+        }
+        if ($orderColumn) {
+            $query->orderBy($orderColumn, $direction);
+        }
+        $pricingRules = $query->orderBy('d.name')->orderBy('c.name')->orderBy('v.name')->orderBy('b.name')
             ->offset($start)
 
             ->limit($length)
 
             ->get();
+
+        foreach ($pricingRules as $row) {
+            if ($row->pricing_rule_source === 'digital') {
+                $row->member_ids = [(int) $row->digital_pricing_rule_id];
+                $row->detail_ids = DB::table('m_digital_pricing_rule_details')
+                    ->where('digital_pricing_rule_id', $row->digital_pricing_rule_id)
+                    ->orderBy('id')->pluck('id')->map(fn ($id) => (int) $id)->all();
+            } else {
+                $row->member_ids = DB::table('m_pricing_rules')
+                    ->where('engine_id', $row->engine_id)->where('location_id', $row->location_id)
+                    ->where('category_id', $row->category_id)->where('vendor_id', $row->vendor_id)
+                    ->orderBy('id')->pluck('id')->map(fn ($id) => (int) $id)->all();
+            }
+        }
 
         /*
     |--------------------------------------------------------------------------
@@ -2213,58 +2227,119 @@ class PricingRulesCT extends Controller
 
     public function destroyDigital($id)
     {
-        try {
-            DB::transaction(function () use ($id) {
-                $header = DB::table('m_digital_pricing_rules as a')
-                    ->join('m_engines as e', 'a.engine_id', '=', 'e.id')
-                    ->leftJoin('m_locations as l', 'a.location_id', '=', 'l.id')
-                    ->leftJoin('m_categories as c', 'a.category_id', '=', 'c.id')
-                    ->leftJoin('m_vendors as v', 'a.vendor_id', '=', 'v.id')
-                    ->select(
-                        'a.id',
-                        'e.name as engine_name',
-                        'l.name as location_name',
-                        'c.name as category_name',
-                        'v.name as vendor_name'
-                    )
-                    ->where('a.id', $id)
-                    ->first();
+        $detailIds = DB::table('m_digital_pricing_rule_details')->where('digital_pricing_rule_id', $id)
+            ->orderBy('id')->pluck('id')->map(fn ($detailId) => (int) $detailId)->all();
+        return $this->deletePricingRuleGroups([['source' => 'digital', 'member_ids' => [(int) $id], 'detail_ids' => $detailIds]]);
+    }
 
-                if (!$header) {
-                    throw new Exception(
-                        'Data markup Digital Print tidak ditemukan.'
-                    );
+    public function bulkDestroy(Request $request)
+    {
+        $validated = $request->validate([
+            'groups' => ['required', 'array', 'min:1', 'max:1000'],
+            'groups.*.source' => ['required', 'in:digital,large_format'],
+            'groups.*.member_ids' => ['required', 'array', 'min:1', 'max:1000'],
+            'groups.*.member_ids.*' => ['required', 'integer', 'min:1'],
+            'groups.*.detail_ids' => ['present_if:groups.*.source,digital', 'array', 'max:1000'],
+            'groups.*.detail_ids.*' => ['required', 'integer', 'min:1'],
+            'groups.*.engine_id' => ['required_if:groups.*.source,large_format', 'nullable', 'integer', 'min:1'],
+            'groups.*.location_id' => ['required_if:groups.*.source,large_format', 'nullable', 'integer', 'min:1'],
+            'groups.*.category_id' => ['required_if:groups.*.source,large_format', 'nullable', 'integer', 'min:1'],
+            'groups.*.vendor_id' => ['nullable', 'integer', 'min:1'],
+        ]);
+        return $this->deletePricingRuleGroups($validated['groups']);
+    }
+
+    private function deletePricingRuleGroups(array $groups)
+    {
+        return DB::transaction(function () use ($groups) {
+            $largeIds = [];
+            $digitalIds = [];
+            $detailIds = [];
+            foreach ($groups as $group) {
+                $expected = array_map('intval', $group['member_ids']);
+                sort($expected);
+                if (count($expected) !== count(array_unique($expected))) {
+                    return response()->json(['success' => false, 'message' => 'Pilihan pricing rule duplikat. Tidak ada data yang dihapus.'], 422);
                 }
-
-                $engineName = strtolower(
-                    preg_replace('/\s+/', '', trim($header->engine_name))
-                );
-
-                if ($engineName !== 'digitalprinta3+') {
-                    throw new Exception(
-                        'Konfigurasi ini bukan milik mesin Digital Print A3+.'
-                    );
+                if ($group['source'] === 'digital') {
+                    if (count($expected) !== 1) {
+                        return response()->json(['success' => false, 'message' => 'Pilihan pricing rule tidak valid.'], 422);
+                    }
+                    $header = DB::table('m_digital_pricing_rules')->where('id', $expected[0])->lockForUpdate()->first();
+                    if (!$header || !DB::table('m_engines')->where('id', $header->engine_id)->whereRaw('LOWER(name) = ?', ['digital print a3+'])->exists()) {
+                        return response()->json(['success' => false, 'message' => 'Pricing rule tidak ditemukan atau telah berubah. Tidak ada data yang dihapus.'], 422);
+                    }
+                    $currentDetails = DB::table('m_digital_pricing_rule_details')->where('digital_pricing_rule_id', $header->id)
+                        ->orderBy('id')->lockForUpdate()->pluck('id')->map(fn ($detailId) => (int) $detailId)->all();
+                    $expectedDetails = array_map('intval', $group['detail_ids'] ?? []);
+                    sort($expectedDetails);
+                    if ($currentDetails !== $expectedDetails) {
+                        return response()->json(['success' => false, 'message' => 'Kelompok pricing rule telah berubah. Muat ulang tabel; tidak ada data yang dihapus.'], 422);
+                    }
+                    $digitalIds[] = $expected[0];
+                    $detailIds = array_merge($detailIds, $currentDetails);
+                } else {
+                    if (empty($group['engine_id']) || empty($group['location_id']) || empty($group['category_id'])
+                        || !DB::table('m_engines')->where('id', $group['engine_id'])->whereRaw('LOWER(name) = ?', ['large format'])->exists()) {
+                        return response()->json(['success' => false, 'message' => 'Pilihan pricing rule tidak valid.'], 422);
+                    }
+                    $current = DB::table('m_pricing_rules')
+                        ->where('engine_id', $group['engine_id'])->where('location_id', $group['location_id'])
+                        ->where('category_id', $group['category_id'])->where('vendor_id', $group['vendor_id'] ?? null)
+                        ->orderBy('id')->lockForUpdate()->pluck('id')->map(fn ($id) => (int) $id)->all();
+                    if ($current !== $expected) {
+                        return response()->json(['success' => false, 'message' => 'Kelompok pricing rule telah berubah. Muat ulang tabel; tidak ada data yang dihapus.'], 422);
+                    }
+                    $largeIds = array_merge($largeIds, $current);
                 }
-
-                DB::table('m_digital_pricing_rule_details')
-                    ->where('digital_pricing_rule_id', $header->id)
-                    ->delete();
-
-                DB::table('m_digital_pricing_rules')
-                    ->where('id', $header->id)
-                    ->delete();
-            });
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Markup Digital Print A3+ berhasil dihapus.',
-            ]);
-        } catch (Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 422);
-        }
+            }
+            if (count($largeIds) !== count(array_unique($largeIds)) || count($digitalIds) !== count(array_unique($digitalIds))) {
+                return response()->json(['success' => false, 'message' => 'Pilihan pricing rule duplikat. Tidak ada data yang dihapus.'], 422);
+            }
+            $targets = [
+                'm_pricing_rules' => $largeIds,
+                'm_digital_pricing_rules' => $digitalIds,
+                'm_digital_pricing_rule_details' => $detailIds,
+            ];
+            foreach (Schema::getTables() as $table) {
+                $tableName = $table['schema_qualified_name'];
+                foreach ($targets as $target => $ids) {
+                    if (!$ids || $table['name'] === $target || ($target === 'm_digital_pricing_rules' && $table['name'] === 'm_digital_pricing_rule_details')) {
+                        continue;
+                    }
+                    $columns = [];
+                    foreach (Schema::getForeignKeys($tableName) as $foreignKey) {
+                        if ($foreignKey['foreign_table'] === $target) {
+                            foreach ($foreignKey['foreign_columns'] as $index => $foreignColumn) {
+                                if ($foreignColumn === 'id') {
+                                    $columns[] = $foreignKey['columns'][$index];
+                                }
+                            }
+                        }
+                    }
+                    $knownColumns = match ($target) {
+                        'm_pricing_rules' => $table['name'] === 'm_production_cost_details'
+                            ? ['general_pricing_rule_id', 'division_pricing_rule_id', 'plain_pricing_rule_id'] : [],
+                        'm_digital_pricing_rules' => ['digital_pricing_rule_id'],
+                        'm_digital_pricing_rule_details' => ['digital_pricing_rule_detail_id'],
+                    };
+                    foreach ($knownColumns as $column) {
+                        if (Schema::hasColumn($tableName, $column)) {
+                            $columns[] = $column;
+                        }
+                    }
+                    foreach (array_unique($columns) as $column) {
+                        if (DB::table($tableName)->whereIn($column, $ids)->exists()) {
+                            return response()->json(['success' => false, 'message' => 'Pricing rule masih digunakan oleh data lain. Tidak ada data yang dihapus.'], 422);
+                        }
+                    }
+                }
+            }
+            DB::table('m_digital_pricing_rule_details')->whereIn('id', $detailIds)->delete();
+            DB::table('m_digital_pricing_rules')->whereIn('id', $digitalIds)->delete();
+            DB::table('m_pricing_rules')->whereIn('id', $largeIds)->delete();
+            return response()->json(['success' => true, 'message' => 'Pricing rule berhasil dihapus.']);
+        });
     }
 
     public function destroy(
@@ -2273,188 +2348,18 @@ class PricingRulesCT extends Controller
         $vendor_id,
         $category_id
     ) {
-        try {
-            DB::transaction(function () use (
-                $engine_id,
-                $location_id,
-                $vendor_id,
-                $category_id
-            ) {
-
-                /*
-            |--------------------------------------------------------------------------
-            | AMBIL DATA PRICING RULE
-            |--------------------------------------------------------------------------
-            */
-
-                $pricingRules = DB::table('m_pricing_rules')
-                    ->where('engine_id', $engine_id)
-                    ->where('location_id', $location_id)
-                    ->where('category_id', $category_id)
-                    ->where(function ($query) use ($vendor_id) {
-                        if ($vendor_id === 'null') {
-                            $query->whereNull('vendor_id');
-                        } else {
-                            $query->where('vendor_id', $vendor_id);
-                        }
-                    })
-                    ->get();
-
-                /*
-            |--------------------------------------------------------------------------
-            | CEK DATA
-            |--------------------------------------------------------------------------
-            */
-
-                if ($pricingRules->isEmpty()) {
-                    throw new Exception(
-                        'Data markup harga tidak ditemukan.'
-                    );
-                }
-
-                /*
-            |--------------------------------------------------------------------------
-            | CEK APAKAH PRICING RULE SUDAH DIGUNAKAN
-            |--------------------------------------------------------------------------
-            |
-            | Satu group Pricing Rule bisa terdiri dari:
-            |
-            | - general
-            | - division
-            | - plain
-            |
-            | Jika salah satu saja sudah digunakan oleh Production Cost,
-            | seluruh group tidak boleh dihapus.
-            |
-            */
-
-                foreach ($pricingRules as $pricingRule) {
-
-                    $used = DB::table(
-                        'm_production_cost_details'
-                    )
-                        ->where(function ($query) use ($pricingRule) {
-                            $query->where(
-                                'general_pricing_rule_id',
-                                $pricingRule->id
-                            )
-                                ->orWhere(
-                                    'division_pricing_rule_id',
-                                    $pricingRule->id
-                                )
-                                ->orWhere(
-                                    'plain_pricing_rule_id',
-                                    $pricingRule->id
-                                );
-                        })
-                        ->exists();
-
-                    if ($used) {
-
-                        $priceTypeLabel = [
-                            'general' => 'Harga Umum',
-                            'division' => 'Harga Divisi',
-                            'plain' => 'Harga Polos',
-                        ][$pricingRule->price_type];
-
-                        /*
-                    |--------------------------------------------------------------------------
-                    | AMBIL ENGINE, LOCATION, VENDOR & CATEGORY
-                    |--------------------------------------------------------------------------
-                    */
-
-                        $engine = DB::table('m_engines')
-                            ->where('id', $engine_id)
-                            ->first();
-
-                        $location = DB::table('m_locations')
-                            ->where('id', $location_id)
-                            ->first();
-
-                        $vendor = null;
-
-                        if ($vendor_id !== 'null') {
-                            $vendor = DB::table('m_vendors')
-                                ->where('id', $vendor_id)
-                                ->first();
-                        }
-
-                        $category = DB::table('m_categories')
-                            ->where('id', $category_id)
-                            ->first();
-
-                        /*
-                    |--------------------------------------------------------------------------
-                    | PESAN ERROR
-                    |--------------------------------------------------------------------------
-                    */
-
-                        $message =
-                            'Pricing Rule ' .
-                            $priceTypeLabel .
-                            ' untuk mesin "' .
-                            ($engine->name ?? $engine_id) .
-                            '", lokasi "' .
-                            ($location->name ?? $location_id) .
-                            '"';
-
-                        if ($vendor_id !== 'null') {
-                            $message .=
-                                ', vendor "' .
-                                ($vendor->name ?? $vendor_id) .
-                                '"';
-                        }
-
-                        $message .=
-                            ' dan kategori "' .
-                            ($category->name ?? $category_id) .
-                            '" sudah digunakan oleh Production Cost sehingga tidak dapat dihapus.';
-
-                        throw new Exception($message);
-                    }
-                }
-
-                /*
-            |--------------------------------------------------------------------------
-            | HAPUS SELURUH PRICING RULE
-            |--------------------------------------------------------------------------
-            |
-            | Pada titik ini seluruh rule sudah dipastikan belum digunakan
-            | oleh Production Cost.
-            |
-            */
-
-                DB::table('m_pricing_rules')
-                    ->where('engine_id', $engine_id)
-                    ->where('location_id', $location_id)
-                    ->where('category_id', $category_id)
-                    ->where(function ($query) use ($vendor_id) {
-                        if ($vendor_id === 'null') {
-                            $query->whereNull('vendor_id');
-                        } else {
-                            $query->where('vendor_id', $vendor_id);
-                        }
-                    })
-                    ->delete();
-            });
-
-            /*
-        |--------------------------------------------------------------------------
-        | SUCCESS RESPONSE
-        |--------------------------------------------------------------------------
-        */
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Markup harga berhasil dihapus.'
-            ]);
-        } catch (Exception $e) {
-
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage()
-            ], 422);
+        $ids = DB::table('m_pricing_rules')->where('engine_id', $engine_id)
+            ->where('location_id', $location_id)->where('category_id', $category_id)
+            ->where('vendor_id', $vendor_id === 'null' ? null : $vendor_id)
+            ->orderBy('id')->pluck('id')->map(fn ($id) => (int) $id)->all();
+        if (!$ids) {
+            return response()->json(['success' => false, 'message' => 'Data markup harga tidak ditemukan.'], 404);
         }
+        return $this->deletePricingRuleGroups([[
+            'source' => 'large_format', 'member_ids' => $ids, 'engine_id' => $engine_id,
+            'location_id' => $location_id, 'category_id' => $category_id,
+            'vendor_id' => $vendor_id === 'null' ? null : $vendor_id,
+        ]]);
     }
 
     public function import(Request $request)

@@ -103,6 +103,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/admin/categories/data', [CategoryCT::class, 'data'])->name('admin_categories_data');
     Route::post('/admin/categories/store', [CategoryCT::class, 'store'])->name('admin_store_categories');
     Route::delete('/admin/categories/{id}', [CategoryCT::class, 'destroy'])->name('admin_destroy_category');
+    Route::post('/admin/categories/bulk-destroy', [CategoryCT::class, 'bulkDestroy'])->name('admin_bulk_destroy_categories');
     Route::put('/admin/categories/{id}', [CategoryCT::class, 'update'])->name('admin_update_category');
     Route::get('/admin/categories/export', [CategoryCT::class, 'export'])->name('admin_export_category');
     Route::post('/admin/categories/import', [CategoryCT::class, 'import'])->name('admin_import_category');
@@ -113,6 +114,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/admin/engines', [EngineCT::class, 'index'])->name('admin_engines');
     Route::get('/admin/engines/data', [EngineCT::class, 'data'])->name('admin_data_engine');
     Route::post('/admin/engines/import', [EngineCT::class, 'import'])->name('admin_import_engine');
+    Route::post('/admin/engines/bulk-destroy', [EngineCT::class, 'bulkDestroy'])->name('admin_bulk_destroy_engines');
     Route::delete('/admin/engines/{id}/delete', [EngineCT::class, 'destroy'])->name('admin_destroy_engine');
     Route::get('/admin/engines/export', [EngineCT::class, 'export'])->name('admin_export_engine');
 
@@ -124,6 +126,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/admin/vendors/{id}/delete', [VendorCT::class, 'destroy'])->name('admin_destroy_vendor');
     Route::get('/admin/vendors/export', [VendorCT::class, 'export'])->name('admin_export_vendor');
     Route::post('/admin/vendors/import', [VendorCT::class, 'import'])->name('admin_import_vendor');
+    Route::post('/admin/vendors/bulk-destroy', [VendorCT::class, 'bulkDestroy'])->name('admin_bulk_destroy_vendors');
 
     Route::get('/admin/engine-rates', [EngineRateCT::class, 'index'])->name('admin_engine_rates');
     Route::get('/admin/engine-rates/create', [EngineRateCT::class, 'create'])->name('admin_create_engine_rate');
@@ -139,6 +142,7 @@ Route::middleware('auth')->group(function () {
     Route::put('/admin/materials/{id}/update', [MaterialCT::class, 'update'])->name('admin_update_material');
     Route::get('/admin/materials/data', [MaterialCT::class, 'data'])->name('admin_data_material');
     Route::post('/admin/materials/import', [MaterialCT::class, 'import'])->name('admin_import_material');
+    Route::post('/admin/materials/bulk-destroy', [MaterialCT::class, 'bulkDestroy'])->name('admin_bulk_destroy_materials');
     Route::get('/admin/materials/export', [MaterialCT::class, 'export'])->name('admin_export_material');
     Route::delete('/admin/materials/{id}/delete', [MaterialCT::class, 'destroy'])->name('admin_destroy_material');
     Route::get('/admin/materials/{id}/details', [MaterialCT::class, 'details'])->name('admin_material_details');
@@ -176,6 +180,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/admin/locations/data', [LocationCT::class, 'data'])->name('admin_data_locations');
     Route::post('/admin/locations/store', [LocationCT::class, 'store'])->name('admin_store_location');
     Route::post('/admin/locations/import', [LocationCT::class, 'import'])->name('admin_import_location');
+    Route::post('/admin/locations/bulk-destroy', [LocationCT::class, 'bulkDestroy'])->name('admin_bulk_destroy_locations');
     Route::delete('/admin/locations/{id}/delete', [LocationCT::class, 'destroy'])->name('admin_delete_location');
     Route::get('/admin/locations/exports', [LocationCT::class, 'export'])->name('admin_export_location');
     Route::put('/admin/locations/{id}/edit', [LocationCT::class, 'update'])->name('admin_update_location');
@@ -245,6 +250,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/get-lamination-sizes', [GetDataCT::class, 'getLaminationSizes'])->name('get_lamination_sizes');
     Route::post('/admin/production-cost-finishings/create', [ProductionCostFinishingCT::class, 'store'])->name('admin_store_pc_finishing');
     Route::get('/admin/production-cost-finishings/data', [ProductionCostFinishingCT::class, 'data'])->name('admin_data_pc_finishings');
+    Route::post('/admin/production-cost-finishings/bulk-delete', [ProductionCostFinishingCT::class, 'bulkDestroy'])->name('admin_bulk_destroy_pc_finishings');
     Route::delete('/admin/production-cost-finishings/{id}/delete', [ProductionCostFinishingCT::class, 'destroy'])->name('admin_delete_pc_finishing');
     Route::get('/admin/production-cost-finishings/{id}/edit', [ProductionCostFinishingCT::class, 'edit'])->name('admin_edit_pc_finishing');
     Route::put('/admin/production-cost-finishings/{id}/edit', [ProductionCostFinishingCT::class, 'update'])->name('admin_update_pc_finishing');
@@ -258,6 +264,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/admin/pricing-rules', [PricingRulesCT::class, 'index'])->name('admin_pricing_rules');
     Route::get('/admin/pricing-rules/data', [PricingRulesCT::class, 'data'])->name('admin_data_pricing_rule');
+    Route::post('/admin/pricing-rules/bulk-delete', [PricingRulesCT::class, 'bulkDestroy'])->name('admin_bulk_destroy_pricing_rules');
     Route::post('/admin/pricing-rules/create', [PricingRulesCT::class, 'store'])->name('admin_store_pricing_rule');
     Route::post('/admin/pricing-rules/digital/create', [PricingRulesCT::class, 'storeDigital'])->name('admin_store_digital_pricing_rule');
     Route::get('/admin/pricing-rules/digital/{id}/details', [PricingRulesCT::class, 'detailsDigital'])->name('admin_digital_pricing_rule_details');
@@ -273,6 +280,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/admin/laminations', [LaminationCT::class, 'index'])->name('admin_laminations');
     Route::post('/admin/laminations/create', [LaminationCT::class, 'store'])->name('admin_store_lamination');
     Route::get('/admin/laminations/data', [LaminationCT::class, 'data'])->name('admin_data_laminations');
+    Route::post('/admin/laminations/bulk-delete', [LaminationCT::class, 'bulkDestroy'])->name('admin_bulk_destroy_laminations');
     Route::put('/admin/laminations/{id}/update', [LaminationCT::class, 'update'])->name('admin_update_lamination');
     Route::get('/admin/laminations/{id}/edit', [LaminationCT::class, 'edit'])->name('admin_edit_lamination');
     Route::get('/admin/laminations/{id}/details', [LaminationCT::class, 'details'])->name('admin_lamination_details');
@@ -282,6 +290,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/admin/cuttings', [CuttingCT::class, 'index'])->name('admin_cuttings');
     Route::get('/admin/cuttings/data', [CuttingCT::class, 'data'])->name('admin_data_cuttings');
+    Route::post('/admin/cuttings/bulk-delete', [CuttingCT::class, 'bulkDestroy'])->name('admin_bulk_destroy_cuttings');
     Route::get('/admin/cuttings/export', [CuttingCT::class, 'export'])->name('admin_export_cuttings');
     Route::post('/admin/cuttings/import', [CuttingCT::class, 'import'])->name('admin_import_cuttings');
     Route::post('/admin/cuttings/create', [CuttingCT::class, 'store'])->name('admin_store_cutting');
@@ -292,6 +301,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/admin/lamination-pricing-rules', [LaminationPricingRuleCT::class, 'index'])->name('admin_lamination_pricing_rules');
     Route::get('/admin/lamination-pricing-rules/data', [LaminationPricingRuleCT::class, 'data'])->name('admin_data_lamination_pricing_rule');
+    Route::post('/admin/lamination-pricing-rules/bulk-delete', [LaminationPricingRuleCT::class, 'bulkDestroy'])->name('admin_bulk_destroy_lamination_pricing_rules');
     Route::post('/admin/lamination-pricing-rules/create', [LaminationPricingRuleCT::class, 'store'])->name('admin_store_lamination_pricing_rule');
     Route::post('/admin/lamination-pricing-rules/digital/create', [LaminationPricingRuleCT::class, 'storeDigital'])->name('admin_store_digital_lamination_pricing_rule');
     Route::get('/admin/lamination-pricing-rules/digital/{id}/details', [LaminationPricingRuleCT::class, 'detailsDigital'])->name('admin_digital_lamination_pricing_rule_details');
@@ -308,6 +318,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/admin/production-cost-finishing-laminations/create', [ProductionCostFinishingLaminationCT::class, 'create'])->name('admin_create_pc_finishing_lamination');
     Route::post('/admin/production-cost-finishing-laminations/create', [ProductionCostFinishingLaminationCT::class, 'store'])->name('admin_store_lamination_pc_finishing');
     Route::get('/admin/production-cost-finishing-laminations/data', [ProductionCostFinishingLaminationCT::class, 'data'])->name('admin_data_pc_finishing_lamination');
+    Route::post('/admin/production-cost-finishing-laminations/bulk-delete', [ProductionCostFinishingLaminationCT::class, 'bulkDestroy'])->name('admin_bulk_destroy_pc_finishing_laminations');
     Route::get('/admin/production-cost-finishing-laminations/digital/{id}/edit', [ProductionCostFinishingLaminationCT::class, 'editDigital'])->name('admin_edit_pc_finishing_lamination_digital');
     Route::get('/admin/production-cost-finishing-laminations/digital/{id}/details', [ProductionCostFinishingLaminationCT::class, 'detailsDigital'])->name('admin_details_pc_finishing_lamination_digital');
     Route::delete('/admin/production-cost-finishing-laminations/digital/{id}/delete', [ProductionCostFinishingLaminationCT::class, 'destroyDigital'])->name('admin_delete_pc_finishing_lamination_digital');
@@ -332,6 +343,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/admin/display-pricing-rules', [DisplayPricingRuleCT::class, 'index'])->name('admin_display_pricing_rules');
     Route::get('/admin/display-pricing-rules/data', [DisplayPricingRuleCT::class, 'data'])->name('admin_data_display_pricing_rule');
+    Route::post('/admin/display-pricing-rules/bulk-delete', [DisplayPricingRuleCT::class, 'bulkDestroy'])->name('admin_bulk_destroy_display_pricing_rules');
     Route::post('/admin/display-pricing-rules/create', [DisplayPricingRuleCT::class, 'store'])->name('admin_store_display_pricing_rule');
     Route::delete('/admin/display-pricing-rules/{engine_id}/{location_id}/{category_id}/delete', [DisplayPricingRuleCT::class, 'destroy'])->name('admin_delete_display_pricing_rule');
     Route::get('/admin/display-pricing-rules/{engine_id}/{location_id}/{category_id}/details', [DisplayPricingRuleCT::class, 'details'])->name('admin_display_pricing_rule_details');
@@ -346,6 +358,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/admin/production-cost-finishing-displays/create', [ProductionCostFinishingDisplayCT::class, 'store'])->name('admin_store_pc_finishing_display');
     Route::get('/admin/production-cost-finishing-display/components', [ProductionCostFinishingDisplayCT::class, 'components'])->name('admin_pc_finishing_display_components');
     Route::get('/admin/production-cost-finishing-displays/data', [ProductionCostFinishingDisplayCT::class, 'data'])->name('admin_data_pc_finishing_display');
+    Route::post('/admin/production-cost-finishing-displays/bulk-delete', [ProductionCostFinishingDisplayCT::class, 'bulkDestroy'])->name('admin_bulk_destroy_pc_finishing_displays');
     Route::delete('/admin/production-cost-finishing-displays/{id}/delete', [ProductionCostFinishingDisplayCT::class, 'destroy'])->name('admin_destroy_pc_finishing_display');
     Route::get('/admin/production-cost-finishing-displays/{id}/add-component', [ProductionCostFinishingDisplayCT::class, 'addComponent'])->name('admin_add_component_pc_finishing_display');
     Route::post('/admin/production-cost-finishing-displays/{id}/add-component', [ProductionCostFinishingDisplayCT::class, 'storeComponent'])->name('admin_store_component_pc_finishing_display');
@@ -367,6 +380,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/admin/discounts', [DiscountCT::class, 'index'])->name('admin_discounts');
     Route::get('/admin/discounts/data', [DiscountCT::class, 'data'])->name('admin_data_discounts');
     Route::post('/admin/discounts/create', [DiscountCT::class, 'store'])->name('admin_store_discount');
+    Route::post('/admin/discounts/bulk-destroy', [DiscountCT::class, 'bulkDestroy'])->name('admin_bulk_destroy_discounts');
     Route::get('/admin/discounts/{id}/edit', [DiscountCT::class, 'edit'])->name('admin_edit_discount');
     Route::get('/admin/discounts/{id}/details', [DiscountCT::class, 'details'])->name('admin_discount_details');
     Route::put('/admin/discounts/{id}/update', [DiscountCT::class, 'update'])->name('admin_update_discount');
@@ -374,6 +388,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/admin/production-cost-finishing-cuttings', [ProductionCostFinishingCuttingCT::class, 'index'])->name('admin_production_cost_finishing_cuttings');
     Route::get('/admin/production-cost-finishing-cuttings/data', [ProductionCostFinishingCuttingCT::class, 'data'])->name('admin_data_pc_finishing_cuttings');
+    Route::post('/admin/production-cost-finishing-cuttings/bulk-delete', [ProductionCostFinishingCuttingCT::class, 'bulkDestroy'])->name('admin_bulk_destroy_pc_finishing_cuttings');
     Route::get('/admin/production-cost-finishing-cuttings/create', [ProductionCostFinishingCuttingCT::class, 'create'])->name('admin_create_pc_finishing_cutting');
     Route::post('/admin/production-cost-finishing-cuttings/create', [ProductionCostFinishingCuttingCT::class, 'store'])->name('admin_store_pc_finishing_cutting');
     Route::get('/admin/production-cost-finishing-cuttings/{id}/edit', [ProductionCostFinishingCuttingCT::class, 'edit'])->name('admin_edit_pc_finishing_cutting');
@@ -409,6 +424,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/admin/offset-master/delete-print-cost/{id}', [OffsetMasterCT::class, 'destroyPrintCost'])->name('admin_delete_offset_print_cost');
     Route::delete('/admin/offset-master/delete-pricing-rule/{id}', [OffsetMasterCT::class, 'destroyPricingRule'])->name('admin_delete_offset_pricing_rule');
     Route::delete('/admin/offset-master/delete-product/{id}', [OffsetMasterCT::class, 'destroyProduct'])->name('admin_delete_offset_product');
+    Route::post('/admin/offset-master/bulk-delete', [OffsetMasterCT::class, 'bulkDestroy'])->name('admin_bulk_delete_offset');
     Route::put('/admin/offset-master/update-plano/{id}', [OffsetMasterCT::class, 'updatePlano'])->name('admin_update_offset_plano');
     Route::put('/admin/offset-master/update-plate/{id}', [OffsetMasterCT::class, 'updatePlate'])->name('admin_update_offset_plate');
     Route::put('/admin/offset-master/update-print-cost/{id}', [OffsetMasterCT::class, 'updatePrintCost'])->name('admin_update_offset_print_cost');
@@ -421,6 +437,8 @@ Route::middleware('auth')->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::get('/admin/calendar-master', [CalendarMasterCT::class, 'index'])->name('admin_calendar_master');
+    Route::get('/admin/calendar-master/data/{type}', [CalendarMasterCT::class, 'data'])->name('admin_data_calendar');
+    Route::post('/admin/calendar-master/bulk-delete', [CalendarMasterCT::class, 'bulkDestroy'])->name('admin_bulk_delete_calendar');
     Route::post('/admin/calendar-master/store-product', [CalendarMasterCT::class, 'storeProduct'])->name('admin_store_calendar_product');
     Route::post('/admin/calendar-master/store-material', [CalendarMasterCT::class, 'storeMaterial'])->name('admin_store_calendar_material');
     Route::post('/admin/calendar-master/store-component', [CalendarMasterCT::class, 'storeComponent'])->name('admin_store_calendar_component');
@@ -440,6 +458,8 @@ Route::middleware('auth')->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::get('/admin/merchandise-master', [MerchandiseMasterCT::class, 'index'])->name('admin_merchandise_master');
+    Route::get('/admin/merchandise-master/data/{type}', [MerchandiseMasterCT::class, 'data'])->name('admin_data_merchandise');
+    Route::post('/admin/merchandise-master/bulk-delete', [MerchandiseMasterCT::class, 'bulkDestroy'])->name('admin_bulk_delete_merchandise');
     Route::post('/admin/merchandise-master/store-lanyard', [MerchandiseMasterCT::class, 'storeLanyardTier'])->name('admin_store_merchandise_lanyard_tier');
     Route::put('/admin/merchandise-master/update-lanyard/{id}', [MerchandiseMasterCT::class, 'updateLanyardTier'])->name('admin_update_merchandise_lanyard_tier');
     Route::delete('/admin/merchandise-master/delete-lanyard/{id}', [MerchandiseMasterCT::class, 'destroyLanyardTier'])->name('admin_destroy_merchandise_lanyard_tier');

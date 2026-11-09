@@ -18,13 +18,19 @@ class ProductionCostFinishingLaminationCT extends Controller
 {
     public function index()
     {
-        return view('admin.production-cost-finishing-lamination.index');
+        $data['filterLocations'] = DB::table('m_locations')
+            ->where('status', 'Active')
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        return view('admin.production-cost-finishing-lamination.index')->with($data);
     }
 
     public function data(Request $request)
     {
         $validated = $request->validate([
             'pricing_engine' => ['nullable', 'in:large_format,digital_print_a3'],
+            'location_id' => ['nullable', 'integer', 'min:1'],
         ]);
 
         if (($validated['pricing_engine'] ?? 'large_format') === 'digital_print_a3') {
@@ -40,7 +46,7 @@ class ProductionCostFinishingLaminationCT extends Controller
     | Karena itu total record dihitung berdasarkan distinct engine_id.
     |
     */
-        $totalRecords = DB::table('m_production_costs as pc')
+        $baseQuery = DB::table('m_production_costs as pc')
             ->join(
                 'm_production_cost_locations as pcl',
                 'pcl.production_cost_id',
@@ -72,8 +78,9 @@ class ProductionCostFinishingLaminationCT extends Controller
                 'pc.engine_id'
             )
             ->whereRaw('LOWER(TRIM(e.name)) = ?', ['large format'])
-            ->distinct()
-            ->count('e.id');
+            ->select('e.id')
+            ->distinct();
+        $totalRecords = (clone $baseQuery)->get()->count();
 
         /*
     |--------------------------------------------------------------------------
@@ -163,6 +170,10 @@ class ProductionCostFinishingLaminationCT extends Controller
                 'e.name'
             );
 
+        if (!empty($validated['location_id'])) {
+            $query->where('pcl.location_id', $validated['location_id']);
+        }
+
         /*
     |--------------------------------------------------------------------------
     | SEARCH
@@ -213,19 +224,40 @@ class ProductionCostFinishingLaminationCT extends Controller
     | PAGINATION
     |--------------------------------------------------------------------------
     */
-        $start = (int) $request->input('start', 0);
-        $length = (int) $request->input('length', 10);
+        $start = max(0, (int) $request->input('start', 0));
+        $length = min(100, max(1, (int) $request->input('length', 10)));
 
         /*
     |--------------------------------------------------------------------------
     | AMBIL DATA
     |--------------------------------------------------------------------------
     */
+        $orderColumns = [
+            2 => 'e.name',
+            4 => 'category_names',
+            5 => 'lamination_count',
+            6 => 'size_count',
+        ];
+        $orderColumn = (int) $request->input('order.0.column', 2);
+        $orderDirection = strtolower((string) $request->input('order.0.dir', 'asc')) === 'desc' ? 'desc' : 'asc';
+        if ($orderColumn === 3) {
+            $query->orderByRaw('MIN(l.name) ' . $orderDirection);
+        } else {
+            $query->orderBy($orderColumns[$orderColumn] ?? 'e.name', $orderDirection);
+        }
+
         $data = $query
-            ->orderBy('e.name', 'asc')
             ->offset($start)
             ->limit($length)
             ->get();
+
+        if ($data->isNotEmpty()) {
+            $data->each(function ($row) {
+                $row->production_cost_ids = $this->largeFormatLaminationProductionCostIds(
+                    (int) $row->engine_id
+                )->map(fn ($id) => (int) $id)->all();
+            });
+        }
 
         /*
     |--------------------------------------------------------------------------
@@ -254,12 +286,17 @@ class ProductionCostFinishingLaminationCT extends Controller
                 'e.name as engine_name',
                 'l.name as location_names',
                 'v.name as vendor_name',
+                DB::raw('COUNT(DISTINCT d.category_id) as category_count'),
                 DB::raw('COUNT(DISTINCT d.lamination_id) as lamination_count'),
                 DB::raw("'digital_print_a3' as pricing_engine")
             )
             ->groupBy('pc.id', 'e.id', 'e.name', 'l.name', 'v.name');
 
         $totalRecords = (clone $query)->get()->count();
+        if ($request->filled('location_id') && $request->input('location_id') !== 'all') {
+            $query->where('pc.location_id', $request->input('location_id'));
+        }
+
         $search = $request->input('search.value');
 
         if (!empty($search)) {
@@ -279,13 +316,23 @@ class ProductionCostFinishingLaminationCT extends Controller
         }
 
         $totalFiltered = (clone $query)->get()->count();
+        $orderColumns = [
+            2 => 'e.name',
+            3 => 'l.name',
+            4 => 'category_count',
+            5 => 'lamination_count',
+        ];
+        $orderColumn = (int) $request->input('order.0.column', 2);
+        $orderDirection = strtolower((string) $request->input('order.0.dir', 'asc')) === 'desc' ? 'desc' : 'asc';
+        $query->orderBy($orderColumns[$orderColumn] ?? 'e.name', $orderDirection);
+        if ($orderColumn !== 3) {
+            $query->orderBy('l.name');
+        }
+
         $data = $query
-            ->orderBy('e.name')
-            ->orderBy('l.name')
-            ->orderBy('v.name')
             ->orderBy('pc.id')
-            ->offset((int) $request->input('start', 0))
-            ->limit((int) $request->input('length', 10))
+            ->offset(max(0, (int) $request->input('start', 0)))
+            ->limit(min(100, max(1, (int) $request->input('length', 10))))
             ->get();
 
         $categoryNames = DB::table('m_digital_lamination_production_cost_details as d')
@@ -1830,67 +1877,161 @@ class ProductionCostFinishingLaminationCT extends Controller
 
     public function destroy($id)
     {
-        DB::transaction(function () use ($id) {
-
-            /*
-        |--------------------------------------------------------------------------
-        | CARI PRODUCTION COST LAMINASI BERDASARKAN ENGINE
-        |--------------------------------------------------------------------------
-        |
-        | Hanya ambil production cost yang memiliki
-        | detail Production Cost Laminasi.
-        |
-        | Production Cost Material tidak akan ikut terambil.
-        |
-        */
-
-            $productionCostIds = DB::table('m_production_costs as pc')
-                ->join(
-                    'm_lamination_production_cost_details as lpcd',
-                    'lpcd.production_cost_id',
-                    '=',
-                    'pc.id'
-                )
-                ->where('pc.engine_id', $id)
-                ->pluck('pc.id')
-                ->unique();
-
-            /*
-        |--------------------------------------------------------------------------
-        | CEK DATA
-        |--------------------------------------------------------------------------
-        */
+        return DB::transaction(function () use ($id) {
+            $productionCostIds = $this->largeFormatLaminationProductionCostIds((int) $id, true);
 
             if ($productionCostIds->isEmpty()) {
-                abort(response()->json([
+                return response()->json([
                     'success' => false,
                     'message' => 'Data production cost laminasi tidak ditemukan.'
-                ], 404));
+                ], 404);
             }
 
-            /*
-        |--------------------------------------------------------------------------
-        | HAPUS PRODUCTION COST LAMINASI
-        |--------------------------------------------------------------------------
-        |
-        | FK cascade akan otomatis menghapus:
-        |
-        | - m_production_cost_locations
-        | - m_production_cost_categories
-        | - m_lamination_production_cost_details
-        | - m_lamination_production_cost_detail_sizes
-        |
-        */
+            if ($this->hasMaterialCostReferences($productionCostIds->all())) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Production cost laminasi tidak dapat dihapus karena konfigurasi mesin juga digunakan oleh biaya material.'
+                ], 422);
+            }
 
-            DB::table('m_production_costs')
-                ->whereIn('id', $productionCostIds)
-                ->delete();
+            DB::table('m_production_costs')->whereIn('id', $productionCostIds)->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Production cost laminasi berhasil dihapus.'
+            ]);
         });
+    }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Production cost laminasi berhasil dihapus.'
+    public function bulkDestroy(Request $request)
+    {
+        $validated = $request->validate([
+            'large_format' => ['sometimes', 'array', 'max:100'],
+            'large_format.*.engine_id' => ['required', 'integer', 'min:1'],
+            'large_format.*.production_cost_ids' => ['required', 'array', 'min:1', 'max:1000'],
+            'large_format.*.production_cost_ids.*' => ['required', 'integer', 'min:1', 'distinct'],
+            'digital_print_a3' => ['sometimes', 'array', 'max:100'],
+            'digital_print_a3.*' => ['required', 'integer', 'min:1', 'distinct'],
         ]);
+
+        $largeFormat = $validated['large_format'] ?? [];
+        $digitalIds = array_map('intval', $validated['digital_print_a3'] ?? []);
+
+        if (!$largeFormat && !$digitalIds) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Pilih setidaknya satu biaya laminasi.'
+            ], 422);
+        }
+
+        return DB::transaction(function () use ($largeFormat, $digitalIds) {
+            $allLargeFormatIds = [];
+            $seenEngineIds = [];
+
+            foreach ($largeFormat as $group) {
+                $engineId = (int) $group['engine_id'];
+                $expectedIds = array_map('intval', $group['production_cost_ids']);
+                sort($expectedIds);
+
+                if (in_array($engineId, $seenEngineIds, true)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Pilihan mesin Large Format duplikat. Tidak ada data yang dihapus.'
+                    ], 422);
+                }
+                $seenEngineIds[] = $engineId;
+
+                $currentIds = $this->largeFormatLaminationProductionCostIds($engineId, true)
+                    ->map(fn ($id) => (int) $id)
+                    ->all();
+                sort($currentIds);
+
+                if (!$currentIds || $currentIds !== $expectedIds) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Data biaya laminasi Large Format berubah atau tidak ditemukan. Tidak ada data yang dihapus.'
+                    ], 422);
+                }
+
+                $allLargeFormatIds = array_merge($allLargeFormatIds, $currentIds);
+            }
+
+            if (count($allLargeFormatIds) !== count(array_unique($allLargeFormatIds))) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Pilihan biaya laminasi duplikat. Tidak ada data yang dihapus.'
+                ], 422);
+            }
+
+            if ($allLargeFormatIds && $this->hasMaterialCostReferences($allLargeFormatIds)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Sebagian konfigurasi Large Format juga digunakan oleh biaya material. Tidak ada data yang dihapus.'
+                ], 422);
+            }
+
+            if ($digitalIds) {
+                $currentDigitalIds = DB::table('m_digital_lamination_production_costs as pc')
+                    ->whereIn('pc.id', $digitalIds)
+                    ->whereExists(function ($query) {
+                        $query->select(DB::raw(1))
+                            ->from('m_engines as e')
+                            ->whereColumn('e.id', 'pc.engine_id')
+                            ->whereRaw('LOWER(TRIM(e.name)) = ?', ['digital print a3+']);
+                    })
+                    ->orderBy('pc.id')
+                    ->lockForUpdate()
+                    ->pluck('pc.id')
+                    ->map(fn ($id) => (int) $id)
+                    ->all();
+                $expectedDigitalIds = $digitalIds;
+                sort($expectedDigitalIds);
+
+                if (count($currentDigitalIds) !== count($expectedDigitalIds) || $currentDigitalIds !== $expectedDigitalIds) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Sebagian biaya laminasi Digital Print A3+ berubah atau tidak ditemukan. Tidak ada data yang dihapus.'
+                    ], 422);
+                }
+            }
+
+            if ($allLargeFormatIds) {
+                DB::table('m_production_costs')->whereIn('id', $allLargeFormatIds)->delete();
+            }
+            if ($digitalIds) {
+                DB::table('m_digital_lamination_production_costs')->whereIn('id', $digitalIds)->delete();
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => (count($largeFormat) + count($digitalIds)) . ' konfigurasi biaya laminasi berhasil dihapus.'
+            ]);
+        });
+    }
+
+    private function largeFormatLaminationProductionCostIds(int $engineId, bool $lock = false)
+    {
+        $query = DB::table('m_production_costs as pc')
+            ->where('pc.engine_id', $engineId)
+            ->whereExists(function ($query) {
+                $query->select(DB::raw(1))
+                    ->from('m_lamination_production_cost_details as lpcd')
+                    ->whereColumn('lpcd.production_cost_id', 'pc.id');
+            })
+            ->orderBy('pc.id');
+
+        if ($lock) {
+            $query->lockForUpdate();
+        }
+
+        return $query->pluck('pc.id');
+    }
+
+    private function hasMaterialCostReferences(array $productionCostIds): bool
+    {
+        return $productionCostIds && DB::table('m_production_cost_details')
+            ->whereIn('production_cost_id', $productionCostIds)
+            ->exists();
     }
 
     public function edit($id)

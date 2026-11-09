@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
 use Carbon\Carbon;
 use App\Imports\EnginesImport;
 use Maatwebsite\Excel\Facades\Excel;
@@ -15,7 +16,14 @@ class EngineCT extends Controller
 {
     public function index()
     {
-        return  view('admin.engine.index');
+        $creators = DB::table('m_engines')
+            ->whereNotNull('created_by')
+            ->where('created_by', '!=', '')
+            ->distinct()
+            ->orderBy('created_by')
+            ->pluck('created_by');
+
+        return view('admin.engine.index', compact('creators'));
     }
 
     public function data(Request $request)
@@ -37,6 +45,21 @@ class EngineCT extends Controller
 
         $query = DB::table('m_engines');
 
+        $creator = $request->input('creator');
+        if ($creator && $creator !== 'all') {
+            $query->where('created_by', $creator);
+        }
+
+        $period = $request->input('period');
+        if ($period === 'today') {
+            $query->whereDate('created_at', Carbon::today());
+        } elseif ($period === '7_days') {
+            $query->where('created_at', '>=', Carbon::now()->subDays(7));
+        } elseif ($period === 'month') {
+            $query->where('created_at', '>=', Carbon::now()->startOfMonth());
+        } elseif ($period === 'year') {
+            $query->where('created_at', '>=', Carbon::now()->startOfYear());
+        }
 
         /*
     |--------------------------------------------------------------------------
@@ -44,9 +67,9 @@ class EngineCT extends Controller
     |--------------------------------------------------------------------------
     */
 
-        $search = $request->input('search.value');
+        $search = trim((string) $request->input('search.value', ''));
 
-        if (!empty($search)) {
+        if ($search !== '') {
 
             $query->where(function ($q) use ($search) {
 
@@ -57,6 +80,10 @@ class EngineCT extends Controller
 
                     ->orWhereRaw(
                         'LOWER(status) LIKE ?',
+                        ['%' . strtolower($search) . '%']
+                    )
+                    ->orWhereRaw(
+                        'LOWER(created_by) LIKE ?',
                         ['%' . strtolower($search) . '%']
                     );
             });
@@ -80,22 +107,16 @@ class EngineCT extends Controller
 
         $columns = [
 
-            0 => 'id',
-
-            1 => 'name',
-
-            2 => 'calculation_method',
-
-            3 => 'pricing_method',
-
-            4 => 'unit',
-
-            5 => 'status',
+            2 => 'name',
+            3 => 'minimum_charge',
+            4 => 'status',
+            5 => 'created_by',
+            6 => 'created_at',
 
         ];
 
 
-        $orderColumnIndex = (int) $request->input('order.0.column', 1);
+        $orderColumnIndex = (int) $request->input('order.0.column', 2);
 
         $orderColumn = $columns[$orderColumnIndex] ?? 'name';
 
@@ -120,9 +141,9 @@ class EngineCT extends Controller
     |--------------------------------------------------------------------------
     */
 
-        $start = (int) $request->input('start', 0);
+        $start = max(0, (int) $request->input('start', 0));
 
-        $length = (int) $request->input('length', 10);
+        $length = min(100, max(1, (int) $request->input('length', 10)));
 
 
         /*
@@ -133,14 +154,8 @@ class EngineCT extends Controller
 
         $engines = $query
 
-            ->orderByRaw("
-                CASE
-                    WHEN status = 'Active' THEN 1
-                    WHEN status = 'Inactive' THEN 2
-                    ELSE 3
-                END
-            ")
             ->orderBy($orderColumn, $orderDirection)
+            ->orderBy('id')
 
             ->offset($start)
 
@@ -499,59 +514,66 @@ class EngineCT extends Controller
 
     public function destroy($id)
     {
-        /*
-    |--------------------------------------------------------------------------
-    | CEK DATA MESIN
-    |--------------------------------------------------------------------------
-    */
+        return $this->deleteEngines([(int) $id]);
+    }
 
-        $engine = DB::table('m_engines')
-            ->where('id', $id)
-            ->first();
+    public function bulkDestroy(Request $request)
+    {
+        $validated = $request->validate([
+            'ids' => ['required', 'array', 'min:1', 'max:1000'],
+            'ids.*' => ['required', 'integer', 'min:1', 'distinct'],
+        ]);
 
+        return $this->deleteEngines(array_map('intval', $validated['ids']));
+    }
 
-        /*
-    |--------------------------------------------------------------------------
-    | JIKA DATA TIDAK DITEMUKAN
-    |--------------------------------------------------------------------------
-    */
+    private function deleteEngines(array $ids)
+    {
+        return DB::transaction(function () use ($ids) {
+            $engines = DB::table('m_engines')->whereIn('id', $ids)->lockForUpdate()->get();
 
-        if (!$engine) {
+            if ($engines->count() !== count($ids)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Sebagian mesin tidak ditemukan. Tidak ada data yang dihapus.',
+                ], 404);
+            }
+
+            // Protect constrained references and conventional engine_id columns without a foreign key.
+            foreach (Schema::getTables() as $table) {
+                if ($table['name'] === 'm_engines') {
+                    continue;
+                }
+
+                $tableName = $table['schema_qualified_name'];
+                $columns = Schema::hasColumn($tableName, 'engine_id') ? ['engine_id'] : [];
+                foreach (Schema::getForeignKeys($tableName) as $foreignKey) {
+                    if ($foreignKey['foreign_table'] === 'm_engines') {
+                        foreach ($foreignKey['foreign_columns'] as $index => $foreignColumn) {
+                            if ($foreignColumn === 'id') {
+                                $columns[] = $foreignKey['columns'][$index];
+                            }
+                        }
+                    }
+                }
+
+                foreach (array_unique($columns) as $column) {
+                    if (DB::table($tableName)->whereIn($column, $ids)->exists()) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Mesin tidak dapat dihapus karena masih digunakan oleh data lain. Tidak ada data yang dihapus.',
+                        ], 422);
+                    }
+                }
+            }
+
+            $deleted = DB::table('m_engines')->whereIn('id', $ids)->delete();
 
             return response()->json([
-
-                'success' => false,
-
-                'message' => 'Data mesin tidak ditemukan.'
-
-            ], 404);
-        }
-
-
-        /*
-    |--------------------------------------------------------------------------
-    | HAPUS DATA
-    |--------------------------------------------------------------------------
-    */
-
-        DB::table('m_engines')
-            ->where('id', $id)
-            ->delete();
-
-
-        /*
-    |--------------------------------------------------------------------------
-    | RESPONSE
-    |--------------------------------------------------------------------------
-    */
-
-        return response()->json([
-
-            'success' => true,
-
-            'message' => 'Mesin berhasil dihapus.'
-
-        ]);
+                'success' => true,
+                'message' => $deleted === 1 ? 'Mesin berhasil dihapus.' : "{$deleted} mesin berhasil dihapus.",
+            ]);
+        });
     }
 
 

@@ -15,7 +15,15 @@ class CategoryCT extends Controller
 {
     public function index()
     {
-        return view('admin.category.index');
+        $creators = DB::table('m_categories')
+            ->whereNotNull('created_by')
+            ->where('created_by', '!=', '')
+            ->distinct()
+            ->pluck('created_by')
+            ->filter()
+            ->values();
+
+        return view('admin.category.index', compact('creators'));
     }
 
     public function data(Request $request)
@@ -40,6 +48,30 @@ class CategoryCT extends Controller
 
         /*
     |--------------------------------------------------------------------------
+    | FILTERS (Dibuat Oleh & Periode)
+    |--------------------------------------------------------------------------
+    */
+        $creator = $request->input('creator');
+        if (!empty($creator) && $creator !== 'all') {
+            $query->where('created_by', $creator);
+        }
+
+        $period = $request->input('period');
+        if (!empty($period) && $period !== 'all') {
+            if ($period === 'today') {
+                $query->whereDate('created_at', Carbon::today());
+            } elseif ($period === '7_days') {
+                $query->where('created_at', '>=', Carbon::now()->subDays(7));
+            } elseif ($period === 'month') {
+                $query->where('created_at', '>=', Carbon::now()->startOfMonth());
+            } elseif ($period === 'year') {
+                $query->where('created_at', '>=', Carbon::now()->startOfYear());
+            }
+        }
+
+
+        /*
+    |--------------------------------------------------------------------------
     | SEARCH
     |--------------------------------------------------------------------------
     */
@@ -47,11 +79,11 @@ class CategoryCT extends Controller
         $search = $request->input('search.value');
 
         if (!empty($search)) {
-
-            $query->whereRaw(
-                'LOWER(name) LIKE ?',
-                ['%' . strtolower($search) . '%']
-            );
+            $keyword = '%' . strtolower(trim($search)) . '%';
+            $query->where(function ($q) use ($keyword) {
+                $q->whereRaw('LOWER(name) LIKE ?', [$keyword])
+                    ->orWhereRaw('LOWER(COALESCE(created_by, \'\')) LIKE ?', [$keyword]);
+            });
         }
 
 
@@ -71,12 +103,12 @@ class CategoryCT extends Controller
     */
 
         $columns = [
-            0 => 'id',
-            1 => 'name',
-            2 => 'created_at',
+            2 => 'name',
+            3 => 'created_by',
+            4 => 'created_at',
         ];
 
-        $orderColumnIndex = (int) $request->input('order.0.column', 1);
+        $orderColumnIndex = (int) $request->input('order.0.column', 2);
 
         $orderColumn = $columns[$orderColumnIndex] ?? 'name';
 
@@ -312,14 +344,87 @@ class CategoryCT extends Controller
             ], 404);
         }
 
-        DB::table('m_categories')
-            ->where('id', $id)
-            ->delete();
+        // Cek foreign key constraint m_discount_scopes
+        $isUsedInDiscount = DB::table('m_discount_scopes')
+            ->where('category_id', $id)
+            ->exists();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Kategori berhasil dihapus.'
+        if ($isUsedInDiscount) {
+            return response()->json([
+                'success' => false,
+                'message' => "Kategori '{$category->name}' tidak dapat dihapus karena masih digunakan dalam konfigurasi diskon."
+            ], 422);
+        }
+
+        try {
+            DB::table('m_categories')
+                ->where('id', $id)
+                ->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Kategori berhasil dihapus.'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus kategori: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function bulkDestroy(Request $request)
+    {
+        $request->validate([
+            'ids' => ['required', 'array', 'min:1'],
+            'ids.*' => ['integer'],
         ]);
+
+        $ids = array_map('intval', $request->input('ids', []));
+
+        if (empty($ids)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tidak ada kategori yang dipilih.'
+            ], 400);
+        }
+
+        $usedCategories = DB::table('m_discount_scopes')
+            ->join('m_categories', 'm_discount_scopes.category_id', '=', 'm_categories.id')
+            ->whereIn('m_discount_scopes.category_id', $ids)
+            ->distinct()
+            ->pluck('m_categories.name')
+            ->toArray();
+
+        if (!empty($usedCategories)) {
+            $categoryList = implode(', ', array_slice($usedCategories, 0, 3));
+            if (count($usedCategories) > 3) {
+                $categoryList .= ', dan lainnya';
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => "Kategori ({$categoryList}) tidak dapat dihapus karena masih digunakan dalam konfigurasi diskon."
+            ], 422);
+        }
+
+        try {
+            $deletedCount = DB::transaction(function () use ($ids) {
+                return DB::table('m_categories')
+                    ->whereIn('id', $ids)
+                    ->delete();
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => "{$deletedCount} kategori berhasil dihapus."
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat menghapus data: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     public function export()

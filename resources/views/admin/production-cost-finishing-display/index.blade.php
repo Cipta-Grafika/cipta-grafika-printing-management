@@ -1,48 +1,186 @@
 @extends('admin_master')
+
 @section('contents')
+    <link rel="stylesheet" href="{{ asset('css/production-cost-finishing-index.css') }}">
     <div class="shell">
         <div data-shell-sidebar></div>
         <div class="main">
             <div data-shell-topbar></div>
             <main class="content">
-                <section class="hero">
-                    <div class="hero-text"><span class="eyebrow">BIAYA · DISPLAY</span>
-                        {{-- <h1 class="hero-title">Daftar Finishing & Jasa</h1> --}}
+                <section class="hero cat-hero-compact">
+                    <div class="hero-text">
+                        <span class="eyebrow">BIAYA · DISPLAY</span>
                         <p class="hero-sub">Kelola biaya material dan finishing yang digunakan sebagai dasar perhitungan
                             biaya serta estimasi harga produk.</p>
                     </div>
-                    <div class="hero-actions" style="display: flex; justify-content: right;">
-                        <a href="{{ route('admin_create_pc_finishing_display') }}" class="btn btn--primary"><svg
-                                viewBox="0 0 24 24">
-                                <path d="M12 5v14M5 12h14" />
-                            </svg> Tambah Ongkos</a>
-                    </div>
                 </section>
                 <div class="grid">
-                    <section class="col-12 card">
+                    <section class="col-12 card cat-card-container">
+                        <div class="cat-card-header">
+                            <div class="cat-card-header-main">
+                                <div class="cat-card-title-wrap">
+                                    <div class="cat-card-icon"><i class="bi bi-easel2-fill"></i></div>
+                                    <div>
+                                        <div class="cat-title-row">
+                                            <h3 class="cat-card-title">Daftar Biaya Display</h3>
+                                            <span class="cat-badge-total">
+                                                <span class="cat-pulse-dot"></span>
+                                                <span id="displayProductTotalCount">Memuat data...</span>
+                                            </span>
+                                        </div>
+                                        <p class="cat-card-desc">Konfigurasi biaya display berdasarkan produk, kategori, lokasi, dan komponen.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="cat-card-actions">
+                                <a href="{{ route('admin_create_pc_finishing_display') }}" class="cat-btn-head-primary"
+                                    id="btnTambahOngkosDisplay">
+                                    <i class="bi bi-plus-lg"></i><span>Tambah Ongkos</span>
+                                </a>
+                            </div>
+                        </div>
 
-                        <table id="displayProductTable" class="display data-table">
+                        <div class="cat-bulk-toolbar" id="displayProductBulkToolbar" style="display:none;">
+                            <div class="cat-bulk-info">
+                                <span class="cat-bulk-badge" id="displayProductBulkCount">0 terpilih</span>
+                                <span class="cat-bulk-text">Biaya display terpilih siap untuk tindakan massal</span>
+                            </div>
+                            <div class="cat-bulk-actions">
+                                <button type="button" class="btn btn--ghost btn--sm" id="cancelDisplayProductSelection">
+                                    <i class="bi bi-x-circle me-1"></i>Batal Pilihan
+                                </button>
+                                <button type="button" class="btn btn--danger btn--sm" id="bulkDeleteDisplayProducts">
+                                    <i class="bi bi-trash3-fill me-1"></i>Hapus Terpilih
+                                </button>
+                            </div>
+                        </div>
 
-                            <thead>
-                                <tr>
-                                    <th></th>
-                                    <th>No</th>
-                                    <th>Nama Display</th>
-                                    <th style="text-align: center;">Kategori</th>
-                                    <th style="text-align: center;">Ukuran</th>
-                                    <th style="text-align: center;">Komponen</th>
-                                    <th>Aksi</th>
-                                </tr>
-                            </thead>
+                        <div class="cat-filter-card">
+                            <div class="cat-filter-group-left">
+                                <div class="cat-search-box">
+                                    <i class="bi bi-search cat-search-icon"></i>
+                                    <input type="text" id="displayProductSearch" class="cat-filter-input"
+                                        placeholder="Cari display, kategori, lokasi, mesin, atau ukuran...">
+                                    <button type="button" id="clearDisplayProductSearch" class="cat-clear-btn"
+                                        title="Hapus pencarian" style="display:none;">
+                                        <i class="bi bi-x-circle-fill"></i>
+                                    </button>
+                                </div>
+                                <div class="cat-select-box">
+                                    <i class="bi bi-folder-fill cat-select-icon"></i>
+                                    <select id="displayProductCategoryFilter" class="select2" style="width:100%;"
+                                        aria-label="Filter kategori">
+                                        <option value="all">Semua Kategori</option>
+                                        @if (isset($filterCategories))
+                                            @foreach ($filterCategories as $category)
+                                                <option value="{{ $category->id }}">{{ $category->name }}</option>
+                                            @endforeach
+                                        @endif
+                                    </select>
+                                </div>
+                                <div class="cat-filter-subgroup">
+                                    <div class="cat-select-box">
+                                        <i class="bi bi-geo-alt-fill cat-select-icon"></i>
+                                        <select id="displayProductLocationFilter" class="select2" style="width:100%;"
+                                            aria-label="Filter lokasi">
+                                            <option value="all">Semua Lokasi</option>
+                                            @if (isset($filterLocations))
+                                                @foreach ($filterLocations as $location)
+                                                    <option value="{{ $location->id }}">{{ $location->name }}</option>
+                                                @endforeach
+                                            @endif
+                                        </select>
+                                    </div>
+                                    <button type="button" id="resetDisplayProductFilters" class="cat-btn-reset"
+                                        title="Reset semua filter">
+                                        <i class="bi bi-arrow-counterclockwise"></i><span>Reset</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="cat-filter-group-right">
+                                <div class="cat-length-box">
+                                    <span class="cat-length-label">Baris:</span>
+                                    <select id="displayProductPageLength" class="select2" style="width:76px;">
+                                        <option value="10" selected>10</option>
+                                        <option value="25">25</option>
+                                        <option value="50">50</option>
+                                        <option value="100">100</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
 
-                            <tbody></tbody>
-
-                        </table>
-
+                        <div class="cat-table-wrap">
+                            <table id="displayProductTable" class="cat-modern-table" style="width:100%"
+                                data-url="{{ route('admin_data_pc_finishing_display') }}"
+                                data-bulk-url="{{ route('admin_bulk_destroy_pc_finishing_displays') }}">
+                                <thead>
+                                    <tr>
+                                        <th class="cat-th-check text-center">
+                                            <label class="cat-custom-checkbox" title="Pilih Semua di Halaman Ini">
+                                                <input type="checkbox" id="checkAllDisplayProducts"
+                                                    aria-label="Pilih semua pada halaman ini">
+                                                <span class="cat-checkbox-mark">
+                                                    <svg class="check-icon" viewBox="0 0 14 14" fill="none">
+                                                        <path d="M2.5 7.5L5.5 10.5L11.5 3.5" stroke="#ffffff"
+                                                            stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+                                                    </svg>
+                                                    <svg class="minus-icon" viewBox="0 0 14 14" fill="none">
+                                                        <path d="M3 7H11" stroke="#ffffff" stroke-width="2.2"
+                                                            stroke-linecap="round" />
+                                                    </svg>
+                                                </span>
+                                            </label>
+                                        </th>
+                                        <th class="cat-th-no text-center" style="width:60px;">No</th>
+                                        <th class="cat-th-name" style="min-width:220px;">Nama Display</th>
+                                        <th class="cat-th-date text-center" style="min-width:140px;">Kategori</th>
+                                        <th class="cat-th-creator" style="min-width:180px;">Lokasi / Mesin</th>
+                                        <th class="cat-th-date text-center" style="min-width:140px;">Ukuran</th>
+                                        <th class="cat-th-date text-center" style="min-width:170px;">Komponen</th>
+                                        <th class="cat-th-actions text-center" style="width:160px;">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
                     </section>
                 </div>
             </main>
             <div data-shell-footer></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modalBulkDeleteDisplayProducts">
+        <div class="modal-dialog modal-delete">
+            <div class="modal-header">
+                <div>
+                    <span class="eyebrow">PRODUCTION COST · DISPLAY</span><br>
+                    <span class="eyebrow">Hapus Pilihan</span>
+                </div>
+                <button type="button" class="modal-close" id="closeBulkDeleteDisplayProducts" aria-label="Tutup">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 6 6 18" />
+                        <path d="m6 6 12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="delete-confirmation">
+                    <div class="delete-icon"><i class="bi bi-trash3-fill"></i></div>
+                    <div class="delete-content">
+                        <h3>Hapus biaya display terpilih?</h3>
+                        <p id="bulkDeleteDisplayProductDescription"></p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn--ghost" id="cancelBulkDeleteDisplayProducts">Batal</button>
+                <button type="button" class="btn btn--danger" id="confirmBulkDeleteDisplayProducts">
+                    <i class="bi bi-trash3-fill"></i> Hapus
+                </button>
+            </div>
         </div>
     </div>
 
@@ -139,30 +277,23 @@
 @section('scripts')
     <script>
         let displayProductTable;
+        const selectedDisplayProducts = new Set();
 
         document.addEventListener('DOMContentLoaded', function() {
+            const escapeHtml = DataTable.render.text().display;
+            const tableElement = document.getElementById('displayProductTable');
+            const tableWrap = tableElement.closest('.cat-table-wrap');
+            const categoryFilter = document.getElementById('displayProductCategoryFilter');
+            const locationFilter = document.getElementById('displayProductLocationFilter');
+            const searchInput = document.getElementById('displayProductSearch');
+            const clearSearchButton = document.getElementById('clearDisplayProductSearch');
+            const pageLength = document.getElementById('displayProductPageLength');
+            const bulkToolbar = document.getElementById('displayProductBulkToolbar');
+            const bulkCount = document.getElementById('displayProductBulkCount');
+            const checkAll = document.getElementById('checkAllDisplayProducts');
+            const checkAllLabel = checkAll.closest('.cat-custom-checkbox');
+            const maxSelected = 100;
 
-            /*
-            |--------------------------------------------------------------------------
-            | HTML ESCAPE
-            |--------------------------------------------------------------------------
-            */
-
-            function escapeHtml(value) {
-                return String(value ?? '').replace(/[&<>"']/g, function(char) {
-                    const entities = {
-                        '&': '&amp;',
-                        '<': '&lt;',
-                        '>': '&gt;',
-                        '"': '&quot;',
-                        "'": '&#039;'
-                    };
-                    return entities[char];
-                });
-            }
-            /*
-                           |-------------------------------------------------------------------------- | FORMAT ANGKA UKURAN
-                           |-------------------------------------------------------------------------- */
             function formatSize(value) {
                 const number = Number(value);
 
@@ -175,334 +306,394 @@
                 });
             }
 
+            function updateSelectionUI() {
+                const selectedCount = selectedDisplayProducts.size;
+                bulkToolbar.style.display = selectedCount ? 'flex' : 'none';
+                bulkCount.textContent = `${selectedCount} terpilih`;
+
+                const checkboxes = document.querySelectorAll('.display-product-row-check');
+                let checkedCount = 0;
+                checkboxes.forEach((checkbox) => {
+                    const selected = selectedDisplayProducts.has(Number(checkbox.value));
+                    checkbox.checked = selected;
+                    checkbox.closest('tr')?.classList.toggle('is-selected', selected);
+                    if (selected) checkedCount++;
+                });
+
+                checkAll.checked = checkboxes.length > 0 && checkedCount === checkboxes.length;
+                checkAll.indeterminate = checkedCount > 0 && checkedCount < checkboxes.length;
+                checkAllLabel.classList.toggle('is-indeterminate', checkAll.indeterminate);
+            }
+
+            function centerProcessingIndicator() {
+                const indicator = document.getElementById(`${tableElement.id}_processing`);
+                if (indicator && indicator.parentElement !== tableWrap) {
+                    indicator.classList.add('cat-processing-centered');
+                    tableWrap.appendChild(indicator);
+                }
+            }
+
+            $('#displayProductCategoryFilter, #displayProductLocationFilter')
+                .select2({ width: '100%', minimumResultsForSearch: Infinity });
+            $('#displayProductPageLength').select2({ width: '76px', minimumResultsForSearch: -1 });
+
+            $('#displayProductTable').on('processing.dt', centerProcessingIndicator);
+
             /*
-                           |-------------------------------------------------------------------------- | DATATABLE
-                           |-------------------------------------------------------------------------- */
-            displayProductTable = new
-            DataTable('#displayProductTable', {
+            |--------------------------------------------------------------------------
+            | DATATABLE INITIALIZATION
+            |--------------------------------------------------------------------------
+            */
+            displayProductTable = new DataTable('#displayProductTable', {
                 processing: true,
                 serverSide: true,
-                ordering: false,
-                /*
-                               |-------------------------------------------------------------------------- | RESPONSIVE
-                               |-------------------------------------------------------------------------- */
-                responsive: {
-                    details: {
-                        type: 'column',
-                        target: 0
-                    }
-                },
-                /*
-                               |-------------------------------------------------------------------------- | AJAX
-                               |-------------------------------------------------------------------------- */
+                ordering: true,
+                order: [[2, 'asc']],
+
                 ajax: {
-                    url: "{{ route('admin_data_pc_finishing_display') }}",
-                    type: "GET"
+                    url: tableElement.dataset.url,
+                    type: 'GET',
+                    data: function(d) {
+                        d.category_id = categoryFilter.value === 'all' ? '' : categoryFilter.value;
+                        d.location_id = locationFilter.value === 'all' ? '' : locationFilter.value;
+                    },
                 },
-                /*
-                               |-------------------------------------------------------------------------- | COLUMNS
-                               |-------------------------------------------------------------------------- */
-                columns: [
-                    /*
-                                   |-------------------------------------------------------------------------- | RESPONSIVE CONTROL
-                                   |-------------------------------------------------------------------------- */
-                    {
+
+                columns: [{
                         data: null,
-                        defaultContent: '',
-                        className: 'dtr-control',
                         orderable: false,
                         searchable: false,
-                        responsivePriority: 1
+                        className: 'text-center cat-td-check',
+                        render: function(data, type, row) {
+                            const id = Number(row.display_product_id);
+                            const safeName = escapeHtml(row.display_name || '');
+                            return `
+                                <label class="cat-custom-checkbox">
+                                    <input type="checkbox"
+                                        class="display-product-row-check"
+                                        value="${id}"
+                                        ${selectedDisplayProducts.has(id) ? 'checked' : ''}
+                                        aria-label="Pilih biaya display ${safeName}">
+                                    <span class="cat-checkbox-mark">
+                                        <svg class="check-icon" viewBox="0 0 14 14" fill="none">
+                                            <path d="M2.5 7.5L5.5 10.5L11.5 3.5" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
+                                    </span>
+                                </label>
+                            `;
+                        },
                     },
-                    /* |-------------------------------------------------------------------------- | NO
-                                   |-------------------------------------------------------------------------- */
                     {
                         data: null,
                         orderable: false,
                         searchable: false,
-                        responsivePriority: 1,
-                        className: 'text-center',
-                        render: function(data, type,
-                            row, meta) {
+                        className: 'text-center cat-td-no',
+                        render: function(data, type, row, meta) {
                             const pageInfo = displayProductTable.page.info();
-                            return pageInfo.start + meta.row + 1;
-                        }
+                            return `<span class="cat-num-pill">${pageInfo.start + meta.row + 1}</span>`;
+                        },
                     },
-                    /*
-                                   |-------------------------------------------------------------------------- | NAMA DISPLAY
-                                   |-------------------------------------------------------------------------- */
                     {
                         data: 'display_name',
-                        responsivePriority: 1,
-                        render: function(data) {
-                            return ` <div>
-                ${escapeHtml(data || '-')}
-                </div>
-                `;
+                        defaultContent: '-',
+                        className: 'cat-td-name',
+                        render: function(data, type) {
+                            if (type !== 'display') {
+                                return data || '';
+                            }
+                            return `
+                                <div class="cat-cell-name-box">
+                                    <div class="cat-icon-symbol">
+                                        <i class="bi bi-easel2-fill"></i>
+                                    </div>
+                                    <div class="cat-name-details">
+                                        <span class="cat-name-primary">${escapeHtml(data || '-')}</span>
+                                        <span class="cat-name-badge">Biaya Display</span>
+                                    </div>
+                                </div>
+                            `;
                         },
-
-                        createdCell: function(td) {
-                            td.style.whiteSpace = 'normal';
-                            td.style.wordBreak = 'break-word';
-                            td.style.overflowWrap = 'break-word';
-                        }
                     },
-
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | KATEGORI
-                    |--------------------------------------------------------------------------
-                    */
-
                     {
                         data: 'category_name',
-                        responsivePriority: 100,
-
-                        render: function(data) {
-                            return escapeHtml(data || '-');
-                        },
-                        createdCell: function(td, cellData, rowData, row, col) {
-                            $(td).css('text-align', 'center');
-                        }
-                    },
-
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | UKURAN
-                    |--------------------------------------------------------------------------
-                    */
-
-                    {
-                        data: null,
-                        responsivePriority: 100,
-                        className: 'text-center',
-
-                        render: function(data, type, row) {
-                            const length = formatSize(row.length);
-                            const width = formatSize(row.width);
-
+                        defaultContent: '-',
+                        className: 'text-center cat-td-date',
+                        render: function(data, type) {
+                            if (type !== 'display') {
+                                return data || '';
+                            }
                             return `
-                                <span>
-                                    ${escapeHtml(width)}
-                                    x
-                                    ${escapeHtml(length)}
-                                    cm
+                                <span class="cat-date-chip">
+                                    <i class="bi bi-folder-fill"></i>
+                                    <span>${escapeHtml(data || '-')}</span>
                                 </span>
                             `;
                         },
-                        createdCell: function(td, cellData, rowData, row, col) {
-                            $(td).css('text-align', 'center');
-                        }
                     },
-
-
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | KOMPONEN
-                    |--------------------------------------------------------------------------
-                    */
-
+                    {
+                        data: 'location_name',
+                        defaultContent: '-',
+                        className: 'cat-td-creator',
+                        render: function(data, type, row) {
+                            if (type !== 'display') {
+                                return data || '';
+                            }
+                            return `
+                                <div class="cat-user-badge">
+                                    <span class="cat-user-avatar" style="background: #2563eb;">
+                                        <i class="bi bi-geo-alt-fill"></i>
+                                    </span>
+                                    <div class="cat-user-info">
+                                        <span class="cat-user-name">${escapeHtml(data || '-')}</span>
+                                        <span class="cat-user-role">${escapeHtml(row.engine_name || '-')}</span>
+                                    </div>
+                                </div>
+                            `;
+                        },
+                    },
                     {
                         data: null,
-                        responsivePriority: 100,
-
+                        className: 'text-center cat-td-date',
                         render: function(data, type, row) {
-                            const materialCount =
-                                Number(row.material_count) || 0;
-
-                            const laminationCount =
-                                Number(row.lamination_count) || 0;
-
-                            const total =
-                                materialCount + laminationCount;
-
-                            if (total === 0) {
+                            const size = `${formatSize(row.width)} x ${formatSize(row.length)} cm`;
+                            if (type !== 'display') {
+                                return size;
+                            }
+                            return `
+                                <span class="cat-date-chip">
+                                    <i class="bi bi-aspect-ratio"></i>
+                                    <span>${escapeHtml(size)}</span>
+                                </span>
+                            `;
+                        },
+                    },
+                    {
+                        data: null,
+                        className: 'text-center cat-td-date',
+                        render: function(data, type, row) {
+                            const materialCount = Number(row.material_count) || 0;
+                            const laminationCount = Number(row.lamination_count) || 0;
+                            if (type !== 'display') {
+                                return materialCount + laminationCount;
+                            }
+                            if (materialCount + laminationCount === 0) {
                                 return `
-                                    <div style="text-align: center;">
-                                        Belum ada komponen
-                                    </div>
+                                    <span class="cat-date-chip">
+                                        <i class="bi bi-dash-circle"></i>
+                                        <span>Belum ada komponen</span>
+                                    </span>
                                 `;
                             }
 
                             const parts = [];
-
                             if (materialCount > 0) {
-                                parts.push(
-                                    `${materialCount} Material`
-                                );
+                                parts.push(`<span class="cat-date-chip"><i class="bi bi-box-seam"></i><span>${materialCount.toLocaleString('id-ID')} Material</span></span>`);
                             }
-
                             if (laminationCount > 0) {
-                                parts.push(
-                                    `${laminationCount} Laminasi`
-                                );
+                                parts.push(`<span class="cat-date-chip"><i class="bi bi-layers-fill"></i><span>${laminationCount.toLocaleString('id-ID')} Laminasi</span></span>`);
                             }
-
-                            return `
-                                    <div
-                                        style="
-                                                display: flex;
-                                                flex-wrap: wrap;
-                                                justify-content: center;
-                                                gap: 5px;
-                                            ">
-                                        ${parts.map(function (part) {
-                                        return `
-                                                                                        <span class="badge">
-                                                                                            ${escapeHtml(part)}
-                                                                                        </span>
-                                                                                `;
-                                        }).join('')}
-                                    </div>
-                                `;
+                            return `<div style="display:flex; flex-wrap:wrap; justify-content:center; gap:5px;">${parts.join('')}</div>`;
                         },
-                        createdCell: function(td, cellData, rowData, row, col) {
-                            $(td).css('text-align', 'center');
-                        }
                     },
-
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | AKSI
-                    |--------------------------------------------------------------------------
-                    */
-
                     {
                         data: 'display_product_id',
                         orderable: false,
                         searchable: false,
-                        responsivePriority: 100,
-                        className: 'text-center',
-
+                        className: 'text-center cat-td-actions',
                         render: function(data) {
                             const id = encodeURIComponent(data);
-                            console.log('Encoded ID:', data);
                             return `
-                                <div class="data-cell-actions"
-                                    style="
-                                                display: flex;
-                                                align-items: center;
-                                                justify-content: center;
-                                                gap: 5px;
-                                            ">
-
-                                    <!-- VIEW -->
-                                    <button type="button" class="btn--icon btn-details-display" data-id="${id}" aria-label="View">
+                                <div class="cat-action-group">
+                                    <button type="button" class="cat-btn-action cat-btn-view btn-details-display" data-id="${id}"
+                                        aria-label="View" title="Detail biaya display">
                                         <i class="bi bi-arrows-fullscreen"></i>
                                     </button>
-
-
-                                    <!-- ADD COMPONENT -->
-                                    <button
-                                        type="button"
-                                        class="btn--icon btn-add-display-component"
-                                        data-id="${id}"
-                                        aria-label="Tambah Komponen"
-                                    >
+                                    <button type="button" class="cat-btn-action cat-btn-add btn-add-display-component" data-id="${id}"
+                                        aria-label="Tambah komponen" title="Tambah komponen display">
                                         <i class="bi bi-folder-plus"></i>
                                     </button>
-
-                                    <!-- EDIT -->
-                                    <button type="button" class="btn--icon btn-edit-display" data-id="${id}" aria-label="Edit">
+                                    <button type="button" class="cat-btn-action cat-btn-edit btn-edit-display" data-id="${id}"
+                                        aria-label="Edit" title="Edit biaya display">
                                         <i class="bi bi-pen"></i>
                                     </button>
-
-
-                                    <!-- DELETE -->
-                                    <button type="button" class="btn--icon btn-delete-display" data-id="${id}" aria-label="Hapus">
+                                    <button type="button" class="cat-btn-action cat-btn-del btn-delete-display" data-id="${id}"
+                                        aria-label="Hapus" title="Hapus biaya display">
                                         <i class="bi bi-trash3-fill"></i>
                                     </button>
-
                                 </div>
                             `;
-                        }
-                    }
-
+                        },
+                    },
                 ],
-
-
-                /*
-                |--------------------------------------------------------------------------
-                | COLUMN DEFINITION
-                |--------------------------------------------------------------------------
-                */
-
-                columnDefs: [{
-                    targets: 0,
-                    className: 'dtr-control'
-                }],
-
-
-                /*
-                |--------------------------------------------------------------------------
-                | PAGE LENGTH
-                |--------------------------------------------------------------------------
-                */
 
                 pageLength: 10,
 
-                lengthMenu: [
-                    10,
-                    25,
-                    50,
-                    100
-                ],
-
-
-                /*
-                |--------------------------------------------------------------------------
-                | LAYOUT
-                |--------------------------------------------------------------------------
-                */
-
                 layout: {
-                    topStart: 'pageLength',
-                    topEnd: 'search',
+                    topStart: null,
+                    topEnd: null,
                     bottomStart: 'info',
-                    bottomEnd: 'paging'
+                    bottomEnd: 'paging',
                 },
-
-
-                /*
-                |--------------------------------------------------------------------------
-                | LANGUAGE
-                |--------------------------------------------------------------------------
-                */
 
                 language: {
-                    search: 'Search:',
-                    lengthMenu: '_MENU_ entries per page',
-                    info: 'Showing _START_ to _END_ of _TOTAL_ entries',
-                    infoEmpty: 'Showing 0 to 0 of 0 entries',
-                    zeroRecords: 'Data Display tidak ditemukan',
+                    info: 'Menampilkan _START_ sampai _END_ dari _TOTAL_ biaya display',
+                    infoEmpty: 'Menampilkan 0 sampai 0 dari 0 biaya display',
+                    zeroRecords: 'Data biaya display tidak ditemukan',
                     processing: 'Memuat data...',
-                    searchPlaceholder: 'Cari Display...'
                 },
 
+                drawCallback: function() {
+                    centerProcessingIndicator();
+                },
+            });
+            centerProcessingIndicator();
 
-                /*
-                |--------------------------------------------------------------------------
-                | INIT COMPLETE
-                |--------------------------------------------------------------------------
-                */
-
-                initComplete: function() {
-                    $(this)
-                        .closest('.dt-container, .dataTables_wrapper')
-                        .find('.dt-search input, .dataTables_filter input')
-                        .css({
-                            'padding': '9px 14px',
-                            'border-radius': '8px',
-                            'border': '1px solid #e2e8f0'
-                        });
+            displayProductTable.on('draw', function() {
+                const info = displayProductTable.page.info();
+                const totalEl = document.getElementById('displayProductTotalCount');
+                if (totalEl) {
+                    totalEl.textContent = `${info.recordsTotal.toLocaleString('id-ID')} Total Biaya Display`;
                 }
-
+                updateSelectionUI();
             });
 
+            /*
+            |--------------------------------------------------------------------------
+            | FILTER, PENCARIAN & JUMLAH BARIS
+            |--------------------------------------------------------------------------
+            */
+            let searchTimer;
+            searchInput.addEventListener('input', function() {
+                const query = searchInput.value.trim();
+                clearSearchButton.style.display = query.length > 0 ? 'flex' : 'none';
+                clearTimeout(searchTimer);
+                searchTimer = setTimeout(() => displayProductTable.search(query).draw(), 250);
+            });
+            clearSearchButton.addEventListener('click', function() {
+                searchInput.value = '';
+                clearSearchButton.style.display = 'none';
+                displayProductTable.search('').draw();
+                searchInput.focus();
+            });
+            $('#displayProductCategoryFilter, #displayProductLocationFilter').on('change', function() {
+                displayProductTable.ajax.reload(null, true);
+            });
+            $('#displayProductPageLength').on('change', function() {
+                displayProductTable.page.len(Number(pageLength.value)).draw();
+            });
+            document.getElementById('resetDisplayProductFilters').addEventListener('click', function() {
+                clearTimeout(searchTimer);
+                searchInput.value = '';
+                clearSearchButton.style.display = 'none';
+                $('#displayProductCategoryFilter').val('all').trigger('change.select2');
+                $('#displayProductLocationFilter').val('all').trigger('change.select2');
+                $('#displayProductPageLength').val('10').trigger('change.select2');
+                selectedDisplayProducts.clear();
+                displayProductTable.search('').order([[2, 'asc']]).page.len(10).ajax.reload(null, true);
+            });
+
+            /*
+            |--------------------------------------------------------------------------
+            | CHECKBOX SELECTION
+            |--------------------------------------------------------------------------
+            */
+            $('#displayProductTable').on('change', '.display-product-row-check', function() {
+                const id = Number(this.value);
+                if (this.checked && !selectedDisplayProducts.has(id) && selectedDisplayProducts.size >= maxSelected) {
+                    this.checked = false;
+                    showToast('error', `Maksimal ${maxSelected} biaya display dapat dipilih sekaligus.`);
+                    return;
+                }
+                if (this.checked) selectedDisplayProducts.add(id);
+                else selectedDisplayProducts.delete(id);
+                updateSelectionUI();
+            });
+            checkAll.addEventListener('change', function() {
+                let reachedLimit = false;
+                document.querySelectorAll('.display-product-row-check').forEach((checkbox) => {
+                    const id = Number(checkbox.value);
+                    if (!checkAll.checked) {
+                        selectedDisplayProducts.delete(id);
+                    } else if (!selectedDisplayProducts.has(id)) {
+                        if (selectedDisplayProducts.size >= maxSelected) reachedLimit = true;
+                        else selectedDisplayProducts.add(id);
+                    }
+                });
+                updateSelectionUI();
+                if (reachedLimit) showToast('error', `Maksimal ${maxSelected} biaya display dapat dipilih sekaligus.`);
+            });
+            document.getElementById('cancelDisplayProductSelection').addEventListener('click', function() {
+                selectedDisplayProducts.clear();
+                updateSelectionUI();
+            });
+
+            /*
+            |--------------------------------------------------------------------------
+            | BULK DELETE
+            |--------------------------------------------------------------------------
+            */
+            const bulkModal = document.getElementById('modalBulkDeleteDisplayProducts');
+            const confirmBulkButton = document.getElementById('confirmBulkDeleteDisplayProducts');
+            let isBulkDeleting = false;
+            const closeBulkModal = () => {
+                if (!isBulkDeleting) bulkModal.classList.remove('is-open');
+            };
+            ['closeBulkDeleteDisplayProducts', 'cancelBulkDeleteDisplayProducts'].forEach((id) => {
+                document.getElementById(id).addEventListener('click', closeBulkModal);
+            });
+            bulkModal.addEventListener('click', (event) => {
+                if (event.target === bulkModal) closeBulkModal();
+            });
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && bulkModal.classList.contains('is-open')) closeBulkModal();
+            });
+            document.getElementById('bulkDeleteDisplayProducts').addEventListener('click', function() {
+                const count = selectedDisplayProducts.size;
+                if (!count) return;
+                document.getElementById('bulkDeleteDisplayProductDescription').textContent =
+                    `${count} biaya display terpilih beserta data konfigurasi, komponen, dan harga yang terkait akan dihapus. Master produk display, kategori, lokasi, dan mesin tidak ikut dihapus. Data yang sudah dihapus tidak dapat dikembalikan.`;
+                bulkModal.classList.add('is-open');
+            });
+            confirmBulkButton.addEventListener('click', async function() {
+                if (isBulkDeleting || !selectedDisplayProducts.size) return;
+                isBulkDeleting = true;
+                confirmBulkButton.disabled = true;
+                const originalContent = confirmBulkButton.innerHTML;
+                confirmBulkButton.innerHTML = `
+                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    Menghapus...
+                `;
+                const payload = new FormData();
+                selectedDisplayProducts.forEach((id) => payload.append('ids[]', id));
+
+                try {
+                    const response = await fetch(tableElement.dataset.bulkUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ||
+                                document.querySelector('input[name="_token"]')?.value || '',
+                        },
+                        body: payload,
+                    });
+                    const result = await response.json();
+                    if (!response.ok || !result.success) {
+                        throw new Error(result.message || 'Biaya display gagal dihapus.');
+                    }
+
+                    selectedDisplayProducts.clear();
+                    isBulkDeleting = false;
+                    closeBulkModal();
+                    displayProductTable.ajax.reload(null, false);
+                    showToast('success', result.message);
+                } catch (error) {
+                    showToast('error', error.message || 'Terjadi kesalahan saat menghapus biaya display.');
+                } finally {
+                    isBulkDeleting = false;
+                    confirmBulkButton.disabled = false;
+                    confirmBulkButton.innerHTML = originalContent;
+                }
+            });
         });
 
         document.addEventListener('DOMContentLoaded', function() {
@@ -699,6 +890,10 @@
                         */
 
                         if (response.ok && result.success) {
+
+                            selectedDisplayProducts.delete(
+                                Number(decodeURIComponent(displayProductIdToDelete))
+                            );
 
                             /*
                             |--------------------------------------------------------------------------

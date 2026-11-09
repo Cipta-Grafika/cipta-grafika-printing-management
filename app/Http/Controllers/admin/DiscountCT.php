@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
@@ -44,7 +45,14 @@ class DiscountCT extends Controller
             ])
             ->values();
 
-        return view('admin.discount.index', compact('scopeOptions'));
+        $creators = DB::table('m_discounts')
+            ->whereNotNull('created_by')
+            ->where('created_by', '!=', '')
+            ->distinct()
+            ->orderBy('created_by')
+            ->pluck('created_by');
+
+        return view('admin.discount.index', compact('scopeOptions', 'creators'));
     }
 
     public function store(Request $request)
@@ -246,30 +254,82 @@ class DiscountCT extends Controller
 
     public function destroy($id)
     {
-        $deleted = DB::transaction(function () use ($id) {
-            $discount = DB::table('m_discounts')->where('id', (int) $id)->lockForUpdate()->first(['id', 'name']);
+        return $this->deleteDiscounts([(int) $id]);
+    }
 
-            if (!$discount) {
-                return null;
+    public function bulkDestroy(Request $request)
+    {
+        $validated = $request->validate([
+            'ids' => ['required', 'array', 'min:1', 'max:1000'],
+            'ids.*' => ['required', 'integer', 'min:1', 'distinct'],
+        ]);
+
+        return $this->deleteDiscounts(array_map('intval', $validated['ids']));
+    }
+
+    private function deleteDiscounts(array $ids)
+    {
+        return DB::transaction(function () use ($ids) {
+            $discounts = DB::table('m_discounts')->whereIn('id', $ids)->lockForUpdate()->get(['id', 'name']);
+            if ($discounts->count() !== count($ids)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => count($ids) === 1
+                        ? 'Data diskon tidak ditemukan.'
+                        : 'Sebagian diskon tidak ditemukan. Tidak ada data yang dihapus.',
+                ], 404);
             }
 
-            DB::table('m_discount_scopes')->where('discount_id', $discount->id)->delete();
-            DB::table('m_discounts')->where('id', $discount->id)->delete();
+            $scopeIds = DB::table('m_discount_scopes')->whereIn('discount_id', $ids)
+                ->lockForUpdate()->pluck('id')->all();
+            foreach (Schema::getTables() as $table) {
+                if (in_array($table['name'], ['m_discounts', 'm_discount_scopes'], true)) {
+                    continue;
+                }
 
-            return $discount;
-        });
+                $tableName = $table['schema_qualified_name'];
+                $columns = [];
+                if (Schema::hasColumn($tableName, 'discount_id')) {
+                    $columns['discount_id'] = $ids;
+                }
+                if (Schema::hasColumn($tableName, 'discount_scope_id')) {
+                    $columns['discount_scope_id'] = $scopeIds;
+                }
+                foreach (Schema::getForeignKeys($tableName) as $foreignKey) {
+                    $referencedIds = match ($foreignKey['foreign_table']) {
+                        'm_discounts' => $ids,
+                        'm_discount_scopes' => $scopeIds,
+                        default => null,
+                    };
+                    if ($referencedIds !== null) {
+                        foreach ($foreignKey['foreign_columns'] as $index => $foreignColumn) {
+                            if ($foreignColumn === 'id') {
+                                $columns[$foreignKey['columns'][$index]] = $referencedIds;
+                            }
+                        }
+                    }
+                }
 
-        if (!$deleted) {
+                foreach ($columns as $column => $referencedIds) {
+                    if ($referencedIds && DB::table($tableName)->whereIn($column, $referencedIds)->exists()) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Diskon tidak dapat dihapus karena masih digunakan oleh data lain. Tidak ada data yang dihapus.',
+                        ], 422);
+                    }
+                }
+            }
+
+            DB::table('m_discount_scopes')->whereIn('discount_id', $ids)->delete();
+            DB::table('m_discounts')->whereIn('id', $ids)->delete();
+
             return response()->json([
-                'success' => false,
-                'message' => 'Data diskon tidak ditemukan.',
-            ], 404);
-        }
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Diskon "' . $deleted->name . '" berhasil dihapus.',
-        ]);
+                'success' => true,
+                'message' => $discounts->count() === 1
+                    ? 'Diskon "' . $discounts->first()->name . '" berhasil dihapus.'
+                    : $discounts->count() . ' diskon berhasil dihapus.',
+            ]);
+        });
     }
 
     /**
@@ -545,6 +605,22 @@ class DiscountCT extends Controller
 
         $query = DB::table('m_discounts');
 
+        $creator = $request->input('creator');
+        if ($creator && $creator !== 'all') {
+            $query->where('m_discounts.created_by', $creator);
+        }
+
+        $period = $request->input('period');
+        if ($period === 'today') {
+            $query->whereDate('m_discounts.created_at', Carbon::today());
+        } elseif ($period === '7_days') {
+            $query->where('m_discounts.created_at', '>=', Carbon::now()->subDays(7));
+        } elseif ($period === 'month') {
+            $query->where('m_discounts.created_at', '>=', Carbon::now()->startOfMonth());
+        } elseif ($period === 'year') {
+            $query->where('m_discounts.created_at', '>=', Carbon::now()->startOfYear());
+        }
+
         $search = trim((string) $request->input('search.value', ''));
 
         if ($search !== '') {
@@ -575,8 +651,21 @@ class DiscountCT extends Controller
         $length = (int) $request->input('length', 10);
         $length = $length > 0 ? min($length, 100) : 10;
 
-        $discounts = $query
-            ->select(
+        $columns = [
+            2 => 'm_discounts.name',
+            3 => 'm_discounts.discount_percentage',
+            4 => 'm_discounts.starts_at',
+            6 => 'm_discounts.status',
+            7 => 'm_discounts.created_by',
+            8 => 'm_discounts.created_at',
+        ];
+        $orderColumn = $columns[(int) $request->input('order.0.column', -1)] ?? null;
+        $direction = $request->input('order.0.dir', 'asc');
+        if (!in_array($direction, ['asc', 'desc'], true)) {
+            $direction = 'asc';
+        }
+
+        $query->select(
                 'm_discounts.id',
                 'm_discounts.name',
                 'm_discounts.description',
@@ -586,8 +675,11 @@ class DiscountCT extends Controller
                 'm_discounts.status',
                 'm_discounts.created_by',
                 'm_discounts.created_at'
-            )
-            ->orderByRaw("
+            );
+        if ($orderColumn) {
+            $query->orderBy($orderColumn, $direction)->orderBy('m_discounts.id');
+        } else {
+            $query->orderByRaw("
                 CASE
                     WHEN m_discounts.status = 'Active' THEN 1
                     WHEN m_discounts.status = 'Inactive' THEN 2
@@ -595,7 +687,9 @@ class DiscountCT extends Controller
                 END
             ")
             ->orderBy('m_discounts.starts_at', 'desc')
-            ->orderBy('m_discounts.id', 'desc')
+            ->orderBy('m_discounts.id', 'desc');
+        }
+        $discounts = $query
             ->offset($start)
             ->limit($length)
             ->get();
