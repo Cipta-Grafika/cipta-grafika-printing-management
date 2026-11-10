@@ -348,7 +348,7 @@
                                             aria-hidden="true"></div>
                                         <span
                                             class="absolute top-3 left-3 max-w-[75%] truncate rounded-full border border-white/25 bg-zinc-950/45 px-3 py-1.5 text-[11px] font-medium text-white backdrop-blur-md"
-                                            x-text="p.type === 'display' ? 'Display' : (p.engine_name || 'Large Format')">
+                                            x-text="(p.type === 'souvenir' || p.type === 'merchandise' || p.is_merchandise) ? 'Souvenir' : (p.type === 'display' ? 'Display' : (p.engine_name || 'Large Format'))">
                                         </span>
                                         <span
                                             class="absolute top-3 right-3 flex h-9 w-9 items-center justify-center rounded-full border border-white/25 bg-zinc-950/40 text-white backdrop-blur-md transition-all duration-300 group-hover:border-accent group-hover:bg-accent"

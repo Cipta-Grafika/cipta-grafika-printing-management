@@ -87,12 +87,22 @@ class CatalogCT extends Controller
                 $desc .= ' · Ukuran ' . $width . ' × ' . $length;
             }
 
+            $nameLower = strtolower($row->display_name);
+            $isMerchandise = str_contains($nameLower, 'lanyard') ||
+                str_contains($nameLower, 'papan nama') ||
+                str_contains($nameLower, 'name tag') ||
+                str_contains($nameLower, 'plakat') ||
+                str_contains($nameLower, 'nota') ||
+                str_contains($nameLower, 'merchandise') ||
+                str_contains($nameLower, 'souvenir');
+
             return [
-                'type'          => 'display',
+                'type'          => $isMerchandise ? 'souvenir' : 'display',
+                'is_merchandise'=> $isMerchandise,
                 'id'            => (int) $row->id,
                 'title'         => $row->display_name,
-                'category_name' => $row->category_name,
-                'engine_name'   => $row->engine_name,
+                'category_name' => $isMerchandise ? 'Souvenir' : $row->category_name,
+                'engine_name'   => $isMerchandise ? 'Souvenir' : $row->engine_name,
                 'length'        => $length,
                 'width'         => $width,
                 'desc'          => $desc,
@@ -335,6 +345,12 @@ class CatalogCT extends Controller
             'name' => 'Display Promosi',
         ];
 
+        // 3. Souvenir & Merchandise
+        $serviceOptions[] = [
+            'id'   => 'souvenir',
+            'name' => 'Souvenir & Merchandise',
+        ];
+
         $categories = DB::table('m_categories')
             ->select('id', 'name')
             ->orderBy('name', 'asc')
@@ -410,16 +426,26 @@ class CatalogCT extends Controller
                 $desc .= ' · Ukuran ' . $width . ' × ' . $length;
             }
 
+            $nameLower = strtolower($row->display_name);
+            $isMerchandise = str_contains($nameLower, 'lanyard') ||
+                str_contains($nameLower, 'papan nama') ||
+                str_contains($nameLower, 'name tag') ||
+                str_contains($nameLower, 'plakat') ||
+                str_contains($nameLower, 'nota') ||
+                str_contains($nameLower, 'merchandise') ||
+                str_contains($nameLower, 'souvenir');
+
             return [
                 'key'           => 'display-' . $row->id,
-                'type'          => 'display',
+                'type'          => $isMerchandise ? 'souvenir' : 'display',
+                'is_merchandise'=> $isMerchandise,
                 'engine_id'     => $row->engine_id !== null
                     ? (int) $row->engine_id
                     : null,
                 'category_id'   => (int) $row->category_id,
                 'title'         => $row->display_name,
-                'category_name' => $row->category_name,
-                'engine_name'   => $row->engine_name,
+                'category_name' => $isMerchandise ? 'Souvenir' : $row->category_name,
+                'engine_name'   => $isMerchandise ? 'Souvenir' : $row->engine_name,
                 'desc'          => $desc,
                 'cover_url'     => $row->cover_image_id
                     ? route('user_display_image', $row->cover_image_id)

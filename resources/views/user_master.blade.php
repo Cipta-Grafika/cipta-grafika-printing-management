@@ -2420,10 +2420,18 @@ summary
                         const matchPrintType =
                             this.printType === 'all' ||
                             (
+                                (this.printType === 'souvenir' || this.printType === 'merchandise') &&
+                                (
+                                    project.type === 'souvenir' ||
+                                    project.type === 'merchandise' ||
+                                    project.is_merchandise === true
+                                )
+                            ) ||
+                            (
                                 this.printType === 'display' &&
                                 (
-                                    project.type === 'display' ||
-                                    project.engine_id === null ||
+                                    (project.type === 'display' && !project.is_merchandise) ||
+                                    (project.engine_id === null && !project.is_merchandise && project.type !== 'souvenir' && project.type !== 'merchandise') ||
                                     project.type === 'calendar' ||
                                     project.type === 'offset'
                                 )

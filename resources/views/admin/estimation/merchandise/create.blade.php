@@ -401,7 +401,7 @@
                                                     <i class="bi bi-box2 me-1"></i> Termasuk Box Beludru
                                                 </label>
                                                 <label class="choice-pill" id="pillPlakatNoBox">
-                                                    <input type="radio" name="plakat_box" value="nobox">
+                                                    <input type="radio" name="plakat_box" value="tanpa_box">
                                                     Tanpa Box (Plakat Saja)
                                                 </label>
                                             </div>
@@ -2740,44 +2740,166 @@
                         if (this.hasAttribute('data-pick-lanyard')) {
                             lanyardWidth = this.getAttribute('data-width');
                             lanyardPackage = this.getAttribute('data-pkg');
-                            lanyardQty = parseInt(this.getAttribute('data-min')) || 10;
+                            lanyardQty = parseInt(this.getAttribute('data-min')) || 1;
                             if (lanyardQtyInput) lanyardQtyInput.value = lanyardQty;
 
-                            document.querySelector(
-                                `input[name="lanyard_width"][value="${lanyardWidth}"]`)?.click();
-                            document.querySelector(
-                                    `input[name="lanyard_package"][value="${lanyardPackage}"]`)
-                                ?.click();
+                            const radWidth = document.querySelector(
+                                `input[name="lanyard_width"][value="${lanyardWidth}"]`);
+                            if (radWidth) {
+                                radWidth.checked = true;
+                                document.querySelectorAll('#cardLanyardWidth2cm, #cardLanyardWidth25cm')
+                                    .forEach(c => c.classList.remove('active'));
+                                radWidth.closest('.choice-card')?.classList.add('active');
+                            }
+
+                            const radPkg = document.querySelector(
+                                `input[name="lanyard_package"][value="${lanyardPackage}"]`);
+                            if (radPkg) {
+                                radPkg.checked = true;
+                                document.querySelectorAll('#cardLanyardPkgSet, #cardLanyardPkgTali')
+                                    .forEach(c => c.classList.remove('active'));
+                                radPkg.closest('.choice-card')?.classList.add('active');
+                            }
+
+                            document.querySelectorAll('#panelLanyard .quick-qty-btn').forEach(b => {
+                                const q = parseInt(b.getAttribute('data-qty'));
+                                b.classList.toggle('active', q === lanyardQty);
+                            });
+
                         } else if (this.hasAttribute('data-pick-nametag')) {
                             nametagType = this.getAttribute('data-pick-nametag');
-                            document.querySelector(
-                                `input[name="nametag_type"][value="${nametagType}"]`)?.click();
+                            const radType = document.querySelector(
+                                `input[name="nametag_type"][value="${nametagType}"]`);
+                            if (radType) {
+                                radType.checked = true;
+                                document.querySelectorAll(
+                                    '#cardNametagBiasa, #cardNametagResin, #cardNametagResinEmas')
+                                    .forEach(c => c.classList.remove('active'));
+                                radType.closest('.choice-card')?.classList.add('active');
+                            }
+
                         } else if (this.hasAttribute('data-pick-plakat')) {
                             const mat = this.getAttribute('data-mat');
-                            document.querySelector(`input[name="plakat_material"][value="${mat}"]`)
-                                ?.click();
+                            plakatMaterial = mat;
+
+                            const radMat = document.querySelector(
+                                `input[name="plakat_material"][value="${mat}"]`);
+                            if (radMat) {
+                                radMat.checked = true;
+                                document.querySelectorAll('#cardPlakatMatAkrilik, #cardPlakatMatKayu')
+                                    .forEach(c => c.classList.remove('active'));
+                                radMat.closest('.choice-card')?.classList.add('active');
+                            }
+
+                            const akrilikOpts = document.getElementById('plakatAkrilikOptions');
+                            if (akrilikOpts) {
+                                akrilikOpts.style.display = (plakatMaterial === 'akrilik') ? 'grid' :
+                                    'none';
+                            }
+
                             if (mat === 'akrilik') {
                                 const thk = this.getAttribute('data-thk');
                                 const base = this.getAttribute('data-base');
-                                const box = this.getAttribute('data-box');
-                                document.querySelector(
-                                    `input[name="plakat_thickness"][value="${thk}"]`)?.click();
-                                document.querySelector(`input[name="plakat_base"][value="${base}"]`)
-                                    ?.click();
-                                document.querySelector(`input[name="plakat_box"][value="${box}"]`)
-                                    ?.click();
+                                let box = this.getAttribute('data-box');
+                                if (box === 'nobox') box = 'tanpa_box';
+
+                                plakatThickness = thk;
+                                plakatBase = base;
+                                plakatBox = box;
+
+                                const radThk = document.querySelector(
+                                    `input[name="plakat_thickness"][value="${thk}"]`);
+                                if (radThk) {
+                                    radThk.checked = true;
+                                    document.querySelectorAll(
+                                        '#pillPlakatThk2mm, #pillPlakatThk3mm, #pillPlakatThk5mm, #pillPlakatThk1cm'
+                                    ).forEach(p => p.classList.remove('active'));
+                                    radThk.closest('.choice-pill')?.classList.add('active');
+                                }
+
+                                const radBase = document.querySelector(
+                                    `input[name="plakat_base"][value="${base}"]`);
+                                if (radBase) {
+                                    radBase.checked = true;
+                                    document.querySelectorAll('#pillPlakatBaseAkrilik, #pillPlakatBaseHitam')
+                                        .forEach(p => p.classList.remove('active'));
+                                    radBase.closest('.choice-pill')?.classList.add('active');
+                                }
+
+                                const radBox = document.querySelector(
+                                    `input[name="plakat_box"][value="${box}"]`);
+                                if (radBox) {
+                                    radBox.checked = true;
+                                    document.querySelectorAll('#pillPlakatWithBox, #pillPlakatNoBox')
+                                        .forEach(p => p.classList.remove('active'));
+                                    radBox.closest('.choice-pill')?.classList.add('active');
+                                }
                             }
+
                         } else if (this.hasAttribute('data-pick-nota')) {
                             const paper = this.getAttribute('data-paper');
-                            const ply = this.getAttribute('data-ply');
-                            const ink = this.getAttribute('data-ink');
-                            document.querySelector(`input[name="nota_paper"][value="${paper}"]`)
-                                ?.click();
-                            document.querySelector(`input[name="nota_ply"][value="${ply}"]`)
-                                ?.click();
-                            document.querySelector(`input[name="nota_ink"][value="${ink}"]`)
-                                ?.click();
+                            const ply = parseInt(this.getAttribute('data-ply')) || 1;
+                            const ink = parseInt(this.getAttribute('data-ink')) || 1;
+
+                            notaPaper = paper;
+                            notaPly = ply;
+                            notaInk = ink;
+
+                            const radPaper = document.querySelector(
+                                `input[name="nota_paper"][value="${paper}"]`);
+                            if (radPaper) {
+                                radPaper.checked = true;
+                                document.querySelectorAll('#cardNotaPaperNcr, #cardNotaPaperHvs')
+                                    .forEach(c => c.classList.remove('active'));
+                                radPaper.closest('.choice-card')?.classList.add('active');
+                            }
+
+                            const pillPly1 = document.getElementById('pillNotaPly1');
+                            const pillPly2 = document.getElementById('pillNotaPly2');
+                            const pillPly3 = document.getElementById('pillNotaPly3');
+                            const pillPly4 = document.getElementById('pillNotaPly4');
+                            const pillInk3 = document.getElementById('pillNotaInk3');
+
+                            if (notaPaper === 'hvs') {
+                                if (pillPly1) pillPly1.style.display = 'inline-flex';
+                                if (pillPly2) pillPly2.style.display = 'none';
+                                if (pillPly3) pillPly3.style.display = 'none';
+                                if (pillPly4) pillPly4.style.display = 'none';
+                                if (pillInk3) pillInk3.style.display = 'none';
+                            } else {
+                                if (pillPly1) pillPly1.style.display = 'none';
+                                if (pillPly2) pillPly2.style.display = 'inline-flex';
+                                if (pillPly3) pillPly3.style.display = 'inline-flex';
+                                if (pillPly4) pillPly4.style.display = 'inline-flex';
+                                if (pillInk3) pillInk3.style.display = 'inline-flex';
+                            }
+
+                            const radPly = document.querySelector(
+                                `input[name="nota_ply"][value="${ply}"]`);
+                            if (radPly) {
+                                radPly.checked = true;
+                                document.querySelectorAll(
+                                    '#pillNotaPly1, #pillNotaPly2, #pillNotaPly3, #pillNotaPly4')
+                                    .forEach(p => p.classList.remove('active'));
+                                radPly.closest('.choice-pill')?.classList.add('active');
+                            }
+
+                            const radInk = document.querySelector(
+                                `input[name="nota_ink"][value="${ink}"]`);
+                            if (radInk) {
+                                radInk.checked = true;
+                                document.querySelectorAll('#pillNotaInk1, #pillNotaInk2, #pillNotaInk3')
+                                    .forEach(p => p.classList.remove('active'));
+                                radInk.closest('.choice-pill')?.classList.add('active');
+                            }
                         }
+
+                        // Update kalkulasi & re-render tabel secara langsung
+                        updateCalculation();
+                        renderMatrixTable();
+
+                        // Tampilkan toast konfirmasi elegan
+                        showMerchToast('Pilihan Diterapkan', 'Spesifikasi dari tabel harga berhasil diterapkan ke formulir.');
 
                         // Smooth scroll ke atas form
                         document.querySelector('.merch-form-col')?.scrollIntoView({
