@@ -188,6 +188,15 @@
                         <div class="text-[11px] text-zinc-400 opacity-90 mt-0.5">4 Bulanan (Triwulan)</div>
                     </button>
 
+                    {{-- 2 Lembar (6 Bulanan) --}}
+                    <button type="button" class="estimator-choice-button cal-choice-leaf leaf-dinding-only"
+                        data-leaf="2" aria-checked="false">
+                        <div class="flex items-center justify-between gap-2">
+                            <div class="font-semibold text-sm">2 Lembar</div>
+                        </div>
+                        <div class="text-[11px] text-zinc-400 opacity-90 mt-0.5">6 Bulanan (Semester)</div>
+                    </button>
+
                     {{-- 1 Lembar (Poster) --}}
                     <button type="button" class="estimator-choice-button cal-choice-leaf leaf-dinding-only"
                         data-leaf="1" aria-checked="false">
@@ -224,10 +233,56 @@
                 </div>
             </div>
 
-            {{-- 6. Khusus Kalender Meja: Model Penopang / Dudukan --}}
+            {{-- 6. Pilihan Finishing Kalender (Khusus Kalender Dinding) --}}
+            <div class="sm:col-span-2" id="calendarFinishingSection">
+                <div class="flex items-center justify-between mb-2">
+                    <label class="block text-xs font-medium text-zinc-500 dark:text-zinc-400">
+                        6. Pilihan Finishing Kalender Dinding <span class="text-red-500">*</span>
+                    </label>
+                    <span id="calendarFinishingBadge" class="text-[11px] font-semibold text-accent flex items-center gap-1">
+                        <span>💡</span> <span id="calendarFinishingBadgeText">Finishing Aktif: Jepit Kaleng (Auto)</span>
+                    </span>
+                </div>
+                <div class="estimator-choice-buttons" id="calendarFinishingButtons">
+                    <button type="button" class="estimator-choice-button cal-choice-finishing"
+                        data-finishing="auto" aria-checked="true">
+                        <div class="flex items-center justify-between gap-2">
+                            <div class="font-semibold text-sm">✨ AUTO (Rekomendasi Bahan)</div>
+                            <span class="text-[10px] px-1.5 py-0.5 rounded bg-accent/20 text-accent font-semibold">Otomatis</span>
+                        </div>
+                        <div class="text-[11px] text-zinc-400 opacity-90 mt-0.5">AP: Jepit Kaleng / AC: Spiral Hanger</div>
+                    </button>
+                    <button type="button" class="estimator-choice-button cal-choice-finishing"
+                        data-finishing="jepit_kaleng" aria-checked="false">
+                        <div class="flex items-center justify-between gap-2">
+                            <div class="font-semibold text-sm">📎 Jepit Kaleng / Seng</div>
+                            <span class="text-[10px] px-1.5 py-0.5 rounded bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">Klasik</span>
+                        </div>
+                        <div class="text-[11px] text-zinc-400 opacity-90 mt-0.5">Klem seng kaleng rapi &amp; kuat</div>
+                    </button>
+                    <button type="button" class="estimator-choice-button cal-choice-finishing"
+                        data-finishing="spiral_hanger" aria-checked="false">
+                        <div class="flex items-center justify-between gap-2">
+                            <div class="font-semibold text-sm">🌀 Spiral Wire + Hanger</div>
+                            <span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-semibold">Elegan</span>
+                        </div>
+                        <div class="text-[11px] text-zinc-400 opacity-90 mt-0.5">Jilid kawat spiral + gantungan dinding</div>
+                    </button>
+                    <button type="button" class="estimator-choice-button cal-choice-finishing"
+                        data-finishing="mata_itik" aria-checked="false">
+                        <div class="flex items-center justify-between gap-2">
+                            <div class="font-semibold text-sm">🔘 Mata Itik / Mata Ayam (Eyelet)</div>
+                            <span class="text-[10px] px-1.5 py-0.5 rounded bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">Ring Logam</span>
+                        </div>
+                        <div class="text-[11px] text-zinc-400 opacity-90 mt-0.5">Ring mata ayam logam (cocok 1 lbr poster)</div>
+                    </button>
+                </div>
+            </div>
+
+            {{-- 7. Khusus Kalender Meja: Model Penopang / Dudukan --}}
             <div class="sm:col-span-2" id="calendarSupportSection" style="display: none;">
                 <label class="block text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-2">
-                    6. Dudukan / Penopang Kalender Meja <span class="text-red-500">*</span>
+                    7. Dudukan / Penopang Kalender Meja <span class="text-red-500">*</span>
                 </label>
                 <div class="estimator-choice-buttons" id="calendarSupportButtons">
                     <button type="button" class="estimator-choice-button cal-choice-support"
@@ -243,11 +298,11 @@
                 </div>
             </div>
 
-            {{-- 7. Pilihan Kuantitas Cetak --}}
+            {{-- 8. Pilihan Kuantitas Cetak --}}
             <div class="sm:col-span-2">
                 <div class="flex items-center justify-between mb-2">
                     <label class="block text-xs font-medium text-zinc-500 dark:text-zinc-400">
-                        7. Kuantitas Cetak <span class="text-red-500">*</span>
+                        8. Kuantitas Cetak <span class="text-red-500">*</span>
                     </label>
                     <span id="calendarQtyMeta" class="text-xs font-medium text-accent"></span>
                 </div>

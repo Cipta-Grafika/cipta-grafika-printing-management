@@ -61,6 +61,7 @@ class CalendarCalculationService
         $lamination = strtolower(trim((string) ($params['lamination'] ?? 'none')));
         $supportType = strtolower(trim((string) ($params['support_type'] ?? 'printing_fc')));
         $boardType = strtolower(trim((string) ($params['board_type'] ?? 'boot_30')));
+        $finishingType = strtolower(trim((string) ($params['finishing'] ?? $params['finishing_type'] ?? 'auto')));
 
         // 1. Fetch Product
         $product = DB::table('m_calendar_products')->where('id', $productId)->first();
@@ -74,20 +75,12 @@ class CalendarCalculationService
             throw new \Exception('Material kalender tidak ditemukan.');
         }
 
-        // 3. Determine Markup Rule
-        $pricingRule = $this->getPricingRule($qty);
-        $markupRate = $pricingRule ? ((float) $pricingRule->markup_percent / 100.0) : $this->getFallbackMarkupRate($qty);
-        $roundingVal = $pricingRule ? (int) $pricingRule->rounding_value : 500;
-        if ($roundingVal <= 0) {
-            $roundingVal = 500;
-        }
-
-        // 4. Branch by Calendar Type
+        // 3. Branch by Calendar Type
         $calendarType = strtolower(trim($product->calendar_type));
         if ($calendarType === 'meja') {
-            return $this->calculateDeskCalendar($product, $material, $qty, $leafCount, $lamination, $supportType, $boardType, $markupRate, $roundingVal);
+            return $this->calculateDeskCalendar($product, $material, $qty, $leafCount, $lamination, $supportType, $boardType);
         } else {
-            return $this->calculateWallCalendar($product, $material, $qty, $leafCount, $lamination, $markupRate, $roundingVal);
+            return $this->calculateWallCalendar($product, $material, $qty, $leafCount, $lamination, $finishingType);
         }
     }
 
@@ -100,15 +93,17 @@ class CalendarCalculationService
         int $qty,
         int $leafCount,
         string $lamination,
-        float $markupRate,
-        int $roundingVal
+        string $finishingType = 'auto'
     ): array {
         $width = (float) $product->final_width;
         $height = (float) $product->final_height;
         $category = strtoupper(trim($material->category));
 
-        // 1. Finishing Per Pcs (Otomatis: Jepit Kaleng atau Spiral Wire-O + Hanger)
-        $finishing = $this->determineWallFinishing($category, $width);
+        $markupDig = $this->getDigitalMarkup($qty);
+        $markupOff = $this->getOffsetMarkup($qty);
+
+        // 1. Finishing Per Pcs (AUTO, Jepit Kaleng, Spiral Hanger, Mata Itik)
+        $finishing = $this->determineWallFinishing($category, $width, $finishingType);
         $finishCostPerPcs = $finishing['cost_per_pcs'];
         $finishTotal = $finishCostPerPcs * $qty;
 
@@ -140,7 +135,7 @@ class CalendarCalculationService
 
             $hppDigitalTotal = $printTotal + $lamTotal + $finishTotal;
             $hppDigitalPcs = $hppDigitalTotal / $qty;
-            $sellingPricePcs = $this->ceilingRound($hppDigitalPcs * (1.0 + $markupRate), $roundingVal);
+            $sellingPricePcs = $this->ceilingRound($hppDigitalPcs * (1.0 + $markupDig), 500);
             $totalOffer = $sellingPricePcs * $qty;
 
             $digital = [
@@ -201,7 +196,7 @@ class CalendarCalculationService
 
         $hppOffsetTotal = $paperCost + $platCost + $printCost + $lamCostOffset + $finishTotal;
         $hppOffsetPcs = $hppOffsetTotal / $qty;
-        $sellingPriceOffsetPcs = $this->ceilingRound($hppOffsetPcs * (1.0 + $markupRate), $roundingVal);
+        $sellingPriceOffsetPcs = $this->ceilingRound($hppOffsetPcs * (1.0 + $markupOff), 500);
         $totalOfferOffset = $sellingPriceOffsetPcs * $qty;
 
         $offset = [
@@ -225,20 +220,20 @@ class CalendarCalculationService
             'total_offer'         => $totalOfferOffset,
         ];
 
-        // 4. Recommendation Comparison
+        // 4. Recommendation Comparison (Sesuai Referensi Cipta Grafika)
         if (!$digitalAvailable) {
             $recommendedRoute = 'offset';
             $recommendationLabel = 'OFFSET SAJA';
             $recommendationReason = 'Ukuran kalender melebihi batas area cetak Digital A3+. Wajib menggunakan Mesin Offset (' . $machineKey . ').';
-        } elseif ($digital['hpp_per_pcs'] < $offset['hpp_per_pcs']) {
+        } elseif ($totalOffer < $totalOfferOffset) {
             $recommendedRoute = 'digital';
             $recommendationLabel = 'DIGITAL LEBIH EFISIEN';
-            $diffPcs = $offset['hpp_per_pcs'] - $digital['hpp_per_pcs'];
+            $diffPcs = $sellingPriceOffsetPcs - $sellingPricePcs;
             $recommendationReason = "Digital A3+ lebih hemat Rp " . number_format($diffPcs, 0, ',', '.') . " / pcs dibanding Offset.";
-        } elseif ($offset['hpp_per_pcs'] < $digital['hpp_per_pcs']) {
+        } elseif ($totalOfferOffset < $totalOffer) {
             $recommendedRoute = 'offset';
             $recommendationLabel = 'OFFSET LEBIH EFISIEN';
-            $diffPcs = $digital['hpp_per_pcs'] - $offset['hpp_per_pcs'];
+            $diffPcs = $sellingPricePcs - $sellingPriceOffsetPcs;
             $recommendationReason = "Mesin Offset ({$machineKey}) lebih hemat Rp " . number_format($diffPcs, 0, ',', '.') . " / pcs dibanding Digital.";
         } else {
             $recommendedRoute = 'digital';
@@ -246,8 +241,9 @@ class CalendarCalculationService
             $recommendationReason = 'Biaya Digital dan Offset seimbang.';
         }
 
-        $recommendedPricePcs = $recommendedRoute === 'digital' ? $digital['selling_price_pcs'] : $offset['selling_price_pcs'];
+        $recommendedPricePcs = $recommendedRoute === 'digital' ? $sellingPricePcs : $sellingPriceOffsetPcs;
         $recommendedTotalOffer = $recommendedPricePcs * $qty;
+        $activeMarkupRate = $recommendedRoute === 'digital' ? $markupDig : $markupOff;
 
         return [
             'calendar_type'          => 'dinding',
@@ -257,8 +253,9 @@ class CalendarCalculationService
             'material_name'          => $material->material_name,
             'leaf_count'             => $leafCount,
             'lamination'             => $lamination,
+            'finishing_type'         => $finishingType,
             'qty'                    => $qty,
-            'markup_percent'         => $markupRate * 100,
+            'markup_percent'         => round($activeMarkupRate * 100, 1),
             'finishing_detail'       => $finishing,
             'digital'                => $digital,
             'offset'                 => $offset,
@@ -294,14 +291,15 @@ class CalendarCalculationService
         int $leafCount,
         string $lamination,
         string $supportType,
-        string $boardType,
-        float $markupRate,
-        int $roundingVal
+        string $boardType
     ): array {
         $width = (float) $product->final_width;
         $height = (float) $product->final_height;
         $orientation = strtolower(trim($product->orientation));
         $materialName = $material->material_name;
+
+        $markupDig = $this->getDigitalMarkup($qty);
+        $markupOff = $this->getOffsetMarkup($qty);
 
         // 1. Cost Penopang Meja (Stand Support)
         $supportDetail = $this->calculateDeskSupport($product->size_label, $orientation, $supportType, $boardType);
@@ -335,7 +333,7 @@ class CalendarCalculationService
 
         $hppDigitalTotal = $costIsiLamDigital + $supportTotal + $spiralFinTotal;
         $hppDigitalPcs = $hppDigitalTotal / $qty;
-        $sellingPriceDigitalPcs = $this->ceilingRound($hppDigitalPcs * (1.0 + $markupRate), $roundingVal);
+        $sellingPriceDigitalPcs = $this->ceilingRound($hppDigitalPcs * (1.0 + $markupDig), 500);
         $totalOfferDigital = $sellingPriceDigitalPcs * $qty;
 
         $digital = [
@@ -418,7 +416,7 @@ class CalendarCalculationService
         $costIsiLamOffset = $paperCost + $platCost + $printCostOffset + $lamCostOffset;
         $hppOffsetTotal = $costIsiLamOffset + $supportTotal + $spiralFinTotal;
         $hppOffsetPcs = $hppOffsetTotal / $qty;
-        $sellingPriceOffsetPcs = $this->ceilingRound($hppOffsetPcs * (1.0 + $markupRate), $roundingVal);
+        $sellingPriceOffsetPcs = $this->ceilingRound($hppOffsetPcs * (1.0 + $markupOff), 500);
         $totalOfferOffset = $sellingPriceOffsetPcs * $qty;
 
         $offset = [
@@ -449,16 +447,16 @@ class CalendarCalculationService
             'total_offer'         => $totalOfferOffset,
         ];
 
-        // 5. Recommendation
-        if ($digital['hpp_per_pcs'] < $offset['hpp_per_pcs']) {
+        // 5. Recommendation (Sesuai Referensi Cipta Grafika)
+        if ($totalOfferDigital < $totalOfferOffset) {
             $recommendedRoute = 'digital';
             $recommendationLabel = 'DIGITAL LEBIH EFISIEN';
-            $diffPcs = $offset['hpp_per_pcs'] - $digital['hpp_per_pcs'];
+            $diffPcs = $sellingPriceOffsetPcs - $sellingPriceDigitalPcs;
             $recommendationReason = "Digital A3+ lebih hemat Rp " . number_format($diffPcs, 0, ',', '.') . " / pcs dibanding Offset SM52.";
-        } elseif ($offset['hpp_per_pcs'] < $digital['hpp_per_pcs']) {
+        } elseif ($totalOfferOffset < $totalOfferDigital) {
             $recommendedRoute = 'offset';
             $recommendationLabel = 'OFFSET SM52 LEBIH EFISIEN';
-            $diffPcs = $digital['hpp_per_pcs'] - $offset['hpp_per_pcs'];
+            $diffPcs = $sellingPriceDigitalPcs - $sellingPriceOffsetPcs;
             $recommendationReason = "Offset SM52 lebih hemat Rp " . number_format($diffPcs, 0, ',', '.') . " / pcs dibanding Digital A3+.";
         } else {
             $recommendedRoute = 'digital';
@@ -466,8 +464,9 @@ class CalendarCalculationService
             $recommendationReason = 'Biaya Digital dan Offset SM52 seimbang.';
         }
 
-        $recommendedPricePcs = $recommendedRoute === 'digital' ? $digital['selling_price_pcs'] : $offset['selling_price_pcs'];
+        $recommendedPricePcs = $recommendedRoute === 'digital' ? $sellingPriceDigitalPcs : $sellingPriceOffsetPcs;
         $recommendedTotalOffer = $recommendedPricePcs * $qty;
+        $activeMarkupRate = $recommendedRoute === 'digital' ? $markupDig : $markupOff;
 
         return [
             'calendar_type'          => 'meja',
@@ -480,7 +479,7 @@ class CalendarCalculationService
             'support_type'           => $supportType,
             'board_type'             => $boardType,
             'qty'                    => $qty,
-            'markup_percent'         => $markupRate * 100,
+            'markup_percent'         => round($activeMarkupRate * 100, 1),
             'support_detail'         => $supportDetail,
             'spiral_finishing_detail'=> [
                 'binding_width_cm'   => $bindingWidth,
@@ -513,11 +512,13 @@ class CalendarCalculationService
     }
 
     /**
-     * Tentukan finishing kalender dinding otomatis
+     * Tentukan finishing kalender dinding (AUTO atau pilihan manual)
      */
-    protected function determineWallFinishing(string $category, float $width): array
+    protected function determineWallFinishing(string $category, float $width, string $finishingType = 'auto'): array
     {
-        if ($category === 'AP') {
+        $normalizedType = strtolower(str_replace(['-', ' '], '_', $finishingType));
+
+        if ($normalizedType === 'jepit_kaleng' || $normalizedType === 'jepit' || $normalizedType === 'seng') {
             if ($width <= 31.0) {
                 return [
                     'code'         => 'ACC-JK-S',
@@ -540,18 +541,62 @@ class CalendarCalculationService
                     'cost_per_pcs' => (float) $this->getComponentPrice('ACC-JK-L', 3000.0),
                 ];
             }
-        } else {
-            // Art Carton uses Spiral Wire-O + Hanger
+        } elseif ($normalizedType === 'spiral_hanger' || $normalizedType === 'spiral' || $normalizedType === 'hanger') {
             $spiralRateCm = (float) $this->getComponentPrice('ACC-SPIRAL', 150.0);
             $hangerRate = (float) $this->getComponentPrice('ACC-HANGER', 500.0);
             $spiralCost = $width * $spiralRateCm;
             $totalFin = $spiralCost + $hangerRate;
             return [
                 'code'         => 'ACC-SPIRAL-HANGER',
-                'name'         => 'Spiral Wire-O + Hanger Kawat',
+                'name'         => 'Spiral Wire + Hanger',
                 'type'         => 'spiral_hanger',
-                'cost_per_pcs' => $totalFin,
+                'cost_per_pcs' => (float) $totalFin,
             ];
+        } elseif ($normalizedType === 'mata_itik' || $normalizedType === 'mata_ayam' || $normalizedType === 'eyelet') {
+            $mataItikPrice = (float) $this->getComponentPrice('ACC-MATA-ITIK', 750.0);
+            return [
+                'code'         => 'ACC-MATA-ITIK',
+                'name'         => 'Mata Itik / Mata Ayam (Eyelet)',
+                'type'         => 'mata_itik',
+                'cost_per_pcs' => $mataItikPrice,
+            ];
+        } else {
+            // AUTO - Sesuai Rekomendasi Bahan Kertas (AP -> Jepit Kaleng, AC/BW -> Spiral Wire-O + Hanger)
+            if ($category === 'AP' || str_contains($category, 'PAPER')) {
+                if ($width <= 31.0) {
+                    return [
+                        'code'         => 'ACC-JK-S',
+                        'name'         => 'Jepit Kaleng (Auto)',
+                        'type'         => 'jepit_kaleng',
+                        'cost_per_pcs' => (float) $this->getComponentPrice('ACC-JK-S', 2000.0),
+                    ];
+                } elseif ($width <= 40.0) {
+                    return [
+                        'code'         => 'ACC-JK-M',
+                        'name'         => 'Jepit Kaleng (Auto)',
+                        'type'         => 'jepit_kaleng',
+                        'cost_per_pcs' => (float) $this->getComponentPrice('ACC-JK-M', 2500.0),
+                    ];
+                } else {
+                    return [
+                        'code'         => 'ACC-JK-L',
+                        'name'         => 'Jepit Kaleng (Auto)',
+                        'type'         => 'jepit_kaleng',
+                        'cost_per_pcs' => (float) $this->getComponentPrice('ACC-JK-L', 3000.0),
+                    ];
+                }
+            } else {
+                $spiralRateCm = (float) $this->getComponentPrice('ACC-SPIRAL', 150.0);
+                $hangerRate = (float) $this->getComponentPrice('ACC-HANGER', 500.0);
+                $spiralCost = $width * $spiralRateCm;
+                $totalFin = $spiralCost + $hangerRate;
+                return [
+                    'code'         => 'ACC-SPIRAL-HANGER',
+                    'name'         => 'Spiral Hanger (Auto)',
+                    'type'         => 'spiral_hanger',
+                    'cost_per_pcs' => (float) $totalFin,
+                ];
+            }
         }
     }
 
@@ -675,15 +720,39 @@ class CalendarCalculationService
     }
 
     /**
+     * Skema Markup Dinamis Digital Printing berdasarkan Kuantitas (Sesuai Referensi Website)
+     */
+    public function getDigitalMarkup(int $qty): float
+    {
+        if ($qty <= 5) return 2.50;      // 250% (Low QTY premium)
+        if ($qty <= 10) return 2.00;     // 200%
+        if ($qty <= 25) return 1.50;     // 150%
+        if ($qty <= 50) return 1.00;     // 100%
+        if ($qty <= 99) return 0.75;     // 75%
+        if ($qty <= 199) return 0.55;    // 55%
+        if ($qty <= 299) return 0.45;    // 45%
+        if ($qty <= 499) return 0.35;    // 35%
+        return 0.30;                    // 30%
+    }
+
+    /**
+     * Skema Markup Dinamis Mesin Offset berdasarkan Kuantitas (Sesuai Referensi Website)
+     */
+    public function getOffsetMarkup(int $qty): float
+    {
+        if ($qty < 100) return 0.50;     // 50%
+        if ($qty < 200) return 0.45;     // 45%
+        if ($qty < 300) return 0.40;     // 40%
+        if ($qty < 500) return 0.35;     // 35%
+        return 0.30;                    // 30%
+    }
+
+    /**
      * Fallback markup jika DB tidak terakses
      */
     protected function getFallbackMarkupRate(int $qty): float
     {
-        if ($qty >= 500) return 0.30;
-        if ($qty >= 300) return 0.35;
-        if ($qty >= 200) return 0.40;
-        if ($qty >= 100) return 0.45;
-        return 0.50;
+        return $this->getOffsetMarkup($qty);
     }
 
     /**
@@ -745,6 +814,7 @@ class CalendarCalculationService
     {
         $tiers = [50, 100, 200, 300, 500, 1000, 2000, 3000, 5000];
         $matrix = [];
+        $finishingName = '';
 
         foreach ($tiers as $tierQty) {
             $tierParams = array_merge($params, ['qty' => $tierQty]);
@@ -752,6 +822,10 @@ class CalendarCalculationService
                 $calc = $this->calculate($tierParams);
                 $isDigital = ($calc['recommended_route'] ?? '') === 'digital';
                 $rec = $isDigital ? ($calc['digital'] ?? []) : ($calc['offset'] ?? []);
+
+                if (empty($finishingName)) {
+                    $finishingName = $calc['finishing_detail']['name'] ?? ($calc['support_detail']['name'] ?? '');
+                }
 
                 $matrix[] = [
                     'qty'                 => $tierQty,
@@ -771,7 +845,7 @@ class CalendarCalculationService
             }
         }
 
-        $waMatrix = $this->buildMatrixWaText($params, $matrix);
+        $waMatrix = $this->buildMatrixWaText($params, $matrix, $finishingName);
 
         return [
             'tiers'     => $matrix,
@@ -782,7 +856,7 @@ class CalendarCalculationService
     /**
      * Susun format teks salinan WhatsApp untuk matriks daftar harga bertingkat
      */
-    protected function buildMatrixWaText(array $params, array $matrix): string
+    protected function buildMatrixWaText(array $params, array $matrix, string $finishingName = ''): string
     {
         if (empty($matrix)) {
             return '';
@@ -812,6 +886,9 @@ class CalendarCalculationService
         }
         $text .= "• Jumlah Isi: {$leafCount} Lembar\n";
         $text .= "• Laminasi: {$lamLabel}\n";
+        if (!empty($finishingName)) {
+            $text .= "• Finishing: {$finishingName}\n";
+        }
         $text .= "--------------------------------------\n";
         $text .= "*Daftar Harga Bertingkat:*\n";
 
@@ -824,7 +901,7 @@ class CalendarCalculationService
 
         $text .= "--------------------------------------\n";
         $text .= "_* Catatan:_\n";
-        $text .= "- Harga sudah termasuk cetak fullcolor & finishing standar.\n";
+        $text .= "- Harga sudah termasuk cetak fullcolor & finishing.\n";
         $text .= "- Harga dapat berubah sewaktu-waktu sesuai ketentuan.\n";
         $text .= "- Hubungi tim Cipta Grafika untuk pemesanan & info selengkapnya.";
 

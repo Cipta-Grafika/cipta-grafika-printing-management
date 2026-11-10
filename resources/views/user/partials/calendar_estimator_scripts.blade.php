@@ -7,6 +7,9 @@
         const laminationButtons = document.querySelectorAll('.cal-choice-lam');
         const supportButtons = document.querySelectorAll('.cal-choice-support');
         const supportSection = document.getElementById('calendarSupportSection');
+        const finishingButtons = document.querySelectorAll('.cal-choice-finishing');
+        const finishingSection = document.getElementById('calendarFinishingSection');
+        const finishingBadgeText = document.getElementById('calendarFinishingBadgeText');
         const pkgButtons = document.querySelectorAll('.cal-pkg-btn');
         const quantityInput = document.getElementById('calendarQuantityInput');
         const qtyMeta = document.getElementById('calendarQtyMeta');
@@ -58,6 +61,7 @@
         let selectedMaterialName = 'Art Paper 150 gsm';
         let selectedLeafCount = 7;
         let selectedLamination = 'none';
+        let selectedFinishing = 'auto';
         let selectedSupportType = 'printing_fc';
         let selectedBoardType = 'boot_30';
         let currentQty = parseInt(quantityInput?.value || 300);
@@ -125,14 +129,16 @@
 
                 if (selectedCalendarType === 'meja') {
                     if (supportSection) supportSection.style.display = 'block';
+                    if (finishingSection) finishingSection.style.display = 'none';
                     document.querySelectorAll('.leaf-dinding-only').forEach(el => el.style.display = 'none');
-                    // Meja tidak mendukung format 1 lembar poster. Jika sebelumnya 1 lembar, switch ke 13 lembar.
-                    if (selectedLeafCount === 1) {
+                    // Meja tidak mendukung format 1 lembar poster atau 2 lembar semester. Jika sebelumnya 1 atau 2 lembar, switch ke 13 lembar.
+                    if (selectedLeafCount === 1 || selectedLeafCount === 2) {
                         selectedLeafCount = 13;
                         leafButtons.forEach(b => b.setAttribute('aria-checked', b.getAttribute('data-leaf') === '13' ? 'true' : 'false'));
                     }
                 } else {
                     if (supportSection) supportSection.style.display = 'none';
+                    if (finishingSection) finishingSection.style.display = 'block';
                     document.querySelectorAll('.leaf-dinding-only').forEach(el => el.style.display = 'block');
                 }
 
@@ -185,7 +191,17 @@
             });
         });
 
-        // 6. Event: Pilih Penopang Dudukan (Kalender Meja)
+        // 6. Event: Pilih Finishing Kalender (Dinding)
+        finishingButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                finishingButtons.forEach(b => b.setAttribute('aria-checked', 'false'));
+                this.setAttribute('aria-checked', 'true');
+                selectedFinishing = this.getAttribute('data-finishing');
+                calculateCalendar();
+            });
+        });
+
+        // 7. Event: Pilih Penopang Dudukan (Kalender Meja)
         supportButtons.forEach(btn => {
             btn.addEventListener('click', function() {
                 supportButtons.forEach(b => b.setAttribute('aria-checked', 'false'));
@@ -284,6 +300,7 @@
                         material_id: selectedMaterialId,
                         leaf_count: selectedLeafCount,
                         lamination: selectedLamination,
+                        finishing: selectedFinishing,
                         support_type: selectedSupportType,
                         board_type: selectedBoardType,
                         qty: currentQty,
@@ -321,6 +338,7 @@
 
                 const leafDescMap = {
                     1: '1 Lembar (Poster 1 Muka)',
+                    2: '2 Lembar (6 Bulanan / Semester)',
                     3: '3 Lembar (4 Bulanan / Triwulan)',
                     4: '4 Lembar (3 Bulanan / Caturwulan)',
                     6: '6 Lembar (2 Bulanan Tanpa Cover)',
@@ -341,6 +359,9 @@
                     } else {
                         summaryFinishing.textContent = d.finishing_detail?.name || 'Jepit Klem Seng (Auto)';
                     }
+                }
+                if (finishingBadgeText && d.finishing_detail) {
+                    finishingBadgeText.textContent = `Finishing Aktif: ${d.finishing_detail.name} (${formatRupiah(d.finishing_detail.cost_per_pcs)}/pcs)`;
                 }
                 if (summaryQty) summaryQty.textContent = `${currentQty.toLocaleString('id-ID')} pcs`;
 

@@ -72,6 +72,7 @@ class CalendarEstimationCT extends Controller
             $lamination = (string) $request->input('lamination', 'none');
             $supportType = (string) $request->input('support_type', 'printing_fc');
             $boardType = (string) $request->input('board_type', 'boot_30');
+            $finishing = (string) $request->input('finishing', 'auto');
 
             if ($productId <= 0 || $materialId <= 0) {
                 return response()->json([
@@ -88,6 +89,7 @@ class CalendarEstimationCT extends Controller
                 'lamination'   => $lamination,
                 'support_type' => $supportType,
                 'board_type'   => $boardType,
+                'finishing'    => $finishing,
                 'price_type'   => (string) $request->input('price_type', 'general'),
             ];
 

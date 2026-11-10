@@ -1459,6 +1459,7 @@ class CatalogCT extends Controller
             'leaf_count'    => 'required|integer|min:1',
             'lamination'    => 'required|string|in:none,glossy,doff',
             'qty'           => 'required|integer|min:1',
+            'finishing'     => 'nullable|string',
             'support_type'  => 'nullable|string',
             'board_type'    => 'nullable|string',
             'promo_code'    => ['bail', 'nullable', 'string', 'min:3', 'max:30', 'regex:/\A[A-Z0-9_-]+\z/'],
@@ -1484,6 +1485,7 @@ class CatalogCT extends Controller
                 'qty'          => (int) $request->input('qty'),
                 'leaf_count'   => (int) $request->input('leaf_count', 7),
                 'lamination'   => (string) $request->input('lamination', 'none'),
+                'finishing'    => (string) $request->input('finishing', 'auto'),
                 'support_type' => (string) $request->input('support_type', 'printing_fc'),
                 'board_type'   => (string) $request->input('board_type', 'boot_30'),
             ]);

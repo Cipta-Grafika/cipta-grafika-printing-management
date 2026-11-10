@@ -1278,6 +1278,23 @@
                                                 <option value="doff">Laminasi Doff</option>
                                             </select>
                                         </div>
+
+                                        {{-- Pilihan Finishing Kalender (Khusus Kalender Dinding) --}}
+                                        <div class="field" id="wallFinishingSection">
+                                            <label class="field-label" for="finishing">
+                                                Pilihan Finishing Kalender <span class="req">*</span>
+                                            </label>
+                                            <select id="finishing" name="finishing" class="select select2">
+                                                <option value="auto" selected>✨ AUTO (Rekomendasi Bahan)</option>
+                                                <option value="jepit_kaleng">📎 Jepit Kaleng / Seng</option>
+                                                <option value="spiral_hanger">🌀 Spiral Wire + Hanger</option>
+                                                <option value="mata_itik">🔘 Mata Itik / Mata Ayam (Eyelet)</option>
+                                            </select>
+                                            <div id="finishingBadge" style="margin-top: 8px; font-size: 12px; font-weight: 600; color: var(--primary); display: flex; align-items: center; gap: 6px; padding: 7px 12px; background: var(--primary-soft); border-radius: 6px; border: 1px solid var(--primary-ring);">
+                                                <span>💡</span>
+                                                <span id="finishingBadgeText">Finishing Aktif: Jepit Kaleng (Auto)</span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -1742,15 +1759,18 @@
             const btnDinding = document.getElementById('btnTypeDinding');
             const btnMeja = document.getElementById('btnTypeMeja');
             const deskSection = document.getElementById('deskOptionsSection');
+            const wallFinishingSection = document.getElementById('wallFinishingSection');
 
             if (type === 'meja') {
                 btnDinding.classList.remove('active');
                 btnMeja.classList.add('active');
                 deskSection.style.display = 'block';
+                if (wallFinishingSection) wallFinishingSection.style.display = 'none';
             } else {
                 btnMeja.classList.remove('active');
                 btnDinding.classList.add('active');
                 deskSection.style.display = 'none';
+                if (wallFinishingSection) wallFinishingSection.style.display = 'block';
             }
 
             updateProductOptions(type);
@@ -1778,10 +1798,11 @@
             const $leafSelect = $('#leaf_count');
             $leafSelect.empty();
 
-            let leaves = (type === 'meja') ? [3, 4, 6, 7, 12, 13] : [1, 3, 4, 6, 7, 12];
+            let leaves = (type === 'meja') ? [3, 4, 6, 7, 12, 13] : [1, 2, 3, 4, 6, 7, 12, 13];
             leaves.forEach(val => {
                 let label = val + ' Lembar';
                 if (val === 1) label += ' (Poster 1 Lembar)';
+                else if (val === 2) label += ' (6 Bulanan / Semester)';
                 else if (val === 3) label += ' (4 Bulanan / Triwulan)';
                 else if (val === 4) label += ' (3 Bulanan / Caturwulan)';
                 else if (val === 6) label += ' (2 Bulanan / Bimestral)';
@@ -1810,6 +1831,7 @@
             $('#location_id').val($('#location_id option:first').val()).trigger('change.select2');
             $('#price_type').val('general').trigger('change.select2');
             $('#lamination').val('none').trigger('change.select2');
+            $('#finishing').val('auto').trigger('change.select2');
             $('#support_type').val('printing_fc').trigger('change.select2');
             $('#board_type').val('boot_30').trigger('change.select2');
             $('#customer_id').val('').trigger('change.select2');
@@ -1845,6 +1867,7 @@
                 qty: formData.get('qty'),
                 leaf_count: formData.get('leaf_count'),
                 lamination: formData.get('lamination'),
+                finishing: formData.get('finishing') || 'auto',
                 support_type: formData.get('support_type'),
                 board_type: formData.get('board_type'),
                 price_type: formData.get('price_type') || 'general',
@@ -1947,6 +1970,11 @@
                 document.getElementById('bValFinishing').textContent = 'Rp ' + Number(rec.finishing_cost).toLocaleString(
                     'id-ID');
                 document.getElementById('rowSupportCost').style.display = 'none';
+
+                const badgeTextEl = document.getElementById('finishingBadgeText');
+                if (badgeTextEl && data.finishing_detail) {
+                    badgeTextEl.textContent = 'Finishing Aktif: ' + data.finishing_detail.name + ' (Rp ' + Number(data.finishing_detail.cost_per_pcs).toLocaleString('id-ID') + '/pcs)';
+                }
             }
 
             document.getElementById('bValHppTotal').textContent = 'Rp ' + Number(rec.hpp_total).toLocaleString('id-ID');
