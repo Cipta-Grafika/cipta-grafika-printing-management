@@ -61,6 +61,21 @@
                             <span class="tab-label">Buku Nota (NCR &amp; HVS)</span>
                             <span class="tab-badge">11 Varian</span>
                         </button>
+                        <button type="button" class="merch-tab-btn" data-tab="mug">
+                            <span class="tab-icon">☕</span>
+                            <span class="tab-label">Mug Sublimasi</span>
+                            <span class="tab-badge">6 Tier</span>
+                        </button>
+                        <button type="button" class="merch-tab-btn" data-tab="pvccard">
+                            <span class="tab-icon">🪪</span>
+                            <span class="tab-label">Kartu PVC (ID Card / KTA)</span>
+                            <span class="tab-badge">7 Tier</span>
+                        </button>
+                        <button type="button" class="merch-tab-btn" data-tab="akrilikuv">
+                            <span class="tab-icon">💎</span>
+                            <span class="tab-label">Bahan Akrilik UV (2 Muka)</span>
+                            <span class="tab-badge">2 Varian</span>
+                        </button>
                     </div>
                 </div>
 
@@ -611,6 +626,199 @@
                                         </div>
                                     </div>
 
+                                </div>
+
+                                {{-- E. PANEL MUG SUBLIMASI --}}
+                                <div id="panelMug" class="tab-panel" style="display: none; padding: 20px 22px; border-bottom: 1px solid var(--border);">
+                                    <div class="form-section-head" style="margin-bottom: 18px;">
+                                        <span class="eyebrow"
+                                            style="font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 6px;">
+                                            <i class="bi bi-cup-hot"></i> 5. SPESIFIKASI MUG SUBLIMASI
+                                        </span>
+                                        <p style="margin: 4px 0 0; font-size: 13px; color: var(--t-muted);">
+                                            Mug keramik putih standar SNI (11 oz) dicetak sublimasi full color tahan cuci, mengkilap, dan anti luntur.
+                                        </p>
+                                    </div>
+
+                                    {{-- Info Daftar Tier Mug --}}
+                                    <div class="field" style="margin-bottom: 20px;">
+                                        <label class="field-label">Tingkatan Harga Grosir (Tier Pricelist)</label>
+                                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px;">
+                                            <div class="tier-preview-card" data-tier-min="1" data-tier-max="5" style="padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-muted); text-align: center;">
+                                                <div style="font-size: 11px; font-weight: 700; color: var(--t-muted);">1 – 5 pcs</div>
+                                                <div style="font-size: 14px; font-weight: 700; color: #c2a857; margin-top: 2px;">Rp 30.000</div>
+                                                <div style="font-size: 10.5px; color: var(--t-muted);">/ pcs</div>
+                                            </div>
+                                            <div class="tier-preview-card" data-tier-min="6" data-tier-max="10" style="padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-muted); text-align: center;">
+                                                <div style="font-size: 11px; font-weight: 700; color: var(--t-muted);">6 – 10 pcs</div>
+                                                <div style="font-size: 14px; font-weight: 700; color: #c2a857; margin-top: 2px;">Rp 28.000</div>
+                                                <div style="font-size: 10.5px; color: var(--t-muted);">/ pcs</div>
+                                            </div>
+                                            <div class="tier-preview-card" data-tier-min="11" data-tier-max="20" style="padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-muted); text-align: center;">
+                                                <div style="font-size: 11px; font-weight: 700; color: var(--t-muted);">11 – 20 pcs</div>
+                                                <div style="font-size: 14px; font-weight: 700; color: #c2a857; margin-top: 2px;">Rp 26.000</div>
+                                                <div style="font-size: 10.5px; color: var(--t-muted);">/ pcs</div>
+                                            </div>
+                                            <div class="tier-preview-card" data-tier-min="21" data-tier-max="30" style="padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-muted); text-align: center;">
+                                                <div style="font-size: 11px; font-weight: 700; color: var(--t-muted);">21 – 30 pcs</div>
+                                                <div style="font-size: 14px; font-weight: 700; color: #c2a857; margin-top: 2px;">Rp 25.000</div>
+                                                <div style="font-size: 10.5px; color: var(--t-muted);">/ pcs</div>
+                                            </div>
+                                            <div class="tier-preview-card" data-tier-min="31" data-tier-max="50" style="padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-muted); text-align: center;">
+                                                <div style="font-size: 11px; font-weight: 700; color: var(--t-muted);">31 – 50 pcs</div>
+                                                <div style="font-size: 14px; font-weight: 700; color: #c2a857; margin-top: 2px;">Rp 24.000</div>
+                                                <div style="font-size: 10.5px; color: var(--t-muted);">/ pcs</div>
+                                            </div>
+                                            <div class="tier-preview-card" data-tier-min="51" data-tier-max="Infinity" style="padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-muted); text-align: center;">
+                                                <div style="font-size: 11px; font-weight: 700; color: var(--t-muted);">> 50 pcs</div>
+                                                <div style="font-size: 14px; font-weight: 700; color: #c2a857; margin-top: 2px;">Rp 23.000</div>
+                                                <div style="font-size: 10.5px; color: var(--t-muted);">/ pcs</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {{-- Kuantitas Pesanan Mug --}}
+                                    <div class="field">
+                                        <label class="field-label">Jumlah Pesanan Mug (Pcs) <span class="req">*</span></label>
+                                        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                                            <div style="display: inline-flex; align-items: center;">
+                                                <button type="button" class="qty-btn" id="btnMugQtyMinus">-</button>
+                                                <input type="number" id="mugQtyInput" class="input qty-input"
+                                                    value="12" min="1" step="1">
+                                                <button type="button" class="qty-btn" id="btnMugQtyPlus">+</button>
+                                            </div>
+                                            <div class="quick-qty-group">
+                                                <button type="button" class="quick-qty-btn" data-qty="1">1 pcs</button>
+                                                <button type="button" class="quick-qty-btn" data-qty="6">6 pcs</button>
+                                                <button type="button" class="quick-qty-btn active" data-qty="12">12 pcs</button>
+                                                <button type="button" class="quick-qty-btn" data-qty="24">24 pcs</button>
+                                                <button type="button" class="quick-qty-btn" data-qty="50">50 pcs</button>
+                                                <button type="button" class="quick-qty-btn" data-qty="100">100 pcs</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- F. PANEL KARTU PVC (ID CARD / KTA) --}}
+                                <div id="panelPvcCard" class="tab-panel" style="display: none; padding: 20px 22px; border-bottom: 1px solid var(--border);">
+                                    <div class="form-section-head" style="margin-bottom: 18px;">
+                                        <span class="eyebrow"
+                                            style="font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 6px;">
+                                            <i class="bi bi-person-badge"></i> 6. SPESIFIKASI KARTU PVC (ID CARD / KTA)
+                                        </span>
+                                        <p style="margin: 4px 0 0; font-size: 13px; color: var(--t-muted);">
+                                            Material kartu PVC seukuran kartu ATM (85.6 x 54 mm, tebal 0.76 mm). Cetak 2 sisi full color, anti air &amp; tahan pudar.
+                                        </p>
+                                    </div>
+
+                                    {{-- Info Daftar Tier PVC --}}
+                                    <div class="field" style="margin-bottom: 20px;">
+                                        <label class="field-label">Tingkatan Harga Grosir (Tier Pricelist)</label>
+                                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px;">
+                                            <div class="tier-preview-card" data-tier-min="1" data-tier-max="1" style="padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-muted); text-align: center;">
+                                                <div style="font-size: 10.5px; font-weight: 700; color: var(--t-muted);">1 pcs</div>
+                                                <div style="font-size: 13px; font-weight: 700; color: #c2a857; margin-top: 2px;">Rp 30.000</div>
+                                            </div>
+                                            <div class="tier-preview-card" data-tier-min="2" data-tier-max="5" style="padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-muted); text-align: center;">
+                                                <div style="font-size: 10.5px; font-weight: 700; color: var(--t-muted);">2 – 5 pcs</div>
+                                                <div style="font-size: 13px; font-weight: 700; color: #c2a857; margin-top: 2px;">Rp 20.000</div>
+                                            </div>
+                                            <div class="tier-preview-card" data-tier-min="6" data-tier-max="10" style="padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-muted); text-align: center;">
+                                                <div style="font-size: 10.5px; font-weight: 700; color: var(--t-muted);">6 – 10 pcs</div>
+                                                <div style="font-size: 13px; font-weight: 700; color: #c2a857; margin-top: 2px;">Rp 15.000</div>
+                                            </div>
+                                            <div class="tier-preview-card" data-tier-min="11" data-tier-max="50" style="padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-muted); text-align: center;">
+                                                <div style="font-size: 10.5px; font-weight: 700; color: var(--t-muted);">11 – 50 pcs</div>
+                                                <div style="font-size: 13px; font-weight: 700; color: #c2a857; margin-top: 2px;">Rp 10.000</div>
+                                            </div>
+                                            <div class="tier-preview-card" data-tier-min="51" data-tier-max="100" style="padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-muted); text-align: center;">
+                                                <div style="font-size: 10.5px; font-weight: 700; color: var(--t-muted);">51 – 100 pcs</div>
+                                                <div style="font-size: 13px; font-weight: 700; color: #c2a857; margin-top: 2px;">Rp 7.000</div>
+                                            </div>
+                                            <div class="tier-preview-card" data-tier-min="101" data-tier-max="300" style="padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-muted); text-align: center;">
+                                                <div style="font-size: 10.5px; font-weight: 700; color: var(--t-muted);">101 – 300</div>
+                                                <div style="font-size: 13px; font-weight: 700; color: #c2a857; margin-top: 2px;">Rp 5.000</div>
+                                            </div>
+                                            <div class="tier-preview-card" data-tier-min="301" data-tier-max="Infinity" style="padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-muted); text-align: center;">
+                                                <div style="font-size: 10.5px; font-weight: 700; color: var(--t-muted);">> 300 pcs</div>
+                                                <div style="font-size: 13px; font-weight: 700; color: #c2a857; margin-top: 2px;">Rp 5.000</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {{-- Kuantitas Pesanan Kartu PVC --}}
+                                    <div class="field">
+                                        <label class="field-label">Jumlah Pesanan Kartu PVC (Pcs) <span class="req">*</span></label>
+                                        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                                            <div style="display: inline-flex; align-items: center;">
+                                                <button type="button" class="qty-btn" id="btnPvcCardQtyMinus">-</button>
+                                                <input type="number" id="pvcCardQtyInput" class="input qty-input"
+                                                    value="20" min="1" step="1">
+                                                <button type="button" class="qty-btn" id="btnPvcCardQtyPlus">+</button>
+                                            </div>
+                                            <div class="quick-qty-group">
+                                                <button type="button" class="quick-qty-btn" data-qty="1">1 pcs</button>
+                                                <button type="button" class="quick-qty-btn" data-qty="5">5 pcs</button>
+                                                <button type="button" class="quick-qty-btn active" data-qty="20">20 pcs</button>
+                                                <button type="button" class="quick-qty-btn" data-qty="50">50 pcs</button>
+                                                <button type="button" class="quick-qty-btn" data-qty="100">100 pcs</button>
+                                                <button type="button" class="quick-qty-btn" data-qty="300">300 pcs</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- G. PANEL BAHAN AKRILIK UV --}}
+                                <div id="panelAkrilikUv" class="tab-panel" style="display: none; padding: 20px 22px; border-bottom: 1px solid var(--border);">
+                                    <div class="form-section-head" style="margin-bottom: 18px;">
+                                        <span class="eyebrow"
+                                            style="font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 6px;">
+                                            <i class="bi bi-gem"></i> 7. SPESIFIKASI BAHAN AKRILIK UV (2 MUKA 1 LAPIS)
+                                        </span>
+                                        <p style="margin: 4px 0 0; font-size: 13px; color: var(--t-muted);">
+                                            Cetak langsung di atas akrilik bening (Direct-to-Acrylic Flatbed UV) 2 muka / double sided dengan 1 lapis akrilik solid.
+                                        </p>
+                                    </div>
+
+                                    {{-- Varian Produk Akrilik UV --}}
+                                    <div class="field" style="margin-bottom: 20px;">
+                                        <label class="field-label">Pilihan Varian Produk Akrilik UV <span class="req">*</span></label>
+                                        <div class="choice-cards-grid">
+                                            <label class="choice-card active" id="cardAkrilikGantungan">
+                                                <input type="radio" name="akrilik_variant" value="gantungan" checked style="display:none;">
+                                                <div class="choice-title">Gantungan Kunci Akrilik UV</div>
+                                                <div class="choice-sub">2 Muka 1 Lapis Akrilik Bening 3 mm + Ring Gantungan Kunci Kuat.</div>
+                                                <div class="choice-price">Rp 20.000 / pcs</div>
+                                            </label>
+                                            <label class="choice-card" id="cardAkrilikStandee">
+                                                <input type="radio" name="akrilik_variant" value="standee" style="display:none;">
+                                                <div class="choice-title">Standee Mini Akrilik UV</div>
+                                                <div class="choice-sub">2 Muka 1 Lapis Akrilik Bening 3 mm + Dudukan Akrilik Mini Meja.</div>
+                                                <div class="choice-price">Rp 20.000 / pcs</div>
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    {{-- Kuantitas Pesanan Akrilik UV --}}
+                                    <div class="field">
+                                        <label class="field-label">Jumlah Pesanan (Pcs) <span class="req">*</span></label>
+                                        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                                            <div style="display: inline-flex; align-items: center;">
+                                                <button type="button" class="qty-btn" id="btnAkrilikUvQtyMinus">-</button>
+                                                <input type="number" id="akrilikUvQtyInput" class="input qty-input"
+                                                    value="10" min="1" step="1">
+                                                <button type="button" class="qty-btn" id="btnAkrilikUvQtyPlus">+</button>
+                                            </div>
+                                            <div class="quick-qty-group">
+                                                <button type="button" class="quick-qty-btn" data-qty="1">1 pcs</button>
+                                                <button type="button" class="quick-qty-btn" data-qty="5">5 pcs</button>
+                                                <button type="button" class="quick-qty-btn active" data-qty="10">10 pcs</button>
+                                                <button type="button" class="quick-qty-btn" data-qty="25">25 pcs</button>
+                                                <button type="button" class="quick-qty-btn" data-qty="50">50 pcs</button>
+                                                <button type="button" class="quick-qty-btn" data-qty="100">100 pcs</button>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 {{-- =========================================================
@@ -1911,6 +2119,9 @@
             const dbNameTagItems = @json($nameTagItems ?? []);
             const dbPlakatItems = @json($plakatItems ?? []);
             const dbNotaItems = @json($notaItems ?? []);
+            const dbMugItems = @json($mugItems ?? []);
+            const dbPvcCardItems = @json($pvcCardItems ?? []);
+            const dbAkrilikUvItems = @json($akrilikUvItems ?? []);
 
             let activeTab = 'lanyard';
 
@@ -1941,6 +2152,16 @@
             let notaRimQty = 1;
             let notaNumerator = true;
             let notaDesignFee = false;
+
+            // State Mug Sublimasi
+            let mugQty = 12;
+
+            // State Kartu PVC
+            let pvcCardQty = 20;
+
+            // State Akrilik UV
+            let akrilikVariant = 'gantungan';
+            let akrilikUvQty = 10;
 
             // State Pagination & Filter Matrix
             let matrixCurrentPage = 1;
@@ -1988,7 +2209,10 @@
                 lanyard: document.getElementById('panelLanyard'),
                 nametag: document.getElementById('panelNametag'),
                 plakat: document.getElementById('panelPlakat'),
-                nota: document.getElementById('panelNota')
+                nota: document.getElementById('panelNota'),
+                mug: document.getElementById('panelMug'),
+                pvccard: document.getElementById('panelPvcCard'),
+                akrilikuv: document.getElementById('panelAkrilikUv')
             };
 
             tabButtons.forEach(btn => {
@@ -2322,6 +2546,99 @@
                 updateCalculation();
             });
 
+            // 5a. Mug Event Handlers
+            const mugQtyInput = document.getElementById('mugQtyInput');
+            if (mugQtyInput) {
+                mugQtyInput.addEventListener('input', function() {
+                    mugQty = Math.max(1, parseInt(this.value) || 1);
+                    updateCalculation();
+                });
+            }
+            document.getElementById('btnMugQtyMinus')?.addEventListener('click', function() {
+                mugQty = Math.max(1, mugQty - 1);
+                if (mugQtyInput) mugQtyInput.value = mugQty;
+                updateCalculation();
+            });
+            document.getElementById('btnMugQtyPlus')?.addEventListener('click', function() {
+                mugQty += 1;
+                if (mugQtyInput) mugQtyInput.value = mugQty;
+                updateCalculation();
+            });
+            document.querySelectorAll('#panelMug .quick-qty-btn').forEach(b => {
+                b.addEventListener('click', function() {
+                    document.querySelectorAll('#panelMug .quick-qty-btn').forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                    mugQty = parseInt(this.getAttribute('data-qty'));
+                    if (mugQtyInput) mugQtyInput.value = mugQty;
+                    updateCalculation();
+                });
+            });
+
+            // 5b. PVC Card Event Handlers
+            const pvcCardQtyInput = document.getElementById('pvcCardQtyInput');
+            if (pvcCardQtyInput) {
+                pvcCardQtyInput.addEventListener('input', function() {
+                    pvcCardQty = Math.max(1, parseInt(this.value) || 1);
+                    updateCalculation();
+                });
+            }
+            document.getElementById('btnPvcCardQtyMinus')?.addEventListener('click', function() {
+                pvcCardQty = Math.max(1, pvcCardQty - 1);
+                if (pvcCardQtyInput) pvcCardQtyInput.value = pvcCardQty;
+                updateCalculation();
+            });
+            document.getElementById('btnPvcCardQtyPlus')?.addEventListener('click', function() {
+                pvcCardQty += 1;
+                if (pvcCardQtyInput) pvcCardQtyInput.value = pvcCardQty;
+                updateCalculation();
+            });
+            document.querySelectorAll('#panelPvcCard .quick-qty-btn').forEach(b => {
+                b.addEventListener('click', function() {
+                    document.querySelectorAll('#panelPvcCard .quick-qty-btn').forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                    pvcCardQty = parseInt(this.getAttribute('data-qty'));
+                    if (pvcCardQtyInput) pvcCardQtyInput.value = pvcCardQty;
+                    updateCalculation();
+                });
+            });
+
+            // 5c. Akrilik UV Event Handlers
+            document.querySelectorAll('input[name="akrilik_variant"]').forEach(r => {
+                r.addEventListener('change', function() {
+                    akrilikVariant = this.value;
+                    document.querySelectorAll('#cardAkrilikGantungan, #cardAkrilikStandee').forEach(c => c.classList.remove('active'));
+                    this.closest('.choice-card')?.classList.add('active');
+                    updateCalculation();
+                    renderMatrixTable();
+                });
+            });
+            const akrilikUvQtyInput = document.getElementById('akrilikUvQtyInput');
+            if (akrilikUvQtyInput) {
+                akrilikUvQtyInput.addEventListener('input', function() {
+                    akrilikUvQty = Math.max(1, parseInt(this.value) || 1);
+                    updateCalculation();
+                });
+            }
+            document.getElementById('btnAkrilikUvQtyMinus')?.addEventListener('click', function() {
+                akrilikUvQty = Math.max(1, akrilikUvQty - 1);
+                if (akrilikUvQtyInput) akrilikUvQtyInput.value = akrilikUvQty;
+                updateCalculation();
+            });
+            document.getElementById('btnAkrilikUvQtyPlus')?.addEventListener('click', function() {
+                akrilikUvQty += 1;
+                if (akrilikUvQtyInput) akrilikUvQtyInput.value = akrilikUvQty;
+                updateCalculation();
+            });
+            document.querySelectorAll('#panelAkrilikUv .quick-qty-btn').forEach(b => {
+                b.addEventListener('click', function() {
+                    document.querySelectorAll('#panelAkrilikUv .quick-qty-btn').forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                    akrilikUvQty = parseInt(this.getAttribute('data-qty'));
+                    if (akrilikUvQtyInput) akrilikUvQtyInput.value = akrilikUvQty;
+                    updateCalculation();
+                });
+            });
+
             // 6. Master Calculation Function
             function updateCalculation() {
                 const categoryBadge = document.getElementById('summaryMerchCategoryBadge');
@@ -2479,6 +2796,103 @@
 
                     grandTotal.textContent = formatRp(total);
                     perUnit.textContent = `(~ ${formatRp(perBook)} / buku)`;
+
+                } else if (activeTab === 'mug') {
+                    categoryBadge.textContent = 'MUG SUBLIMASI';
+                    productTitle.textContent = 'Mug Keramik Sublimasi SNI Full Color';
+                    
+                    let activeTier = null;
+                    dbMugItems.forEach(t => {
+                        const min = parseInt(t.min_qty);
+                        const max = t.max_qty !== null ? parseInt(t.max_qty) : Infinity;
+                        if (mugQty >= min && mugQty <= max) {
+                            activeTier = t;
+                        }
+                    });
+
+                    unit = activeTier ? parseFloat(activeTier.price) : 25000;
+                    total = unit * mugQty;
+
+                    specsDesc.textContent = `Keramik Putih Standar SNI (11 oz) · Sublimasi Full Color Tahan Cuci · Tier: ${activeTier?.tier_label || '-'}`;
+                    qtyVal.textContent = `${mugQty} pcs`;
+                    tierVal.textContent = activeTier ? `Tier: ${activeTier.tier_label}` : '-';
+                    unitPriceLabel.textContent = 'Harga Satuan:';
+                    unitPriceVal.textContent = `${formatRp(unit)} / pcs`;
+                    if (rowExtra) rowExtra.style.display = 'none';
+
+                    grandTotal.textContent = formatRp(total);
+                    perUnit.textContent = `(${formatRp(unit)} / pcs)`;
+
+                    // Highlight card tier preview di form jika ada
+                    document.querySelectorAll('#panelMug .tier-preview-card').forEach(c => {
+                        const min = parseInt(c.getAttribute('data-tier-min'));
+                        const maxStr = c.getAttribute('data-tier-max');
+                        const max = maxStr === 'Infinity' ? Infinity : parseInt(maxStr);
+                        const isMatch = (mugQty >= min && mugQty <= max);
+                        c.style.borderColor = isMatch ? '#c2a857' : 'var(--border)';
+                        c.style.background = isMatch ? 'rgba(194, 168, 87, 0.12)' : 'var(--bg-muted)';
+                    });
+
+                } else if (activeTab === 'pvccard') {
+                    categoryBadge.textContent = 'KARTU PVC (ID CARD / KTA)';
+                    productTitle.textContent = 'Kartu PVC Standar ATM (ID Card / KTA)';
+
+                    let activeTier = null;
+                    dbPvcCardItems.forEach(t => {
+                        const min = parseInt(t.min_qty);
+                        const max = t.max_qty !== null ? parseInt(t.max_qty) : Infinity;
+                        if (pvcCardQty >= min && pvcCardQty <= max) {
+                            activeTier = t;
+                        }
+                    });
+
+                    unit = activeTier ? parseFloat(activeTier.price) : 10000;
+                    total = unit * pvcCardQty;
+
+                    specsDesc.textContent = `Bahan PVC Standard ATM (0.76 mm) · Cetak 2 Sisi Full Color Anti Air · Tier: ${activeTier?.tier_label || '-'}`;
+                    qtyVal.textContent = `${pvcCardQty} pcs`;
+                    tierVal.textContent = activeTier ? `Tier: ${activeTier.tier_label}` : '-';
+                    unitPriceLabel.textContent = 'Harga Satuan:';
+                    unitPriceVal.textContent = `${formatRp(unit)} / pcs`;
+                    if (rowExtra) rowExtra.style.display = 'none';
+
+                    grandTotal.textContent = formatRp(total);
+                    perUnit.textContent = `(${formatRp(unit)} / pcs)`;
+
+                    // Highlight card tier preview di form jika ada
+                    document.querySelectorAll('#panelPvcCard .tier-preview-card').forEach(c => {
+                        const min = parseInt(c.getAttribute('data-tier-min'));
+                        const maxStr = c.getAttribute('data-tier-max');
+                        const max = maxStr === 'Infinity' ? Infinity : parseInt(maxStr);
+                        const isMatch = (pvcCardQty >= min && pvcCardQty <= max);
+                        c.style.borderColor = isMatch ? '#c2a857' : 'var(--border)';
+                        c.style.background = isMatch ? 'rgba(194, 168, 87, 0.12)' : 'var(--bg-muted)';
+                    });
+
+                } else if (activeTab === 'akrilikuv') {
+                    categoryBadge.textContent = 'BAHAN AKRILIK UV (2 MUKA)';
+                    const item = dbAkrilikUvItems.find(i => {
+                        if (akrilikVariant === 'standee') {
+                            return i.name.toLowerCase().includes('standee');
+                        }
+                        return i.name.toLowerCase().includes('gantungan');
+                    }) || dbAkrilikUvItems[0];
+
+                    const itemName = item ? item.name : (akrilikVariant === 'standee' ? 'Standee Mini Akrilik UV' : 'Gantungan Kunci Akrilik UV');
+                    productTitle.textContent = `${itemName} (2 Muka 1 Lapis)`;
+
+                    unit = item ? parseFloat(item.price) : 20000;
+                    total = unit * akrilikUvQty;
+
+                    specsDesc.textContent = `Bahan Akrilik Bening 3 mm · Flatbed UV 2 Muka · 1 Lapis Akrilik Solid · Min. Order ${item?.min_order_qty || 1} pcs`;
+                    qtyVal.textContent = `${akrilikUvQty} pcs`;
+                    tierVal.textContent = item?.spec_label || '2 Muka 1 Lapis';
+                    unitPriceLabel.textContent = 'Harga Satuan:';
+                    unitPriceVal.textContent = `${formatRp(unit)} / pcs`;
+                    if (rowExtra) rowExtra.style.display = 'none';
+
+                    grandTotal.textContent = formatRp(total);
+                    perUnit.textContent = `(${formatRp(unit)} / pcs)`;
                 }
             }
 
@@ -2594,6 +3008,73 @@
                             i.ink_label.toLowerCase().includes(query) ||
                             i.price.toString().includes(query);
                     });
+
+                } else if (activeTab === 'mug') {
+                    title.textContent = 'Daftar Harga Mug Sublimasi (6 Tier Grosir)';
+                    if (catBadge) catBadge.textContent = 'Mug Sublimasi · 6 Data';
+                    thead.innerHTML = `
+                        <tr>
+                            <th style="width: 55px; text-align: center;">No</th>
+                            <th>Varian Mug</th>
+                            <th>Rentang Kuantiti (Tier)</th>
+                            <th>Batas Min. Qty</th>
+                            <th>Batas Max. Qty</th>
+                            <th style="text-align: right;">Harga Satuan</th>
+                            <th style="text-align: center; width: 110px;">Aksi</th>
+                        </tr>
+                    `;
+
+                    filtered = dbMugItems.filter(t => {
+                        if (!query) return true;
+                        return t.name.toLowerCase().includes(query) ||
+                            t.tier_label.toLowerCase().includes(query) ||
+                            t.price.toString().includes(query);
+                    });
+
+                } else if (activeTab === 'pvccard') {
+                    title.textContent = 'Daftar Harga Kartu PVC (ID Card / KTA — 7 Tier)';
+                    if (catBadge) catBadge.textContent = 'Kartu PVC · 7 Data';
+                    thead.innerHTML = `
+                        <tr>
+                            <th style="width: 55px; text-align: center;">No</th>
+                            <th>Varian Kartu</th>
+                            <th>Rentang Kuantiti (Tier)</th>
+                            <th>Batas Min. Qty</th>
+                            <th>Batas Max. Qty</th>
+                            <th style="text-align: right;">Harga Satuan</th>
+                            <th style="text-align: center; width: 110px;">Aksi</th>
+                        </tr>
+                    `;
+
+                    filtered = dbPvcCardItems.filter(t => {
+                        if (!query) return true;
+                        return t.name.toLowerCase().includes(query) ||
+                            t.tier_label.toLowerCase().includes(query) ||
+                            t.price.toString().includes(query);
+                    });
+
+                } else if (activeTab === 'akrilikuv') {
+                    title.textContent = 'Daftar Harga Bahan Akrilik UV 2 Muka (2 Varian)';
+                    if (catBadge) catBadge.textContent = 'Bahan Akrilik UV · 2 Data';
+                    thead.innerHTML = `
+                        <tr>
+                            <th style="width: 55px; text-align: center;">No</th>
+                            <th>Nama Produk Akrilik</th>
+                            <th>Spesifikasi Cetak</th>
+                            <th>Ketebalan</th>
+                            <th>Min. Order</th>
+                            <th style="text-align: right;">Harga Satuan</th>
+                            <th style="text-align: center; width: 110px;">Aksi</th>
+                        </tr>
+                    `;
+
+                    filtered = dbAkrilikUvItems.filter(i => {
+                        if (!query) return true;
+                        return i.name.toLowerCase().includes(query) ||
+                            i.spec_label.toLowerCase().includes(query) ||
+                            i.thickness.toLowerCase().includes(query) ||
+                            i.price.toString().includes(query);
+                    });
                 }
 
                 // Hitung Pagination
@@ -2611,7 +3092,7 @@
 
                 // Render Baris Kosong jika 0 hasil
                 if (totalItems === 0) {
-                    const colSpan = (activeTab === 'nota') ? 8 : (activeTab === 'plakat' ? 7 : 6);
+                    const colSpan = (activeTab === 'nota') ? 8 : ((activeTab === 'plakat' || activeTab === 'mug' || activeTab === 'pvccard' || activeTab === 'akrilikuv') ? 7 : 6);
                     tbody.innerHTML = `
                         <tr>
                             <td colspan="${colSpan}" style="text-align: center; padding: 32px 20px; color: var(--t-muted);">
@@ -2725,6 +3206,87 @@
                             <td style="text-align: right; font-weight: 700; color: var(--primary);">${formatRp(parseFloat(row.price))} / rim</td>
                             <td style="text-align: center;">
                                 <button type="button" class="btn-table-pick" data-pick-nota="${row.id}" data-paper="${row.paper_type}" data-ply="${row.ply_count}" data-ink="${row.ink_count}">
+                                    Pilih
+                                </button>
+                            </td>
+                        `;
+
+                    } else if (activeTab === 'mug') {
+                        const min = parseInt(row.min_qty);
+                        const max = row.max_qty !== null ? parseInt(row.max_qty) : Infinity;
+                        const isCurrentActive = (mugQty >= min && mugQty <= max);
+                        if (isCurrentActive) tr.className = 'row-active';
+
+                        const maxLabel = row.max_qty !== null ? `${row.max_qty} pcs` : 'Unlimited';
+
+                        tr.innerHTML = `
+                            <td style="text-align: center; color: var(--t-muted);">${rowNumber}</td>
+                            <td>
+                                <strong style="color: var(--t-base);">${row.name}</strong>
+                                ${isCurrentActive ? '<span class="badge" style="background: var(--primary); color: #fff; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 4px; margin-left: 6px;"><i class="bi bi-check2"></i> Aktif</span>' : ''}
+                            </td>
+                            <td>
+                                <span style="display: inline-block; padding: 3px 8px; border-radius: 6px; background: var(--bg-muted); font-weight: 600; font-size: 12px;">
+                                    ${row.tier_label}
+                                </span>
+                            </td>
+                            <td>${row.min_qty} pcs</td>
+                            <td>${maxLabel}</td>
+                            <td style="text-align: right; font-weight: 700; color: var(--primary);">${formatRp(parseFloat(row.price))} / pcs</td>
+                            <td style="text-align: center;">
+                                <button type="button" class="btn-table-pick" data-pick-mug="${row.id}" data-min="${row.min_qty}">
+                                    Pilih
+                                </button>
+                            </td>
+                        `;
+
+                    } else if (activeTab === 'pvccard') {
+                        const min = parseInt(row.min_qty);
+                        const max = row.max_qty !== null ? parseInt(row.max_qty) : Infinity;
+                        const isCurrentActive = (pvcCardQty >= min && pvcCardQty <= max);
+                        if (isCurrentActive) tr.className = 'row-active';
+
+                        const maxLabel = row.max_qty !== null ? `${row.max_qty} pcs` : 'Unlimited';
+
+                        tr.innerHTML = `
+                            <td style="text-align: center; color: var(--t-muted);">${rowNumber}</td>
+                            <td>
+                                <strong style="color: var(--t-base);">${row.name}</strong>
+                                ${isCurrentActive ? '<span class="badge" style="background: var(--primary); color: #fff; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 4px; margin-left: 6px;"><i class="bi bi-check2"></i> Aktif</span>' : ''}
+                            </td>
+                            <td>
+                                <span style="display: inline-block; padding: 3px 8px; border-radius: 6px; background: var(--bg-muted); font-weight: 600; font-size: 12px;">
+                                    ${row.tier_label}
+                                </span>
+                            </td>
+                            <td>${row.min_qty} pcs</td>
+                            <td>${maxLabel}</td>
+                            <td style="text-align: right; font-weight: 700; color: var(--primary);">${formatRp(parseFloat(row.price))} / pcs</td>
+                            <td style="text-align: center;">
+                                <button type="button" class="btn-table-pick" data-pick-pvccard="${row.id}" data-min="${row.min_qty}">
+                                    Pilih
+                                </button>
+                            </td>
+                        `;
+
+                    } else if (activeTab === 'akrilikuv') {
+                        const isGantungan = row.name.toLowerCase().includes('gantungan');
+                        const isStandee = row.name.toLowerCase().includes('standee');
+                        const isCurrentActive = (akrilikVariant === 'standee' && isStandee) || (akrilikVariant === 'gantungan' && isGantungan);
+                        if (isCurrentActive) tr.className = 'row-active';
+
+                        tr.innerHTML = `
+                            <td style="text-align: center; color: var(--t-muted);">${rowNumber}</td>
+                            <td>
+                                <strong style="color: var(--t-base);">${row.name}</strong>
+                                ${isCurrentActive ? '<span class="badge" style="background: var(--primary); color: #fff; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 4px; margin-left: 6px;"><i class="bi bi-check2"></i> Dipilih</span>' : ''}
+                            </td>
+                            <td><span style="font-weight: 600;">${row.spec_label}</span></td>
+                            <td>${row.thickness}</td>
+                            <td>${row.min_order_qty || 1} pcs</td>
+                            <td style="text-align: right; font-weight: 700; color: var(--primary);">${formatRp(parseFloat(row.price))} / pcs</td>
+                            <td style="text-align: center;">
+                                <button type="button" class="btn-table-pick" data-pick-akrilikuv="${row.id}" data-variant="${isStandee ? 'standee' : 'gantungan'}">
                                     Pilih
                                 </button>
                             </td>
@@ -2891,6 +3453,33 @@
                                 document.querySelectorAll('#pillNotaInk1, #pillNotaInk2, #pillNotaInk3')
                                     .forEach(p => p.classList.remove('active'));
                                 radInk.closest('.choice-pill')?.classList.add('active');
+                            }
+                        } else if (this.hasAttribute('data-pick-mug')) {
+                            const min = parseInt(this.getAttribute('data-min')) || 1;
+                            mugQty = min;
+                            if (mugQtyInput) mugQtyInput.value = mugQty;
+                            document.querySelectorAll('#panelMug .quick-qty-btn').forEach(b => {
+                                const q = parseInt(b.getAttribute('data-qty'));
+                                b.classList.toggle('active', q === mugQty);
+                            });
+
+                        } else if (this.hasAttribute('data-pick-pvccard')) {
+                            const min = parseInt(this.getAttribute('data-min')) || 1;
+                            pvcCardQty = min;
+                            if (pvcCardQtyInput) pvcCardQtyInput.value = pvcCardQty;
+                            document.querySelectorAll('#panelPvcCard .quick-qty-btn').forEach(b => {
+                                const q = parseInt(b.getAttribute('data-qty'));
+                                b.classList.toggle('active', q === pvcCardQty);
+                            });
+
+                        } else if (this.hasAttribute('data-pick-akrilikuv')) {
+                            const variant = this.getAttribute('data-variant');
+                            akrilikVariant = variant;
+                            const radVariant = document.querySelector(`input[name="akrilik_variant"][value="${variant}"]`);
+                            if (radVariant) {
+                                radVariant.checked = true;
+                                document.querySelectorAll('#cardAkrilikGantungan, #cardAkrilikStandee').forEach(c => c.classList.remove('active'));
+                                radVariant.closest('.choice-card')?.classList.add('active');
                             }
                         }
 
@@ -3284,6 +3873,28 @@
                 const chkNotaDes = document.getElementById('checkNotaDesign');
                 if (chkNotaDes) chkNotaDes.checked = false;
                 notaDesignFee = false;
+
+                // Reset Mug
+                mugQty = 12;
+                if (mugQtyInput) mugQtyInput.value = 12;
+                document.querySelectorAll('#panelMug .quick-qty-btn').forEach(b => {
+                    b.classList.toggle('active', b.getAttribute('data-qty') === '12');
+                });
+
+                // Reset PVC Card
+                pvcCardQty = 20;
+                if (pvcCardQtyInput) pvcCardQtyInput.value = 20;
+                document.querySelectorAll('#panelPvcCard .quick-qty-btn').forEach(b => {
+                    b.classList.toggle('active', b.getAttribute('data-qty') === '20');
+                });
+
+                // Reset Akrilik UV
+                document.querySelector('input[name="akrilik_variant"][value="gantungan"]')?.click();
+                akrilikUvQty = 10;
+                if (akrilikUvQtyInput) akrilikUvQtyInput.value = 10;
+                document.querySelectorAll('#panelAkrilikUv .quick-qty-btn').forEach(b => {
+                    b.classList.toggle('active', b.getAttribute('data-qty') === '10');
+                });
 
                 if (typeof $ !== 'undefined' && $.fn.select2) {
                     $('#merch_customer_id').trigger('change.select2');

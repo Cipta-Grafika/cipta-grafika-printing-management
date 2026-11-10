@@ -93,6 +93,10 @@ class CatalogCT extends Controller
                 str_contains($nameLower, 'name tag') ||
                 str_contains($nameLower, 'plakat') ||
                 str_contains($nameLower, 'nota') ||
+                str_contains($nameLower, 'mug') ||
+                str_contains($nameLower, 'pvc') ||
+                str_contains($nameLower, 'kta') ||
+                str_contains($nameLower, 'akrilik') ||
                 str_contains($nameLower, 'merchandise') ||
                 str_contains($nameLower, 'souvenir');
 
@@ -432,6 +436,10 @@ class CatalogCT extends Controller
                 str_contains($nameLower, 'name tag') ||
                 str_contains($nameLower, 'plakat') ||
                 str_contains($nameLower, 'nota') ||
+                str_contains($nameLower, 'mug') ||
+                str_contains($nameLower, 'pvc') ||
+                str_contains($nameLower, 'kta') ||
+                str_contains($nameLower, 'akrilik') ||
                 str_contains($nameLower, 'merchandise') ||
                 str_contains($nameLower, 'souvenir');
 
@@ -670,12 +678,17 @@ class CatalogCT extends Controller
             $isNameTag = str_contains(strtolower($displayProduct->display_name), 'papan nama') || str_contains(strtolower($displayProduct->display_name), 'name tag');
             $isPlakat = str_contains(strtolower($displayProduct->display_name), 'plakat');
             $isNota = str_contains(strtolower($displayProduct->display_name), 'nota');
-            $isLargeFormat = !$isBrochure && !$isCalendar && !$isLanyard && !$isNameTag && !$isPlakat && !$isNota && (strtolower(trim($engineName)) === 'large format');
-            $isA3Plus = !$isBrochure && !$isCalendar && !$isLanyard && !$isNameTag && !$isPlakat && !$isNota && (strtolower(trim($engineName)) === 'digital print a3+');
+            $isMug = str_contains(strtolower($displayProduct->display_name), 'mug');
+            $isPvcCard = str_contains(strtolower($displayProduct->display_name), 'pvc') || str_contains(strtolower($displayProduct->display_name), 'kta') || str_contains(strtolower($displayProduct->display_name), 'id card');
+            $isAkrilikUv = str_contains(strtolower($displayProduct->display_name), 'akrilik');
+
+            $isCustomMerchandise = $isLanyard || $isNameTag || $isPlakat || $isNota || $isMug || $isPvcCard || $isAkrilikUv;
+            $isLargeFormat = !$isBrochure && !$isCalendar && !$isCustomMerchandise && (strtolower(trim($engineName)) === 'large format');
+            $isA3Plus = !$isBrochure && !$isCalendar && !$isCustomMerchandise && (strtolower(trim($engineName)) === 'digital print a3+');
 
             $estimator = [
                 'type'             => 'display',
-                'engineName'       => $isCalendar ? 'Cetak Kalender (Dinding & Meja)' : ($isBrochure ? 'Cetak Brosur & Flyer' : ($isLanyard ? 'Tali Lanyard & ID Card' : ($isNameTag ? 'Papan Nama (Name Tag Dada)' : ($isPlakat ? 'Plakat Akrilik UV & Kayu' : ($isNota ? 'Buku Nota (NCR & HVS)' : $engineName))))),
+                'engineName'       => $isCalendar ? 'Cetak Kalender (Dinding & Meja)' : ($isBrochure ? 'Cetak Brosur & Flyer' : ($isLanyard ? 'Tali Lanyard & ID Card' : ($isNameTag ? 'Papan Nama (Name Tag Dada)' : ($isPlakat ? 'Plakat Akrilik UV & Kayu' : ($isNota ? 'Buku Nota (NCR & HVS)' : ($isMug ? 'Mug Sublimasi Keramik' : ($isPvcCard ? 'Cetak Kartu PVC (ID Card & KTA)' : ($isAkrilikUv ? 'Merchandise Akrilik UV (2 Muka)' : $engineName)))))))),
                 'isLargeFormat'    => $isLargeFormat,
                 'isA3Plus'         => $isA3Plus,
                 'isBrochure'       => $isBrochure,
@@ -684,6 +697,9 @@ class CatalogCT extends Controller
                 'isNameTag'        => $isNameTag,
                 'isPlakat'         => $isPlakat,
                 'isNota'           => $isNota,
+                'isMug'            => $isMug,
+                'isPvcCard'        => $isPvcCard,
+                'isAkrilikUv'      => $isAkrilikUv,
                 'isDisplay'        => true,
                 'displayProductId' => (int) $displayProduct->id,
                 'categoryId'       => (int) $displayProduct->category_id,
@@ -786,6 +802,33 @@ class CatalogCT extends Controller
                 'notaItems' => collect(),
             ];
 
+            $mugData = $isMug ? [
+                'mugItems' => DB::table('m_mug_pricings')
+                    ->where('status', 'active')
+                    ->orderBy('min_qty', 'asc')
+                    ->get()
+            ] : [
+                'mugItems' => collect(),
+            ];
+
+            $pvcCardData = $isPvcCard ? [
+                'pvcCardItems' => DB::table('m_pvc_card_pricings')
+                    ->where('status', 'active')
+                    ->orderBy('min_qty', 'asc')
+                    ->get()
+            ] : [
+                'pvcCardItems' => collect(),
+            ];
+
+            $akrilikUvData = $isAkrilikUv ? [
+                'akrilikUvItems' => DB::table('m_akrilik_uv_pricings')
+                    ->where('status', 'active')
+                    ->orderBy('id', 'asc')
+                    ->get()
+            ] : [
+                'akrilikUvItems' => collect(),
+            ];
+
             $activeDiscounts = $isBrochure
                 ? $this->activeBrochureDiscounts()
                 : ($isCalendar
@@ -801,7 +844,7 @@ class CatalogCT extends Controller
                 'locations' => $locations,
                 'vendors'   => $vendors,
                 'activeDiscounts' => $activeDiscounts,
-            ], $a3Data, $brochureData, $calendarData, $lanyardData, $nameTagData, $plakatData, $notaData));
+            ], $a3Data, $brochureData, $calendarData, $lanyardData, $nameTagData, $plakatData, $notaData, $mugData, $pvcCardData, $akrilikUvData));
         }
 
         /*

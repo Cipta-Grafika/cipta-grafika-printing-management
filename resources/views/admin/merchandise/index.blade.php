@@ -415,6 +415,39 @@
                                 {{ $totalNotas }} Varian</div>
                         </div>
                     </div>
+
+                    <div class="cal-metric-box">
+                        <div class="cal-metric-icon" style="background: rgba(245, 158, 11, 0.12); color: #f59e0b;">
+                            <i class="bi bi-cup-hot"></i>
+                        </div>
+                        <div>
+                            <div style="font-size: 11px; color: var(--t-muted); font-weight: 600;">MUG SUBLIMASI</div>
+                            <div id="statTotalMugs" style="font-size: 22px; font-weight: 800; color: var(--t-base);">
+                                {{ $totalMugs }} Tier</div>
+                        </div>
+                    </div>
+
+                    <div class="cal-metric-box">
+                        <div class="cal-metric-icon" style="background: rgba(14, 165, 233, 0.12); color: #0ea5e9;">
+                            <i class="bi bi-credit-card-2-front"></i>
+                        </div>
+                        <div>
+                            <div style="font-size: 11px; color: var(--t-muted); font-weight: 600;">KARTU PVC (ID / KTA)</div>
+                            <div id="statTotalPvcCards" style="font-size: 22px; font-weight: 800; color: var(--t-base);">
+                                {{ $totalPvcCards }} Tier</div>
+                        </div>
+                    </div>
+
+                    <div class="cal-metric-box">
+                        <div class="cal-metric-icon" style="background: rgba(236, 72, 153, 0.12); color: #ec4899;">
+                            <i class="bi bi-shield-shaded"></i>
+                        </div>
+                        <div>
+                            <div style="font-size: 11px; color: var(--t-muted); font-weight: 600;">AKRILIK UV (2 MUKA)</div>
+                            <div id="statTotalAkrilikUv" style="font-size: 22px; font-weight: 800; color: var(--t-base);">
+                                {{ $totalAkrilikUv }} Varian</div>
+                        </div>
+                    </div>
                 </div>
 
                 {{-- =========================================================
@@ -440,6 +473,21 @@
                         <i class="bi bi-journal-bookmark"></i>
                         <span>4. Buku Nota (NCR &amp; HVS)</span>
                         <span id="badgeCountNota" class="cal-badge-counter">{{ $totalNotas }}</span>
+                    </button>
+                    <button type="button" class="calendar-tab-btn" id="tabBtnMug" onclick="switchMerchTab('mug')">
+                        <i class="bi bi-cup-hot"></i>
+                        <span>5. Mug Sublimasi</span>
+                        <span id="badgeCountMug" class="cal-badge-counter">{{ $totalMugs }}</span>
+                    </button>
+                    <button type="button" class="calendar-tab-btn" id="tabBtnPvcCard" onclick="switchMerchTab('pvccard')">
+                        <i class="bi bi-credit-card-2-front"></i>
+                        <span>6. Kartu PVC (ID Card / KTA)</span>
+                        <span id="badgeCountPvcCard" class="cal-badge-counter">{{ $totalPvcCards }}</span>
+                    </button>
+                    <button type="button" class="calendar-tab-btn" id="tabBtnAkrilikUv" onclick="switchMerchTab('akrilikuv')">
+                        <i class="bi bi-shield-shaded"></i>
+                        <span>7. Bahan Akrilik UV</span>
+                        <span id="badgeCountAkrilikUv" class="cal-badge-counter">{{ $totalAkrilikUv }}</span>
                     </button>
                 </div>
 
@@ -1513,6 +1561,579 @@
     </div>
 
     {{-- =========================================================
+         5. MODAL MUG SUBLIMASI (CREATE, DETAIL, EDIT, DELETE)
+    ========================================================= --}}
+    {{-- CREATE MUG --}}
+    <div id="modalCreateMug" class="modal-cal">
+        <div class="modal-cal-content" style="max-width: 520px;">
+            <div class="modal-cal-head">
+                <div>
+                    <span class="eyebrow" style="font-size: 11px; font-weight: 700; letter-spacing: 0.5px;">TAMBAH DATA · MASTER MUG SUBLIMASI</span>
+                    <h3 style="margin: 4px 0 0; font-size: 16px; font-weight: 700; color: var(--t-base);">Tambah Tier Mug Sublimasi</h3>
+                </div>
+                <button type="button" onclick="closeCalModal('modalCreateMug')"
+                    style="background: none; border: none; font-size: 20px; cursor: pointer; color: var(--t-muted); line-height: 1;">&times;</button>
+            </div>
+            <form id="formCreateMug">
+                @csrf
+                <div class="modal-cal-body">
+                    <div class="field" style="margin-bottom: 12px;">
+                        <label class="field-label">Nama Varian Mug <span class="req">*</span></label>
+                        <input type="text" name="name" class="input" value="Mug Sublimasi Keramik SNI (Putih Standar)" required>
+                    </div>
+                    <div class="field" style="margin-bottom: 12px;">
+                        <label class="field-label">Label Rentang Kuantitas (Tier) <span class="req">*</span></label>
+                        <input type="text" name="tier_label" class="input" placeholder="Misal: 1–5 pcs, > 50 pcs" required>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                        <div class="field">
+                            <label class="field-label">Min. Qty (pcs) <span class="req">*</span></label>
+                            <input type="number" name="min_qty" class="input" value="1" min="1" required>
+                        </div>
+                        <div class="field">
+                            <label class="field-label">Max. Qty (pcs) <span style="font-size: 11px; color: var(--t-muted);">(Kosongkan jika tak hingga)</span></label>
+                            <input type="number" name="max_qty" class="input" placeholder="Tak terhingga" min="1">
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                        <div class="field">
+                            <label class="field-label">Harga Satuan (Rp) <span class="req">*</span></label>
+                            <input type="text" name="price" class="input input-rupiah" placeholder="Rp 30.000" required
+                                style="font-size: 15px; font-weight: 700; color: #c2a857;">
+                        </div>
+                        <div class="field">
+                            <label class="field-label">Status Produk <span class="req">*</span></label>
+                            <select name="status" class="select select2-modal">
+                                <option value="active" selected>Aktif</option>
+                                <option value="inactive">Nonaktif</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="field-label">Keterangan Spesifikasi (Opsional)</label>
+                        <textarea name="description" class="input" rows="2" placeholder="Catatan keunggulan atau bahan mug..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-cal-foot">
+                    <button type="button" class="btn btn--ghost" onclick="closeCalModal('modalCreateMug')">Batal</button>
+                    <button type="submit" id="btnSaveCreateMug" class="btn btn--primary">
+                        <i class="bi bi-check2"></i>
+                        <span>Simpan Tier Mug</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- DETAIL MUG --}}
+    <div id="modalDetailMug" class="modal-cal">
+        <div class="modal-cal-content" style="max-width: 500px;">
+            <div class="modal-cal-head">
+                <div>
+                    <span class="eyebrow" id="mugDetailEyebrow" style="font-size: 11px; font-weight: 700; letter-spacing: 0.5px;">DETAIL · SPESIFIKASI MUG</span>
+                    <h3 style="margin: 4px 0 0; font-size: 16px; font-weight: 700; color: var(--t-base);" id="mugDetailTitle">
+                        Detail Spesifikasi Mug
+                    </h3>
+                </div>
+                <button type="button" onclick="closeCalModal('modalDetailMug')"
+                    style="background: none; border: none; font-size: 20px; cursor: pointer; color: var(--t-muted); line-height: 1;">&times;</button>
+            </div>
+            <div class="modal-cal-body">
+                <div id="mugDetailContainer" style="display: flex; flex-direction: column; gap: 8px;"></div>
+            </div>
+            <div class="modal-cal-foot">
+                <button type="button" class="btn btn--ghost" onclick="closeCalModal('modalDetailMug')">Tutup</button>
+                <button type="button" class="btn btn--primary" id="btnEditMugFromDetail"
+                    style="display: inline-flex; align-items: center; gap: 6px;">
+                    <i class="bi bi-pen"></i>
+                    <span>Ubah Tier Ini</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    {{-- EDIT MUG --}}
+    <div id="modalEditMug" class="modal-cal">
+        <div class="modal-cal-content" style="max-width: 520px;">
+            <div class="modal-cal-head">
+                <div>
+                    <span class="eyebrow" style="font-size: 11px; font-weight: 700; letter-spacing: 0.5px;">EDIT DATA · MASTER MUG SUBLIMASI</span>
+                    <h3 style="margin: 4px 0 0; font-size: 16px; font-weight: 700; color: var(--t-base);" id="editMugHeading">Edit Tier Mug</h3>
+                </div>
+                <button type="button" onclick="closeCalModal('modalEditMug')"
+                    style="background: none; border: none; font-size: 20px; cursor: pointer; color: var(--t-muted); line-height: 1;">&times;</button>
+            </div>
+            <form id="formEditMug">
+                @csrf
+                @method('PUT')
+                <input type="hidden" id="editMugId" name="id">
+                <div class="modal-cal-body">
+                    <div class="field" style="margin-bottom: 12px;">
+                        <label class="field-label">Nama Varian Mug <span class="req">*</span></label>
+                        <input type="text" id="editMugName" name="name" class="input" required>
+                    </div>
+                    <div class="field" style="margin-bottom: 12px;">
+                        <label class="field-label">Label Rentang Kuantitas (Tier) <span class="req">*</span></label>
+                        <input type="text" id="editMugTierLabel" name="tier_label" class="input" required>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                        <div class="field">
+                            <label class="field-label">Min. Qty (pcs) <span class="req">*</span></label>
+                            <input type="number" id="editMugMin" name="min_qty" class="input" min="1" required>
+                        </div>
+                        <div class="field">
+                            <label class="field-label">Max. Qty (pcs)</label>
+                            <input type="number" id="editMugMax" name="max_qty" class="input" min="1">
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                        <div class="field">
+                            <label class="field-label">Harga Satuan (Rp) <span class="req">*</span></label>
+                            <input type="text" id="editMugPrice" name="price" class="input input-rupiah" required
+                                style="font-size: 15px; font-weight: 700; color: #c2a857;">
+                        </div>
+                        <div class="field">
+                            <label class="field-label">Status Produk <span class="req">*</span></label>
+                            <select id="editMugStatus" name="status" class="select select2-modal">
+                                <option value="active">Aktif</option>
+                                <option value="inactive">Nonaktif</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="field-label">Keterangan Spesifikasi</label>
+                        <textarea id="editMugDesc" name="description" class="input" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-cal-foot">
+                    <button type="button" class="btn btn--ghost" onclick="closeCalModal('modalEditMug')">Batal</button>
+                    <button type="submit" id="btnSaveEditMug" class="btn btn--primary">
+                        <i class="bi bi-check2"></i>
+                        <span>Simpan Perubahan</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- DELETE MUG --}}
+    <div id="modalDeleteMug" class="modal-cal">
+        <div class="modal-cal-content" style="max-width: 440px;">
+            <div class="modal-cal-head" style="border-bottom: 1px solid var(--border);">
+                <div>
+                    <span class="eyebrow" style="font-size: 11px; font-weight: 700; letter-spacing: 0.5px;">HAPUS DATA · MASTER MUG</span>
+                    <h3 style="margin: 4px 0 0; font-size: 16px; font-weight: 700; color: var(--t-base);">Konfirmasi Hapus</h3>
+                </div>
+                <button type="button" onclick="closeCalModal('modalDeleteMug')"
+                    style="background: none; border: none; font-size: 20px; cursor: pointer; color: var(--t-muted); line-height: 1;">&times;</button>
+            </div>
+            <div class="modal-cal-body" style="padding: 22px;">
+                <div style="display: flex; gap: 16px; align-items: flex-start;">
+                    <div style="width: 48px; height: 48px; min-width: 48px; border-radius: 12px; background: rgba(239, 68, 68, 0.12); color: #ef4444; display: flex; align-items: center; justify-content: center; font-size: 22px;">
+                        <i class="bi bi-trash3-fill"></i>
+                    </div>
+                    <div>
+                        <h4 style="margin: 0 0 6px; font-size: 15px; font-weight: 700; color: var(--t-base);">Apakah Anda Yakin?</h4>
+                        <p style="margin: 0; font-size: 13px; color: var(--t-muted); line-height: 1.5;">
+                            Anda akan menghapus tier mug <strong id="deleteMugTargetName" style="color: var(--t-base);"></strong>. Data yang sudah dihapus tidak dapat dipulihkan kembali.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-cal-foot" style="padding: 14px 20px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; background: var(--bg-muted);">
+                <button type="button" class="btn btn--ghost" onclick="closeCalModal('modalDeleteMug')">Batal</button>
+                <button type="button" class="btn btn--danger" id="btnConfirmDeleteMug" onclick="executeDeleteMug()"
+                    style="padding: 8px 16px; border-radius: 6px; border: none; background: #dc2626; color: #ffffff; cursor: pointer; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 6px;">
+                    <i class="bi bi-trash3-fill"></i>
+                    <span>Ya, Hapus</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    {{-- =========================================================
+         6. MODAL KARTU PVC (CREATE, DETAIL, EDIT, DELETE)
+    ========================================================= --}}
+    {{-- CREATE PVC CARD --}}
+    <div id="modalCreatePvcCard" class="modal-cal">
+        <div class="modal-cal-content" style="max-width: 520px;">
+            <div class="modal-cal-head">
+                <div>
+                    <span class="eyebrow" style="font-size: 11px; font-weight: 700; letter-spacing: 0.5px;">TAMBAH DATA · MASTER KARTU PVC</span>
+                    <h3 style="margin: 4px 0 0; font-size: 16px; font-weight: 700; color: var(--t-base);">Tambah Tier Kartu PVC</h3>
+                </div>
+                <button type="button" onclick="closeCalModal('modalCreatePvcCard')"
+                    style="background: none; border: none; font-size: 20px; cursor: pointer; color: var(--t-muted); line-height: 1;">&times;</button>
+            </div>
+            <form id="formCreatePvcCard">
+                @csrf
+                <div class="modal-cal-body">
+                    <div class="field" style="margin-bottom: 12px;">
+                        <label class="field-label">Nama Varian Kartu <span class="req">*</span></label>
+                        <input type="text" name="name" class="input" value="Kartu ID Card / KTA PVC (Standar ATM)" required>
+                    </div>
+                    <div class="field" style="margin-bottom: 12px;">
+                        <label class="field-label">Label Rentang Kuantitas (Tier) <span class="req">*</span></label>
+                        <input type="text" name="tier_label" class="input" placeholder="Misal: 1 pcs, 2–5 pcs, > 300 pcs" required>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                        <div class="field">
+                            <label class="field-label">Min. Qty (pcs) <span class="req">*</span></label>
+                            <input type="number" name="min_qty" class="input" value="1" min="1" required>
+                        </div>
+                        <div class="field">
+                            <label class="field-label">Max. Qty (pcs) <span style="font-size: 11px; color: var(--t-muted);">(Kosongkan jika tak hingga)</span></label>
+                            <input type="number" name="max_qty" class="input" placeholder="Tak terhingga" min="1">
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                        <div class="field">
+                            <label class="field-label">Harga Satuan (Rp) <span class="req">*</span></label>
+                            <input type="text" name="price" class="input input-rupiah" placeholder="Rp 20.000" required
+                                style="font-size: 15px; font-weight: 700; color: #c2a857;">
+                        </div>
+                        <div class="field">
+                            <label class="field-label">Status Produk <span class="req">*</span></label>
+                            <select name="status" class="select select2-modal">
+                                <option value="active" selected>Aktif</option>
+                                <option value="inactive">Nonaktif</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="field-label">Keterangan Spesifikasi</label>
+                        <textarea name="description" class="input" rows="2" placeholder="Catatan bahan PVC atau ketebalan kartu..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-cal-foot">
+                    <button type="button" class="btn btn--ghost" onclick="closeCalModal('modalCreatePvcCard')">Batal</button>
+                    <button type="submit" id="btnSaveCreatePvcCard" class="btn btn--primary">
+                        <i class="bi bi-check2"></i>
+                        <span>Simpan Tier PVC</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- DETAIL PVC CARD --}}
+    <div id="modalDetailPvcCard" class="modal-cal">
+        <div class="modal-cal-content" style="max-width: 500px;">
+            <div class="modal-cal-head">
+                <div>
+                    <span class="eyebrow" id="pvcCardDetailEyebrow" style="font-size: 11px; font-weight: 700; letter-spacing: 0.5px;">DETAIL · SPESIFIKASI KARTU PVC</span>
+                    <h3 style="margin: 4px 0 0; font-size: 16px; font-weight: 700; color: var(--t-base);" id="pvcCardDetailTitle">
+                        Detail Spesifikasi Kartu PVC
+                    </h3>
+                </div>
+                <button type="button" onclick="closeCalModal('modalDetailPvcCard')"
+                    style="background: none; border: none; font-size: 20px; cursor: pointer; color: var(--t-muted); line-height: 1;">&times;</button>
+            </div>
+            <div class="modal-cal-body">
+                <div id="pvcCardDetailContainer" style="display: flex; flex-direction: column; gap: 8px;"></div>
+            </div>
+            <div class="modal-cal-foot">
+                <button type="button" class="btn btn--ghost" onclick="closeCalModal('modalDetailPvcCard')">Tutup</button>
+                <button type="button" class="btn btn--primary" id="btnEditPvcCardFromDetail"
+                    style="display: inline-flex; align-items: center; gap: 6px;">
+                    <i class="bi bi-pen"></i>
+                    <span>Ubah Tier Ini</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    {{-- EDIT PVC CARD --}}
+    <div id="modalEditPvcCard" class="modal-cal">
+        <div class="modal-cal-content" style="max-width: 520px;">
+            <div class="modal-cal-head">
+                <div>
+                    <span class="eyebrow" style="font-size: 11px; font-weight: 700; letter-spacing: 0.5px;">EDIT DATA · MASTER KARTU PVC</span>
+                    <h3 style="margin: 4px 0 0; font-size: 16px; font-weight: 700; color: var(--t-base);" id="editPvcCardHeading">Edit Tier Kartu PVC</h3>
+                </div>
+                <button type="button" onclick="closeCalModal('modalEditPvcCard')"
+                    style="background: none; border: none; font-size: 20px; cursor: pointer; color: var(--t-muted); line-height: 1;">&times;</button>
+            </div>
+            <form id="formEditPvcCard">
+                @csrf
+                @method('PUT')
+                <input type="hidden" id="editPvcCardId" name="id">
+                <div class="modal-cal-body">
+                    <div class="field" style="margin-bottom: 12px;">
+                        <label class="field-label">Nama Varian Kartu <span class="req">*</span></label>
+                        <input type="text" id="editPvcCardName" name="name" class="input" required>
+                    </div>
+                    <div class="field" style="margin-bottom: 12px;">
+                        <label class="field-label">Label Rentang Kuantitas (Tier) <span class="req">*</span></label>
+                        <input type="text" id="editPvcCardTierLabel" name="tier_label" class="input" required>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                        <div class="field">
+                            <label class="field-label">Min. Qty (pcs) <span class="req">*</span></label>
+                            <input type="number" id="editPvcCardMin" name="min_qty" class="input" min="1" required>
+                        </div>
+                        <div class="field">
+                            <label class="field-label">Max. Qty (pcs)</label>
+                            <input type="number" id="editPvcCardMax" name="max_qty" class="input" min="1">
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                        <div class="field">
+                            <label class="field-label">Harga Satuan (Rp) <span class="req">*</span></label>
+                            <input type="text" id="editPvcCardPrice" name="price" class="input input-rupiah" required
+                                style="font-size: 15px; font-weight: 700; color: #c2a857;">
+                        </div>
+                        <div class="field">
+                            <label class="field-label">Status Produk <span class="req">*</span></label>
+                            <select id="editPvcCardStatus" name="status" class="select select2-modal">
+                                <option value="active">Aktif</option>
+                                <option value="inactive">Nonaktif</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="field-label">Keterangan Spesifikasi</label>
+                        <textarea id="editPvcCardDesc" name="description" class="input" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-cal-foot">
+                    <button type="button" class="btn btn--ghost" onclick="closeCalModal('modalEditPvcCard')">Batal</button>
+                    <button type="submit" id="btnSaveEditPvcCard" class="btn btn--primary">
+                        <i class="bi bi-check2"></i>
+                        <span>Simpan Perubahan</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- DELETE PVC CARD --}}
+    <div id="modalDeletePvcCard" class="modal-cal">
+        <div class="modal-cal-content" style="max-width: 440px;">
+            <div class="modal-cal-head" style="border-bottom: 1px solid var(--border);">
+                <div>
+                    <span class="eyebrow" style="font-size: 11px; font-weight: 700; letter-spacing: 0.5px;">HAPUS DATA · MASTER KARTU PVC</span>
+                    <h3 style="margin: 4px 0 0; font-size: 16px; font-weight: 700; color: var(--t-base);">Konfirmasi Hapus</h3>
+                </div>
+                <button type="button" onclick="closeCalModal('modalDeletePvcCard')"
+                    style="background: none; border: none; font-size: 20px; cursor: pointer; color: var(--t-muted); line-height: 1;">&times;</button>
+            </div>
+            <div class="modal-cal-body" style="padding: 22px;">
+                <div style="display: flex; gap: 16px; align-items: flex-start;">
+                    <div style="width: 48px; height: 48px; min-width: 48px; border-radius: 12px; background: rgba(239, 68, 68, 0.12); color: #ef4444; display: flex; align-items: center; justify-content: center; font-size: 22px;">
+                        <i class="bi bi-trash3-fill"></i>
+                    </div>
+                    <div>
+                        <h4 style="margin: 0 0 6px; font-size: 15px; font-weight: 700; color: var(--t-base);">Apakah Anda Yakin?</h4>
+                        <p style="margin: 0; font-size: 13px; color: var(--t-muted); line-height: 1.5;">
+                            Anda akan menghapus tier kartu <strong id="deletePvcCardTargetName" style="color: var(--t-base);"></strong>. Data yang sudah dihapus tidak dapat dipulihkan kembali.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-cal-foot" style="padding: 14px 20px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; background: var(--bg-muted);">
+                <button type="button" class="btn btn--ghost" onclick="closeCalModal('modalDeletePvcCard')">Batal</button>
+                <button type="button" class="btn btn--danger" id="btnConfirmDeletePvcCard" onclick="executeDeletePvcCard()"
+                    style="padding: 8px 16px; border-radius: 6px; border: none; background: #dc2626; color: #ffffff; cursor: pointer; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 6px;">
+                    <i class="bi bi-trash3-fill"></i>
+                    <span>Ya, Hapus</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    {{-- =========================================================
+         7. MODAL AKRILIK UV (CREATE, DETAIL, EDIT, DELETE)
+    ========================================================= --}}
+    {{-- CREATE AKRILIK UV --}}
+    <div id="modalCreateAkrilikUv" class="modal-cal">
+        <div class="modal-cal-content" style="max-width: 520px;">
+            <div class="modal-cal-head">
+                <div>
+                    <span class="eyebrow" style="font-size: 11px; font-weight: 700; letter-spacing: 0.5px;">TAMBAH DATA · MASTER AKRILIK UV</span>
+                    <h3 style="margin: 4px 0 0; font-size: 16px; font-weight: 700; color: var(--t-base);">Tambah Varian Akrilik UV</h3>
+                </div>
+                <button type="button" onclick="closeCalModal('modalCreateAkrilikUv')"
+                    style="background: none; border: none; font-size: 20px; cursor: pointer; color: var(--t-muted); line-height: 1;">&times;</button>
+            </div>
+            <form id="formCreateAkrilikUv">
+                @csrf
+                <div class="modal-cal-body">
+                    <div class="field" style="margin-bottom: 12px;">
+                        <label class="field-label">Nama Varian Produk Akrilik <span class="req">*</span></label>
+                        <input type="text" name="name" class="input" placeholder="Misal: Gantungan Kunci Akrilik UV 2 Muka" required>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                        <div class="field">
+                            <label class="field-label">Spesifikasi Lapisan <span class="req">*</span></label>
+                            <input type="text" name="spec_label" class="input" value="2 Muka (1 Lapis Akrilik)" required>
+                        </div>
+                        <div class="field">
+                            <label class="field-label">Ketebalan Akrilik <span class="req">*</span></label>
+                            <input type="text" name="thickness" class="input" value="3mm" required>
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                        <div class="field">
+                            <label class="field-label">Min. Order (pcs) <span class="req">*</span></label>
+                            <input type="number" name="min_order_qty" class="input" value="1" min="1" required>
+                        </div>
+                        <div class="field">
+                            <label class="field-label">Harga Satuan (Rp) <span class="req">*</span></label>
+                            <input type="text" name="price" class="input input-rupiah" placeholder="Rp 20.000" required
+                                style="font-size: 15px; font-weight: 700; color: #c2a857;">
+                        </div>
+                    </div>
+                    <div class="field" style="margin-bottom: 12px;">
+                        <label class="field-label">Status Produk <span class="req">*</span></label>
+                        <select name="status" class="select select2-modal">
+                            <option value="active" selected>Aktif</option>
+                            <option value="inactive">Nonaktif</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label class="field-label">Keterangan Spesifikasi</label>
+                        <textarea name="description" class="input" rows="2" placeholder="Catatan proses cutting UV flatbed atau aksesoris gantungan..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-cal-foot">
+                    <button type="button" class="btn btn--ghost" onclick="closeCalModal('modalCreateAkrilikUv')">Batal</button>
+                    <button type="submit" id="btnSaveCreateAkrilikUv" class="btn btn--primary">
+                        <i class="bi bi-check2"></i>
+                        <span>Simpan Akrilik UV</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- DETAIL AKRILIK UV --}}
+    <div id="modalDetailAkrilikUv" class="modal-cal">
+        <div class="modal-cal-content" style="max-width: 500px;">
+            <div class="modal-cal-head">
+                <div>
+                    <span class="eyebrow" id="akrilikUvDetailEyebrow" style="font-size: 11px; font-weight: 700; letter-spacing: 0.5px;">DETAIL · SPESIFIKASI AKRILIK UV</span>
+                    <h3 style="margin: 4px 0 0; font-size: 16px; font-weight: 700; color: var(--t-base);" id="akrilikUvDetailTitle">
+                        Detail Spesifikasi Akrilik UV
+                    </h3>
+                </div>
+                <button type="button" onclick="closeCalModal('modalDetailAkrilikUv')"
+                    style="background: none; border: none; font-size: 20px; cursor: pointer; color: var(--t-muted); line-height: 1;">&times;</button>
+            </div>
+            <div class="modal-cal-body">
+                <div id="akrilikUvDetailContainer" style="display: flex; flex-direction: column; gap: 8px;"></div>
+            </div>
+            <div class="modal-cal-foot">
+                <button type="button" class="btn btn--ghost" onclick="closeCalModal('modalDetailAkrilikUv')">Tutup</button>
+                <button type="button" class="btn btn--primary" id="btnEditAkrilikUvFromDetail"
+                    style="display: inline-flex; align-items: center; gap: 6px;">
+                    <i class="bi bi-pen"></i>
+                    <span>Ubah Varian Ini</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    {{-- EDIT AKRILIK UV --}}
+    <div id="modalEditAkrilikUv" class="modal-cal">
+        <div class="modal-cal-content" style="max-width: 520px;">
+            <div class="modal-cal-head">
+                <div>
+                    <span class="eyebrow" style="font-size: 11px; font-weight: 700; letter-spacing: 0.5px;">EDIT DATA · MASTER AKRILIK UV</span>
+                    <h3 style="margin: 4px 0 0; font-size: 16px; font-weight: 700; color: var(--t-base);" id="editAkrilikUvHeading">Edit Varian Akrilik UV</h3>
+                </div>
+                <button type="button" onclick="closeCalModal('modalEditAkrilikUv')"
+                    style="background: none; border: none; font-size: 20px; cursor: pointer; color: var(--t-muted); line-height: 1;">&times;</button>
+            </div>
+            <form id="formEditAkrilikUv">
+                @csrf
+                @method('PUT')
+                <input type="hidden" id="editAkrilikUvId" name="id">
+                <div class="modal-cal-body">
+                    <div class="field" style="margin-bottom: 12px;">
+                        <label class="field-label">Nama Varian Produk Akrilik <span class="req">*</span></label>
+                        <input type="text" id="editAkrilikUvName" name="name" class="input" required>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                        <div class="field">
+                            <label class="field-label">Spesifikasi Lapisan <span class="req">*</span></label>
+                            <input type="text" id="editAkrilikUvSpec" name="spec_label" class="input" required>
+                        </div>
+                        <div class="field">
+                            <label class="field-label">Ketebalan Akrilik <span class="req">*</span></label>
+                            <input type="text" id="editAkrilikUvThickness" name="thickness" class="input" required>
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                        <div class="field">
+                            <label class="field-label">Min. Order (pcs) <span class="req">*</span></label>
+                            <input type="number" id="editAkrilikUvMin" name="min_order_qty" class="input" min="1" required>
+                        </div>
+                        <div class="field">
+                            <label class="field-label">Harga Satuan (Rp) <span class="req">*</span></label>
+                            <input type="text" id="editAkrilikUvPrice" name="price" class="input input-rupiah" required
+                                style="font-size: 15px; font-weight: 700; color: #c2a857;">
+                        </div>
+                    </div>
+                    <div class="field" style="margin-bottom: 12px;">
+                        <label class="field-label">Status Produk <span class="req">*</span></label>
+                        <select id="editAkrilikUvStatus" name="status" class="select select2-modal">
+                            <option value="active">Aktif</option>
+                            <option value="inactive">Nonaktif</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label class="field-label">Keterangan Spesifikasi</label>
+                        <textarea id="editAkrilikUvDesc" name="description" class="input" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-cal-foot">
+                    <button type="button" class="btn btn--ghost" onclick="closeCalModal('modalEditAkrilikUv')">Batal</button>
+                    <button type="submit" id="btnSaveEditAkrilikUv" class="btn btn--primary">
+                        <i class="bi bi-check2"></i>
+                        <span>Simpan Perubahan</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- DELETE AKRILIK UV --}}
+    <div id="modalDeleteAkrilikUv" class="modal-cal">
+        <div class="modal-cal-content" style="max-width: 440px;">
+            <div class="modal-cal-head" style="border-bottom: 1px solid var(--border);">
+                <div>
+                    <span class="eyebrow" style="font-size: 11px; font-weight: 700; letter-spacing: 0.5px;">HAPUS DATA · MASTER AKRILIK UV</span>
+                    <h3 style="margin: 4px 0 0; font-size: 16px; font-weight: 700; color: var(--t-base);">Konfirmasi Hapus</h3>
+                </div>
+                <button type="button" onclick="closeCalModal('modalDeleteAkrilikUv')"
+                    style="background: none; border: none; font-size: 20px; cursor: pointer; color: var(--t-muted); line-height: 1;">&times;</button>
+            </div>
+            <div class="modal-cal-body" style="padding: 22px;">
+                <div style="display: flex; gap: 16px; align-items: flex-start;">
+                    <div style="width: 48px; height: 48px; min-width: 48px; border-radius: 12px; background: rgba(239, 68, 68, 0.12); color: #ef4444; display: flex; align-items: center; justify-content: center; font-size: 22px;">
+                        <i class="bi bi-trash3-fill"></i>
+                    </div>
+                    <div>
+                        <h4 style="margin: 0 0 6px; font-size: 15px; font-weight: 700; color: var(--t-base);">Apakah Anda Yakin?</h4>
+                        <p style="margin: 0; font-size: 13px; color: var(--t-muted); line-height: 1.5;">
+                            Anda akan menghapus varian akrilik <strong id="deleteAkrilikUvTargetName" style="color: var(--t-base);"></strong>. Data yang sudah dihapus tidak dapat dipulihkan kembali.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-cal-foot" style="padding: 14px 20px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; background: var(--bg-muted);">
+                <button type="button" class="btn btn--ghost" onclick="closeCalModal('modalDeleteAkrilikUv')">Batal</button>
+                <button type="button" class="btn btn--danger" id="btnConfirmDeleteAkrilikUv" onclick="executeDeleteAkrilikUv()"
+                    style="padding: 8px 16px; border-radius: 6px; border: none; background: #dc2626; color: #ffffff; cursor: pointer; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 6px;">
+                    <i class="bi bi-trash3-fill"></i>
+                    <span>Ya, Hapus</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    {{-- =========================================================
          DATATABLES & JAVASCRIPT CRUD (PERSIS SEPERTI MASTER KALENDER)
     ========================================================= --}}
     
@@ -1611,10 +2232,16 @@
                 openCreatePlakatModal();
             } else if (currentMerchTab === 'nota') {
                 openCreateNotaModal();
+            } else if (currentMerchTab === 'mug') {
+                openCreateMugModal();
+            } else if (currentMerchTab === 'pvccard') {
+                openCreatePvcCardModal();
+            } else if (currentMerchTab === 'akrilikuv') {
+                openCreateAkrilikUvModal();
             }
         }
 
-        // Switch Tab Utama (Lanyard, Papan Nama, Plakat)
+        // Switch Tab Utama (Lanyard, Papan Nama, Plakat, Nota, Mug, PVC, Akrilik)
         function switchMerchTab(tabName) {
             currentMerchTab = tabName;
             
@@ -1651,6 +2278,30 @@
                 if (labelHeroMainCreate) labelHeroMainCreate.textContent = 'Tambah Varian Nota';
                 if (labelHeroCatalog) labelHeroCatalog.textContent = 'Lihat Buku Nota di Katalog Pelanggan';
                 if (heroCatalogLink) heroCatalogLink.href = "{{ route('user_product_details', ['type' => 'display', 'id' => ($displayNota->id ?? 48)]) }}";
+            } else if (tabName === 'mug') {
+                const tabBtnMug = document.getElementById('tabBtnMug');
+                const tabContentMug = document.getElementById('tabContentMug');
+                if (tabBtnMug) tabBtnMug.classList.add('active');
+                if (tabContentMug) tabContentMug.style.display = 'block';
+                if (labelHeroMainCreate) labelHeroMainCreate.textContent = 'Tambah Tier Mug';
+                if (labelHeroCatalog) labelHeroCatalog.textContent = 'Lihat Mug di Katalog Pelanggan';
+                if (heroCatalogLink) heroCatalogLink.href = "{{ route('user_product_details', ['type' => 'display', 'id' => ($displayMug->id ?? 49)]) }}";
+            } else if (tabName === 'pvccard') {
+                const tabBtnPvcCard = document.getElementById('tabBtnPvcCard');
+                const tabContentPvcCard = document.getElementById('tabContentPvcCard');
+                if (tabBtnPvcCard) tabBtnPvcCard.classList.add('active');
+                if (tabContentPvcCard) tabContentPvcCard.style.display = 'block';
+                if (labelHeroMainCreate) labelHeroMainCreate.textContent = 'Tambah Tier Kartu PVC';
+                if (labelHeroCatalog) labelHeroCatalog.textContent = 'Lihat Kartu PVC di Katalog Pelanggan';
+                if (heroCatalogLink) heroCatalogLink.href = "{{ route('user_product_details', ['type' => 'display', 'id' => ($displayPvcCard->id ?? 50)]) }}";
+            } else if (tabName === 'akrilikuv') {
+                const tabBtnAkrilikUv = document.getElementById('tabBtnAkrilikUv');
+                const tabContentAkrilikUv = document.getElementById('tabContentAkrilikUv');
+                if (tabBtnAkrilikUv) tabBtnAkrilikUv.classList.add('active');
+                if (tabContentAkrilikUv) tabContentAkrilikUv.style.display = 'block';
+                if (labelHeroMainCreate) labelHeroMainCreate.textContent = 'Tambah Varian Akrilik UV';
+                if (labelHeroCatalog) labelHeroCatalog.textContent = 'Lihat Akrilik UV di Katalog Pelanggan';
+                if (heroCatalogLink) heroCatalogLink.href = "{{ route('user_product_details', ['type' => 'display', 'id' => ($displayAkrilikUv->id ?? 51)]) }}";
             }
 
             // Recalculate & adjust responsive DataTables pada switch tab (persis kalender)
@@ -2023,7 +2674,7 @@
             // Auto-switch tab from URL query param (?tab=nota / ?tab=plakat / etc.)
             const urlParams = new URLSearchParams(window.location.search);
             const initialTab = urlParams.get('tab');
-            if (initialTab && ['lanyard', 'papannama', 'plakat', 'nota'].includes(initialTab)) {
+            if (initialTab && ['lanyard', 'papannama', 'plakat', 'nota', 'mug', 'pvccard', 'akrilikuv'].includes(initialTab)) {
                 switchMerchTab(initialTab);
             }
 
@@ -2451,6 +3102,255 @@
                     alert('Terjadi kesalahan jaringan: ' + err.message);
                 });
             });
+
+            // Form Submit: Tambah Mug
+            $('#formCreateMug').on('submit', function(e) {
+                e.preventDefault();
+                const $btn = $('#btnSaveCreateMug');
+                const origHtml = $btn.html();
+                $btn.prop('disabled', true).html('<i class="bi bi-hourglass-split"></i> Menyimpan...');
+
+                const formData = new FormData(this);
+                const rawPrice = formData.get('price');
+                formData.set('price', cleanRupiahValue(rawPrice));
+
+                fetch('{{ route("admin_store_merchandise_mug") }}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    },
+                    body: formData
+                })
+                .then(res => res.json())
+                .then(data => {
+                    $btn.prop('disabled', false).html(origHtml);
+                    if (data.success) {
+                        closeCalModal('modalCreateMug');
+                        if (typeof showToast === 'function') {
+                            showToast('success', data.message || 'Tier Mug berhasil ditambahkan!');
+                        } else {
+                            alert(data.message || 'Tier Mug berhasil ditambahkan!');
+                        }
+                        setTimeout(() => location.reload(), 400);
+                    } else {
+                        alert('Gagal: ' + (data.message || 'Terjadi kesalahan.'));
+                    }
+                })
+                .catch(err => {
+                    $btn.prop('disabled', false).html(origHtml);
+                    alert('Terjadi kesalahan jaringan: ' + err.message);
+                });
+            });
+
+            // Form Submit: Edit Mug
+            $('#formEditMug').on('submit', function(e) {
+                e.preventDefault();
+                const $btn = $('#btnSaveEditMug');
+                const origHtml = $btn.html();
+                $btn.prop('disabled', true).html('<i class="bi bi-hourglass-split"></i> Menyimpan...');
+
+                const id = $('#editMugId').val();
+                const formData = new FormData(this);
+                const rawPrice = formData.get('price');
+                formData.set('price', cleanRupiahValue(rawPrice));
+
+                const updateUrl = '{{ route("admin_update_merchandise_mug", ":id") }}'.replace(':id', id);
+
+                fetch(updateUrl, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    },
+                    body: formData
+                })
+                .then(res => res.json())
+                .then(data => {
+                    $btn.prop('disabled', false).html(origHtml);
+                    if (data.success) {
+                        closeCalModal('modalEditMug');
+                        if (typeof showToast === 'function') {
+                            showToast('success', data.message || 'Tier Mug berhasil diperbarui!');
+                        } else {
+                            alert(data.message || 'Tier Mug berhasil diperbarui!');
+                        }
+                        setTimeout(() => location.reload(), 400);
+                    } else {
+                        alert('Gagal: ' + (data.message || 'Terjadi kesalahan.'));
+                    }
+                })
+                .catch(err => {
+                    $btn.prop('disabled', false).html(origHtml);
+                    alert('Terjadi kesalahan jaringan: ' + err.message);
+                });
+            });
+
+            // Form Submit: Tambah Kartu PVC
+            $('#formCreatePvcCard').on('submit', function(e) {
+                e.preventDefault();
+                const $btn = $('#btnSaveCreatePvcCard');
+                const origHtml = $btn.html();
+                $btn.prop('disabled', true).html('<i class="bi bi-hourglass-split"></i> Menyimpan...');
+
+                const formData = new FormData(this);
+                const rawPrice = formData.get('price');
+                formData.set('price', cleanRupiahValue(rawPrice));
+
+                fetch('{{ route("admin_store_merchandise_pvccard") }}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    },
+                    body: formData
+                })
+                .then(res => res.json())
+                .then(data => {
+                    $btn.prop('disabled', false).html(origHtml);
+                    if (data.success) {
+                        closeCalModal('modalCreatePvcCard');
+                        if (typeof showToast === 'function') {
+                            showToast('success', data.message || 'Tier Kartu PVC berhasil ditambahkan!');
+                        } else {
+                            alert(data.message || 'Tier Kartu PVC berhasil ditambahkan!');
+                        }
+                        setTimeout(() => location.reload(), 400);
+                    } else {
+                        alert('Gagal: ' + (data.message || 'Terjadi kesalahan.'));
+                    }
+                })
+                .catch(err => {
+                    $btn.prop('disabled', false).html(origHtml);
+                    alert('Terjadi kesalahan jaringan: ' + err.message);
+                });
+            });
+
+            // Form Submit: Edit Kartu PVC
+            $('#formEditPvcCard').on('submit', function(e) {
+                e.preventDefault();
+                const $btn = $('#btnSaveEditPvcCard');
+                const origHtml = $btn.html();
+                $btn.prop('disabled', true).html('<i class="bi bi-hourglass-split"></i> Menyimpan...');
+
+                const id = $('#editPvcCardId').val();
+                const formData = new FormData(this);
+                const rawPrice = formData.get('price');
+                formData.set('price', cleanRupiahValue(rawPrice));
+
+                const updateUrl = '{{ route("admin_update_merchandise_pvccard", ":id") }}'.replace(':id', id);
+
+                fetch(updateUrl, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    },
+                    body: formData
+                })
+                .then(res => res.json())
+                .then(data => {
+                    $btn.prop('disabled', false).html(origHtml);
+                    if (data.success) {
+                        closeCalModal('modalEditPvcCard');
+                        if (typeof showToast === 'function') {
+                            showToast('success', data.message || 'Tier Kartu PVC berhasil diperbarui!');
+                        } else {
+                            alert(data.message || 'Tier Kartu PVC berhasil diperbarui!');
+                        }
+                        setTimeout(() => location.reload(), 400);
+                    } else {
+                        alert('Gagal: ' + (data.message || 'Terjadi kesalahan.'));
+                    }
+                })
+                .catch(err => {
+                    $btn.prop('disabled', false).html(origHtml);
+                    alert('Terjadi kesalahan jaringan: ' + err.message);
+                });
+            });
+
+            // Form Submit: Tambah Akrilik UV
+            $('#formCreateAkrilikUv').on('submit', function(e) {
+                e.preventDefault();
+                const $btn = $('#btnSaveCreateAkrilikUv');
+                const origHtml = $btn.html();
+                $btn.prop('disabled', true).html('<i class="bi bi-hourglass-split"></i> Menyimpan...');
+
+                const formData = new FormData(this);
+                const rawPrice = formData.get('price');
+                formData.set('price', cleanRupiahValue(rawPrice));
+
+                fetch('{{ route("admin_store_merchandise_akrilikuv") }}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    },
+                    body: formData
+                })
+                .then(res => res.json())
+                .then(data => {
+                    $btn.prop('disabled', false).html(origHtml);
+                    if (data.success) {
+                        closeCalModal('modalCreateAkrilikUv');
+                        if (typeof showToast === 'function') {
+                            showToast('success', data.message || 'Varian Akrilik UV berhasil ditambahkan!');
+                        } else {
+                            alert(data.message || 'Varian Akrilik UV berhasil ditambahkan!');
+                        }
+                        setTimeout(() => location.reload(), 400);
+                    } else {
+                        alert('Gagal: ' + (data.message || 'Terjadi kesalahan.'));
+                    }
+                })
+                .catch(err => {
+                    $btn.prop('disabled', false).html(origHtml);
+                    alert('Terjadi kesalahan jaringan: ' + err.message);
+                });
+            });
+
+            // Form Submit: Edit Akrilik UV
+            $('#formEditAkrilikUv').on('submit', function(e) {
+                e.preventDefault();
+                const $btn = $('#btnSaveEditAkrilikUv');
+                const origHtml = $btn.html();
+                $btn.prop('disabled', true).html('<i class="bi bi-hourglass-split"></i> Menyimpan...');
+
+                const id = $('#editAkrilikUvId').val();
+                const formData = new FormData(this);
+                const rawPrice = formData.get('price');
+                formData.set('price', cleanRupiahValue(rawPrice));
+
+                const updateUrl = '{{ route("admin_update_merchandise_akrilikuv", ":id") }}'.replace(':id', id);
+
+                fetch(updateUrl, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    },
+                    body: formData
+                })
+                .then(res => res.json())
+                .then(data => {
+                    $btn.prop('disabled', false).html(origHtml);
+                    if (data.success) {
+                        closeCalModal('modalEditAkrilikUv');
+                        if (typeof showToast === 'function') {
+                            showToast('success', data.message || 'Varian Akrilik UV berhasil diperbarui!');
+                        } else {
+                            alert(data.message || 'Varian Akrilik UV berhasil diperbarui!');
+                        }
+                        setTimeout(() => location.reload(), 400);
+                    } else {
+                        alert('Gagal: ' + (data.message || 'Terjadi kesalahan.'));
+                    }
+                })
+                .catch(err => {
+                    $btn.prop('disabled', false).html(origHtml);
+                    alert('Terjadi kesalahan jaringan: ' + err.message);
+                });
+            });
         });
     
         // =========================================================
@@ -2594,6 +3494,361 @@
                         showToast('success', data.message || 'Varian Nota berhasil dihapus!');
                     } else {
                         alert(data.message || 'Varian Nota berhasil dihapus!');
+                    }
+                    setTimeout(() => location.reload(), 400);
+                } else {
+                    alert('Gagal: ' + (data.message || 'Terjadi kesalahan.'));
+                }
+            })
+            .catch(err => {
+                $btn.prop('disabled', false).html(origHtml);
+                alert('Terjadi kesalahan jaringan: ' + err.message);
+            });
+        }
+
+        // =========================================================
+        // JAVASCRIPT CRUD MUG SUBLIMASI
+        // =========================================================
+        let currentActiveMug = null;
+        let mugItemToDelete = { id: null, name: '' };
+
+        function openCreateMugModal() {
+            const form = document.getElementById('formCreateMug');
+            if (form) form.reset();
+            const modal = document.getElementById('modalCreateMug');
+            if (modal) modal.classList.add('is-open');
+            initCalModalSelect2('modalCreateMug');
+        }
+
+        function openDetailMugModal(mug) {
+            currentActiveMug = mug;
+            const container = document.getElementById('mugDetailContainer');
+            if (container) {
+                const statusBadge = (mug.status || 'active') === 'active'
+                    ? '<span class="badge success">Aktif</span>'
+                    : '<span class="badge danger">Nonaktif</span>';
+
+                const maxQtyLabel = mug.max_qty ? (mug.max_qty + ' pcs') : 'Unlimited (Diatas ' + (mug.min_qty - 1) + ' pcs)';
+
+                let html = '';
+                html += makeDetailSectionTitle('SPESIFIKASI TIER MUG SUBLIMASI');
+                html += makeDetailRow('Nama Varian', mug.name || '-');
+                html += makeDetailRow('Label Tier', '<span class="badge" style="background: rgba(194, 168, 87, 0.15); color: #c2a857; font-weight: 700;">' + (mug.tier_label || '-') + '</span>');
+                html += makeDetailRow('Min. Qty', (mug.min_qty || 1) + ' pcs');
+                html += makeDetailRow('Max. Qty', maxQtyLabel);
+
+                html += makeDetailSectionTitle('TARIF & HARGA JUAL');
+                html += makeDetailRow('Harga Satuan', '<strong style="color: #c2a857; font-size: 15px;">' + formatRupiahDisplay(mug.price) + '</strong> <span style="font-size: 11px; color: var(--t-muted);">/ pcs</span>');
+                html += makeDetailRow('Status Katalog', statusBadge);
+
+                if (mug.description) {
+                    html += makeDetailSectionTitle('KETERANGAN');
+                    html += '<div style="padding: 10px 14px; background: var(--bg-surface-2); border: 1px solid var(--border); border-radius: 8px; font-size: 12.5px; color: var(--t-muted); line-height: 1.5;">' + mug.description + '</div>';
+                }
+
+                container.innerHTML = html;
+            }
+
+            const btnEdit = document.getElementById('btnEditFromDetailMug');
+            if (btnEdit) {
+                btnEdit.onclick = function() {
+                    closeCalModal('modalDetailMug');
+                    openEditMugModal(currentActiveMug);
+                };
+            }
+
+            const modal = document.getElementById('modalDetailMug');
+            if (modal) modal.classList.add('is-open');
+        }
+
+        function openEditMugModal(mug) {
+            currentActiveMug = mug;
+            const heading = document.getElementById('editMugHeading');
+            if (heading) heading.textContent = 'Edit: ' + mug.name + ' (' + mug.tier_label + ')';
+
+            $('#editMugId').val(mug.id);
+            $('#editMugName').val(mug.name);
+            $('#editMugTierLabel').val(mug.tier_label);
+            $('#editMugMin').val(mug.min_qty);
+            $('#editMugMax').val(mug.max_qty || '');
+            $('#editMugPrice').val(formatRupiahDisplay(mug.price));
+            $('#editMugStatus').val(mug.status || 'active').trigger('change');
+            $('#editMugDesc').val(mug.description || '');
+
+            const modal = document.getElementById('modalEditMug');
+            if (modal) modal.classList.add('is-open');
+            initCalModalSelect2('modalEditMug');
+        }
+
+        function confirmDeleteMug(id, name) {
+            mugItemToDelete = { id: id, name: name };
+            const targetEl = document.getElementById('deleteMugTargetName');
+            if (targetEl) targetEl.textContent = name;
+            const modal = document.getElementById('modalDeleteMug');
+            if (modal) modal.classList.add('is-open');
+        }
+
+        function executeDeleteMug() {
+            if (!mugItemToDelete.id) return;
+            const $btn = $('#btnConfirmDeleteMug');
+            const origHtml = $btn.html();
+            $btn.prop('disabled', true).html('<i class="bi bi-hourglass-split"></i> Menghapus...');
+
+            const deleteUrl = '{{ route("admin_destroy_merchandise_mug", ":id") }}'.replace(':id', mugItemToDelete.id);
+
+            fetch(deleteUrl, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                $btn.prop('disabled', false).html(origHtml);
+                if (data.success) {
+                    closeCalModal('modalDeleteMug');
+                    if (typeof showToast === 'function') {
+                        showToast('success', data.message || 'Tier Mug berhasil dihapus!');
+                    } else {
+                        alert(data.message || 'Tier Mug berhasil dihapus!');
+                    }
+                    setTimeout(() => location.reload(), 400);
+                } else {
+                    alert('Gagal: ' + (data.message || 'Terjadi kesalahan.'));
+                }
+            })
+            .catch(err => {
+                $btn.prop('disabled', false).html(origHtml);
+                alert('Terjadi kesalahan jaringan: ' + err.message);
+            });
+        }
+
+        // =========================================================
+        // JAVASCRIPT CRUD KARTU PVC (ID CARD / KTA)
+        // =========================================================
+        let currentActivePvcCard = null;
+        let pvcCardItemToDelete = { id: null, name: '' };
+
+        function openCreatePvcCardModal() {
+            const form = document.getElementById('formCreatePvcCard');
+            if (form) form.reset();
+            const modal = document.getElementById('modalCreatePvcCard');
+            if (modal) modal.classList.add('is-open');
+            initCalModalSelect2('modalCreatePvcCard');
+        }
+
+        function openDetailPvcCardModal(pvc) {
+            currentActivePvcCard = pvc;
+            const container = document.getElementById('pvcCardDetailContainer');
+            if (container) {
+                const statusBadge = (pvc.status || 'active') === 'active'
+                    ? '<span class="badge success">Aktif</span>'
+                    : '<span class="badge danger">Nonaktif</span>';
+
+                const maxQtyLabel = pvc.max_qty ? (pvc.max_qty + ' pcs') : 'Unlimited (Diatas ' + (pvc.min_qty - 1) + ' pcs)';
+
+                let html = '';
+                html += makeDetailSectionTitle('SPESIFIKASI TIER KARTU PVC');
+                html += makeDetailRow('Nama Varian', pvc.name || '-');
+                html += makeDetailRow('Label Tier', '<span class="badge" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6; font-weight: 700;">' + (pvc.tier_label || '-') + '</span>');
+                html += makeDetailRow('Min. Qty', (pvc.min_qty || 1) + ' pcs');
+                html += makeDetailRow('Max. Qty', maxQtyLabel);
+
+                html += makeDetailSectionTitle('TARIF & HARGA JUAL');
+                html += makeDetailRow('Harga Satuan', '<strong style="color: #c2a857; font-size: 15px;">' + formatRupiahDisplay(pvc.price) + '</strong> <span style="font-size: 11px; color: var(--t-muted);">/ pcs</span>');
+                html += makeDetailRow('Status Katalog', statusBadge);
+
+                if (pvc.description) {
+                    html += makeDetailSectionTitle('KETERANGAN');
+                    html += '<div style="padding: 10px 14px; background: var(--bg-surface-2); border: 1px solid var(--border); border-radius: 8px; font-size: 12.5px; color: var(--t-muted); line-height: 1.5;">' + pvc.description + '</div>';
+                }
+
+                container.innerHTML = html;
+            }
+
+            const btnEdit = document.getElementById('btnEditFromDetailPvcCard');
+            if (btnEdit) {
+                btnEdit.onclick = function() {
+                    closeCalModal('modalDetailPvcCard');
+                    openEditPvcCardModal(currentActivePvcCard);
+                };
+            }
+
+            const modal = document.getElementById('modalDetailPvcCard');
+            if (modal) modal.classList.add('is-open');
+        }
+
+        function openEditPvcCardModal(pvc) {
+            currentActivePvcCard = pvc;
+            const heading = document.getElementById('editPvcCardHeading');
+            if (heading) heading.textContent = 'Edit: ' + pvc.name + ' (' + pvc.tier_label + ')';
+
+            $('#editPvcCardId').val(pvc.id);
+            $('#editPvcCardName').val(pvc.name);
+            $('#editPvcCardTierLabel').val(pvc.tier_label);
+            $('#editPvcCardMin').val(pvc.min_qty);
+            $('#editPvcCardMax').val(pvc.max_qty || '');
+            $('#editPvcCardPrice').val(formatRupiahDisplay(pvc.price));
+            $('#editPvcCardStatus').val(pvc.status || 'active').trigger('change');
+            $('#editPvcCardDesc').val(pvc.description || '');
+
+            const modal = document.getElementById('modalEditPvcCard');
+            if (modal) modal.classList.add('is-open');
+            initCalModalSelect2('modalEditPvcCard');
+        }
+
+        function confirmDeletePvcCard(id, name) {
+            pvcCardItemToDelete = { id: id, name: name };
+            const targetEl = document.getElementById('deletePvcCardTargetName');
+            if (targetEl) targetEl.textContent = name;
+            const modal = document.getElementById('modalDeletePvcCard');
+            if (modal) modal.classList.add('is-open');
+        }
+
+        function executeDeletePvcCard() {
+            if (!pvcCardItemToDelete.id) return;
+            const $btn = $('#btnConfirmDeletePvcCard');
+            const origHtml = $btn.html();
+            $btn.prop('disabled', true).html('<i class="bi bi-hourglass-split"></i> Menghapus...');
+
+            const deleteUrl = '{{ route("admin_destroy_merchandise_pvccard", ":id") }}'.replace(':id', pvcCardItemToDelete.id);
+
+            fetch(deleteUrl, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                $btn.prop('disabled', false).html(origHtml);
+                if (data.success) {
+                    closeCalModal('modalDeletePvcCard');
+                    if (typeof showToast === 'function') {
+                        showToast('success', data.message || 'Tier Kartu PVC berhasil dihapus!');
+                    } else {
+                        alert(data.message || 'Tier Kartu PVC berhasil dihapus!');
+                    }
+                    setTimeout(() => location.reload(), 400);
+                } else {
+                    alert('Gagal: ' + (data.message || 'Terjadi kesalahan.'));
+                }
+            })
+            .catch(err => {
+                $btn.prop('disabled', false).html(origHtml);
+                alert('Terjadi kesalahan jaringan: ' + err.message);
+            });
+        }
+
+        // =========================================================
+        // JAVASCRIPT CRUD AKRILIK UV
+        // =========================================================
+        let currentActiveAkrilikUv = null;
+        let akrilikUvItemToDelete = { id: null, name: '' };
+
+        function openCreateAkrilikUvModal() {
+            const form = document.getElementById('formCreateAkrilikUv');
+            if (form) form.reset();
+            const modal = document.getElementById('modalCreateAkrilikUv');
+            if (modal) modal.classList.add('is-open');
+            initCalModalSelect2('modalCreateAkrilikUv');
+        }
+
+        function openDetailAkrilikUvModal(akr) {
+            currentActiveAkrilikUv = akr;
+            const container = document.getElementById('akrilikUvDetailContainer');
+            if (container) {
+                const statusBadge = (akr.status || 'active') === 'active'
+                    ? '<span class="badge success">Aktif</span>'
+                    : '<span class="badge danger">Nonaktif</span>';
+
+                let html = '';
+                html += makeDetailSectionTitle('SPESIFIKASI AKRILIK UV');
+                html += makeDetailRow('Nama Produk', akr.name || '-');
+                html += makeDetailRow('Spesifikasi Cetak', '<span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; font-weight: 700;">' + (akr.spec_label || '-') + '</span>');
+                html += makeDetailRow('Ketebalan Akrilik', akr.thickness || '-');
+                html += makeDetailRow('Min. Pemesanan', (akr.min_order_qty || 1) + ' pcs');
+
+                html += makeDetailSectionTitle('TARIF & HARGA JUAL');
+                html += makeDetailRow('Harga Satuan', '<strong style="color: #c2a857; font-size: 15px;">' + formatRupiahDisplay(akr.price) + '</strong> <span style="font-size: 11px; color: var(--t-muted);">/ pcs</span>');
+                html += makeDetailRow('Status Katalog', statusBadge);
+
+                if (akr.description) {
+                    html += makeDetailSectionTitle('KETERANGAN');
+                    html += '<div style="padding: 10px 14px; background: var(--bg-surface-2); border: 1px solid var(--border); border-radius: 8px; font-size: 12.5px; color: var(--t-muted); line-height: 1.5;">' + akr.description + '</div>';
+                }
+
+                container.innerHTML = html;
+            }
+
+            const btnEdit = document.getElementById('btnEditFromDetailAkrilikUv');
+            if (btnEdit) {
+                btnEdit.onclick = function() {
+                    closeCalModal('modalDetailAkrilikUv');
+                    openEditAkrilikUvModal(currentActiveAkrilikUv);
+                };
+            }
+
+            const modal = document.getElementById('modalDetailAkrilikUv');
+            if (modal) modal.classList.add('is-open');
+        }
+
+        function openEditAkrilikUvModal(akr) {
+            currentActiveAkrilikUv = akr;
+            const heading = document.getElementById('editAkrilikUvHeading');
+            if (heading) heading.textContent = 'Edit: ' + akr.name;
+
+            $('#editAkrilikUvId').val(akr.id);
+            $('#editAkrilikUvName').val(akr.name);
+            $('#editAkrilikUvSpec').val(akr.spec_label);
+            $('#editAkrilikUvThickness').val(akr.thickness);
+            $('#editAkrilikUvMin').val(akr.min_order_qty || 1);
+            $('#editAkrilikUvPrice').val(formatRupiahDisplay(akr.price));
+            $('#editAkrilikUvStatus').val(akr.status || 'active').trigger('change');
+            $('#editAkrilikUvDesc').val(akr.description || '');
+
+            const modal = document.getElementById('modalEditAkrilikUv');
+            if (modal) modal.classList.add('is-open');
+            initCalModalSelect2('modalEditAkrilikUv');
+        }
+
+        function confirmDeleteAkrilikUv(id, name) {
+            akrilikUvItemToDelete = { id: id, name: name };
+            const targetEl = document.getElementById('deleteAkrilikUvTargetName');
+            if (targetEl) targetEl.textContent = name;
+            const modal = document.getElementById('modalDeleteAkrilikUv');
+            if (modal) modal.classList.add('is-open');
+        }
+
+        function executeDeleteAkrilikUv() {
+            if (!akrilikUvItemToDelete.id) return;
+            const $btn = $('#btnConfirmDeleteAkrilikUv');
+            const origHtml = $btn.html();
+            $btn.prop('disabled', true).html('<i class="bi bi-hourglass-split"></i> Menghapus...');
+
+            const deleteUrl = '{{ route("admin_destroy_merchandise_akrilikuv", ":id") }}'.replace(':id', akrilikUvItemToDelete.id);
+
+            fetch(deleteUrl, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                $btn.prop('disabled', false).html(origHtml);
+                if (data.success) {
+                    closeCalModal('modalDeleteAkrilikUv');
+                    if (typeof showToast === 'function') {
+                        showToast('success', data.message || 'Varian Akrilik UV berhasil dihapus!');
+                    } else {
+                        alert(data.message || 'Varian Akrilik UV berhasil dihapus!');
                     }
                     setTimeout(() => location.reload(), 400);
                 } else {

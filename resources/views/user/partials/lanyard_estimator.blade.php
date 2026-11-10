@@ -195,9 +195,9 @@
 
             <!-- Tombol Lanjutkan Pesanan WhatsApp -->
             <button type="button" id="lanyardContinueOrderButton"
-                class="w-full mt-6 py-3 rounded-xl bg-accent text-white text-sm font-medium hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity flex items-center justify-center gap-2">
-                <span>Konsultasi &amp; Pesan via WhatsApp</span>
-                <i class="bi bi-whatsapp"></i>
+                class="w-full mt-6 py-3.5 px-4 rounded-xl bg-accent hover:opacity-90 active:scale-[0.99] text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2.5 transition-all shadow-sm hover:shadow text-center">
+                <i class="bi bi-whatsapp text-base sm:text-lg shrink-0"></i>
+                <span class="leading-tight">Konsultasi &amp; Pesan via WhatsApp</span>
             </button>
 
             <!-- Tombol Tambahkan ke Keranjang -->
@@ -207,17 +207,17 @@
                         ? removeFromBasket(@js($product['basketItem']['id']))
                         : addToBasket(@js($product['basketItem']))
                 "
-                class="w-full mt-3 py-3 rounded-xl text-white cart-button text-sm font-medium hover:opacity-90 transition-opacity duration-200 flex items-center justify-center gap-2">
+                class="w-full mt-3 py-3.5 px-4 rounded-xl text-white cart-button text-xs sm:text-sm font-medium hover:opacity-90 active:scale-[0.99] transition-all duration-200 flex items-center justify-center gap-2.5">
                 <template x-if="!isInBasket(@js($product['basketItem']['id']))">
                     <span class="flex items-center justify-center gap-2">
-                        Tambahkan ke Keranjang
-                        <i class="bi bi-cart-plus"></i>
+                        <i class="bi bi-cart-plus text-base shrink-0"></i>
+                        <span>Tambahkan ke Keranjang</span>
                     </span>
                 </template>
                 <template x-if="isInBasket(@js($product['basketItem']['id']))">
                     <span class="flex items-center justify-center gap-2">
-                        Hapus dari Keranjang
-                        <i class="bi bi-cart-x"></i>
+                        <i class="bi bi-cart-x text-base shrink-0"></i>
+                        <span>Hapus dari Keranjang</span>
                     </span>
                 </template>
             </button>

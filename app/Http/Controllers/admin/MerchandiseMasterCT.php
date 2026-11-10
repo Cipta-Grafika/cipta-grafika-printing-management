@@ -44,6 +44,30 @@ class MerchandiseMasterCT extends Controller
             'filters' => ['ncr' => ['paper_type', 'ncr'], 'hvs' => ['paper_type', 'hvs'], 'ink_1' => ['ink_count', 1], 'ink_2' => ['ink_count', 2], 'ink_3' => ['ink_count', 3]],
             'aliases' => ['paper_type' => ['ncr' => 'NCR Tembus', 'hvs' => 'HVS Putih']],
         ],
+        'mug' => [
+            'table' => 'm_mug_pricings', 'label' => 'tier mug',
+            'columns' => ['tier_label', 'min_qty', 'max_qty', 'price', 'status'],
+            'search' => ['name', 'tier_label', 'min_qty', 'max_qty', 'price', 'description', 'status'],
+            'order' => ['min_qty'],
+            'filters' => [],
+            'aliases' => [],
+        ],
+        'pvccard' => [
+            'table' => 'm_pvc_card_pricings', 'label' => 'tier kartu pvc',
+            'columns' => ['tier_label', 'min_qty', 'max_qty', 'price', 'status'],
+            'search' => ['name', 'tier_label', 'min_qty', 'max_qty', 'price', 'description', 'status'],
+            'order' => ['min_qty'],
+            'filters' => [],
+            'aliases' => [],
+        ],
+        'akrilikuv' => [
+            'table' => 'm_akrilik_uv_pricings', 'label' => 'akrilik uv',
+            'columns' => ['name', 'spec_label', 'thickness', 'min_order_qty', 'price', 'status'],
+            'search' => ['name', 'spec_label', 'thickness', 'min_order_qty', 'price', 'description', 'status'],
+            'order' => ['name'],
+            'filters' => [],
+            'aliases' => [],
+        ],
     ];
 
     public function data(Request $request, string $type)
@@ -168,6 +192,25 @@ class MerchandiseMasterCT extends Controller
         // Ambil info produk display nota jika ada
         $data['displayNota'] = DB::table('m_display_products')
             ->whereRaw('LOWER(display_name) LIKE ?', ['%nota%'])
+            ->first();
+
+        // Ambil data Mug Sublimasi
+        $data['totalMugs'] = DB::table('m_mug_pricings')->count();
+        $data['displayMug'] = DB::table('m_display_products')
+            ->whereRaw('LOWER(display_name) LIKE ?', ['%mug%'])
+            ->first();
+
+        // Ambil data Kartu PVC (ID Card / KTA)
+        $data['totalPvcCards'] = DB::table('m_pvc_card_pricings')->count();
+        $data['displayPvcCard'] = DB::table('m_display_products')
+            ->whereRaw('LOWER(display_name) LIKE ?', ['%kartu pvc%'])
+            ->orWhereRaw('LOWER(display_name) LIKE ?', ['%id card%'])
+            ->first();
+
+        // Ambil data Akrilik UV (2 Muka)
+        $data['totalAkrilikUv'] = DB::table('m_akrilik_uv_pricings')->count();
+        $data['displayAkrilikUv'] = DB::table('m_display_products')
+            ->whereRaw('LOWER(display_name) LIKE ?', ['%akrilik uv%'])
             ->first();
 
         return view('admin.merchandise.index', $data);
@@ -691,5 +734,314 @@ class MerchandiseMasterCT extends Controller
         }
 
         return redirect()->back()->with('success', 'Varian Buku Nota berhasil dihapus.');
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | MUG SUBLIMASI CRUD HANDLERS
+    |--------------------------------------------------------------------------
+    */
+
+    public function storeMug(Request $request)
+    {
+        $validated = $request->validate([
+            'name'        => 'nullable|string|max:100',
+            'tier_label'  => 'required|string|max:50',
+            'min_qty'     => 'required|integer|min:1',
+            'max_qty'     => 'nullable|integer|min:1',
+            'price'       => 'required|numeric|min:0',
+            'description' => 'nullable|string',
+            'status'      => 'nullable|string|in:active,inactive',
+        ]);
+
+        $id = DB::table('m_mug_pricings')->insertGetId([
+            'name'        => !empty($validated['name']) ? $validated['name'] : 'Mug Sublimasi Keramik SNI (Putih Standar)',
+            'tier_label'  => $validated['tier_label'],
+            'min_qty'     => (int) $validated['min_qty'],
+            'max_qty'     => !empty($validated['max_qty']) ? (int) $validated['max_qty'] : null,
+            'price'       => (float) $validated['price'],
+            'description' => $validated['description'] ?? null,
+            'status'      => $validated['status'] ?? 'active',
+            'created_by'  => Auth::user()->name ?? 'Administrator',
+            'created_at'  => Carbon::now('Asia/Jakarta'),
+            'updated_by'  => Auth::user()->name ?? 'Administrator',
+            'updated_at'  => Carbon::now('Asia/Jakarta'),
+        ]);
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Tier Mug Sublimasi berhasil ditambahkan!',
+                'id'      => $id,
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Tier Mug Sublimasi berhasil ditambahkan!');
+    }
+
+    public function updateMug(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'name'        => 'nullable|string|max:100',
+            'tier_label'  => 'nullable|string|max:50',
+            'min_qty'     => 'nullable|integer|min:1',
+            'max_qty'     => 'nullable|integer|min:1',
+            'price'       => 'required|numeric|min:0',
+            'description' => 'nullable|string',
+            'status'      => 'nullable|string|in:active,inactive',
+        ]);
+
+        $updateData = [
+            'price'      => (float) $validated['price'],
+            'updated_by' => Auth::user()->name ?? 'Administrator',
+            'updated_at' => Carbon::now('Asia/Jakarta'),
+        ];
+
+        if (!empty($validated['name'])) $updateData['name'] = $validated['name'];
+        if (!empty($validated['tier_label'])) $updateData['tier_label'] = $validated['tier_label'];
+        if (isset($validated['min_qty'])) $updateData['min_qty'] = (int) $validated['min_qty'];
+        if (array_key_exists('max_qty', $validated)) $updateData['max_qty'] = !empty($validated['max_qty']) ? (int) $validated['max_qty'] : null;
+        if (array_key_exists('description', $validated)) $updateData['description'] = $validated['description'];
+        if (!empty($validated['status'])) $updateData['status'] = $validated['status'];
+
+        DB::table('m_mug_pricings')->where('id', $id)->update($updateData);
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Data Tier Mug Sublimasi berhasil diperbarui.',
+                'price'   => (float) $validated['price'],
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Data Tier Mug Sublimasi berhasil diperbarui.');
+    }
+
+    public function destroyMug(Request $request, $id)
+    {
+        $tier = DB::table('m_mug_pricings')->where('id', $id)->first();
+        if (!$tier) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data Tier Mug Sublimasi tidak ditemukan.',
+            ], 404);
+        }
+
+        DB::table('m_mug_pricings')->where('id', $id)->delete();
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Tier Mug Sublimasi berhasil dihapus.',
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Tier Mug Sublimasi berhasil dihapus.');
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | KARTU PVC (ID CARD / KTA) CRUD HANDLERS
+    |--------------------------------------------------------------------------
+    */
+
+    public function storePvcCard(Request $request)
+    {
+        $validated = $request->validate([
+            'name'        => 'nullable|string|max:100',
+            'tier_label'  => 'required|string|max:50',
+            'min_qty'     => 'required|integer|min:1',
+            'max_qty'     => 'nullable|integer|min:1',
+            'price'       => 'required|numeric|min:0',
+            'description' => 'nullable|string',
+            'status'      => 'nullable|string|in:active,inactive',
+        ]);
+
+        $id = DB::table('m_pvc_card_pricings')->insertGetId([
+            'name'        => !empty($validated['name']) ? $validated['name'] : 'Kartu ID Card / KTA PVC (Standar ATM)',
+            'tier_label'  => $validated['tier_label'],
+            'min_qty'     => (int) $validated['min_qty'],
+            'max_qty'     => !empty($validated['max_qty']) ? (int) $validated['max_qty'] : null,
+            'price'       => (float) $validated['price'],
+            'description' => $validated['description'] ?? null,
+            'status'      => $validated['status'] ?? 'active',
+            'created_by'  => Auth::user()->name ?? 'Administrator',
+            'created_at'  => Carbon::now('Asia/Jakarta'),
+            'updated_by'  => Auth::user()->name ?? 'Administrator',
+            'updated_at'  => Carbon::now('Asia/Jakarta'),
+        ]);
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Tier Kartu PVC berhasil ditambahkan!',
+                'id'      => $id,
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Tier Kartu PVC berhasil ditambahkan!');
+    }
+
+    public function updatePvcCard(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'name'        => 'nullable|string|max:100',
+            'tier_label'  => 'nullable|string|max:50',
+            'min_qty'     => 'nullable|integer|min:1',
+            'max_qty'     => 'nullable|integer|min:1',
+            'price'       => 'required|numeric|min:0',
+            'description' => 'nullable|string',
+            'status'      => 'nullable|string|in:active,inactive',
+        ]);
+
+        $updateData = [
+            'price'      => (float) $validated['price'],
+            'updated_by' => Auth::user()->name ?? 'Administrator',
+            'updated_at' => Carbon::now('Asia/Jakarta'),
+        ];
+
+        if (!empty($validated['name'])) $updateData['name'] = $validated['name'];
+        if (!empty($validated['tier_label'])) $updateData['tier_label'] = $validated['tier_label'];
+        if (isset($validated['min_qty'])) $updateData['min_qty'] = (int) $validated['min_qty'];
+        if (array_key_exists('max_qty', $validated)) $updateData['max_qty'] = !empty($validated['max_qty']) ? (int) $validated['max_qty'] : null;
+        if (array_key_exists('description', $validated)) $updateData['description'] = $validated['description'];
+        if (!empty($validated['status'])) $updateData['status'] = $validated['status'];
+
+        DB::table('m_pvc_card_pricings')->where('id', $id)->update($updateData);
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Data Tier Kartu PVC berhasil diperbarui.',
+                'price'   => (float) $validated['price'],
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Data Tier Kartu PVC berhasil diperbarui.');
+    }
+
+    public function destroyPvcCard(Request $request, $id)
+    {
+        $tier = DB::table('m_pvc_card_pricings')->where('id', $id)->first();
+        if (!$tier) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data Tier Kartu PVC tidak ditemukan.',
+            ], 404);
+        }
+
+        DB::table('m_pvc_card_pricings')->where('id', $id)->delete();
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Tier Kartu PVC berhasil dihapus.',
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Tier Kartu PVC berhasil dihapus.');
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | AKRILIK UV (2 MUKA 1 LAPIS) CRUD HANDLERS
+    |--------------------------------------------------------------------------
+    */
+
+    public function storeAkrilikUv(Request $request)
+    {
+        $validated = $request->validate([
+            'name'          => 'required|string|max:150',
+            'spec_label'    => 'required|string|max:100',
+            'thickness'     => 'required|string|max:30',
+            'min_order_qty' => 'nullable|integer|min:1',
+            'price'         => 'required|numeric|min:0',
+            'description'   => 'nullable|string',
+            'status'        => 'nullable|string|in:active,inactive',
+        ]);
+
+        $id = DB::table('m_akrilik_uv_pricings')->insertGetId([
+            'name'          => $validated['name'],
+            'spec_label'    => $validated['spec_label'],
+            'thickness'     => $validated['thickness'],
+            'min_order_qty' => !empty($validated['min_order_qty']) ? (int) $validated['min_order_qty'] : 1,
+            'price'         => (float) $validated['price'],
+            'description'   => $validated['description'] ?? null,
+            'status'        => $validated['status'] ?? 'active',
+            'created_by'    => Auth::user()->name ?? 'Administrator',
+            'created_at'    => Carbon::now('Asia/Jakarta'),
+            'updated_by'    => Auth::user()->name ?? 'Administrator',
+            'updated_at'    => Carbon::now('Asia/Jakarta'),
+        ]);
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Varian Akrilik UV berhasil ditambahkan!',
+                'id'      => $id,
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Varian Akrilik UV berhasil ditambahkan!');
+    }
+
+    public function updateAkrilikUv(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'name'          => 'nullable|string|max:150',
+            'spec_label'    => 'nullable|string|max:100',
+            'thickness'     => 'nullable|string|max:30',
+            'min_order_qty' => 'nullable|integer|min:1',
+            'price'         => 'required|numeric|min:0',
+            'description'   => 'nullable|string',
+            'status'        => 'nullable|string|in:active,inactive',
+        ]);
+
+        $updateData = [
+            'price'      => (float) $validated['price'],
+            'updated_by' => Auth::user()->name ?? 'Administrator',
+            'updated_at' => Carbon::now('Asia/Jakarta'),
+        ];
+
+        if (!empty($validated['name'])) $updateData['name'] = $validated['name'];
+        if (!empty($validated['spec_label'])) $updateData['spec_label'] = $validated['spec_label'];
+        if (!empty($validated['thickness'])) $updateData['thickness'] = $validated['thickness'];
+        if (isset($validated['min_order_qty'])) $updateData['min_order_qty'] = (int) $validated['min_order_qty'];
+        if (array_key_exists('description', $validated)) $updateData['description'] = $validated['description'];
+        if (!empty($validated['status'])) $updateData['status'] = $validated['status'];
+
+        DB::table('m_akrilik_uv_pricings')->where('id', $id)->update($updateData);
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Data Varian Akrilik UV berhasil diperbarui.',
+                'price'   => (float) $validated['price'],
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Data Varian Akrilik UV berhasil diperbarui.');
+    }
+
+    public function destroyAkrilikUv(Request $request, $id)
+    {
+        $item = DB::table('m_akrilik_uv_pricings')->where('id', $id)->first();
+        if (!$item) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data Varian Akrilik UV tidak ditemukan.',
+            ], 404);
+        }
+
+        DB::table('m_akrilik_uv_pricings')->where('id', $id)->delete();
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Varian Akrilik UV berhasil dihapus.',
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Varian Akrilik UV berhasil dihapus.');
     }
 }

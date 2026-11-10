@@ -479,6 +479,21 @@ Route::middleware('auth')->group(function () {
     Route::put('/admin/merchandise-master/update-nota/{id}', [MerchandiseMasterCT::class, 'updateNota'])->name('admin_update_merchandise_nota');
     Route::delete('/admin/merchandise-master/delete-nota/{id}', [MerchandiseMasterCT::class, 'destroyNota'])->name('admin_destroy_merchandise_nota');
 
+    // Mug Sublimasi CRUD routes
+    Route::post('/admin/merchandise-master/store-mug', [MerchandiseMasterCT::class, 'storeMug'])->name('admin_store_merchandise_mug');
+    Route::put('/admin/merchandise-master/update-mug/{id}', [MerchandiseMasterCT::class, 'updateMug'])->name('admin_update_merchandise_mug');
+    Route::delete('/admin/merchandise-master/delete-mug/{id}', [MerchandiseMasterCT::class, 'destroyMug'])->name('admin_destroy_merchandise_mug');
+
+    // Kartu PVC (ID Card / KTA) CRUD routes
+    Route::post('/admin/merchandise-master/store-pvccard', [MerchandiseMasterCT::class, 'storePvcCard'])->name('admin_store_merchandise_pvccard');
+    Route::put('/admin/merchandise-master/update-pvccard/{id}', [MerchandiseMasterCT::class, 'updatePvcCard'])->name('admin_update_merchandise_pvccard');
+    Route::delete('/admin/merchandise-master/delete-pvccard/{id}', [MerchandiseMasterCT::class, 'destroyPvcCard'])->name('admin_destroy_merchandise_pvccard');
+
+    // Akrilik UV 2 Muka CRUD routes
+    Route::post('/admin/merchandise-master/store-akrilikuv', [MerchandiseMasterCT::class, 'storeAkrilikUv'])->name('admin_store_merchandise_akrilikuv');
+    Route::put('/admin/merchandise-master/update-akrilikuv/{id}', [MerchandiseMasterCT::class, 'updateAkrilikUv'])->name('admin_update_merchandise_akrilikuv');
+    Route::delete('/admin/merchandise-master/delete-akrilikuv/{id}', [MerchandiseMasterCT::class, 'destroyAkrilikUv'])->name('admin_destroy_merchandise_akrilikuv');
+
     // Alias redirect untuk lanyard master & nota master
     Route::get('/admin/lanyard-master', function() {
         return redirect()->route('admin_merchandise_master', ['tab' => 'lanyard']);

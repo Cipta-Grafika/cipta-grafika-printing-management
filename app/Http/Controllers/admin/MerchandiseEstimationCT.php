@@ -59,6 +59,24 @@ class MerchandiseEstimationCT extends Controller
             ->orderBy('ink_count', 'asc')
             ->get();
 
+        // 7. Data Master Mug Sublimasi
+        $data['mugItems'] = DB::table('m_mug_pricings')
+            ->where('status', 'active')
+            ->orderBy('min_qty', 'asc')
+            ->get();
+
+        // 8. Data Master Kartu PVC (ID Card & KTA)
+        $data['pvcCardItems'] = DB::table('m_pvc_card_pricings')
+            ->where('status', 'active')
+            ->orderBy('min_qty', 'asc')
+            ->get();
+
+        // 9. Data Master Bahan Akrilik UV (2 Muka)
+        $data['akrilikUvItems'] = DB::table('m_akrilik_uv_pricings')
+            ->where('status', 'active')
+            ->orderBy('id', 'asc')
+            ->get();
+
         return view('admin.estimation.merchandise.create', $data);
     }
 

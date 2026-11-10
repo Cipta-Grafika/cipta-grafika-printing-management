@@ -62,13 +62,30 @@ $(function () {
             {data: 'sheets_per_book', className: 'text-center', render: (value, type, row) => type === 'display' ?
                 chip('bi-book', `${number(value)} ${row.paper_type === 'ncr' ? 'Set/Buku' : 'Lbr/Buku'}`) : value},
             moneyColumn
+        ],
+        mug: [
+            nameColumn('tier_label', 'bi-cup-hot', 'Tier Mug'),
+            qtyColumn('min_qty'), qtyColumn('max_qty', true), moneyColumn
+        ],
+        pvccard: [
+            nameColumn('tier_label', 'bi-credit-card-2-front', 'Tier Kartu PVC'),
+            qtyColumn('min_qty'), qtyColumn('max_qty', true), moneyColumn
+        ],
+        akrilikuv: [
+            nameColumn('name', 'bi-shield-shaded', 'Akrilik UV'),
+            textColumn('spec_label', 'bi-layers'),
+            textColumn('thickness', 'bi-rulers'),
+            qtyColumn('min_order_qty'), moneyColumn
         ]
     };
     const handlers = {
         lanyard: {detail: openDetailLanyardModal, edit: openEditLanyardModal, delete: confirmDeleteLanyard},
         nametag: {detail: openDetailNameTagModal, edit: openEditNameTagModal, delete: confirmDeleteNameTag},
         plakat: {detail: openDetailPlakatModal, edit: openEditPlakatModal, delete: confirmDeletePlakat},
-        nota: {detail: openDetailNotaModal, edit: openEditNotaModal, delete: confirmDeleteNota}
+        nota: {detail: openDetailNotaModal, edit: openEditNotaModal, delete: confirmDeleteNota},
+        mug: {detail: openDetailMugModal, edit: openEditMugModal, delete: confirmDeleteMug},
+        pvccard: {detail: openDetailPvcCardModal, edit: openEditPvcCardModal, delete: confirmDeletePvcCard},
+        akrilikuv: {detail: openDetailAkrilikUvModal, edit: openEditAkrilikUvModal, delete: confirmDeleteAkrilikUv}
     };
     const modal = document.getElementById('modalBulkDeleteMerchandise');
     const confirmButton = document.getElementById('confirmBulkDeleteMerchandise');
