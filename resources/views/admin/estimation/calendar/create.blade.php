@@ -648,6 +648,125 @@
             box-shadow: 0 6px 18px rgba(37, 99, 235, 0.45);
         }
 
+        /* WHATSAPP COPY ACTION BUTTON & TOAST */
+        .btn-action-wa {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            margin-top: 8px;
+            padding: 11px 18px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.12);
+            color: #ffffff;
+            font-weight: 600;
+            font-size: 13px;
+            border: 1.5px solid rgba(255, 255, 255, 0.28);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        :root[data-theme="dark"] .btn-action-wa,
+        html[data-theme="dark"] .btn-action-wa {
+            background: var(--bg-card);
+            color: var(--t-base);
+            border: 1.5px solid var(--border);
+        }
+
+        .btn-action-wa:hover,
+        :root[data-theme="dark"] .btn-action-wa:hover,
+        html[data-theme="dark"] .btn-action-wa:hover {
+            background: rgba(34, 197, 94, 0.15);
+            border-color: #22c55e;
+            color: #22c55e;
+        }
+
+        .wa-toast-container {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            z-index: 1000000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+
+        .wa-toast {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            min-width: 320px;
+            max-width: 440px;
+            padding: 14px 18px;
+            border-radius: 12px;
+            background: var(--bg-card);
+            color: var(--t-base);
+            border: 1px solid var(--border);
+            border-left: 4.5px solid #22c55e;
+            box-shadow: 0 16px 36px rgba(0, 0, 0, 0.3);
+            pointer-events: auto;
+            transform: translateX(120%);
+            opacity: 0;
+            transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+        }
+
+        .wa-toast.is-show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .wa-toast-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: rgba(34, 197, 94, 0.15);
+            color: #22c55e;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .wa-toast-content {
+            flex: 1;
+        }
+
+        .wa-toast-title {
+            font-size: 13.5px;
+            font-weight: 700;
+            color: var(--t-base);
+            margin: 0 0 3px;
+        }
+
+        .wa-toast-desc {
+            font-size: 12px;
+            color: var(--t-muted);
+            margin: 0;
+            line-height: 1.45;
+        }
+
+        .wa-toast-close {
+            background: transparent;
+            border: none;
+            color: var(--t-muted);
+            font-size: 18px;
+            cursor: pointer;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            transition: all 0.15s;
+        }
+
+        .wa-toast-close:hover {
+            color: var(--t-base);
+            background: var(--bg-hover);
+        }
+
         .dual-engine-table-wrap {
             overflow-x: auto;
         }
@@ -1446,7 +1565,7 @@
                                     </div>
                                 </div>
 
-                                {{-- TOMBOL PRATINJAU SURAT PENAWARAN --}}
+                                {{-- TOMBOL PRATINJAU SURAT PENAWARAN & SALIN WHATSAPP --}}
                                 <button type="button" class="btn-preview-offer" onclick="openOfferModal()">
                                     <svg viewBox="0 0 24 24" width="16" height="16" fill="none"
                                         stroke="currentColor" stroke-width="2">
@@ -1457,6 +1576,10 @@
                                         <polyline points="10 9 9 9 8 9" />
                                     </svg>
                                     <span>Pratinjau Surat Penawaran</span>
+                                </button>
+                                <button type="button" id="btnCopyWaCalendar" class="btn-action-wa" onclick="copyFormattedWhatsAppCalendar(event)">
+                                    <i class="bi bi-whatsapp"></i>
+                                    <span>Salin Penawaran WhatsApp</span>
                                 </button>
                             </div>
 
@@ -1669,6 +1792,10 @@
             </div>
             <div class="modal-foot-custom">
                 <button type="button" class="btn btn--ghost" onclick="closeOfferModal()">Tutup</button>
+                <button type="button" id="btnModalCopyWaCalendar" onclick="copyFormattedWhatsAppCalendar(event)"
+                    style="display: inline-flex; align-items: center; gap: 6px; padding: 9px 16px; border-radius: 8px; border: 1px solid #22c55e; background: rgba(34, 197, 94, 0.12); color: #22c55e; font-size: 13px; font-weight: 600; cursor: pointer;">
+                    <i class="bi bi-whatsapp"></i> Salin WhatsApp
+                </button>
                 <button type="button" class="btn btn--primary" onclick="window.print()">
                     <i class="bi bi-printer"></i> Cetak / PDF
                 </button>
@@ -2018,6 +2145,117 @@
                     showToast("error", "Gagal menyalin spesifikasi.");
                 }
             );
+        }
+
+        function showWaToastCalendar(title, desc) {
+            let container = document.getElementById('waToastContainerCalendar');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'waToastContainerCalendar';
+                container.className = 'wa-toast-container';
+                document.body.appendChild(container);
+            }
+            const toast = document.createElement('div');
+            toast.className = 'wa-toast';
+            toast.innerHTML = `
+                <div class="wa-toast-icon">
+                    <i class="bi bi-check2-circle"></i>
+                </div>
+                <div class="wa-toast-content">
+                    <div class="wa-toast-title">${title}</div>
+                    <div class="wa-toast-desc">${desc}</div>
+                </div>
+                <button type="button" class="wa-toast-close" aria-label="Tutup">&times;</button>
+            `;
+            container.appendChild(toast);
+            requestAnimationFrame(() => toast.classList.add('is-show'));
+            const closeFn = () => {
+                toast.classList.remove('is-show');
+                setTimeout(() => toast.remove(), 350);
+            };
+            toast.querySelector('.wa-toast-close').addEventListener('click', closeFn);
+            setTimeout(closeFn, 3000);
+        }
+
+        function fallbackCopyTextCalendar(text, cb) {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.left = '-9999px';
+            document.body.appendChild(ta);
+            ta.focus();
+            ta.select();
+            try {
+                document.execCommand('copy');
+                if (cb) cb();
+            } catch (err) {
+                console.error('Fallback copy error:', err);
+            }
+            document.body.removeChild(ta);
+        }
+
+        function copyFormattedWhatsAppCalendar(e) {
+            if (!latestResult) return;
+            const btn = e ? e.currentTarget : null;
+            const r = latestResult;
+
+            const custName = (document.getElementById('customer_name')?.value || '').trim() ||
+                (typeof $ !== 'undefined' ? $('#customer_id option:selected').data('name') : '') ||
+                'Pelanggan';
+            const notes = (document.getElementById('customer_notes')?.value || '').trim();
+            const calTypeLabel = r.calendar_type === 'meja' ? 'Kalender Meja' : 'Kalender Dinding';
+            const sizeLabel = `${r.size_label || '-'} (${r.orientation || '-'})`;
+            const matName = r.material_name || '-';
+            const leafText = `${r.leaf_count || '-'} Lembar`;
+            const lamText = (!r.lamination || r.lamination === 'none') ? 'Tanpa Laminasi' : r.lamination.toUpperCase();
+            const finText = r.calendar_type === 'meja' ?
+                ((r.support_detail ? r.support_detail.name : 'Dudukan') + ' + Spiral Wire-O') :
+                (r.finishing_detail ? r.finishing_detail.name : 'Klem Seng');
+            const qtyText = `${Number(r.qty || 0).toLocaleString('id-ID')} pcs`;
+            const pricePcs = 'Rp ' + Number(r.recommended_price_pcs || 0).toLocaleString('id-ID');
+            const totalOffer = 'Rp ' + Number(r.recommended_total_offer || 0).toLocaleString('id-ID');
+
+            const textLines = [
+                `*SURAT PENAWARAN HARGA (SPH) - CIPTA GRAFIKA*`,
+                `Kepada Yth: *${custName}*`,
+                `Tanggal: ${new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}`,
+                `---------------------------------------------`,
+                `*Produk:* Cetak ${calTypeLabel}`,
+                `*Ukuran:* ${sizeLabel}`,
+                `*Material / Bahan:* ${matName} (${leafText})`,
+                `*Laminasi:* ${lamText}`,
+                `*Finishing:* ${finText}`,
+                `*Kuantitas:* ${qtyText}`,
+                `*Total Estimasi:* *${totalOffer}* (${pricePcs} / pcs)`,
+                notes ? `*Catatan Khusus:* ${notes}` : '',
+                `---------------------------------------------`,
+                `_Harga resmi terstandar dan berlaku selama penawaran masih aktif._`,
+                `Terima kasih telah mempercayakan kebutuhan percetakan & merchandise kepada Cipta Grafika!`
+            ].filter(Boolean).join('\n');
+
+            const onSuccess = () => {
+                if (btn) {
+                    const originalHtml = btn.innerHTML;
+                    btn.innerHTML = `<i class="bi bi-check-circle-fill"></i> <span>Tersalin ke Clipboard!</span>`;
+                    btn.style.pointerEvents = 'none';
+                    setTimeout(() => {
+                        btn.innerHTML = originalHtml;
+                        btn.style.pointerEvents = '';
+                    }, 2200);
+                }
+                showWaToastCalendar(
+                    'Format Penawaran Disalin!',
+                    'Format teks penawaran harga Kalender telah disalin ke clipboard dan siap dikirim ke WhatsApp.'
+                );
+            };
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(textLines).then(onSuccess).catch(() => {
+                    fallbackCopyTextCalendar(textLines, onSuccess);
+                });
+            } else {
+                fallbackCopyTextCalendar(textLines, onSuccess);
+            }
         }
 
         function openOfferModal() {

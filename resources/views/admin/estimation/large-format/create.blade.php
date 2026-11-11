@@ -117,6 +117,105 @@
             border-color: var(--primary);
         }
 
+        /* WhatsApp Copy Action Button & Toast */
+        .btn-action-wa {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 11px 16px;
+            border-radius: 9px;
+            background: var(--bg-card);
+            color: var(--t-base);
+            font-weight: 600;
+            font-size: 13px;
+            border: 1.5px solid var(--border);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .btn-action-wa:hover {
+            background: var(--bg-hover);
+            border-color: #22c55e;
+            color: #22c55e;
+        }
+        .wa-toast-container {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            z-index: 1000000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+        .wa-toast {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            min-width: 320px;
+            max-width: 440px;
+            padding: 14px 18px;
+            border-radius: 12px;
+            background: var(--bg-card);
+            color: var(--t-base);
+            border: 1px solid var(--border);
+            border-left: 4.5px solid #22c55e;
+            box-shadow: 0 16px 36px rgba(0, 0, 0, 0.3);
+            pointer-events: auto;
+            transform: translateX(120%);
+            opacity: 0;
+            transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+        }
+        .wa-toast.is-show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        .wa-toast-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: rgba(34, 197, 94, 0.15);
+            color: #22c55e;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+        .wa-toast-content {
+            flex: 1;
+        }
+        .wa-toast-title {
+            font-size: 13.5px;
+            font-weight: 700;
+            color: var(--t-base);
+            margin: 0 0 3px;
+        }
+        .wa-toast-desc {
+            font-size: 12px;
+            color: var(--t-muted);
+            margin: 0;
+            line-height: 1.45;
+        }
+        .wa-toast-close {
+            background: transparent;
+            border: none;
+            color: var(--t-muted);
+            font-size: 18px;
+            cursor: pointer;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            transition: all 0.15s;
+        }
+        .wa-toast-close:hover {
+            color: var(--t-base);
+            background: var(--bg-hover);
+        }
+
         @media (min-width: 1024px) {
             .lf-estimator-grid {
                 grid-template-columns: 1.25fr 1fr;
@@ -2159,13 +2258,17 @@
                                         </div>
                                     </div>
 
-                                    {{-- ACTION BUTTONS: CETAK SURAT PENAWARAN & DETAIL ESTIMASI --}}
+                                    {{-- ACTION BUTTONS: CETAK SURAT PENAWARAN, DETAIL ESTIMASI & SALIN WA --}}
                                     <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px;">
                                         <button type="button" id="btnOpenQuotationModal" class="btn-preview-estimation" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 16px; border-radius: 9px; font-size: 13.5px; font-weight: 700; background: var(--primary); color: #fff; border: none; cursor: pointer; transition: all 0.2s ease;">
                                             <i class="bi bi-printer"></i> Preview &amp; Cetak Surat Penawaran
                                         </button>
                                         <button type="button" id="btnOpenTechnicalModal" class="btn-detail-estimation" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 11px 16px; border-radius: 9px; font-size: 13px; font-weight: 600; background: var(--bg-muted); color: var(--t-base); border: 1.5px solid var(--border); cursor: pointer; transition: all 0.2s ease;">
                                             <i class="bi bi-file-earmark-spreadsheet"></i> Detail Rincian Estimasi (HPP &amp; Biaya)
+                                        </button>
+                                        <button type="button" id="btnCopyWaLF" class="btn-action-wa">
+                                            <i class="bi bi-whatsapp"></i>
+                                            <span>Salin Penawaran WhatsApp</span>
                                         </button>
                                     </div>
 
@@ -2516,6 +2619,10 @@
             <div class="modal-foot-custom">
                 <button type="button" id="btnCancelQuotationModal" class="btn btn-secondary-custom">
                     Tutup
+                </button>
+                <button type="button" id="btnModalCopyWaLF"
+                    style="display: inline-flex; align-items: center; gap: 6px; padding: 9px 16px; border-radius: 8px; border: 1px solid #22c55e; background: rgba(34, 197, 94, 0.12); color: #22c55e; font-size: 13px; font-weight: 600; cursor: pointer;">
+                    <i class="bi bi-whatsapp"></i> Salin WhatsApp
                 </button>
                 <button type="button" id="btnPrintQuotationModal" class="btn btn--primary" style="display: flex; align-items: center; gap: 6px;">
                     <i class="bi bi-printer-fill"></i> Cetak Dokumen
@@ -3555,6 +3662,134 @@
                     window.print();
                 });
             }
+
+            // Toast Notification & Salin Penawaran WhatsApp (Large Format)
+            function showWaToastLF(title, desc) {
+                let container = document.getElementById('waToastContainerLF');
+                if (!container) {
+                    container = document.createElement('div');
+                    container.id = 'waToastContainerLF';
+                    container.className = 'wa-toast-container';
+                    document.body.appendChild(container);
+                }
+                const toast = document.createElement('div');
+                toast.className = 'wa-toast';
+                toast.innerHTML = `
+                    <div class="wa-toast-icon">
+                        <i class="bi bi-check2-circle"></i>
+                    </div>
+                    <div class="wa-toast-content">
+                        <div class="wa-toast-title">${title}</div>
+                        <div class="wa-toast-desc">${desc}</div>
+                    </div>
+                    <button type="button" class="wa-toast-close" aria-label="Tutup">&times;</button>
+                `;
+                container.appendChild(toast);
+                requestAnimationFrame(() => toast.classList.add('is-show'));
+                const closeFn = () => {
+                    toast.classList.remove('is-show');
+                    setTimeout(() => toast.remove(), 350);
+                };
+                toast.querySelector('.wa-toast-close').addEventListener('click', closeFn);
+                setTimeout(closeFn, 3000);
+            }
+
+            function fallbackCopyTextLF(text, cb) {
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                ta.style.position = 'fixed';
+                ta.style.left = '-9999px';
+                document.body.appendChild(ta);
+                ta.focus();
+                ta.select();
+                try {
+                    document.execCommand('copy');
+                    if (cb) cb();
+                } catch (err) {
+                    console.error('Fallback copy error:', err);
+                }
+                document.body.removeChild(ta);
+            }
+
+            function copyFormattedWhatsAppLF(e) {
+                if (!lastCalculatedData) return;
+                const btn = e ? e.currentTarget : null;
+                const d = lastCalculatedData;
+
+                const custName = (document.getElementById('customer_name')?.value || '').trim() ||
+                    $('#customer_id option:selected').data('name') || 'Pelanggan';
+                const notes = (document.getElementById('customer_notes')?.value || '').trim();
+                const isDisplay = isDisplayCategory();
+                const catName = d.category_name || document.getElementById('modalQuoteCategoryName')?.textContent || 'Large Format';
+                const matName = d.material_name || document.getElementById('modalQuoteMaterialName')?.textContent || '-';
+                const sizeQtyText = isDisplay ?
+                    `${d.qty || 1} pcs (Paket Display)` :
+                    `${formatNumber(d.length)} × ${formatNumber(d.width)} cm · ${d.qty || 1} pcs (${formatNumber(d.billing_area)} m²)`;
+                const finishingText = (d.lamination && Number(d.lamination.subtotal) > 0) ?
+                    `${d.lamination.name} (${formatNumber(d.lamination.width)} cm)` :
+                    'Tanpa Laminasi';
+                const grandTotal = formatRupiah(d.grand_total);
+                const pcsPrice = Number(d.qty) > 0 ? formatRupiah(Number(d.grand_total) / Number(d.qty)) : grandTotal;
+                const leadTime = (d.estimation_time || document.getElementById('estimation_time')?.value || 1) + ' Hari Kerja';
+
+                let extraCompLines = '';
+                if (Array.isArray(d.additional_components) && d.additional_components.length > 0) {
+                    const names = d.additional_components.map(c => `${c.name || 'Komponen'} (${c.qty || 1}x)`).join(', ');
+                    extraCompLines = `*Komponen Tambahan:* ${names}`;
+                }
+
+                let discountLine = '';
+                if (Number(d.discount_amount) > 0) {
+                    const discDesc = d.discount_type === 'percentage' ? `${d.discount_value}%` : 'Nominal';
+                    discountLine = `*Diskon (${discDesc}):* -${formatRupiah(d.discount_amount)} (Subtotal: ${formatRupiah(d.subtotal)})`;
+                }
+
+                const textLines = [
+                    `*SURAT PENAWARAN HARGA (SPH) - CIPTA GRAFIKA*`,
+                    `Kepada Yth: *${custName}*`,
+                    `Tanggal: ${new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}`,
+                    `---------------------------------------------`,
+                    `*Produk:* Cetak Large Format (${catName})`,
+                    `*Material / Bahan:* ${matName}`,
+                    `*Ukuran & Kuantitas:* ${sizeQtyText}`,
+                    `*Finishing:* ${finishingText}`,
+                    extraCompLines,
+                    discountLine,
+                    `*Total Estimasi:* *${grandTotal}* (${pcsPrice} / pcs)`,
+                    `*Estimasi Pengerjaan:* ${leadTime}`,
+                    notes ? `*Catatan Khusus:* ${notes}` : '',
+                    `---------------------------------------------`,
+                    `_Harga resmi terstandar dan berlaku selama penawaran masih aktif._`,
+                    `Terima kasih telah mempercayakan kebutuhan percetakan & merchandise kepada Cipta Grafika!`
+                ].filter(Boolean).join('\n');
+
+                const onSuccess = () => {
+                    if (btn) {
+                        const originalHtml = btn.innerHTML;
+                        btn.innerHTML = `<i class="bi bi-check-circle-fill"></i> <span>Tersalin ke Clipboard!</span>`;
+                        btn.style.pointerEvents = 'none';
+                        setTimeout(() => {
+                            btn.innerHTML = originalHtml;
+                            btn.style.pointerEvents = '';
+                        }, 2200);
+                    }
+                    showWaToastLF(
+                        'Format Penawaran Disalin!',
+                        'Format teks penawaran harga Large Format telah disalin ke clipboard dan siap dikirim ke WhatsApp.'
+                    );
+                };
+
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(textLines).then(onSuccess).catch(() => {
+                        fallbackCopyTextLF(textLines, onSuccess);
+                    });
+                } else {
+                    fallbackCopyTextLF(textLines, onSuccess);
+                }
+            }
+
+            document.getElementById('btnCopyWaLF')?.addEventListener('click', copyFormattedWhatsAppLF);
+            document.getElementById('btnModalCopyWaLF')?.addEventListener('click', copyFormattedWhatsAppLF);
 
             if (modalQuotation) {
                 modalQuotation.addEventListener('click', function(e) {

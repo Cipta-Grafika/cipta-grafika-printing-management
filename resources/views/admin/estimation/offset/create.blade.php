@@ -710,10 +710,16 @@
                                     </div>
                                 </div>
 
-                                {{-- ACTION BUTTON: LIHAT DETAIL & PRINT --}}
-                                <button type="button" id="btnOpenModal" class="btn-preview-estimation">
-                                    <i class="bi bi-printer"></i> Preview &amp; Cetak Surat Estimasi
-                                </button>
+                                {{-- ACTION BUTTONS: LIHAT DETAIL, PRINT & SALIN WA --}}
+                                <div style="display: flex; flex-direction: column; gap: 8px;">
+                                    <button type="button" id="btnOpenModal" class="btn-preview-estimation">
+                                        <i class="bi bi-printer"></i> Preview &amp; Cetak Surat Estimasi
+                                    </button>
+                                    <button type="button" id="btnCopyWaOffset" class="btn-action-wa">
+                                        <i class="bi bi-whatsapp"></i>
+                                        <span>Salin Penawaran WhatsApp</span>
+                                    </button>
+                                </div>
 
                             </div>
 
@@ -911,6 +917,10 @@
             <div class="modal-foot-custom">
                 <button type="button" id="btnCancelModal" class="btn btn-secondary-custom">
                     Tutup
+                </button>
+                <button type="button" id="btnModalCopyWaOffset"
+                    style="display: inline-flex; align-items: center; gap: 6px; padding: 9px 16px; border-radius: 8px; border: 1px solid #22c55e; background: rgba(34, 197, 94, 0.12); color: #22c55e; font-size: 13px; font-weight: 600; cursor: pointer;">
+                    <i class="bi bi-whatsapp"></i> Salin WhatsApp
                 </button>
                 <button type="button" id="btnPrintEstimation" class="btn btn--primary"
                     style="display: flex; align-items: center; gap: 6px;">
@@ -1763,6 +1773,138 @@
                 window.print();
             });
 
+            // Toast Notification & Salin Penawaran WhatsApp (Offset / Brosur)
+            function showWaToastOffset(title, desc) {
+                let container = document.getElementById('waToastContainerOffset');
+                if (!container) {
+                    container = document.createElement('div');
+                    container.id = 'waToastContainerOffset';
+                    container.className = 'wa-toast-container';
+                    document.body.appendChild(container);
+                }
+                const toast = document.createElement('div');
+                toast.className = 'wa-toast';
+                toast.innerHTML = `
+                    <div class="wa-toast-icon">
+                        <i class="bi bi-check2-circle"></i>
+                    </div>
+                    <div class="wa-toast-content">
+                        <div class="wa-toast-title">${title}</div>
+                        <div class="wa-toast-desc">${desc}</div>
+                    </div>
+                    <button type="button" class="wa-toast-close" aria-label="Tutup">&times;</button>
+                `;
+                container.appendChild(toast);
+                requestAnimationFrame(() => toast.classList.add('is-show'));
+                const closeFn = () => {
+                    toast.classList.remove('is-show');
+                    setTimeout(() => toast.remove(), 350);
+                };
+                toast.querySelector('.wa-toast-close').addEventListener('click', closeFn);
+                setTimeout(closeFn, 3000);
+            }
+
+            function fallbackCopyTextOffset(text, cb) {
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                ta.style.position = 'fixed';
+                ta.style.left = '-9999px';
+                document.body.appendChild(ta);
+                ta.focus();
+                ta.select();
+                try {
+                    document.execCommand('copy');
+                    if (cb) cb();
+                } catch (err) {
+                    console.error('Fallback copy error:', err);
+                }
+                document.body.removeChild(ta);
+            }
+
+            async function copyFormattedWhatsAppOffset(e) {
+                const btn = e ? e.currentTarget : null;
+                if (!lastCalculatedData) {
+                    await executeCalculation();
+                }
+                if (!lastCalculatedData) return;
+                const d = lastCalculatedData;
+
+                const custName = (document.getElementById('customer_name')?.value || '').trim() ||
+                    $('#customer_id option:selected').data('name') ||
+                    (d.customer && d.customer.name !== '-' ? d.customer.name : '') || 'Pelanggan';
+                const notes = (document.getElementById('customer_notes')?.value || document.getElementById('notes')?.value || '').trim() ||
+                    (d.customer?.notes || '');
+                const leadTimeVal = (document.getElementById('lead_time')?.value || '').trim();
+                const leadTimeStr = leadTimeVal ? (leadTimeVal + ' Hari Kerja') : (d.customer?.lead_time || '3 Hari Kerja');
+
+                const isDigital = (currentMethod === 'digital' || d.mode === 'digital' || d.method === 'digital');
+                const prodTitle = isDigital ?
+                    `Cetak Brosur Digital Print A3+ (${d.product.name} - ${d.product.size_name})` :
+                    `Cetak Brosur Mesin Offset SM 52 (${d.product.name} - ${d.product.final_length}x${d.product.final_width} cm)`;
+                const matName = d.material?.name || '-';
+                const printSide = isDigital ?
+                    (d.specs.print_sides === 2 ? '2 Sisi (Bolak-Balik)' : '1 Sisi (1 Muka)') :
+                    (d.input.print_sides === 2 ? '2 Sisi (2 Muka Balikan)' : '1 Sisi (1 Muka)');
+                const qtyText = isDigital ?
+                    `${d.specs.pieces.toLocaleString('id-ID')} Lembar (${d.specs.a3_sheets_needed} lbr A3+)` :
+                    `${d.input.rims} Rim (${d.input.total_pcs.toLocaleString('id-ID')} pcs)`;
+                const grandTotal = formatRupiah(d.totals.total_selling_price);
+                const unitPriceStr = isDigital ?
+                    `${formatRupiah(d.totals.selling_price_per_pcs)} / pcs` :
+                    `${formatRupiah(d.totals.selling_price_per_rim)} / rim (${formatRupiah(d.totals.selling_price_per_pcs)} / pcs)`;
+
+                let discountLine = '';
+                if (d.totals && d.totals.discount_amount && Number(d.totals.discount_amount) > 0) {
+                    const discDesc = d.totals.discount_type === 'percentage' ? `${d.totals.discount_value}%` : 'Nominal';
+                    discountLine = `*Diskon (${discDesc}):* -${formatRupiah(d.totals.discount_amount)} (Subtotal: ${formatRupiah(d.totals.subtotal)})`;
+                }
+
+                const textLines = [
+                    `*SURAT PENAWARAN HARGA (SPH) - CIPTA GRAFIKA*`,
+                    `Kepada Yth: *${custName}*`,
+                    `Tanggal: ${new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}`,
+                    `---------------------------------------------`,
+                    `*Produk:* ${prodTitle}`,
+                    `*Material / Bahan:* ${matName}`,
+                    `*Sisi Cetak:* ${printSide}`,
+                    `*Kuantitas:* ${qtyText}`,
+                    discountLine,
+                    `*Total Estimasi:* *${grandTotal}* (${unitPriceStr})`,
+                    `*Estimasi Pengerjaan:* ${leadTimeStr}`,
+                    notes ? `*Catatan Khusus:* ${notes}` : '',
+                    `---------------------------------------------`,
+                    `_Harga resmi terstandar dan berlaku selama penawaran masih aktif._`,
+                    `Terima kasih telah mempercayakan kebutuhan percetakan & merchandise kepada Cipta Grafika!`
+                ].filter(Boolean).join('\n');
+
+                const onSuccess = () => {
+                    if (btn) {
+                        const originalHtml = btn.innerHTML;
+                        btn.innerHTML = `<i class="bi bi-check-circle-fill"></i> <span>Tersalin ke Clipboard!</span>`;
+                        btn.style.pointerEvents = 'none';
+                        setTimeout(() => {
+                            btn.innerHTML = originalHtml;
+                            btn.style.pointerEvents = '';
+                        }, 2200);
+                    }
+                    showWaToastOffset(
+                        'Format Penawaran Disalin!',
+                        'Format teks penawaran harga Cetak Brosur & Offset telah disalin ke clipboard dan siap dikirim ke WhatsApp.'
+                    );
+                };
+
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(textLines).then(onSuccess).catch(() => {
+                        fallbackCopyTextOffset(textLines, onSuccess);
+                    });
+                } else {
+                    fallbackCopyTextOffset(textLines, onSuccess);
+                }
+            }
+
+            document.getElementById('btnCopyWaOffset')?.addEventListener('click', copyFormattedWhatsAppOffset);
+            document.getElementById('btnModalCopyWaOffset')?.addEventListener('click', copyFormattedWhatsAppOffset);
+
             // Event Listeners Input
             productSelect.addEventListener('change', function() {
                 updateProductBadges();
@@ -2508,6 +2650,115 @@
             background: var(--bg-hover);
             border-color: var(--primary);
             color: var(--primary);
+        }
+
+        /* WhatsApp Copy Action Button & Toast */
+        .btn-action-wa {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 10px 16px;
+            border-radius: 8px;
+            background: var(--bg-card);
+            color: var(--t-base);
+            font-weight: 600;
+            font-size: 13px;
+            border: 1.5px solid var(--border);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-action-wa:hover {
+            background: var(--bg-hover);
+            border-color: #22c55e;
+            color: #22c55e;
+        }
+
+        .wa-toast-container {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            z-index: 1000000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+
+        .wa-toast {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            min-width: 320px;
+            max-width: 440px;
+            padding: 14px 18px;
+            border-radius: 12px;
+            background: var(--bg-card);
+            color: var(--t-base);
+            border: 1px solid var(--border);
+            border-left: 4.5px solid #22c55e;
+            box-shadow: 0 16px 36px rgba(0, 0, 0, 0.3);
+            pointer-events: auto;
+            transform: translateX(120%);
+            opacity: 0;
+            transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+        }
+
+        .wa-toast.is-show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .wa-toast-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: rgba(34, 197, 94, 0.15);
+            color: #22c55e;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .wa-toast-content {
+            flex: 1;
+        }
+
+        .wa-toast-title {
+            font-size: 13.5px;
+            font-weight: 700;
+            color: var(--t-base);
+            margin: 0 0 3px;
+        }
+
+        .wa-toast-desc {
+            font-size: 12px;
+            color: var(--t-muted);
+            margin: 0;
+            line-height: 1.45;
+        }
+
+        .wa-toast-close {
+            background: transparent;
+            border: none;
+            color: var(--t-muted);
+            font-size: 18px;
+            cursor: pointer;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            transition: all 0.15s;
+        }
+
+        .wa-toast-close:hover {
+            color: var(--t-base);
+            background: var(--bg-hover);
         }
 
         /* Matrix Tab Container */
