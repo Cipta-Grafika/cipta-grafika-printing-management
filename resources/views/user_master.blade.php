@@ -2420,11 +2420,21 @@ summary
                         const matchPrintType =
                             this.printType === 'all' ||
                             (
+                                this.printType === 'corporate_id' &&
+                                project.type === 'corporate_id'
+                            ) ||
+                            (
+                                this.printType === 'form_administrasi' &&
+                                project.type === 'form_administrasi'
+                            ) ||
+                            (
                                 (this.printType === 'souvenir' || this.printType === 'merchandise') &&
                                 (
                                     project.type === 'souvenir' ||
                                     project.type === 'merchandise' ||
-                                    project.is_merchandise === true
+                                    (project.is_merchandise === true &&
+                                        project.type !== 'corporate_id' &&
+                                        project.type !== 'form_administrasi')
                                 )
                             ) ||
                             (

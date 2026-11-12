@@ -349,7 +349,17 @@ class CatalogCT extends Controller
             'name' => 'Display Promosi',
         ];
 
-        // 3. Souvenir & Merchandise
+        $serviceOptions[] = [
+            'id'   => 'corporate_id',
+            'name' => 'Identitas Korporat',
+        ];
+
+        $serviceOptions[] = [
+            'id'   => 'form_administrasi',
+            'name' => 'Formulir Administrasi',
+        ];
+
+        // Souvenir & Merchandise
         $serviceOptions[] = [
             'id'   => 'souvenir',
             'name' => 'Souvenir & Merchandise',
@@ -443,17 +453,30 @@ class CatalogCT extends Controller
                 str_contains($nameLower, 'merchandise') ||
                 str_contains($nameLower, 'souvenir');
 
+            $isCorporateId = str_contains($nameLower, 'lanyard') ||
+                (str_contains($nameLower, 'papan nama') && str_contains($nameLower, 'dada')) ||
+                (str_contains($nameLower, 'pvc') &&
+                    (str_contains($nameLower, 'id card') || str_contains($nameLower, 'kta')));
+            $isAdministrativeForm = str_contains($nameLower, 'nota') &&
+                (str_contains($nameLower, 'ncr') || str_contains($nameLower, 'hvs'));
+            $productType = $isCorporateId
+                ? 'corporate_id'
+                : ($isAdministrativeForm ? 'form_administrasi' : ($isMerchandise ? 'souvenir' : 'display'));
+            $productCategoryLabel = $isCorporateId
+                ? 'Identitas Korporat'
+                : ($isAdministrativeForm ? 'Formulir Administrasi' : ($isMerchandise ? 'Souvenir' : $row->category_name));
+
             return [
                 'key'           => 'display-' . $row->id,
-                'type'          => $isMerchandise ? 'souvenir' : 'display',
+                'type'          => $productType,
                 'is_merchandise'=> $isMerchandise,
                 'engine_id'     => $row->engine_id !== null
                     ? (int) $row->engine_id
                     : null,
                 'category_id'   => (int) $row->category_id,
                 'title'         => $row->display_name,
-                'category_name' => $isMerchandise ? 'Souvenir' : $row->category_name,
-                'engine_name'   => $isMerchandise ? 'Souvenir' : $row->engine_name,
+                'category_name' => $productCategoryLabel,
+                'engine_name'   => $isMerchandise ? $productCategoryLabel : $row->engine_name,
                 'desc'          => $desc,
                 'cover_url'     => $row->cover_image_id
                     ? route('user_display_image', $row->cover_image_id)
