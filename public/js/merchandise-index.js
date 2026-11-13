@@ -8,16 +8,16 @@ $(function () {
         else alert(message);
     };
     const number = value => Number(value).toLocaleString('id-ID');
-    const chip = (icon, value) => `<span class="cat-date-chip"><i class="bi ${icon}"></i><span>${escapeHtml(value ?? '-')}</span></span>`;
-    const textColumn = (field, icon, labels = {}) => ({
+    const chip = value => `<span class="cat-date-chip"><span>${escapeHtml(value ?? '-')}</span></span>`;
+    const textColumn = (field, labels = {}) => ({
         data: field, className: 'text-center',
-        render: (value, type) => type === 'display' ? chip(icon, labels[value] ?? value) : value
+        render: (value, type) => type === 'display' ? chip(labels[value] ?? value) : value
     });
-    const nameColumn = (field, icon, badge) => ({
+    const nameColumn = (field, badge) => ({
         data: field, render: (value, type, row) => {
             if (type !== 'display') return value;
             const note = row.description ? `<span style="font-size:11px;color:var(--t-muted);max-width:260px;white-space:normal;">${escapeHtml(row.description)}</span>` : '';
-            return `<div class="cat-cell-name-box"><div class="cat-icon-symbol"><i class="bi ${icon}"></i></div>
+            return `<div class="cat-cell-name-box">
                 <div class="cat-name-details"><span class="cat-name-primary">${escapeHtml(value)}</span>
                 <span class="cat-name-badge">${escapeHtml(badge)}</span>${note}</div></div>`;
         }
@@ -28,53 +28,52 @@ $(function () {
     };
     const qtyColumn = (field, unlimited = false) => ({
         data: field, className: 'text-center', render: (value, type) => type === 'display' ?
-            chip(unlimited && value == null ? 'bi-infinity' : 'bi-stack',
-                unlimited && value == null ? 'Tak Terbatas' : `${number(value)} pcs`) : value
+            chip(unlimited && value == null ? 'Tak Terbatas' : `${number(value)} pcs`) : value
     });
     const columns = {
         lanyard: [
-            textColumn('width_type', 'bi-rulers', {'2cm': '2.0 cm', '2.5cm': '2.5 cm'}),
-            textColumn('package_type', 'bi-box-seam', {tali: 'Hanya Tali', set: '1 Set (Holder + PVC)'}),
-            nameColumn('tier_label', 'bi-award', 'Tier Lanyard'),
+            textColumn('width_type', {'2cm': '2.0 cm', '2.5cm': '2.5 cm'}),
+            textColumn('package_type', {tali: 'Hanya Tali', set: '1 Set (Holder + PVC)'}),
+            nameColumn('tier_label', 'Tier Lanyard'),
             qtyColumn('min_qty'), qtyColumn('max_qty', true), moneyColumn
         ],
         nametag: [
-            nameColumn('name', 'bi-person-badge', 'Papan Nama'),
-            textColumn('type_code', 'bi-tag-fill', {biasa: 'Akrilik Biasa', resin: 'Resin Cembung', resin_emas: 'Resin Emas'}),
-            textColumn('fastener_options', 'bi-pin'),
+            nameColumn('name', 'Papan Nama'),
+            textColumn('type_code', {biasa: 'Akrilik Biasa', resin: 'Resin Cembung', resin_emas: 'Resin Emas'}),
+            textColumn('fastener_options'),
             qtyColumn('min_order_qty'), moneyColumn
         ],
         plakat: [
-            nameColumn('name', 'bi-trophy', 'Plakat'),
-            textColumn('material_type', 'bi-tag-fill', {akrilik: 'Akrilik UV', kayu: 'Kayu Solid'}),
-            textColumn('thickness', 'bi-rulers'),
-            textColumn('base_type', 'bi-box', {akrilik: 'Akrilik', hitam: 'Hitam', kayu: 'Kayu'}),
-            textColumn('box_type', 'bi-gift', {tanpa_box: 'Tanpa Box', box: 'Box Beludru'}),
-            textColumn('dimensions', 'bi-aspect-ratio'), moneyColumn
+            nameColumn('name', 'Plakat'),
+            textColumn('material_type', {akrilik: 'Akrilik UV', kayu: 'Kayu Solid'}),
+            textColumn('thickness'),
+            textColumn('base_type', {akrilik: 'Akrilik', hitam: 'Hitam', kayu: 'Kayu'}),
+            textColumn('box_type', {tanpa_box: 'Tanpa Box', box: 'Box Beludru'}),
+            textColumn('dimensions'), moneyColumn
         ],
         nota: [
-            nameColumn('name', 'bi-journal-text', 'Buku Nota'),
-            textColumn('paper_type', 'bi-file-earmark-text', {ncr: 'NCR Tembus', hvs: 'HVS Putih'}),
+            nameColumn('name', 'Buku Nota'),
+            textColumn('paper_type', {ncr: 'NCR Tembus', hvs: 'HVS Putih'}),
             {data: 'ply_count', className: 'text-center', render: (value, type, row) => type === 'display' ?
-                chip('bi-stack', row.ply_label) : value},
+                chip(row.ply_label) : value},
             {data: 'ink_count', className: 'text-center', render: (value, type) => type === 'display' ?
-                chip('bi-palette', `${number(value)} Tinta`) : value},
+                chip(`${number(value)} Tinta`) : value},
             {data: 'sheets_per_book', className: 'text-center', render: (value, type, row) => type === 'display' ?
-                chip('bi-book', `${number(value)} ${row.paper_type === 'ncr' ? 'Set/Buku' : 'Lbr/Buku'}`) : value},
+                chip(`${number(value)} ${row.paper_type === 'ncr' ? 'Set/Buku' : 'Lbr/Buku'}`) : value},
             moneyColumn
         ],
         mug: [
-            nameColumn('tier_label', 'bi-cup-hot', 'Tier Mug'),
+            nameColumn('tier_label', 'Tier Mug'),
             qtyColumn('min_qty'), qtyColumn('max_qty', true), moneyColumn
         ],
         pvccard: [
-            nameColumn('tier_label', 'bi-credit-card-2-front', 'Tier Kartu PVC'),
+            nameColumn('tier_label', 'Tier Kartu PVC'),
             qtyColumn('min_qty'), qtyColumn('max_qty', true), moneyColumn
         ],
         akrilikuv: [
-            nameColumn('name', 'bi-shield-shaded', 'Akrilik UV'),
-            textColumn('spec_label', 'bi-layers'),
-            textColumn('thickness', 'bi-rulers'),
+            nameColumn('name', 'Akrilik UV'),
+            textColumn('spec_label'),
+            textColumn('thickness'),
             qtyColumn('min_order_qty'), moneyColumn
         ]
     };

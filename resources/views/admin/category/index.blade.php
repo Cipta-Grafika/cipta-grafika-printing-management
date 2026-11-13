@@ -984,31 +984,6 @@
             gap: 12px;
         }
 
-        .cat-icon-symbol {
-            width: 36px;
-            height: 36px;
-            border-radius: 10px;
-            background: linear-gradient(135deg, rgba(37, 99, 235, 0.12), rgba(59, 130, 246, 0.05));
-            color: #2563eb;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 15px;
-            border: 1px solid rgba(59, 130, 246, 0.18);
-            flex-shrink: 0;
-            transition: transform 0.15s ease;
-        }
-
-        html[data-theme="dark"] .cat-icon-symbol {
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.22), rgba(37, 99, 235, 0.08));
-            color: #60a5fa;
-            border-color: rgba(96, 165, 250, 0.25);
-        }
-
-        .cat-modern-table tbody tr:hover .cat-icon-symbol {
-            transform: scale(1.08);
-        }
-
         .cat-name-details {
             display: flex;
             flex-direction: column;
@@ -1034,21 +1009,6 @@
             display: flex;
             align-items: center;
             gap: 10px;
-        }
-
-        .cat-user-avatar {
-            width: 32px;
-            height: 32px;
-            border-radius: 9px;
-            color: #ffffff;
-            font-size: 11.5px;
-            font-weight: 800;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
-            letter-spacing: 0.02em;
         }
 
         .cat-user-info {
@@ -1081,11 +1041,6 @@
             font-size: 11.5px;
             color: var(--t-muted);
             font-weight: 500;
-        }
-
-        .cat-date-chip i {
-            color: var(--primary);
-            font-size: 11px;
         }
 
         .cat-action-group {
@@ -1824,27 +1779,6 @@
                 .replace(/'/g, '&#039;');
         }
 
-        function getInitials(name) {
-            if (!name) return 'AD';
-            const parts = name.trim().split(/\s+/);
-            if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
-            return (parts[0][0] + parts[1][0]).toUpperCase();
-        }
-
-        function getAvatarColor(name) {
-            const colors = [
-                '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6',
-                '#ec4899', '#06b6d4', '#6366f1', '#14b8a6'
-            ];
-            let hash = 0;
-            const str = name || 'Admin';
-            for (let i = 0; i < str.length; i++) {
-                hash = str.charCodeAt(i) + ((hash << 5) - hash);
-            }
-            const index = Math.abs(hash) % colors.length;
-            return colors[index];
-        }
-
         function updateSelectionUI() {
             const bulkToolbar = document.getElementById('catBulkToolbar');
             const bulkCountEl = document.getElementById('catBulkCount');
@@ -2439,9 +2373,6 @@
                         render: function(data, type, row) {
                             return `
                                 <div class="cat-cell-name-box">
-                                    <div class="cat-icon-symbol">
-                                        <i class="bi bi-folder-fill"></i>
-                                    </div>
                                     <div class="cat-name-details">
                                         <span class="cat-name-primary">${escapeHtml(data || '-')}</span>
                                         <span class="cat-name-badge">Kategori Produk</span>
@@ -2462,13 +2393,8 @@
                         className: 'cat-td-creator',
                         render: function(data, type, row) {
                             const creator = data ? data.trim() : 'Administrator';
-                            const initials = getInitials(creator);
-                            const avatarColor = getAvatarColor(creator);
                             return `
                                 <div class="cat-user-badge">
-                                    <span class="cat-user-avatar" style="background: ${avatarColor};">
-                                        ${initials}
-                                    </span>
                                     <div class="cat-user-info">
                                         <span class="cat-user-name">${escapeHtml(creator)}</span>
                                         <span class="cat-user-role">Administrator</span>
@@ -2501,7 +2427,6 @@
 
                             return `
                                 <span class="cat-date-chip">
-                                    <i class="bi bi-calendar3"></i>
                                     <span>${formatted}</span>
                                 </span>
                             `;

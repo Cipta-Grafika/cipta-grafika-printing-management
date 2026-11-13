@@ -8,18 +8,17 @@ $(function () {
         else alert(message);
     };
     const number = value => Number(value).toLocaleString('id-ID');
-    const chip = (icon, value) => `<span class="cat-date-chip"><i class="bi ${icon}"></i><span>${escapeHtml(value ?? '-')}</span></span>`;
-    const name = (icon, value, badge) => `<div class="cat-cell-name-box">
-        <div class="cat-icon-symbol"><i class="bi ${icon}"></i></div>
+    const chip = value => `<span class="cat-date-chip"><span>${escapeHtml(value ?? '-')}</span></span>`;
+    const name = (value, badge) => `<div class="cat-cell-name-box">
         <div class="cat-name-details"><span class="cat-name-primary">${escapeHtml(value)}</span>
         <span class="cat-name-badge">${escapeHtml(badge)}</span></div></div>`;
-    const textColumn = (field, icon) => ({
+    const textColumn = field => ({
         data: field, className: 'text-center',
-        render: (value, type) => type === 'display' ? chip(icon, value) : value
+        render: (value, type) => type === 'display' ? chip(value) : value
     });
-    const nameColumn = (field, icon, badge) => ({
+    const nameColumn = (field, badge) => ({
         data: field,
-        render: (value, type) => type === 'display' ? name(icon, value, badge) : value
+        render: (value, type) => type === 'display' ? name(value, badge) : value
     });
     const moneyColumn = (field, optional = false, fractional = false) => ({
         data: field, className: 'text-end', render: (value, type) => {
@@ -32,46 +31,46 @@ $(function () {
     const qtyColumn = (field, unit, unlimited = false) => ({
         data: field, className: 'text-center', render: (value, type) => {
             if (type !== 'display') return value;
-            return unlimited && value == null ? chip('bi-infinity', 'Tak Terbatas') : chip('bi-stack', `${number(value)} ${unit}`);
+            return unlimited && value == null ? chip('Tak Terbatas') : chip(`${number(value)} ${unit}`);
         }
     });
     const columns = {
         product: [
-            textColumn('calendar_type', 'bi-calendar3'),
-            nameColumn('product_name', 'bi-calendar2-range', 'Produk Kalender'),
+            textColumn('calendar_type'),
+            nameColumn('product_name', 'Produk Kalender'),
             {data: null, className: 'text-center', render: (value, type, row) => type === 'display' ?
-                chip('bi-aspect-ratio', `${number(row.final_width)} x ${number(row.final_height)} cm`) : row.final_width},
-            textColumn('orientation', 'bi-arrow-left-right'),
+                chip(`${number(row.final_width)} x ${number(row.final_height)} cm`) : row.final_width},
+            textColumn('orientation'),
             {data: 'digital_up', className: 'text-center', render: (value, type, row) => type === 'display' ?
-                chip('bi-printer', row.digital_available ? `${number(value)} up` : 'Over Area') : value},
-            textColumn('offset_machine', 'bi-printer'),
+                chip(row.digital_available ? `${number(value)} up` : 'Over Area') : value},
+            textColumn('offset_machine'),
             {data: 'offset_up', className: 'text-center', render: (value, type, row) => type === 'display' ?
-                chip('bi-stack', `${number(value)} up${row.offset_up_bw ? ` (BW: ${number(row.offset_up_bw)})` : ''}`) : value},
-            textColumn('recommended_plano', 'bi-file-earmark'),
+                chip(`${number(value)} up${row.offset_up_bw ? ` (BW: ${number(row.offset_up_bw)})` : ''}`) : value},
+            textColumn('recommended_plano'),
             qtyColumn('default_leaf_count', 'lbr')
         ],
         material: [
-            nameColumn('material_name', 'bi-file-earmark-text', 'Bahan Kertas'),
-            textColumn('category', 'bi-tag-fill'),
+            nameColumn('material_name', 'Bahan Kertas'),
+            textColumn('category'),
             ...['digital_cost_print_1_side', 'digital_cost_print_2_side', 'digital_paper_cost'].map(field => moneyColumn(field)),
             ...['offset_price_65x90', 'offset_price_65x100', 'offset_price_109x79'].map(field => moneyColumn(field, true))
         ],
         component: [
-            textColumn('component_code', 'bi-upc-scan'),
-            nameColumn('name', 'bi-tools', 'Komponen Finishing'),
-            textColumn('component_type', 'bi-tag-fill'),
-            textColumn('unit', 'bi-box'),
+            textColumn('component_code'),
+            nameColumn('name', 'Komponen Finishing'),
+            textColumn('component_type'),
+            textColumn('unit'),
             moneyColumn('price', false, true),
             moneyColumn('minimum_fee', true),
             {data: 'description', render: (value, type) => type === 'display' ?
                 `<span style="display:block;max-width:260px;white-space:normal;color:var(--t-muted);">${escapeHtml(value ?? '-')}</span>` : value}
         ],
         rule: [
-            nameColumn('rule_name', 'bi-percent', 'Pricing Rule'),
+            nameColumn('rule_name', 'Pricing Rule'),
             qtyColumn('min_qty', 'pcs'),
             qtyColumn('max_qty', 'pcs', true),
             {data: 'markup_percent', className: 'text-center', render: (value, type) => type === 'display' ?
-                chip('bi-percent', `+${number(value)}%`) : value},
+                chip(`+${number(value)}%`) : value},
             moneyColumn('rounding_value')
         ]
     };

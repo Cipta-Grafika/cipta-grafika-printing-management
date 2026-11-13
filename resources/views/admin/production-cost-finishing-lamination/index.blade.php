@@ -607,9 +607,6 @@
                                 const engineLabel = row.pricing_engine === 'digital_print_a3' ? 'Digital Print' : 'Large Format';
                                 return `
                                     <div class="cat-cell-name-box">
-                                        <div class="cat-icon-symbol">
-                                            <i class="bi bi-layers-fill"></i>
-                                        </div>
                                         <div class="cat-name-details">
                                             <span class="cat-name-primary">${escapeHtml(data || '-')}</span>
                                             <span class="cat-name-badge">${engineLabel}</span>
@@ -629,9 +626,6 @@
                                 const isVendor = Boolean(row.vendor_name);
                                 return `
                                     <div class="cat-user-badge">
-                                        <span class="cat-user-avatar" style="background: ${isVendor ? '#f59e0b' : '#2563eb'};">
-                                            <i class="bi ${isVendor ? 'bi-truck' : 'bi-geo-alt-fill'}"></i>
-                                        </span>
                                         <div class="cat-user-info">
                                             <span class="cat-user-name">${escapeHtml(data || '-')}</span>
                                             <span class="cat-user-role">${isVendor ? escapeHtml(row.vendor_name) : 'Internal'}</span>
@@ -652,7 +646,6 @@
                                 const label = isDigital ? `${Number(row.category_count || 0).toLocaleString('id-ID')} Kategori` : (data || '-');
                                 return `
                                     <span class="cat-date-chip">
-                                        <i class="bi bi-folder-fill"></i>
                                         <span>${escapeHtml(label)}</span>
                                     </span>
                                 `;
@@ -668,7 +661,6 @@
                                 }
                                 return `
                                     <span class="cat-date-chip">
-                                        <i class="bi bi-stack"></i>
                                         <span>${Number(data || 0).toLocaleString('id-ID')} Laminasi</span>
                                     </span>
                                 `;
@@ -684,7 +676,6 @@
                                 }
                                 return `
                                     <span class="cat-date-chip">
-                                        <i class="bi bi-aspect-ratio"></i>
                                         <span>${Number(data || 0).toLocaleString('id-ID')} Ukuran</span>
                                     </span>
                                 `;

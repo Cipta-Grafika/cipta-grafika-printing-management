@@ -1013,7 +1013,6 @@
                         render: function(data) {
                             return `
                                 <div class="cat-cell-name-box">
-                                    <div class="cat-icon-symbol"><i class="bi bi-gear-fill"></i></div>
                                     <div class="cat-name-details">
                                         <span class="cat-name-primary">${escapeDigitalHtml(data || '-')}</span>
                                         <span class="cat-name-badge">Biaya Material</span>
@@ -1029,14 +1028,14 @@
                             const location = escapeDigitalHtml(data ?? '-');
                             return row.vendor_name ?
                                 `<div class="cat-name-details"><span>${location}</span><span class="cat-name-badge">Vendor: ${escapeDigitalHtml(row.vendor_name)}</span></div>` :
-                                `<span class="cat-date-chip"><i class="bi bi-geo-alt"></i><span>${location}</span></span>`;
+                                `<span class="cat-date-chip"><span>${location}</span></span>`;
                         },
                     },
                     {
                         data: 'material_count',
                         className: 'text-center cat-td-date',
                         render: function(data) {
-                            return `<span class="cat-date-chip"><i class="bi bi-box-seam"></i><span>${Number(data || 0).toLocaleString('id-ID')} Material</span></span>`;
+                            return `<span class="cat-date-chip"><span>${Number(data || 0).toLocaleString('id-ID')} Material</span></span>`;
                         },
                     },
                     {
@@ -1045,7 +1044,7 @@
                         defaultContent: '-',
                         render: function(data) {
                             return data === undefined || data === null ? '-' :
-                                `<span class="cat-date-chip"><i class="bi bi-arrows"></i><span>${Number(data).toLocaleString('id-ID')} Lebar</span></span>`;
+                                `<span class="cat-date-chip"><span>${Number(data).toLocaleString('id-ID')} Lebar</span></span>`;
                         },
                     },
                     {

@@ -403,9 +403,6 @@
                             }
                             return `
                                 <div class="cat-cell-name-box">
-                                    <div class="cat-icon-symbol">
-                                        <i class="bi bi-easel2-fill"></i>
-                                    </div>
                                     <div class="cat-name-details">
                                         <span class="cat-name-primary">${escapeHtml(data || '-')}</span>
                                         <span class="cat-name-badge">Biaya Display</span>
@@ -424,7 +421,6 @@
                             }
                             return `
                                 <span class="cat-date-chip">
-                                    <i class="bi bi-folder-fill"></i>
                                     <span>${escapeHtml(data || '-')}</span>
                                 </span>
                             `;
@@ -440,9 +436,6 @@
                             }
                             return `
                                 <div class="cat-user-badge">
-                                    <span class="cat-user-avatar" style="background: #2563eb;">
-                                        <i class="bi bi-geo-alt-fill"></i>
-                                    </span>
                                     <div class="cat-user-info">
                                         <span class="cat-user-name">${escapeHtml(data || '-')}</span>
                                         <span class="cat-user-role">${escapeHtml(row.engine_name || '-')}</span>
@@ -461,7 +454,6 @@
                             }
                             return `
                                 <span class="cat-date-chip">
-                                    <i class="bi bi-aspect-ratio"></i>
                                     <span>${escapeHtml(size)}</span>
                                 </span>
                             `;
@@ -479,7 +471,6 @@
                             if (materialCount + laminationCount === 0) {
                                 return `
                                     <span class="cat-date-chip">
-                                        <i class="bi bi-dash-circle"></i>
                                         <span>Belum ada komponen</span>
                                     </span>
                                 `;
@@ -487,10 +478,10 @@
 
                             const parts = [];
                             if (materialCount > 0) {
-                                parts.push(`<span class="cat-date-chip"><i class="bi bi-box-seam"></i><span>${materialCount.toLocaleString('id-ID')} Material</span></span>`);
+                                parts.push(`<span class="cat-date-chip"><span>${materialCount.toLocaleString('id-ID')} Material</span></span>`);
                             }
                             if (laminationCount > 0) {
-                                parts.push(`<span class="cat-date-chip"><i class="bi bi-layers-fill"></i><span>${laminationCount.toLocaleString('id-ID')} Laminasi</span></span>`);
+                                parts.push(`<span class="cat-date-chip"><span>${laminationCount.toLocaleString('id-ID')} Laminasi</span></span>`);
                             }
                             return `<div style="display:flex; flex-wrap:wrap; justify-content:center; gap:5px;">${parts.join('')}</div>`;
                         },

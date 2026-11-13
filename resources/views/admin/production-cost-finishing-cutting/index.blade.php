@@ -373,9 +373,6 @@
                             }
                             return `
                                 <div class="cat-cell-name-box">
-                                    <div class="cat-icon-symbol">
-                                        <i class="bi bi-scissors"></i>
-                                    </div>
                                     <div class="cat-name-details">
                                         <span class="cat-name-primary">${escapeHtml(data || '-')}</span>
                                         <span class="cat-name-badge">${row.is_potong ? 'Potong Guillotine' : 'Jasa Potong'}</span>
@@ -395,9 +392,6 @@
                             const isVendor = Boolean(row.vendor_name);
                             return `
                                 <div class="cat-user-badge">
-                                    <span class="cat-user-avatar" style="background: ${isVendor ? '#f59e0b' : '#2563eb'};">
-                                        <i class="bi ${isVendor ? 'bi-truck' : 'bi-geo-alt-fill'}"></i>
-                                    </span>
                                     <div class="cat-user-info">
                                         <span class="cat-user-name">${escapeHtml(data || '-')}</span>
                                         <span class="cat-user-role">${isVendor ? escapeHtml(row.vendor_name) : 'Internal'}</span>
@@ -416,7 +410,6 @@
                             }
                             return `
                                 <span class="cat-date-chip" title="${escapeHtml(row.category_names || '')}">
-                                    <i class="bi bi-folder-fill"></i>
                                     <span>${Number(data || 0).toLocaleString('id-ID')} Kategori</span>
                                 </span>
                             `;
@@ -433,14 +426,12 @@
                             if (row.is_potong) {
                                 return `
                                     <span class="cat-date-chip">
-                                        <i class="bi bi-aspect-ratio"></i>
                                         <span>4 Ukuran (A3 - &le;A6)</span>
                                     </span>
                                 `;
                             }
                             return `
                                 <span class="cat-date-chip">
-                                    <i class="bi bi-scissors"></i>
                                     <span>${Number(data || 0).toLocaleString('id-ID')} Jasa Potong</span>
                                 </span>
                             `;

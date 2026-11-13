@@ -363,7 +363,7 @@
                         data: 'name',
                         responsivePriority: 1,
                         render: function(data) {
-                            return `<div class="cat-cell-name-box"><div class="cat-icon-symbol"><i class="bi bi-percent"></i></div><div class="cat-name-details"><span class="cat-name-primary">${escapeHtml(data)}</span><span class="cat-name-badge">Promo Diskon</span></div></div>`;
+                            return `<div class="cat-cell-name-box"><div class="cat-name-details"><span class="cat-name-primary">${escapeHtml(data)}</span><span class="cat-name-badge">Promo Diskon</span></div></div>`;
                         },
                         createdCell: function(td) {
                             td.style.whiteSpace = 'normal';
@@ -445,19 +445,14 @@
                         className: 'cat-td-creator',
                         render: function(data) {
                             const name = (data || '').trim() || 'Administrator';
-                            const words = name.split(/\s+/);
-                            const initials = words.length > 1 ? words[0][0] + words[1][0] : words[0].substring(0, 2);
-                            const colors = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#6366f1', '#14b8a6'];
-                            let hash = 0;
-                            for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
-                            return `<div class="cat-user-badge"><span class="cat-user-avatar" style="background: ${colors[Math.abs(hash) % colors.length]};">${escapeHtml(initials.toUpperCase())}</span><div class="cat-user-info"><span class="cat-user-name">${escapeHtml(name)}</span><span class="cat-user-role">Administrator</span></div></div>`;
+                            return `<div class="cat-user-badge"><div class="cat-user-info"><span class="cat-user-name">${escapeHtml(name)}</span><span class="cat-user-role">Administrator</span></div></div>`;
                         }
                     },
                     {
                         data: 'created_at',
                         className: 'cat-td-date',
                         render: function(data) {
-                            return data ? `<span class="cat-date-chip"><i class="bi bi-calendar3"></i><span>${formatDate(data)}</span></span>` : '-';
+                            return data ? `<span class="cat-date-chip"><span>${formatDate(data)}</span></span>` : '-';
                         }
                     },
                     {

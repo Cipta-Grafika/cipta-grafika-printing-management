@@ -44,19 +44,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 render: (id, type, row) => `<label class="cat-custom-checkbox"><input type="checkbox" class="cutting-row-check" value="${Number(id)}" aria-label="Pilih jasa potong ${escapeCuttingHtml(row.name)}"><span class="cat-checkbox-mark"><svg class="check-icon" viewBox="0 0 14 14" fill="none"><path d="M2.5 7.5L5.5 10.5L11.5 3.5" stroke="#fff" stroke-width="2.2"/></svg></span></label>`
             },
             { data: null, orderable: false, searchable: false, className: 'text-center cat-td-no', render: (data, type, row, meta) => `<span class="cat-num-pill">${meta.settings._iDisplayStart + meta.row + 1}</span>` },
-            { data: 'name', className: 'cat-td-name', render: data => `<div class="cat-cell-name-box"><div class="cat-icon-symbol"><i class="bi bi-scissors"></i></div><div class="cat-name-details"><span class="cat-name-primary">${escapeCuttingHtml(data || '-')}</span><span class="cat-name-badge">Jasa Potong Produksi</span></div></div>` },
+            { data: 'name', className: 'cat-td-name', render: data => `<div class="cat-cell-name-box"><div class="cat-name-details"><span class="cat-name-primary">${escapeCuttingHtml(data || '-')}</span><span class="cat-name-badge">Jasa Potong Produksi</span></div></div>` },
             { data: 'total_sizes', className: 'text-center', render: data => Number(data) || 0 },
             { data: 'status', render: data => `<span class="badge ${data === 'Active' ? 'success' : 'danger'} dot">${escapeCuttingHtml(data)}</span>` },
             {
                 data: 'created_by', className: 'cat-td-creator',
                 render: function (data) {
                     const name = (data || '').trim() || 'Administrator';
-                    const words = name.split(/\s+/);
-                    const initials = words.length > 1 ? words[0][0] + words[1][0] : words[0].substring(0, 2);
-                    const colors = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#6366f1', '#14b8a6'];
-                    let hash = 0;
-                    for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
-                    return `<div class="cat-user-badge"><span class="cat-user-avatar" style="background: ${colors[Math.abs(hash) % colors.length]};">${escapeCuttingHtml(initials.toUpperCase())}</span><div class="cat-user-info"><span class="cat-user-name">${escapeCuttingHtml(name)}</span><span class="cat-user-role">Administrator</span></div></div>`;
+                    return `<div class="cat-user-badge"><div class="cat-user-info"><span class="cat-user-name">${escapeCuttingHtml(name)}</span><span class="cat-user-role">Administrator</span></div></div>`;
                 }
             },
             {
@@ -65,7 +60,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (!data) return '<span class="text-muted">-</span>';
                     const date = new Date(data);
                     const formatted = Number.isNaN(date.getTime()) ? '-' : date.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
-                    return `<span class="cat-date-chip"><i class="bi bi-calendar3"></i><span>${formatted}</span></span>`;
+                    return `<span class="cat-date-chip"><span>${formatted}</span></span>`;
                 }
             },
             {

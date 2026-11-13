@@ -2207,22 +2207,20 @@
                 });
             }
 
-            function offsetChip(icon, text) {
+            function offsetChip(text) {
                 return `
                     <span class="cat-date-chip">
-                        <i class="bi ${icon}"></i>
                         <span>${escapeHtml(String(text))}</span>
                     </span>
                 `;
             }
 
-            function offsetNameBox(icon, primary, badge, note) {
+            function offsetNameBox(primary, badge, note) {
                 const noteHtml = note ?
                     `<span style="font-size: 11px; color: var(--t-muted); max-width: 260px; white-space: normal;">${escapeHtml(note)}</span>` :
                     '';
                 return `
                     <div class="cat-cell-name-box">
-                        <div class="cat-icon-symbol"><i class="bi ${icon}"></i></div>
                         <div class="cat-name-details">
                             <span class="cat-name-primary">${escapeHtml(primary || '-')}</span>
                             <span class="cat-name-badge">${escapeHtml(badge)}</span>
@@ -2558,30 +2556,30 @@
                 columns: [{
                         data: 'material_code',
                         className: 'text-center cat-td-date',
-                        render: (data, type) => type !== 'display' ? (data || '') : offsetChip('bi-upc-scan', data || '-')
+                        render: (data, type) => type !== 'display' ? (data || '') : offsetChip(data || '-')
                     },
                     {
                         data: 'material_name',
                         className: 'cat-td-name',
-                        render: (data, type) => type !== 'display' ? (data || '') : offsetNameBox('bi-file-earmark-text-fill', data, 'Kertas Plano')
+                        render: (data, type) => type !== 'display' ? (data || '') : offsetNameBox(data, 'Kertas Plano')
                     },
                     {
                         data: 'length',
                         className: 'text-center cat-td-date',
                         render: (data, type, row) => {
                             const size = `${offsetNumber(row.length)} × ${offsetNumber(row.width)} cm`;
-                            return type !== 'display' ? size : offsetChip('bi-aspect-ratio', size);
+                            return type !== 'display' ? size : offsetChip(size);
                         }
                     },
                     {
                         data: 'gramature',
                         className: 'text-center cat-td-date',
-                        render: (data, type) => type !== 'display' ? (data || 0) : offsetChip('bi-layers-fill', data ? `${offsetNumber(data)} gsm` : '-')
+                        render: (data, type) => type !== 'display' ? (data || 0) : offsetChip(data ? `${offsetNumber(data)} gsm` : '-')
                     },
                     {
                         data: 'paper_type',
                         className: 'text-center cat-td-date',
-                        render: (data, type) => type !== 'display' ? (data || '') : offsetChip('bi-tag-fill', data || '-')
+                        render: (data, type) => type !== 'display' ? (data || '') : offsetChip(data || '-')
                     },
                     {
                         data: 'price_per_plano',
@@ -2652,12 +2650,12 @@
                 columns: [{
                         data: 'plate_code',
                         className: 'text-center cat-td-date',
-                        render: (data, type) => type !== 'display' ? (data || '') : offsetChip('bi-upc-scan', data || '-')
+                        render: (data, type) => type !== 'display' ? (data || '') : offsetChip(data || '-')
                     },
                     {
                         data: 'plate_name',
                         className: 'cat-td-name',
-                        render: (data, type) => type !== 'display' ? (data || '') : offsetNameBox('bi-grid-1x2-fill', data, 'Plat CTP')
+                        render: (data, type) => type !== 'display' ? (data || '') : offsetNameBox(data, 'Plat CTP')
                     },
                     {
                         data: 'machine_name',
@@ -2666,7 +2664,6 @@
                             if (type !== 'display') return data || '';
                             return `
                                 <div class="cat-user-badge">
-                                    <span class="cat-user-avatar" style="background: #2563eb;"><i class="bi bi-printer-fill"></i></span>
                                     <div class="cat-user-info">
                                         <span class="cat-user-name">${escapeHtml(data || '-')}</span>
                                         <span class="cat-user-role">Mesin Offset</span>
@@ -2739,20 +2736,20 @@
                 columns: [{
                         data: 'name',
                         className: 'cat-td-name',
-                        render: (data, type) => type !== 'display' ? (data || '') : offsetNameBox('bi-printer-fill', data, 'Profil Mesin')
+                        render: (data, type) => type !== 'display' ? (data || '') : offsetNameBox(data, 'Profil Mesin')
                     },
                     {
                         data: 'press_sheet_width',
                         className: 'text-center cat-td-date',
                         render: (data, type, row) => {
                             const size = `${offsetNumber(row.press_sheet_width)} × ${offsetNumber(row.press_sheet_length)} cm`;
-                            return type !== 'display' ? size : offsetChip('bi-aspect-ratio', size);
+                            return type !== 'display' ? size : offsetChip(size);
                         }
                     },
                     {
                         data: 'default_insheet_sheets',
                         className: 'text-center cat-td-date',
-                        render: (data, type) => type !== 'display' ? (data || 0) : offsetChip('bi-stack', `${offsetNumber(data || 0)} lembar`)
+                        render: (data, type) => type !== 'display' ? (data || 0) : offsetChip(`${offsetNumber(data || 0)} lembar`)
                     },
                     {
                         data: 'click_rate_per_color',
@@ -2831,19 +2828,19 @@
                 columns: [{
                         data: 'rule_name',
                         className: 'cat-td-name',
-                        render: (data, type) => type !== 'display' ? (data || '') : offsetNameBox('bi-percent', data, 'Pricing Rule')
+                        render: (data, type) => type !== 'display' ? (data || '') : offsetNameBox(data, 'Pricing Rule')
                     },
                     {
                         data: 'category_name',
                         className: 'text-center cat-td-date',
-                        render: (data, type) => type !== 'display' ? (data || '') : offsetChip('bi-folder-fill', data || '-')
+                        render: (data, type) => type !== 'display' ? (data || '') : offsetChip(data || '-')
                     },
                     {
                         data: 'min_rim',
                         className: 'text-center cat-td-date',
                         render: (data, type, row) => {
                             const range = `${row.min_rim || 1} – ${row.max_rim || 10} Rim`;
-                            return type !== 'display' ? range : offsetChip('bi-arrow-left-right', range);
+                            return type !== 'display' ? range : offsetChip(range);
                         }
                     },
                     {
@@ -2885,25 +2882,25 @@
                 columns: [{
                         data: 'product_code',
                         className: 'text-center cat-td-date',
-                        render: (data, type) => type !== 'display' ? (data || '') : offsetChip('bi-upc-scan', data || '-')
+                        render: (data, type) => type !== 'display' ? (data || '') : offsetChip(data || '-')
                     },
                     {
                         data: 'product_name',
                         className: 'cat-td-name',
                         render: (data, type, row) => type !== 'display' ? (data || '') :
-                            offsetNameBox('bi-journal-richtext', data, 'Produk Cetak', row.description || '')
+                            offsetNameBox(data, 'Produk Cetak', row.description || '')
                     },
                     {
                         data: 'category',
                         className: 'text-center cat-td-date',
-                        render: (data, type) => type !== 'display' ? (data || '') : offsetChip('bi-folder-fill', data || 'Brosur')
+                        render: (data, type) => type !== 'display' ? (data || '') : offsetChip(data || 'Brosur')
                     },
                     {
                         data: 'final_length',
                         className: 'text-center cat-td-date',
                         render: (data, type, row) => {
                             const size = `${offsetNumber(row.final_length)} × ${offsetNumber(row.final_width)} cm`;
-                            return type !== 'display' ? size : offsetChip('bi-aspect-ratio', size);
+                            return type !== 'display' ? size : offsetChip(size);
                         }
                     },
                     {
@@ -2912,20 +2909,20 @@
                         render: (data, type, row) => {
                             const sheets = data || Math.round(500 / (row.up_per_sheet || 1));
                             const text = `${offsetNumber(sheets)} lbr (${row.up_per_sheet || 1} Up)`;
-                            return type !== 'display' ? sheets : offsetChip('bi-files', text);
+                            return type !== 'display' ? sheets : offsetChip(text);
                         }
                     },
                     {
                         data: 'plano_cut_yield',
                         className: 'text-center cat-td-date',
-                        render: (data, type) => type !== 'display' ? (data || 4) : offsetChip('bi-scissors', `${data || 4} Lembar / Plano`)
+                        render: (data, type) => type !== 'display' ? (data || 4) : offsetChip(`${data || 4} Lembar / Plano`)
                     },
                     {
                         data: 'print_sheet_length',
                         className: 'text-center cat-td-date',
                         render: (data, type, row) => {
                             const size = `${offsetNumber(row.print_sheet_length)} × ${offsetNumber(row.print_sheet_width)} cm`;
-                            return type !== 'display' ? size : offsetChip('bi-aspect-ratio', size);
+                            return type !== 'display' ? size : offsetChip(size);
                         }
                     },
                     {
