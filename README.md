@@ -1,6 +1,10 @@
-# Cipta Grafika Printing Management
+# Cipta Grafika Printing Management & Interactive Estimator System
 
-Aplikasi manajemen percetakan Cipta Grafika.
+Aplikasi manajemen percetakan, master data, dan sistem kalkulator estimasi biaya cetak interaktif (Digital A3+, Large Format, Offset SM 52, Kalender, & Merchandise) Cipta Grafika.
+
+> 📖 **Dokumentasi Lengkap Sistem:**  
+> Untuk dokumentasi arsitektur, Entity Relationship Diagram (ERD), alur perhitungan HPP & margin, kamus basis data, serta spesifikasi seluruh modul estimator, silakan buka:  
+> 👉 [**DOKUMENTASI_SISTEM.md**](DOKUMENTASI_SISTEM.md)
 
 ## Teknologi
 

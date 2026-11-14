@@ -16,15 +16,13 @@
                     style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 24px;">
                     <div class="hero-text" style="flex: 1; min-width: 280px;">
                         <span class="eyebrow" style="color: var(--primary); font-weight: 700; letter-spacing: 0.8px;">
-                            ESTIMASI PRODUKSI MERCHANDISE
+                            ESTIMASI MERCHANDISE, IDENTITAS KORPORAT &amp; FORM ADMINISTRASI
                         </span>
                         <h1 class="hero-title" style="margin: 6px 0 8px; font-size: 1.75rem; font-weight: 800;">
-                            Buat Estimasi Merchandise &amp; Custom Form
+                            Buat Estimasi Merchandise, Identitas &amp; Form Administrasi
                         </h1>
                         <p class="hero-sub" style="margin: 0; color: var(--t-muted); font-size: 13.5px; line-height: 1.5;">
-                            Satu halaman terpadu untuk kalkulasi instan pesanan <strong>Tali Lanyard &amp; ID Card</strong>,
-                            <strong>Papan Nama Dada (Name Tag)</strong>, <strong>Plakat Akrilik &amp; Kayu</strong>, serta
-                            <strong>Buku Nota NCR &amp; HVS</strong>.
+                            Satu halaman terpadu untuk kalkulasi instan <strong>Merchandise &amp; Souvenir</strong> (Mug Sublimasi, Plakat, Akrilik UV), <strong>Identitas Korporat</strong> (Tali Lanyard, Kartu ID Card/KTA PVC, Name Tag), serta <strong>Form Administrasi</strong> (Buku Nota NCR &amp; HVS).
                         </p>
                     </div>
                     <div>
@@ -1062,7 +1060,7 @@
                 <div>
                     <span class="eyebrow" style="color: var(--primary); font-weight: 700;">PREVIEW PENAWARAN &amp; DETAIL
                         ESTIMASI</span>
-                    <h3 class="modal-title-custom">Detail Estimasi Merchandise &amp; Custom</h3>
+                    <h3 class="modal-title-custom">Detail Estimasi Merchandise, Identitas &amp; Form</h3>
                 </div>
                 <button type="button" id="btnCloseDetailModal" class="modal-close-btn" aria-label="Tutup">
                     <i class="bi bi-x-lg"></i>
@@ -1075,7 +1073,7 @@
                     <div>
                         <h2 class="printable-company-name">CIPTA GRAFIKA</h2>
                         <div style="font-size: 12px; color: var(--t-muted);">Printing Management System &middot; Estimator
-                            Merchandise &amp; Custom</div>
+                            Merchandise, Identitas &amp; Form Administrasi</div>
                     </div>
                     <div style="text-align: right; font-size: 12px; color: var(--t-muted);">
                         <div>Tanggal: <strong id="modalQuoteDate">{{ date('d/m/Y') }}</strong></div>

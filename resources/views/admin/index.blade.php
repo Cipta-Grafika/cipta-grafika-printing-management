@@ -755,27 +755,27 @@
 
                         <div class="estimator-card__content">
 
-                            <span class="estimator-card__eyebrow">MERCHANDISE &amp; GIFT</span>
+                            <span class="estimator-card__eyebrow">MERCHANDISE, IDENTITAS &amp; FORM</span>
 
-                            <h2 class="estimator-card__title">Merchandise &amp; Custom</h2>
+                            <h2 class="estimator-card__title">Merchandise, Identitas &amp; Form Administrasi</h2>
 
                             <p class="estimator-card__description">
-                                Kalkulasi instan Tali Lanyard &amp; ID Card (24 tier), Papan Nama Dada, Plakat Akrilik UV &amp; Kayu, serta Buku Nota NCR &amp; HVS.
+                                Kalkulasi instan Merchandise &amp; Souvenir (Mug, Plakat, Akrilik UV), Identitas Korporat (Lanyard, ID Card PVC, Name Tag), serta Form Administrasi (Buku Nota NCR &amp; HVS).
                             </p>
 
                             {{-- FEATURE CHIPS --}}
                             <div class="estimator-chips">
-                                <span class="estimator-chip" title="Tali Lanyard & ID Card (24 Tier)">
+                                <span class="estimator-chip" title="Lanyard, ID Card & Name Tag">
                                     <i class="bi bi-person-badge"></i>
-                                    <span>Tali Lanyard &amp; ID Card</span>
+                                    <span>Lanyard, ID Card &amp; Name Tag</span>
                                 </span>
-                                <span class="estimator-chip" title="Plakat Akrilik & Kayu">
+                                <span class="estimator-chip" title="Mug, Plakat & Akrilik UV">
                                     <i class="bi bi-trophy"></i>
-                                    <span>Plakat Akrilik &amp; Kayu</span>
+                                    <span>Mug, Plakat &amp; Akrilik UV</span>
                                 </span>
-                                <span class="estimator-chip" title="Papan Nama & Nota NCR">
+                                <span class="estimator-chip" title="Buku Nota NCR & HVS">
                                     <i class="bi bi-journal-text"></i>
-                                    <span>Papan Nama &amp; Nota NCR</span>
+                                    <span>Buku Nota NCR &amp; HVS</span>
                                 </span>
                             </div>
 
