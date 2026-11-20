@@ -4,6 +4,7 @@ use App\Http\Controllers\admin\CalculationRuleCT;
 use App\Http\Controllers\admin\CalendarEstimationCT;
 use App\Http\Controllers\admin\CalendarMasterCT;
 use App\Http\Controllers\admin\CategoryCT;
+use App\Http\Controllers\admin\CetakiaQuotationCT;
 use App\Http\Controllers\admin\CompatibilityMaterialCT;
 use App\Http\Controllers\admin\DashboardCT;
 use App\Http\Controllers\admin\DiscountCT;
@@ -226,6 +227,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/admin/estimation/create-a3plus/get-materials', [EstimationCT::class, 'getMaterialsA3plus'])->name('admin_get_materials_a3plus');
     Route::get('/admin/estimation/create-a3plus/get-pricelist', [EstimationCT::class, 'getPriceListA3plus'])->name('admin_get_pricelist_a3plus');
     Route::post('/admin/estimation/create-a3plus', [EstimationCT::class, 'storeA3plus'])->name('admin_store_a3plus');
+    Route::post('/admin/cetakia/quotations', [CetakiaQuotationCT::class, 'store'])->name('admin_cetakia_quotation_store');
 
     // Cetak Offset Estimation
     Route::get('/admin/estimations/create-offset', [OffsetEstimationCT::class, 'create'])->name('admin_create_offset_estimation');

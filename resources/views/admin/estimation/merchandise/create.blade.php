@@ -114,22 +114,39 @@
                                     <div class="form-grid"
                                         style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px;">
 
-                                        {{-- Nama Pelanggan (Select2 Cetakia - Sama seperti Kalender) --}}
+                                        {{-- Nama Pelanggan (Select2 Cetakia) --}}
                                         <div class="field">
                                             <label for="merch_customer_id" class="field-label">
-                                                Nama Pelanggan / Perusahaan (Opsional)
+                                                Nama Pelanggan (Cetakia) <span class="req">*</span>
                                             </label>
                                             <select id="merch_customer_id" name="customer_id" class="select select2">
                                                 <option value="">-- Pilih Pelanggan (Cetakia) --</option>
-                                                @foreach ($customers ?? \App\Support\CetakiaCustomer::all() as $cust)
+                                                @foreach ($customers ?? [] as $cust)
                                                     <option value="{{ $cust['id'] }}"
-                                                        data-code="{{ $cust['customer_code'] }}"
-                                                        data-name="{{ $cust['name'] }}">
+                                                        data-code="{{ $cust['customer_code'] ?? $cust['code'] ?? '' }}"
+                                                        data-name="{{ $cust['name'] }}"
+                                                        data-bill-to="{{ $cust['bill_to'] ?? '' }}"
+                                                        data-ship-to="{{ $cust['ship_to'] ?? '' }}">
                                                         {{ $cust['name'] }}
                                                     </option>
                                                 @endforeach
                                             </select>
                                             <input type="hidden" id="merch_customer_name" name="customer_name" value="">
+                                        </div>
+
+                                        {{-- Sales PIC (Cetakia) --}}
+                                        <div class="field">
+                                            <label for="cetakia_user_id" class="field-label">
+                                                Sales PIC Penanggung Jawab <span class="req">*</span>
+                                            </label>
+                                            <select id="cetakia_user_id" name="user_id" class="select select2">
+                                                <option value="">-- Pilih Sales PIC --</option>
+                                                @foreach ($salesUsers ?? [] as $sales)
+                                                    <option value="{{ $sales['id'] }}" {{ $loop->first ? 'selected' : '' }}>
+                                                        {{ $sales['name'] }} ({{ $sales['email'] ?? 'Sales' }})
+                                                    </option>
+                                                @endforeach
+                                            </select>
                                         </div>
 
                                         {{-- Kontak WhatsApp --}}
@@ -154,6 +171,66 @@
                                                     </option>
                                                 @endforeach
                                             </select>
+                                        </div>
+
+                                        {{-- Syarat Pembayaran (Terms) --}}
+                                        <div class="field">
+                                            <label for="cetakia_terms" class="field-label">
+                                                Syarat Pembayaran (Terms)
+                                            </label>
+                                            <select id="cetakia_terms" name="terms" class="select select2">
+                                                <option value="0" selected>Cash / Tunai Langsung</option>
+                                                <option value="7">Tempo 7 Hari</option>
+                                                <option value="14">Tempo 14 Hari</option>
+                                                <option value="30">Tempo 30 Hari</option>
+                                            </select>
+                                        </div>
+
+                                        {{-- Tanggal Penawaran --}}
+                                        <div class="field">
+                                            <label for="quotation_date" class="field-label">
+                                                Tanggal Penawaran
+                                            </label>
+                                            <input type="date" id="quotation_date" name="quotation_date" class="input"
+                                                value="{{ date('Y-m-d') }}">
+                                        </div>
+
+                                        {{-- Masa Berlaku Penawaran (Expired) --}}
+                                        <div class="field">
+                                            <label for="quotation_expired" class="field-label">
+                                                Masa Berlaku Penawaran
+                                            </label>
+                                            <input type="date" id="quotation_expired" name="quotation_expired" class="input"
+                                                value="{{ date('Y-m-d', strtotime('+30 days')) }}">
+                                            <div style="display: flex; gap: 5px; margin-top: 6px;">
+                                                <button type="button" class="quote-preset-btn btn-expire-preset-merch" data-days="3" title="Berlaku 3 Hari">+3 Hr</button>
+                                                <button type="button" class="quote-preset-btn btn-expire-preset-merch" data-days="7" title="Berlaku 7 Hari">+7 Hr</button>
+                                                <button type="button" class="quote-preset-btn btn-expire-preset-merch" data-days="14" title="Berlaku 14 Hari">+14 Hr</button>
+                                                <button type="button" class="quote-preset-btn btn-expire-preset-merch active" data-days="30" title="Berlaku 30 Hari">+30 Hr</button>
+                                            </div>
+                                        </div>
+
+                                        {{-- Alamat Penagihan & Pengiriman (Cetakia) --}}
+                                        <div class="field" style="grid-column: 1 / -1;">
+                                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                                <label class="field-label" style="margin: 0;">
+                                                    Alamat Penagihan &amp; Pengiriman (Cetakia)
+                                                </label>
+                                                <button type="button" id="btn_copy_bill_to_merch"
+                                                    style="background: none; border: none; color: var(--primary); font-size: 12px; cursor: pointer; text-decoration: underline; padding: 0;">
+                                                    Salin Alamat Penagihan ke Pengiriman
+                                                </button>
+                                            </div>
+                                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px;">
+                                                <div>
+                                                    <label for="bill_to" style="font-size: 11.5px; color: var(--t-muted); display: block; margin-bottom: 3px;">Alamat Penagihan (Bill To)</label>
+                                                    <textarea id="bill_to" name="bill_to" rows="2" class="textarea" style="resize: vertical; font-size: 12.5px; min-height: 60px;" placeholder="Alamat penagihan pelanggan..."></textarea>
+                                                </div>
+                                                <div>
+                                                    <label for="ship_to" style="font-size: 11.5px; color: var(--t-muted); display: block; margin-bottom: 3px;">Alamat Pengiriman (Ship To)</label>
+                                                    <textarea id="ship_to" name="ship_to" rows="2" class="textarea" style="resize: vertical; font-size: 12.5px; min-height: 60px;" placeholder="Alamat pengiriman pesanan..."></textarea>
+                                                </div>
+                                            </div>
                                         </div>
 
                                     </div>
@@ -820,13 +897,95 @@
                                 </div>
 
                                 {{-- =========================================================
-                                    3. CATATAN KHUSUS ESTIMASI
+                                    3. DISKON PENJUALAN
                                 ========================================================== --}}
                                 <div class="form-section" style="padding: 20px 22px;">
                                     <div class="form-section-head" style="margin-bottom: 14px;">
                                         <span class="eyebrow"
                                             style="font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 6px;">
-                                            <i class="bi bi-chat-left-text"></i> 3. CATATAN KHUSUS / KETERANGAN
+                                            <i class="bi bi-tag"></i> 3. DISKON PENJUALAN
+                                        </span>
+                                    </div>
+
+                                    <div class="field" style="margin-bottom: 16px;">
+                                        <label class="field-label">
+                                            Jenis Diskon
+                                            <span class="req">*</span>
+                                        </label>
+
+                                        <div class="discount-options">
+                                            {{-- Tanpa Diskon --}}
+                                            <label class="discount-option">
+                                                <input type="radio" name="discount_type" value="none" checked>
+                                                <span class="discount-option__content">
+                                                    <span class="discount-option__icon">
+                                                        <i class="bi bi-tag"></i>
+                                                    </span>
+                                                    <span class="discount-option__text">
+                                                        <strong>Tanpa Diskon</strong>
+                                                        <small>Harga normal</small>
+                                                    </span>
+                                                </span>
+                                            </label>
+
+                                            {{-- Diskon Persen --}}
+                                            <label class="discount-option">
+                                                <input type="radio" name="discount_type" value="percentage">
+                                                <span class="discount-option__content">
+                                                    <span class="discount-option__icon">
+                                                        <i class="bi bi-percent"></i>
+                                                    </span>
+                                                    <span class="discount-option__text">
+                                                        <strong>Diskon Persen</strong>
+                                                        <small>Potongan berdasarkan persentase</small>
+                                                    </span>
+                                                </span>
+                                            </label>
+
+                                            {{-- Diskon Nominal --}}
+                                            <label class="discount-option">
+                                                <input type="radio" name="discount_type" value="nominal">
+                                                <span class="discount-option__content">
+                                                    <span class="discount-option__icon">
+                                                        <i class="bi bi-cash-stack"></i>
+                                                    </span>
+                                                    <span class="discount-option__text">
+                                                        <strong>Diskon Nominal</strong>
+                                                        <small>Potongan berdasarkan nominal rupiah</small>
+                                                    </span>
+                                                </span>
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-grid">
+                                        {{-- Input Diskon --}}
+                                        <div class="field" id="discountValueField" hidden>
+                                            <div style="display: flex; align-items: center; gap: 5px;">
+                                                <label class="field-label" for="discount_value" id="discountValueLabel">
+                                                    Nilai Diskon
+                                                </label>
+                                                <span class="input-suffix__text" id="discountSuffix">
+                                                    %
+                                                </span>
+                                            </div>
+
+                                            <div class="input-suffix" id="discountInputWrapper">
+                                                <input id="discount_value" name="discount_value" class="input"
+                                                    type="text" inputmode="decimal" placeholder="0" disabled>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- =========================================================
+                                    4. CATATAN KHUSUS ESTIMASI
+                                ========================================================== --}}
+                                <div class="form-section" style="padding: 20px 22px;">
+                                    <div class="form-section-head" style="margin-bottom: 14px;">
+                                        <span class="eyebrow"
+                                            style="font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 6px;">
+                                            <i class="bi bi-chat-left-text"></i> 4. CATATAN KHUSUS / KETERANGAN
                                         </span>
                                     </div>
                                     <div class="field">
@@ -923,6 +1082,47 @@
                                     </div>
                                 </div>
 
+                                {{-- Info Diskon --}}
+                                <div id="liveDiscountWrap"
+                                    style="display: none; margin: 8px 0 10px; padding: 8px 12px; background: rgba(239, 68, 68, 0.08); border-radius: 8px; border: 1px dashed rgba(239, 68, 68, 0.35);">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12.5px;">
+                                        <span style="color: var(--t-muted);">Harga Sebelum Diskon:</span>
+                                        <s id="liveSubtotalPrice" style="color: var(--t-muted); font-weight: 600;">Rp 0</s>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12.5px; margin-top: 4px;">
+                                        <span style="color: #ef4444; font-weight: 600;">Hemat Diskon (<span id="liveDiscountDesc">-</span>):</span>
+                                        <strong id="liveDiscountAmount" style="color: #ef4444; font-weight: 700;">- Rp 0</strong>
+                                    </div>
+                                </div>
+
+                                {{-- Opsi PPN 11% (Cetakia Compatible - Modern iOS/Dashboard Switch) --}}
+                                <div id="liveTaxToggleWrap"
+                                    style="margin: 12px 0 14px; padding: 10px 14px; background: rgba(59, 130, 246, 0.08); border-radius: 9px; border: 1px solid rgba(59, 130, 246, 0.25); transition: all 0.2s ease;">
+                                    {{-- Toggle PPN 11% --}}
+                                    <label for="tax_enabled_check" style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; margin: 0; width: 100%;">
+                                        <span style="font-size: 13px; font-weight: 600; color: var(--t-base); display: flex; align-items: center; gap: 8px;">
+                                            <i class="bi bi-receipt-cutoff" style="color: #60a5fa; font-size: 15px;"></i>
+                                            <span>Kenakan PPN 11%</span>
+                                        </span>
+                                        <span class="ppn-toggle-switch">
+                                            <input type="checkbox" id="tax_enabled_check" name="tax_enabled" value="1">
+                                            <span class="ppn-toggle-slider"></span>
+                                        </span>
+                                    </label>
+
+                                    {{-- Rincian Pajak (Hanya tampil saat PPN aktif) --}}
+                                    <div id="liveTaxDetailsRow" style="display: none; margin-top: 8px; padding-top: 8px; border-top: 1px dashed rgba(59, 130, 246, 0.25); font-size: 12px;">
+                                        <div style="display: flex; justify-content: space-between; align-items: center; color: var(--t-muted);">
+                                            <span>Dasar Pengenaan Pajak (DPP):</span>
+                                            <span id="liveTaxBaseAmount" style="font-weight: 600;">Rp 0,00</span>
+                                        </div>
+                                        <div id="liveTaxPpnRow" style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
+                                            <span style="color: #60a5fa; font-weight: 600;">PPN (11%):</span>
+                                            <strong id="liveTaxAmount" style="color: #60a5fa; font-weight: 700;">+ Rp 0,00</strong>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 {{-- GRAND TOTAL BOX --}}
                                 <div class="grand-total-box"
                                     style="margin: 18px 0; padding: 14px 16px; border-radius: 10px; background: var(--bg-muted); border: 1px solid var(--border); text-align: center;">
@@ -932,11 +1132,11 @@
                                     </span>
                                     <div id="summaryMerchGrandTotal"
                                         style="font-size: 1.85rem; font-weight: 800; color: var(--primary); margin: 4px 0 2px;">
-                                        Rp 575.000
+                                        Rp 575.000,00
                                     </div>
                                     <small id="summaryMerchPerUnit"
                                         style="font-size: 12px; color: #10b981; font-weight: 600;">
-                                        (Rp 23.000 / pcs)
+                                        (Rp 23.000,00 / pcs)
                                     </small>
                                 </div>
 
@@ -952,6 +1152,13 @@
                                     <button type="button" id="btnCopyWaQuotation" class="btn-action-wa">
                                         <i class="bi bi-whatsapp"></i>
                                         <span>Salin Penawaran WhatsApp</span>
+                                    </button>
+
+                                    {{-- Tombol Kirim ke Cetakia --}}
+                                    <button type="button" id="btnSendToCetakia" class="btn"
+                                        style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 11px 18px; font-size: 13.5px; font-weight: 700; background: linear-gradient(135deg, #1e3a8a 0%, #0284c7 100%); color: #fff; border: none; border-radius: 9px; cursor: pointer; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35); transition: all 0.2s ease;">
+                                        <i class="bi bi-cloud-arrow-up-fill" style="font-size: 16px;"></i>
+                                        <span>Kirim Penawaran ke Cetakia</span>
                                     </button>
                                 </div>
                             </div>
@@ -1077,7 +1284,7 @@
                     </div>
                     <div style="text-align: right; font-size: 12px; color: var(--t-muted);">
                         <div>Tanggal: <strong id="modalQuoteDate">{{ date('d/m/Y') }}</strong></div>
-                        <div>Berlaku s/d: <strong id="modalQuoteExpired">{{ date('d/m/Y', strtotime('+7 days')) }}</strong>
+                        <div>Berlaku s/d: <strong id="modalQuoteExpired">{{ date('d/m/Y', strtotime('+30 days')) }}</strong>
                         </div>
                         <div>Status: <strong style="color: #22c55e;">Estimasi Resmi</strong></div>
                     </div>
@@ -1142,6 +1349,20 @@
                             <td id="modalTableExtraSubtotal"
                                 style="padding: 10px 12px; text-align: right; font-weight: 700;">-</td>
                         </tr>
+                        <tr id="modalTableDiscountRow" style="display: none;">
+                            <td colspan="3" style="padding: 10px 12px; text-align: right; color: #ef4444; font-weight: 600;">
+                                Hemat Diskon (<span id="modalTableDiscountDesc">-</span>):
+                            </td>
+                            <td id="modalTableDiscountAmount"
+                                style="padding: 10px 12px; text-align: right; color: #ef4444; font-weight: 700;">- Rp 0,00</td>
+                        </tr>
+                        <tr id="modalTableTaxRow" style="display: none;">
+                            <td colspan="3" style="padding: 10px 12px; text-align: right; color: #2563eb; font-weight: 600;">
+                                PPN (11%):
+                            </td>
+                            <td id="modalTableTaxAmount"
+                                style="padding: 10px 12px; text-align: right; color: #2563eb; font-weight: 700;">+ Rp 0,00</td>
+                        </tr>
                     </tbody>
                     <tfoot>
                         <tr>
@@ -1158,7 +1379,7 @@
 
                 <div
                     style="font-size: 11px; color: var(--t-muted); border-top: 1px dashed var(--border); padding-top: 10px; line-height: 1.5;">
-                    * Penawaran resmi berlaku selama 7 hari kalender dari tanggal diterbitkan. Harga sudah termasuk proses
+                    * Penawaran resmi berlaku selama masa berlaku yang ditentukan dari tanggal diterbitkan. Harga sudah termasuk proses
                     cetak terstandar dan quality control Cipta Grafika.
                 </div>
             </div>
@@ -1183,9 +1404,220 @@
     </div>
 
     {{-- =========================================================
+        MODAL: KONFIRMASI PENGIRIMAN KE CETAKIA (DEV MODE)
+    ========================================================== --}}
+    <div class="modal-overlay" id="modalCetakiaConfirm">
+        <div class="modal modal-content-custom" style="max-width: 530px; border-radius: 16px; overflow: hidden; padding: 0; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.45);">
+            {{-- HEADER DENGAN GRADASI BIRU-CYAN ELEGAN --}}
+            <div style="background: linear-gradient(135deg, #1e3a8a 0%, #0284c7 100%); color: #fff; padding: 22px 24px; position: relative;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(255, 255, 255, 0.18); display: flex; align-items: center; justify-content: center; font-size: 22px;">
+                            <i class="bi bi-cloud-arrow-up-fill"></i>
+                        </div>
+                        <div>
+                            <span class="badge" style="background: rgba(255, 255, 255, 0.2); color: #fff; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 4px;">
+                                CETAKIA &middot; DEV MODE
+                            </span>
+                            <h3 style="margin: 0; font-size: 17.5px; font-weight: 700; color: #fff;">Konfirmasi Kirim Penawaran</h3>
+                        </div>
+                    </div>
+                    <button type="button" id="btnCloseConfirmModal" class="modal-close-btn" style="color: #fff; opacity: 0.8; font-size: 18px;" aria-label="Tutup">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+            </div>
+
+            {{-- BODY DENGAN RINGKASAN STRUKTUR RAPI --}}
+            <div style="padding: 22px 24px; background: var(--bg-card);">
+                <p style="margin: 0 0 16px; font-size: 13px; color: var(--t-muted); line-height: 1.5;">
+                    Data penawaran merchandise akan dikirim dan dicatat sebagai draf transaksi resmi di sistem Cetakia. Silakan periksa kembali rincian di bawah ini:
+                </p>
+
+                {{-- CARD DETAIL TRANSAKSI --}}
+                <div style="background: var(--bg-muted); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 16px;">
+                    <div style="display: flex; flex-direction: column; gap: 11px; font-size: 13px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--border); padding-bottom: 9px;">
+                            <span style="color: var(--t-muted);">Pelanggan (Customer):</span>
+                            <strong id="confirmCustomerName" style="color: var(--t-base); font-size: 13.5px;">-</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--border); padding-bottom: 9px;">
+                            <span style="color: var(--t-muted);">Sales PIC:</span>
+                            <strong id="confirmSalesName" style="color: var(--t-base); font-size: 13.5px;">-</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--border); padding-bottom: 9px;">
+                            <span style="color: var(--t-muted);">Produk &amp; Kuantiti:</span>
+                            <span id="confirmItemDesc" style="color: var(--t-base); font-weight: 600; text-align: right; max-width: 60%;">-</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--border); padding-bottom: 9px;">
+                            <span style="color: var(--t-muted);">Syarat Pembayaran:</span>
+                            <span id="confirmTermsText" class="badge" style="background: var(--bg-card); color: var(--t-base); border: 1px solid var(--border); font-size: 11.5px;">Cash / Tunai</span>
+                        </div>
+                        <div id="confirmDiscountRow" style="display: none; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--border); padding-bottom: 9px;">
+                            <span style="color: var(--t-muted);">Diskon:</span>
+                            <span id="confirmDiscountText" style="font-weight: 600; color: #ef4444;">- Rp 0,00</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--border); padding-bottom: 9px;">
+                            <span style="color: var(--t-muted);">Pajak Pertambahan Nilai:</span>
+                            <span id="confirmTaxText" style="font-weight: 600; color: #2563eb;">Non-PPN (0%)</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 2px;">
+                            <span style="font-weight: 700; color: var(--t-base);">Grand Total Penawaran:</span>
+                            <strong id="confirmGrandTotal" style="font-size: 16px; color: var(--primary);">Rp 0,00</strong>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- INFO KETENTUAN DEV MODE --}}
+                <div style="display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; background: rgba(59, 130, 246, 0.08); border-radius: 10px; border: 1px solid rgba(59, 130, 246, 0.2); margin-bottom: 20px; font-size: 12px; color: var(--t-muted); line-height: 1.45;">
+                    <i class="bi bi-shield-check" style="color: #2563eb; font-size: 16px; margin-top: 1px; flex-shrink: 0;"></i>
+                    <span>Penawaran akan dikirim ke API Cetakia Development dan tercatat sebagai Draf (Draft). Aman dan tidak mengubah data master apapun.</span>
+                </div>
+
+                {{-- BUTTONS --}}
+                <div style="display: flex; gap: 10px;">
+                    <button type="button" id="btnCancelConfirmModal" class="btn" style="flex: 1; padding: 12px 18px; font-size: 13.5px; font-weight: 600; background: var(--bg-muted); color: var(--t-base); border: 1.5px solid var(--border); border-radius: 10px; cursor: pointer; transition: all 0.2s ease;">
+                        <i class="bi bi-arrow-left"></i> Periksa Lagi
+                    </button>
+                    <button type="button" id="btnExecuteSendToCetakia" class="btn" style="flex: 1.4; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 18px; font-size: 14px; font-weight: 700; background: linear-gradient(135deg, #059669 0%, #10b981 100%); color: #fff; border: none; border-radius: 10px; cursor: pointer; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3); transition: all 0.2s ease;">
+                        <i class="bi bi-send-fill"></i>
+                        <span>Ya, Kirim Sekarang</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- =========================================================
+        MODAL: NOTIFIKASI BERHASIL KIRIM KE CETAKIA
+    ========================================================== --}}
+    <div class="modal-overlay" id="modalCetakiaSuccess">
+        <div class="modal modal-content-custom" style="max-width: 520px; text-align: center; padding: 0; overflow: hidden; border-radius: 14px;">
+            <div style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); color: #fff; padding: 28px 24px 22px;">
+                <div style="width: 58px; height: 58px; background: rgba(255, 255, 255, 0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; font-size: 28px;">
+                    <i class="bi bi-check-lg"></i>
+                </div>
+                <h3 style="margin: 0 0 6px; font-size: 19px; font-weight: 700; color: #fff;">Quotation Berhasil Terkirim!</h3>
+                <p style="margin: 0; font-size: 13px; opacity: 0.9;">Penawaran harga telah resmi tercatat di sistem Cetakia (Dev Mode).</p>
+            </div>
+
+            <div style="padding: 24px; text-align: left;">
+                <div style="background: var(--bg-muted); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; margin-bottom: 18px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-size: 12px; color: var(--t-muted);">Nomor Transaksi Resmi:</span>
+                        <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #059669; font-weight: 700; font-size: 11.5px;">201 Created</span>
+                    </div>
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                        <strong id="cetakiaSuccessCode" style="font-size: 17px; letter-spacing: 0.5px; color: var(--t-base); font-family: monospace;">-</strong>
+                        <button type="button" id="btnCopyCetakiaCode" class="btn btn--sm btn--ghost" style="padding: 4px 10px; font-size: 12px; border: 1px solid var(--border); border-radius: 6px; cursor: pointer;">
+                            <i class="bi bi-copy"></i> Salin
+                        </button>
+                    </div>
+                </div>
+
+                <div style="font-size: 13px; display: flex; flex-direction: column; gap: 8px; color: var(--t-base); margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: var(--t-muted);">Pelanggan:</span>
+                        <strong id="cetakiaSuccessCustomer">-</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: var(--t-muted);">Sales PIC:</span>
+                        <strong id="cetakiaSuccessSales">-</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: var(--t-muted);">Total Penawaran:</span>
+                        <strong id="cetakiaSuccessGrandTotal" style="color: #059669; font-size: 14.5px;">Rp 0,00</strong>
+                    </div>
+                </div>
+
+                <div style="margin-top: 10px;">
+                    <button type="button" id="btnCloseCetakiaModal" class="btn" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 18px; font-size: 14px; font-weight: 700; background: var(--primary); color: #fff; border: none; border-radius: 10px; cursor: pointer; transition: all 0.2s ease;">
+                        <span>Tutup &amp; Selesai</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- =========================================================
         CUSTOM STYLES (THEME-AWARE, HARMONIZED WITH CALENDAR ESTIMATOR)
     ========================================================== --}}
     <style>
+        .quote-preset-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2px 8px;
+            font-size: 11px;
+            font-weight: 600;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: var(--bg-card);
+            color: var(--t-muted);
+            cursor: pointer;
+            transition: all 0.15s ease;
+            line-height: 1.4;
+            user-select: none;
+        }
+        .quote-preset-btn:hover {
+            background: var(--primary-soft);
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+        .quote-preset-btn.active,
+        .quote-preset-btn.is-active {
+            background: var(--primary);
+            color: #ffffff;
+            border-color: var(--primary);
+            box-shadow: 0 1px 3px var(--primary-ring);
+        }
+        /* Modern iOS-Style PPN Toggle Switch */
+        .ppn-toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+            flex-shrink: 0;
+        }
+
+        .ppn-toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .ppn-toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--border, #cbd5e1);
+            transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 24px;
+        }
+
+        .ppn-toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 50%;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        .ppn-toggle-switch input:checked+.ppn-toggle-slider {
+            background-color: #2563eb;
+        }
+
+        .ppn-toggle-switch input:checked+.ppn-toggle-slider:before {
+            transform: translateX(20px);
+        }
         /* =========================================================
            LAYOUT, OVERFLOW & TOPBAR STACKING PROTECTION
         ========================================================== */
@@ -2122,6 +2554,16 @@
             const dbAkrilikUvItems = @json($akrilikUvItems ?? []);
 
             let activeTab = 'lanyard';
+            let latestMerchCalculation = null;
+            let pendingCetakiaPayload = null;
+
+            function formatRupiah(num) {
+                const n = Number(num) || 0;
+                return 'Rp ' + n.toLocaleString('id-ID', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+            }
 
             // State Lanyard
             let lanyardWidth = '2cm';
@@ -2177,12 +2619,137 @@
                 });
 
                 $('#merch_customer_id').on('change', function() {
+                    const custVal = $(this).val();
                     const sel = $(this).find('option:selected');
                     const cNameInput = document.getElementById('merch_customer_name');
-                    if (cNameInput) {
-                        cNameInput.value = sel.data('name') || '';
+                    if (!custVal) {
+                        if (cNameInput) cNameInput.value = '';
+                        $('#bill_to').val('');
+                        $('#ship_to').val('');
+                    } else {
+                        const custName = (sel.data('name') || sel.text() || '').trim();
+                        if (cNameInput) {
+                            cNameInput.value = custName;
+                        }
+                        const rawBillTo = (sel.data('bill-to') || '').toString().trim();
+                        const rawShipTo = (sel.data('ship-to') || '').toString().trim();
+                        const finalBillTo = rawBillTo || custName;
+                        const finalShipTo = rawShipTo || finalBillTo;
+                        $('#bill_to').val(finalBillTo);
+                        $('#ship_to').val(finalShipTo);
                     }
                 });
+
+                // Salin Bill To ke Ship To
+                $('#btn_copy_bill_to_merch').on('click', function(e) {
+                    e.preventDefault();
+                    $('#ship_to').val($('#bill_to').val());
+                });
+
+                // Preset Masa Berlaku Penawaran
+                $('.btn-expire-preset-merch').on('click', function(e) {
+                    e.preventDefault();
+                    $('.btn-expire-preset-merch').removeClass('active');
+                    $(this).addClass('active');
+                    const days = parseInt($(this).data('days')) || 30;
+                    const baseDateVal = $('#quotation_date').val() || new Date().toISOString().split('T')[0];
+                    const baseDate = new Date(baseDateVal);
+                    baseDate.setDate(baseDate.getDate() + days);
+                    const yyyy = baseDate.getFullYear();
+                    const mm = String(baseDate.getMonth() + 1).padStart(2, '0');
+                    const dd = String(baseDate.getDate()).padStart(2, '0');
+                    $('#quotation_expired').val(`${yyyy}-${mm}-${dd}`);
+                });
+
+                $('#quotation_date').on('change', function() {
+                    const qDate = $(this).val();
+                    const expDate = $('#quotation_expired').val();
+                    if (qDate && (!expDate || expDate < qDate)) {
+                        const d = new Date(qDate);
+                        d.setDate(d.getDate() + 30);
+                        const yyyy = d.getFullYear();
+                        const mm = String(d.getMonth() + 1).padStart(2, '0');
+                        const dd = String(d.getDate()).padStart(2, '0');
+                        $('#quotation_expired').val(`${yyyy}-${mm}-${dd}`);
+                        $('.btn-expire-preset-merch').removeClass('active');
+                        $('.btn-expire-preset-merch[data-days="30"]').addClass('active');
+                    }
+                });
+
+                $('#quotation_expired').on('input change', function() {
+                    $('.btn-expire-preset-merch').removeClass('active');
+                });
+
+                // Toggle PPN 11% Listener
+                $('#tax_enabled_check').on('change', function() {
+                    calculateTaxAndTotal();
+                });
+
+                // Logika Diskon (Sama Persis dengan A3+ & Large Format)
+                const discountRadios = document.querySelectorAll('input[name="discount_type"]');
+                const discountValueField = document.getElementById('discountValueField');
+                const discountValueInput = document.getElementById('discount_value');
+                const discountSuffix = document.getElementById('discountSuffix');
+                const discountValueLabel = document.getElementById('discountValueLabel');
+
+                if (discountRadios.length) {
+                    discountRadios.forEach(radio => {
+                        radio.addEventListener('change', function() {
+                            const type = this.value;
+                            if (type === 'none') {
+                                if (discountValueField) discountValueField.hidden = true;
+                                if (discountValueInput) {
+                                    discountValueInput.disabled = true;
+                                    discountValueInput.value = '';
+                                }
+                            } else if (type === 'percentage') {
+                                if (discountValueField) discountValueField.hidden = false;
+                                if (discountValueInput) {
+                                    discountValueInput.disabled = false;
+                                    discountValueInput.value = '';
+                                    discountValueInput.placeholder = 'Contoh: 10';
+                                }
+                                if (discountSuffix) discountSuffix.textContent = '%';
+                                if (discountValueLabel) discountValueLabel.textContent = 'Persentase Diskon';
+                            } else if (type === 'nominal') {
+                                if (discountValueField) discountValueField.hidden = false;
+                                if (discountValueInput) {
+                                    discountValueInput.disabled = false;
+                                    discountValueInput.value = '';
+                                    discountValueInput.placeholder = 'Contoh: 25.000';
+                                }
+                                if (discountSuffix) discountSuffix.textContent = 'Rp';
+                                if (discountValueLabel) discountValueLabel.textContent = 'Nominal Diskon';
+                            }
+                            calculateTaxAndTotal();
+                        });
+                    });
+                }
+
+                if (discountValueInput) {
+                    discountValueInput.addEventListener('input', function() {
+                        const selectedType = document.querySelector('input[name="discount_type"]:checked')?.value;
+
+                        if (selectedType === 'percentage') {
+                            let value = this.value.replace(/[^0-9.]/g, '');
+                            const parts = value.split('.');
+                            if (parts.length > 2) {
+                                value = parts[0] + '.' + parts.slice(1).join('');
+                            }
+                            this.value = value;
+                        }
+
+                        if (selectedType === 'nominal') {
+                            const rawValue = this.value.replace(/\D/g, '');
+                            this.value = rawValue ?
+                                new Intl.NumberFormat('id-ID', {
+                                    maximumFractionDigits: 0
+                                }).format(Number(rawValue)) :
+                                '';
+                        }
+                        calculateTaxAndTotal();
+                    });
+                }
             } else {
                 document.getElementById('merch_customer_id')?.addEventListener('change', function() {
                     const opt = this.options[this.selectedIndex];
@@ -2194,11 +2761,7 @@
             }
 
             function formatRp(val) {
-                return new Intl.NumberFormat('id-ID', {
-                    style: 'currency',
-                    currency: 'IDR',
-                    maximumFractionDigits: 0
-                }).format(val || 0);
+                return formatRupiah(val);
             }
 
             // 1. Tab Navigation
@@ -2892,6 +3455,110 @@
                     grandTotal.textContent = formatRp(total);
                     perUnit.textContent = `(${formatRp(unit)} / pcs)`;
                 }
+
+                // Simpan state kalkulasi merchandise aktif untuk Cetakia Quotation
+                let merchItemQty = 1;
+                let merchMatName = 'Bahan Merchandise Standar';
+
+                if (activeTab === 'lanyard') {
+                    merchItemQty = lanyardQty;
+                    merchMatName = `Tali Tissue Sublimasi ${(lanyardWidth === '2cm') ? '2.0 cm' : '2.5 cm'}`;
+                } else if (activeTab === 'nametag') {
+                    merchItemQty = nametagQty;
+                    merchMatName = `Akrilik / Logam (+ ${(nametagFastener === 'magnet') ? 'Magnet Neodymium' : 'Peniti Stainless'}`;
+                } else if (activeTab === 'plakat') {
+                    merchItemQty = plakatQty;
+                    merchMatName = (plakatMaterial === 'kayu') ? 'Kayu Solid Ukir' : `Akrilik Bening ${plakatThickness.toUpperCase()}`;
+                } else if (activeTab === 'nota') {
+                    merchItemQty = notaRimQty;
+                    merchMatName = `${(notaPaper === 'ncr') ? 'Kertas NCR Carbonless' : 'Kertas HVS Putih'} (${notaPly} Ply, ${notaInk} Tinta)`;
+                } else if (activeTab === 'mug') {
+                    merchItemQty = mugQty;
+                    merchMatName = 'Keramik Putih SNI 11 oz';
+                } else if (activeTab === 'pvccard') {
+                    merchItemQty = pvcCardQty;
+                    merchMatName = 'PVC Standard ATM 0.76 mm';
+                } else if (activeTab === 'akrilikuv') {
+                    merchItemQty = akrilikUvQty;
+                    merchMatName = 'Akrilik Bening 3 mm';
+                }
+
+                latestMerchCalculation = {
+                    category: activeTab,
+                    categoryLabel: categoryBadge.textContent.trim(),
+                    productName: productTitle.textContent.trim(),
+                    itemDesc: specsDesc.textContent.trim(),
+                    materialName: merchMatName,
+                    unitPrice: unit,
+                    qty: merchItemQty,
+                    subtotal: total
+                };
+
+                // Hitung dan perbarui kalkulasi PPN 11% dan Grand Total
+                calculateTaxAndTotal();
+            }
+
+            function calculateTaxAndTotal() {
+                if (!latestMerchCalculation) return;
+                const isTax = $('#tax_enabled_check').is(':checked');
+                const subtotal = Number(latestMerchCalculation.subtotal) || 0;
+                const qty = Number(latestMerchCalculation.qty) || 1;
+
+                // Hitung Diskon
+                const discountType = document.querySelector('input[name="discount_type"]:checked')?.value || 'none';
+                const discountRaw = ($('#discount_value').val() || '').replace(/\./g, '').replace(',', '.');
+                const discountVal = parseFloat(discountRaw) || 0;
+                let discAmt = 0;
+                if (discountType === 'percentage') {
+                    discAmt = Math.min(subtotal, Math.round(subtotal * (discountVal / 100)));
+                } else if (discountType === 'nominal') {
+                    discAmt = Math.min(subtotal, discountVal);
+                }
+
+                const dpp = Math.max(0, subtotal - discAmt);
+                const taxAmt = isTax ? Math.round(dpp * 0.11) : 0;
+                const grandTotal = dpp + taxAmt;
+                const unitPrice = qty > 0 ? (grandTotal / qty) : 0;
+
+                const grandTotalEl = document.getElementById('summaryMerchGrandTotal');
+                const perUnitEl = document.getElementById('summaryMerchPerUnit');
+                if (grandTotalEl) grandTotalEl.textContent = formatRupiah(grandTotal);
+
+                if (perUnitEl) {
+                    if (latestMerchCalculation.category === 'nota') {
+                        const totalBooks = notaBooksPerRim * notaRimQty;
+                        const perBook = totalBooks > 0 ? Math.round(grandTotal / totalBooks) : 0;
+                        perUnitEl.textContent = `(~ ${formatRupiah(perBook)} / buku)`;
+                    } else {
+                        perUnitEl.textContent = `(${formatRupiah(unitPrice)} / pcs)`;
+                    }
+                }
+
+                // Tampilkan / Sembunyikan Live Discount Wrap
+                const discWrap = document.getElementById('liveDiscountWrap');
+                if (discWrap) {
+                    if (discAmt > 0) {
+                        discWrap.style.display = 'block';
+                        const subtotalEl = document.getElementById('liveSubtotalPrice');
+                        if (subtotalEl) subtotalEl.textContent = formatRupiah(subtotal);
+                        const discAmtEl = document.getElementById('liveDiscountAmount');
+                        if (discAmtEl) discAmtEl.textContent = '- ' + formatRupiah(discAmt);
+                        const discDescEl = document.getElementById('liveDiscountDesc');
+                        if (discDescEl) discDescEl.textContent = (discountType === 'percentage' ? `${discountVal}%` : 'Nominal');
+                    } else {
+                        discWrap.style.display = 'none';
+                    }
+                }
+
+                const taxWrap = document.getElementById('liveTaxDetailsRow');
+                const baseAmtEl = document.getElementById('liveTaxBaseAmount');
+                const ppnRow = document.getElementById('liveTaxPpnRow');
+                const taxAmtEl = document.getElementById('liveTaxAmount');
+
+                if (taxWrap) taxWrap.style.display = isTax ? 'block' : 'none';
+                if (baseAmtEl) baseAmtEl.textContent = formatRupiah(dpp);
+                if (ppnRow) ppnRow.style.display = isTax ? 'flex' : 'none';
+                if (taxAmtEl) taxAmtEl.textContent = '+ ' + formatRupiah(taxAmt);
             }
 
             // 7. Render Matriks Tabel Harga (Di Bawah Estimator) dengan Pagination
@@ -3649,8 +4316,37 @@
                     extraRow.style.display = 'none';
                 }
 
-                document.getElementById('modalTableItemSubtotal').textContent = grandTotal;
-                document.getElementById('modalGrandTotal').textContent = grandTotal;
+                const isTax = $('#tax_enabled_check').is(':checked');
+                const subtotalVal = Number(latestMerchCalculation ? latestMerchCalculation.subtotal : 0);
+
+                const discountType = document.querySelector('input[name="discount_type"]:checked')?.value || 'none';
+                const discountRaw = ($('#discount_value').val() || '').replace(/\./g, '').replace(',', '.');
+                const discountVal = parseFloat(discountRaw) || 0;
+                let discAmt = 0;
+                if (discountType === 'percentage') {
+                    discAmt = Math.min(subtotalVal, Math.round(subtotalVal * (discountVal / 100)));
+                } else if (discountType === 'nominal') {
+                    discAmt = Math.min(subtotalVal, discountVal);
+                }
+
+                const dppVal = Math.max(0, subtotalVal - discAmt);
+                const taxAmtVal = isTax ? Math.round(dppVal * 0.11) : 0;
+                const grandTotalVal = dppVal + taxAmtVal;
+
+                const modalDiscRow = document.getElementById('modalTableDiscountRow');
+                const modalDiscAmt = document.getElementById('modalTableDiscountAmount');
+                const modalDiscDesc = document.getElementById('modalTableDiscountDesc');
+                if (modalDiscRow) modalDiscRow.style.display = discAmt > 0 ? 'table-row' : 'none';
+                if (modalDiscAmt) modalDiscAmt.textContent = '- ' + formatRupiah(discAmt);
+                if (modalDiscDesc) modalDiscDesc.textContent = (discountType === 'percentage' ? `${discountVal}%` : 'Nominal');
+
+                const modalTaxRow = document.getElementById('modalTableTaxRow');
+                const modalTaxAmount = document.getElementById('modalTableTaxAmount');
+                if (modalTaxRow) modalTaxRow.style.display = isTax ? 'table-row' : 'none';
+                if (modalTaxAmount) modalTaxAmount.textContent = '+ ' + formatRupiah(taxAmtVal);
+
+                document.getElementById('modalTableItemSubtotal').textContent = formatRupiah(subtotalVal);
+                document.getElementById('modalGrandTotal').textContent = formatRupiah(grandTotalVal);
 
                 // Tampilkan Modal
                 modalDetail.classList.add('is-open');
@@ -3752,6 +4448,7 @@
                 const specs = document.getElementById('summaryMerchSpecs')?.textContent || '';
                 const qty = document.getElementById('summaryMerchQty')?.textContent || '';
 
+const isTax = $('#tax_enabled_check').is(':checked');
                 const textLines = [
                     `*SURAT PENAWARAN HARGA (SPH) - CIPTA GRAFIKA*`,
                     `Kepada Yth: *${custName}*`,
@@ -3760,7 +4457,7 @@
                     `*Produk:* ${prodTitle}`,
                     `*Spesifikasi:* ${specs}`,
                     `*Kuantitas:* ${qty}`,
-                    `*Total Estimasi:* *${grandTotal}* ${perUnit}`,
+                    `*Total Estimasi:* *${grandTotal}* ${perUnit}${isTax ? ' _(Termasuk PPN 11%)_' : ''}`,
                     notes ? `*Catatan Khusus:* ${notes}` : '',
                     `---------------------------------------------`,
                     `_Harga resmi terstandar dan berlaku selama penawaran masih aktif._`,
@@ -3807,7 +4504,40 @@
             document.getElementById('btnResetMerchForm')?.addEventListener('click', function() {
                 // Reset Pelanggan, Kontak, Lokasi & Catatan
                 const custSelect = document.getElementById('merch_customer_id');
-                if (custSelect) custSelect.value = '';
+                if (typeof $ !== 'undefined') {
+                    $('#merch_customer_id').val('').trigger('change.select2');
+                    $('#cetakia_user_id').val($('#cetakia_user_id option:first').val()).trigger('change.select2');
+                    $('#cetakia_terms').val('0').trigger('change.select2');
+                    $('#tax_enabled_check').prop('checked', false);
+                    const liveTaxDetails = document.getElementById('liveTaxDetailsRow');
+                    if (liveTaxDetails) liveTaxDetails.style.display = 'none';
+
+                    // Reset Diskon
+                    const discountNoneRadio = document.querySelector('input[name="discount_type"][value="none"]');
+                    if (discountNoneRadio) discountNoneRadio.checked = true;
+                    const discountValueField = document.getElementById('discountValueField');
+                    if (discountValueField) discountValueField.hidden = true;
+                    const discountValueInput = document.getElementById('discount_value');
+                    if (discountValueInput) {
+                        discountValueInput.disabled = true;
+                        discountValueInput.value = '';
+                    }
+                    const discountSuffix = document.getElementById('discountSuffix');
+                    if (discountSuffix) discountSuffix.textContent = '%';
+                    const discWrap = document.getElementById('liveDiscountWrap');
+                    if (discWrap) discWrap.style.display = 'none';
+
+                    $('#bill_to').val('');
+                    $('#ship_to').val('');
+                    const today = new Date().toISOString().split('T')[0];
+                    const next30 = new Date();
+                    next30.setDate(next30.getDate() + 30);
+                    const next30Str = `${next30.getFullYear()}-${String(next30.getMonth() + 1).padStart(2, '0')}-${String(next30.getDate()).padStart(2, '0')}`;
+                    $('#quotation_date').val(today);
+                    $('#quotation_expired').val(next30Str);
+                    $('.btn-expire-preset-merch').removeClass('active');
+                    $('.btn-expire-preset-merch[data-days="30"]').addClass('active');
+                }
                 const custHidden = document.getElementById('merch_customer_name');
                 if (custHidden) custHidden.value = '';
                 const custPhone = document.getElementById('merch_customer_phone');
@@ -3908,6 +4638,254 @@
             // Inisialisasi awal kalkulasi & tabel
             updateCalculation();
             renderMatrixTable();
+
+            // =========================================================
+            // CETAKIA INTEGRATION LOGIC (DEV MODE)
+            // =========================================================
+
+            function showNotificationToast(title, desc, type = 'success') {
+                let container = document.getElementById('notifToastContainer');
+                if (!container) {
+                    container = document.createElement('div');
+                    container.id = 'notifToastContainer';
+                    container.style.cssText = 'position: fixed; top: 24px; right: 24px; z-index: 99999; display: flex; flex-direction: column; gap: 10px; pointer-events: none;';
+                    document.body.appendChild(container);
+                }
+                const toast = document.createElement('div');
+                toast.style.cssText = 'pointer-events: auto; min-width: 300px; max-width: 420px; background: var(--bg-card); border-left: 4px solid ' +
+                    (type === 'error' ? '#ef4444' : (type === 'warning' ? '#f59e0b' : '#10b981')) +
+                    '; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.25); border-radius: 10px; padding: 14px 16px; display: flex; align-items: flex-start; gap: 12px; transition: all 0.3s ease; transform: translateX(120%); opacity: 0;';
+                const iconColor = type === 'error' ? '#ef4444' : (type === 'warning' ? '#f59e0b' : '#10b981');
+                const iconClass = type === 'error' ? 'bi-exclamation-circle-fill' : (type === 'warning' ? 'bi-exclamation-triangle-fill' : 'bi-check-circle-fill');
+                toast.innerHTML = `
+                    <i class="bi ${iconClass}" style="color: ${iconColor}; font-size: 20px; margin-top: 2px;"></i>
+                    <div style="flex: 1;">
+                        <div style="font-weight: 700; font-size: 13.5px; color: var(--t-base); margin-bottom: 3px;">${title}</div>
+                        <div style="font-size: 12.5px; color: var(--t-muted); line-height: 1.4;">${desc}</div>
+                    </div>
+                    <button type="button" style="background: none; border: none; font-size: 16px; color: var(--t-muted); cursor: pointer; padding: 0 4px; line-height: 1;">&times;</button>
+                `;
+                container.appendChild(toast);
+                requestAnimationFrame(() => {
+                    toast.style.transform = 'translateX(0)';
+                    toast.style.opacity = '1';
+                });
+                const closeToast = () => {
+                    toast.style.transform = 'translateX(120%)';
+                    toast.style.opacity = '0';
+                    setTimeout(() => toast.remove(), 350);
+                };
+                toast.querySelector('button').addEventListener('click', closeToast);
+                setTimeout(closeToast, 3500);
+            }
+
+            // Buka Modal Konfirmasi Kirim Penawaran
+            $('#btnSendToCetakia').on('click', function(e) {
+                e.preventDefault();
+
+                if (!latestMerchCalculation) {
+                    showNotificationToast('Perhitungan Belum Siap', 'Silakan tentukan spesifikasi merchandise terlebih dahulu hingga hasil hitungan muncul.', 'warning');
+                    return;
+                }
+
+                const customerId = $('#merch_customer_id').val();
+                if (!customerId) {
+                    showNotificationToast('Pilih Pelanggan', 'Silakan pilih Nama Pelanggan (Cetakia) terlebih dahulu.', 'warning');
+                    $('#merch_customer_id').select2('open');
+                    return;
+                }
+
+                const userId = $('#cetakia_user_id').val();
+                if (!userId) {
+                    showNotificationToast('Pilih Sales PIC', 'Silakan pilih Sales / PIC Penanggung Jawab terlebih dahulu.', 'warning');
+                    $('#cetakia_user_id').select2('open');
+                    return;
+                }
+
+                const billTo = ($('#bill_to').val() || '').trim();
+                const shipTo = ($('#ship_to').val() || '').trim();
+                if (!billTo || !shipTo) {
+                    showNotificationToast('Alamat Belum Lengkap', 'Silakan lengkapi Alamat Penagihan (Bill To) dan Alamat Pengiriman (Ship To).', 'warning');
+                    return;
+                }
+
+                const isTax = $('#tax_enabled_check').is(':checked');
+                const subtotal = Number(latestMerchCalculation.subtotal) || 0;
+                const qty = Number(latestMerchCalculation.qty) || 1;
+
+                const discountType = document.querySelector('input[name="discount_type"]:checked')?.value || 'none';
+                const discountRaw = ($('#discount_value').val() || '').replace(/\./g, '').replace(',', '.');
+                const discountVal = parseFloat(discountRaw) || 0;
+                let discAmt = 0;
+                if (discountType === 'percentage') {
+                    discAmt = Math.min(subtotal, Math.round(subtotal * (discountVal / 100)));
+                } else if (discountType === 'nominal') {
+                    discAmt = Math.min(subtotal, discountVal);
+                }
+
+                const dpp = Math.max(0, subtotal - discAmt);
+                const taxAmt = isTax ? Math.round(dpp * 0.11) : 0;
+                const grandTotal = dpp + taxAmt;
+
+                const custName = $('#merch_customer_id option:selected').data('name') || $('#merch_customer_id option:selected').text().trim() || 'Pelanggan Terpilih';
+                const salesName = $('#cetakia_user_id option:selected').text().trim() || '-';
+                const termsVal = parseInt($('#cetakia_terms').val() || '0');
+                const termsText = $('#cetakia_terms option:selected').text().trim() || 'Cash / Tunai';
+
+                const r = latestMerchCalculation;
+                const itemName = r.productName;
+                const itemDesc = (r.itemDesc || '')
+                    .replace(/[:：]/g, ' ')
+                    .replace(/×/g, 'x')
+                    .replace(/\s*·\s*/g, '_')
+                    .replace(/\s*_\s*/g, '_')
+                    .replace(/_+/g, '_')
+                    .trim();
+
+                // Update info di Modal Konfirmasi
+                $('#confirmCustomerName').text(custName);
+                $('#confirmSalesName').text(salesName);
+                $('#confirmItemDesc').text(itemName + ' (' + qty.toLocaleString('id-ID') + (r.category === 'nota' ? ' Paket Rim' : ' pcs') + ')');
+                $('#confirmTermsText').text(termsText);
+                if (discAmt > 0) {
+                    $('#confirmDiscountRow').show();
+                    $('#confirmDiscountText').text('- ' + formatRupiah(discAmt) + ' (' + (discountType === 'percentage' ? discountVal + '%' : 'Nominal') + ')');
+                } else {
+                    $('#confirmDiscountRow').hide();
+                }
+                $('#confirmTaxText').text(isTax ? 'PPN 11% (+ ' + formatRupiah(taxAmt) + ')' : 'Non-PPN (0%)');
+                $('#confirmGrandTotal').text(formatRupiah(grandTotal));
+
+                // Simpan payload siap kirim
+                pendingCetakiaPayload = {
+                    customer_id: customerId,
+                    user_id: userId,
+                    quotation_date: $('#quotation_date').val() || new Date().toISOString().split('T')[0],
+                    quotation_expired: $('#quotation_expired').val() || '',
+                    bill_to: billTo,
+                    ship_to: shipTo,
+                    notes: ($('#merch_custom_notes').val() || '').trim(),
+                    terms: termsVal,
+                    sub_total: subtotal,
+                    discount_enabled: discAmt > 0,
+                    discount_type: discountType === 'percentage' ? 'percent' : 'nominal',
+                    discount: discountVal,
+                    discount_amount: discAmt,
+                    tax_enabled: isTax,
+                    tax: isTax ? 11 : 0,
+                    tax_amount: taxAmt,
+                    pph_enabled: false,
+                    pph: 0,
+                    pph_amount: 0,
+                    grand_total: grandTotal,
+                    items: [
+                        {
+                            type: 'product',
+                            item: itemName,
+                            category: r.categoryLabel,
+                            material_name: r.materialName || '',
+                            description: itemDesc,
+                            qty: qty,
+                            price: Number(r.unitPrice),
+                            amount: subtotal
+                        }
+                    ],
+                    _display: {
+                        customerName: custName,
+                        salesName: salesName,
+                        grandTotal: grandTotal
+                    }
+                };
+
+                $('#modalCetakiaConfirm').addClass('is-open');
+            });
+
+            // Tombol Tutup / Batal di Modal Konfirmasi
+            $('#btnCloseConfirmModal, #btnCancelConfirmModal').on('click', function() {
+                $('#modalCetakiaConfirm').removeClass('is-open');
+            });
+
+            // Eksekusi Kirim dari Modal Konfirmasi
+            $('#btnExecuteSendToCetakia').on('click', function() {
+                if (!pendingCetakiaPayload) return;
+
+                const btn = $(this);
+                const originalHtml = btn.html();
+                btn.prop('disabled', true).html('<i class="bi bi-arrow-repeat spin"></i> Mengirim...');
+
+                const disp = pendingCetakiaPayload._display || {};
+                const payloadData = Object.assign({}, pendingCetakiaPayload);
+                delete payloadData._display;
+
+                $.ajax({
+                    url: '{{ route("admin_cetakia_quotation_store") }}',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(payloadData),
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    success: function(res) {
+                        btn.prop('disabled', false).html(originalHtml);
+                        $('#modalCetakiaConfirm').removeClass('is-open');
+
+                        if (res.success && res.data) {
+                            const qCode = (res.data.quotation && res.data.quotation.quotation_code) ? res.data.quotation.quotation_code : (res.data.quotation_code || res.data.code || '-');
+                            $('#cetakiaSuccessCode').text(qCode);
+                            $('#cetakiaSuccessCustomer').text(disp.customerName || '-');
+                            $('#cetakiaSuccessSales').text(disp.salesName || '-');
+                            $('#cetakiaSuccessGrandTotal').text(formatRupiah(disp.grandTotal || 0));
+                            $('#modalCetakiaSuccess').addClass('is-open');
+                            showNotificationToast('Quotation Berhasil!', 'Penawaran ' + qCode + ' telah resmi tercatat di Cetakia (Dev Mode).', 'success');
+                        } else {
+                            showNotificationToast('Pemberitahuan Cetakia', res.message || 'Gagal membuat penawaran di Cetakia.', 'error');
+                        }
+                    },
+                    error: function(xhr) {
+                        btn.prop('disabled', false).html(originalHtml);
+                        $('#modalCetakiaConfirm').removeClass('is-open');
+                        let errMsg = 'Terjadi kesalahan sistem saat menghubungi server.';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errMsg = xhr.responseJSON.message;
+                        }
+                        showNotificationToast('Gagal Terkirim', errMsg, 'error');
+                    }
+                });
+            });
+
+            // Modal Cetakia Success Handlers
+            $('#btnCloseCetakiaModal').on('click', function() {
+                $('#modalCetakiaSuccess').removeClass('is-open');
+            });
+            $('#btnCopyCetakiaCode').on('click', function() {
+                const code = $('#cetakiaSuccessCode').text().trim();
+                if (code && code !== '-') {
+                    fallbackCopyText(code, function() {
+                        showNotificationToast('Nomor Disalin!', 'Kode penawaran ' + code + ' telah disalin ke clipboard.', 'success');
+                    });
+                }
+            });
+
+            // Overlay & Escape Key Handlers
+            const confirmOverlay = document.getElementById('modalCetakiaConfirm');
+            if (confirmOverlay) {
+                confirmOverlay.addEventListener('click', function(e) {
+                    if (e.target === this) $('#modalCetakiaConfirm').removeClass('is-open');
+                });
+            }
+            const successOverlay = document.getElementById('modalCetakiaSuccess');
+            if (successOverlay) {
+                successOverlay.addEventListener('click', function(e) {
+                    if (e.target === this) $('#modalCetakiaSuccess').removeClass('is-open');
+                });
+            }
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' || e.key === 'Esc') {
+                    $('#modalCetakiaConfirm').removeClass('is-open');
+                    $('#modalCetakiaSuccess').removeClass('is-open');
+                }
+            });
+
         });
     </script>
 @endsection

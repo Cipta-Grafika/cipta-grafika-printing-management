@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    'cetakia' => [
+        'base_url' => env('CETAKIA_API_BASE_URL', 'https://dev.cetakia.com'),
+        'api_key'  => env('CETAKIA_API_KEY'),
+    ],
+
 ];

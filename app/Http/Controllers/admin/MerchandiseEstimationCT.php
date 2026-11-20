@@ -21,12 +21,10 @@ class MerchandiseEstimationCT extends Controller
             ->orderBy('name', 'asc')
             ->get();
 
-        // 2. Data Pelanggan Cetakia (jika ada)
-        try {
-            $data['customers'] = CetakiaCustomer::all();
-        } catch (\Throwable $e) {
-            $data['customers'] = [];
-        }
+        // 2. Data Pelanggan & Sales PIC Cetakia Live (Dev Mode)
+        $cetakiaService = app(\App\Services\CetakiaApiService::class);
+        $data['customers'] = $cetakiaService->getCustomers();
+        $data['salesUsers'] = $cetakiaService->getSalesUsers();
 
         // 3. Data Master Lanyard Tiers
         $data['lanyardTiers'] = DB::table('m_lanyard_pricings')

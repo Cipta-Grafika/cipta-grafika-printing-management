@@ -46,7 +46,10 @@ class EstimationCT extends Controller
 
         $data['lfPriceList'] = $this->buildLargeFormatPriceListData();
         $data['displayPriceList'] = $this->buildDisplayPriceListData(null, 'large format');
-        $data['customers'] = \App\Support\CetakiaCustomer::all();
+        
+        $cetakiaService = app(\App\Services\CetakiaApiService::class);
+        $data['customers'] = $cetakiaService->getCustomers();
+        $data['salesUsers'] = $cetakiaService->getSalesUsers();
 
         /*
         |--------------------------------------------------------------------------
@@ -1939,9 +1942,11 @@ class EstimationCT extends Controller
             |--------------------------------------------------------------------------
             */
 
-            $grandTotal = $this->roundGrandTotalUpToThousand(
-                $subtotal - $discount
-            );
+            if ($discount > 0) {
+                $grandTotal = max(0.0, round($subtotal - $discount, 2));
+            } else {
+                $grandTotal = $this->roundGrandTotalUpToThousand($subtotal);
+            }
 
 
             /*
@@ -2693,9 +2698,11 @@ class EstimationCT extends Controller
 
             $discount = min($discount, $subtotal);
 
-            $grandTotal = $this->roundGrandTotalUpToThousand(
-                $subtotal - $discount
-            );
+            if ($discount > 0) {
+                $grandTotal = max(0.0, round($subtotal - $discount, 2));
+            } else {
+                $grandTotal = $this->roundGrandTotalUpToThousand($subtotal);
+            }
 
             /*
             |--------------------------------------------------------------------------
@@ -2910,7 +2917,10 @@ class EstimationCT extends Controller
 
         $data['digitalPriceList'] = $this->buildDigitalPriceListData();
         $data['displayPriceList'] = $this->buildDisplayPriceListData();
-        $data['customers'] = \App\Support\CetakiaCustomer::all();
+        
+        $cetakiaService = app(\App\Services\CetakiaApiService::class);
+        $data['customers'] = $cetakiaService->getCustomers();
+        $data['salesUsers'] = $cetakiaService->getSalesUsers();
 
         return view('admin.estimation.a3-plus.create')->with($data);
     }
@@ -4070,9 +4080,13 @@ class EstimationCT extends Controller
                 $discountAmount = $discountValue;
             }
 
-            $grandTotal = $this->roundGrandTotalUpToThousand(
-                max(0.0, $subtotal - $discountAmount)
-            );
+            $discountAmount = min($discountAmount, $subtotal);
+
+            if ($discountAmount > 0) {
+                $grandTotal = max(0.0, round($subtotal - $discountAmount, 2));
+            } else {
+                $grandTotal = $this->roundGrandTotalUpToThousand($subtotal);
+            }
             $totalHpp = $printTotalHpp + $laminationTotalHpp + $cuttingTotalHpp + $extraTotalHpp;
 
             $profit = $grandTotal - $totalHpp;
@@ -4330,7 +4344,13 @@ class EstimationCT extends Controller
                 $discountAmount = $discountValue;
             }
 
-            $grandTotal = $this->roundGrandTotalUpToThousand(max(0.0, $subtotal - $discountAmount));
+            $discountAmount = min($discountAmount, $subtotal);
+
+            if ($discountAmount > 0) {
+                $grandTotal = max(0.0, round($subtotal - $discountAmount, 2));
+            } else {
+                $grandTotal = $this->roundGrandTotalUpToThousand($subtotal);
+            }
             $profit = $grandTotal - $totalHpp;
             $margin = $grandTotal > 0 ? ($profit / $grandTotal) * 100 : 0.0;
             $markup = $totalHpp > 0 ? ($profit / $totalHpp) * 100 : 0.0;

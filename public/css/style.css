@@ -16138,46 +16138,52 @@ RESPONSIVE
 #lamination_custom_width {
     width: 100%;
     min-height: 42px;
-    padding: 10px 14px;
+    padding: 9px 12px;
 
-    background-color: rgba(255, 255, 255, 0.04);
-    color: #f1f5f9;
+    background-color: var(--bg-card);
+    color: var(--t-base);
 
-    border: 1px solid rgba(255, 255, 255, 0.14);
+    border: 1px solid var(--border);
     border-radius: 8px;
 
     font-size: 13px;
+    font-family: inherit;
     font-weight: 500;
 
     outline: none;
-    transition: all 0.2s ease;
+    transition:
+        border-color 0.18s,
+        box-shadow 0.18s,
+        background-color 0.18s;
 }
 
 /* Placeholder */
 #material_custom_width::placeholder,
 #lamination_custom_width::placeholder {
-    color: rgba(203, 213, 225, 0.5);
+    color: var(--t-light);
     font-weight: 400;
 }
 
 /* Hover */
 #material_custom_width:hover,
 #lamination_custom_width:hover {
-    border-color: rgba(194, 168, 87, 0.5);
+    border-color: var(--primary);
 }
 
 /* Focus */
 #material_custom_width:focus,
 #lamination_custom_width:focus {
-    border-color: #c2a857;
-    background-color: rgba(255, 255, 255, 0.06);
-    box-shadow: 0 0 0 3px rgba(194, 168, 87, 0.12);
+    border-color: var(--primary);
+    background-color: var(--bg-card);
+    box-shadow: 0 0 0 3px var(--primary-soft);
 }
 
 /* Disabled */
 #material_custom_width:disabled,
 #lamination_custom_width:disabled {
-    opacity: 0.45;
+    background-color: var(--bg-muted);
+    color: var(--t-light);
+    opacity: 0.65;
     cursor: not-allowed;
 }
 
@@ -16188,6 +16194,10 @@ RESPONSIVE
 #lamination_custom_width::-webkit-outer-spin-button {
     -webkit-appearance: none;
     margin: 0;
+}
+#material_custom_width,
+#lamination_custom_width {
+    -moz-appearance: textfield;
 }
 
 #material_custom_width,

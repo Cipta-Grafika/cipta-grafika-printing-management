@@ -63,7 +63,9 @@ class OffsetEstimationCT extends Controller
             $data['pricingRule'] = DB::table('m_offset_pricing_rules')->first();
         }
 
-        $data['customers'] = \App\Support\CetakiaCustomer::all();
+        $cetakiaService = app(\App\Services\CetakiaApiService::class);
+        $data['customers'] = $cetakiaService->getCustomers();
+        $data['salesUsers'] = $cetakiaService->getSalesUsers();
 
         return view('admin.estimation.offset.create')->with($data);
     }
@@ -255,9 +257,7 @@ class OffsetEstimationCT extends Controller
         $discountAmount = min($discountAmount, $subtotal);
 
         if ($discountAmount > 0) {
-            // Pembulatan ke atas per kelipatan Rp 1.000 untuk grand total setelah diskon
-            $grandTotal = (int) (ceil(round($subtotal - $discountAmount, 2) / 1000) * 1000);
-            $discountAmount = max(0, (int) ($subtotal - $grandTotal));
+            $grandTotal = max(0, (int) round($subtotal - $discountAmount));
         } else {
             $grandTotal = (int) $subtotal;
             $discountAmount = 0;
