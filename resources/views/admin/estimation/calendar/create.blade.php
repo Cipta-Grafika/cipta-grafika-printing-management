@@ -3227,7 +3227,7 @@
                 customer_id: customerId,
                 user_id: userId,
                 quotation_date: $('#quotation_date').val() || new Date().toISOString().split('T')[0],
-                quotation_expired: $('#quotation_expired').val() || '',
+                quotation_expired: $('#quotation_expired').val() || new Date(Date.now() + 30*86400000).toISOString().split('T')[0],
                 bill_to: billTo,
                 ship_to: shipTo,
                 notes: ($('#customer_notes').val() || '').trim(),

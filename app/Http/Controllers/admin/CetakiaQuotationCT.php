@@ -26,7 +26,7 @@ class CetakiaQuotationCT extends Controller
             'customer_id'       => 'required|string',
             'user_id'           => 'required|string',
             'quotation_date'    => 'required|string',
-            'quotation_expired' => 'required|string',
+            'quotation_expired' => 'nullable|string',
             'bill_to'           => 'required|string',
             'ship_to'           => 'required|string',
             'notes'             => 'nullable|string',
@@ -127,7 +127,16 @@ class CetakiaQuotationCT extends Controller
         // Sinkronisasi integritas matematika: pastikan Sub Total & Grand Total selalu tepat sama dengan SUM(item.amount)
         $calculatedSubTotal = array_sum(array_column($items, 'amount'));
         if ($calculatedSubTotal > 0) {
-            $subTotal    = round($calculatedSubTotal, 2);
+            $subTotal = round($calculatedSubTotal, 2);
+            if ($discountEnabled) {
+                if ($discountType === 'percent' || $discountType === 'percentage') {
+                    $discountAmount = round(($subTotal * $discountVal) / 100, 2);
+                } else {
+                    $discountAmount = min($subTotal, $discountAmount);
+                }
+            } else {
+                $discountAmount = 0.0;
+            }
             $taxableBase = max(0, $subTotal - $discountAmount);
             $taxAmount   = $taxEnabled ? round(($taxableBase * $taxRate) / 100, 2) : 0.0;
             $grandTotal  = round($taxableBase + $taxAmount, 2);
@@ -140,7 +149,7 @@ class CetakiaQuotationCT extends Controller
         }
         $qExpRaw  = $request->input('quotation_expired');
         if (empty($qExpRaw)) {
-            $qExpRaw = date('Y-m-d', strtotime('+7 days'));
+            $qExpRaw = date('Y-m-d', strtotime('+30 days'));
         }
         $qDate    = date('Y-m-d\TH:i:s.000\Z', strtotime($qDateRaw));
         $qExp     = date('Y-m-d\TH:i:s.000\Z', strtotime($qExpRaw . ' 23:59:59'));
