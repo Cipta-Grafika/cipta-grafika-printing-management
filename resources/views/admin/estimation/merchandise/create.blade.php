@@ -4742,10 +4742,16 @@ const isTax = $('#tax_enabled_check').is(':checked');
                     .replace(/_+/g, '_')
                     .trim();
 
+                const isNota = (r.category === 'nota');
+                const targetUnitName = isNota ? 'Rim' : 'Pcs';
+                const targetUnitCode = isNota ? 'rim' : 'pcs';
+                const targetUnitId = isNota ? '019b8a5f-2942-7383-be6b-a7984193d8ab' : '019b8a5f-0400-77c0-aeac-3f9eeaed8889';
+                const unitSuffix = isNota ? ' Rim' : ' pcs';
+
                 // Update info di Modal Konfirmasi
                 $('#confirmCustomerName').text(custName);
                 $('#confirmSalesName').text(salesName);
-                $('#confirmItemDesc').text(itemName + ' (' + qty.toLocaleString('id-ID') + (r.category === 'nota' ? ' Paket Rim' : ' pcs') + ')');
+                $('#confirmItemDesc').text(itemName + ' (' + qty.toLocaleString('id-ID') + unitSuffix + ')');
                 $('#confirmTermsText').text(termsText);
                 if (discAmt > 0) {
                     $('#confirmDiscountRow').show();
@@ -4787,6 +4793,9 @@ const isTax = $('#tax_enabled_check').is(':checked');
                             description: itemDesc,
                             qty: qty,
                             price: Number(r.unitPrice),
+                            unit_id: targetUnitId,
+                            unit_name: targetUnitName,
+                            unit_code: targetUnitCode,
                             amount: subtotal
                         }
                     ],

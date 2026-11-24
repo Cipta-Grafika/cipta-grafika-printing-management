@@ -2476,22 +2476,27 @@
                 let itemPrice = 0;
 
                 if (isDigital) {
-                    itemQty = Number(lastCalculatedData.specs?.pieces) || 100;
-                    itemPrice = Number(lastCalculatedData.totals?.selling_price_per_pcs) || (subtotal / itemQty);
+                    const pieces = Number(lastCalculatedData.specs?.pieces) || 100;
+                    // Sesuai arahan: Brosur dikirim dengan satuan Rim
+                    const rimEq = Math.round((pieces / 500) * 100) / 100;
+                    itemQty = rimEq > 0 ? rimEq : 1;
+                    itemPrice = Math.round((subtotal / itemQty) * 100) / 100;
                     itemName = 'Cetak Brosur ' + (lastCalculatedData.product?.name || 'Brosur') + ' (Digital Print A3+)';
                     itemDesc = [
                         (lastCalculatedData.material?.name || '-'),
                         (lastCalculatedData.specs?.print_sides === 2 ? '2 Sisi Bolak-Balik' : '1 Sisi'),
-                        itemQty.toLocaleString('id-ID') + ' pcs (' + (lastCalculatedData.specs?.a3_sheets_needed || '-') + ' lbr A3+)',
+                        itemQty + ' Rim (' + pieces.toLocaleString('id-ID') + ' pcs / ' + (lastCalculatedData.specs?.a3_sheets_needed || '-') + ' lbr A3+)',
                         'Potong Jadi Standar'
                     ].join('_');
                 } else {
-                    itemQty = Number(lastCalculatedData.input?.total_pcs) || (Number(lastCalculatedData.input?.rims) * 500) || 500;
-                    itemPrice = Number(lastCalculatedData.totals?.selling_price_per_pcs) || (subtotal / itemQty);
+                    const rimCount = Number(lastCalculatedData.input?.rims) || 1;
+                    const totalPieces = Number(lastCalculatedData.input?.total_pcs) || (rimCount * 500);
+                    itemQty = rimCount;
+                    itemPrice = Number(lastCalculatedData.totals?.selling_price_per_rim) || (itemQty > 0 ? Math.round((subtotal / itemQty) * 100) / 100 : subtotal);
                     itemName = 'Cetak Brosur ' + (lastCalculatedData.product?.name || 'Brosur') + ' (Offset SM 52)';
                     itemDesc = [
                         (lastCalculatedData.material?.name || '-'),
-                        (lastCalculatedData.input?.rims || 1) + ' Rim (' + itemQty.toLocaleString('id-ID') + ' pcs)',
+                        itemQty + ' Rim (' + totalPieces.toLocaleString('id-ID') + ' pcs)',
                         (lastCalculatedData.input?.print_sides === 2 ? '2 Sisi Balikan' : '1 Sisi Muka'),
                         'Plat CTP SM 52_Kertas Plano_Potong Standar'
                     ].join('_');
@@ -2500,7 +2505,7 @@
                 // Isi data ringkasan ke modal konfirmasi
                 $('#confirmCustomerName').text(custName);
                 $('#confirmSalesName').text(salesName);
-                $('#confirmItemDesc').text(itemName + ' (' + itemQty.toLocaleString('id-ID') + ' pcs)');
+                $('#confirmItemDesc').text(itemName + ' (' + itemQty + ' Rim)');
                 $('#confirmTermsText').text(termsText);
                 $('#confirmTaxText').text(isTax ? 'PPN 11% (+ ' + formatRupiah(taxAmt) + ')' : 'Non-PPN (0%)');
                 $('#confirmGrandTotal').text(formatRupiah(grandTotal));
@@ -2535,6 +2540,9 @@
                             description: itemDesc,
                             qty: itemQty,
                             price: itemPrice,
+                            unit_id: '019b8a5f-2942-7383-be6b-a7984193d8ab',
+                            unit_name: 'Rim',
+                            unit_code: 'rim',
                             amount: subtotal
                         }
                     ],

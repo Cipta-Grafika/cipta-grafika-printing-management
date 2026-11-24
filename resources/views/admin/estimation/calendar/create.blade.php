@@ -3253,6 +3253,9 @@
                         description: itemDesc,
                         qty: qty,
                         price: Number(r.recommended_price_pcs),
+                        unit_id: '019b8a5f-0400-77c0-aeac-3f9eeaed8889',
+                        unit_name: 'Pcs',
+                        unit_code: 'pcs',
                         amount: subtotal
                     }
                 ],

@@ -5611,8 +5611,11 @@
                 const salesName = $('#cetakia_user_id option:selected').text().trim();
                 const termsText = $('#cetakia_terms option:selected').text().trim();
 
-                const printColorText = (lastCalculatedData.print_color === 'fc' ? 'Full Color' : 'Hitam Putih');
-                const printSideText = (lastCalculatedData.print_side == 2 ? '2 Sisi' : '1 Sisi');
+                const rawColor = String(lastCalculatedData.print_color || $('#print_color').val() || '').toLowerCase();
+                const isBw = (rawColor === 'bw' || rawColor.includes('hitam') || rawColor.includes('b/w'));
+                const printColorText = isBw ? 'Hitam Putih' : 'Full Color';
+                const printSideVal = lastCalculatedData.print_side || $('#print_side').val();
+                const printSideText = (String(printSideVal).includes('2') ? '2 Sisi' : '1 Sisi');
                 const sizeText = (lastCalculatedData.finished_size ? lastCalculatedData.finished_size.replace(/×/g, 'x') : '-');
 
                 const itemDesc = [
@@ -5623,6 +5626,8 @@
                     lastCalculatedData.lamination ? (lastCalculatedData.lamination_name || 'Laminasi') : 'Tanpa Laminasi',
                     lastCalculatedData.cutting ? (lastCalculatedData.cutting_name || 'Cutting') : 'Tanpa Cutting'
                 ].join('_');
+
+                const itemName = (lastCalculatedData.material_name || 'Digital Print A3+').trim();
 
                 // Nilai kuantitas yang dikirim ke Quotation Cetakia adalah Jumlah Lembar (sheets), bukan nilai pcs
                 const finalItemQty = parseInt(lastCalculatedData.total_sheets) || parseInt($('#sheet_qty').val()) || 1;
@@ -5653,7 +5658,8 @@
                     items: [
                         {
                             type: 'product',
-                            item: 'Cetak Digital Print A3+ (' + (lastCalculatedData.material_name || 'Art Paper') + ')',
+                            item: itemName,
+                            category: 'Digital Print A3+',
                             material_name: lastCalculatedData.material_name || '',
                             description: itemDesc,
                             qty: finalItemQty,
@@ -5676,7 +5682,7 @@
                 // Isi data ke modal konfirmasi
                 $('#confirmCustomerName').text(custName);
                 $('#confirmSalesName').text(salesName);
-                $('#confirmItemDesc').text((lastCalculatedData.material_name || '-') + ' (' + finalItemQty.toLocaleString('id-ID') + ' Lembar A3+)');
+                $('#confirmItemDesc').text(itemName + ' (' + finalItemQty.toLocaleString('id-ID') + ' Lembar A3+)');
                 $('#confirmTermsText').text(termsText);
                 $('#confirmTaxText').text(isTax ? ('PPN 11% (+ ' + formatRupiah(taxAmt) + ')') : 'Non-PPN (0%)');
                 $('#confirmGrandTotal').text(formatRupiah(grandTotal));

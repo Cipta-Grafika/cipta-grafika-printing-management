@@ -69,15 +69,21 @@ class CetakiaQuotationCT extends Controller
 
         // Ambil daftar unit Cetakia untuk resolusi unit_id yang valid
         $cetakiaUnits = $this->cetakiaService->getUnits();
-        $defaultLembarUnitId = '019b8a5f-486a-7779-a895-9cbfce459ae8';
+        $unitMap = [];
         foreach ($cetakiaUnits as $u) {
             $uName = strtolower(trim($u['unit_name'] ?? ''));
             $uCode = strtolower(trim($u['unit_code'] ?? ''));
-            if ($uName === 'lembar' || $uCode === 'lbr') {
-                $defaultLembarUnitId = $u['id'];
-                break;
+            if ($uName !== '') {
+                $unitMap[$uName] = $u['id'];
+            }
+            if ($uCode !== '') {
+                $unitMap[$uCode] = $u['id'];
             }
         }
+
+        $lembarUnitId = $unitMap['lembar'] ?? $unitMap['lbr'] ?? '019b8a5f-486a-7779-a895-9cbfce459ae8';
+        $pcsUnitId    = $unitMap['pcs'] ?? $unitMap['pc'] ?? '019b8a5f-0400-77c0-aeac-3f9eeaed8889';
+        $rimUnitId    = $unitMap['rim'] ?? '019b8a5f-2942-7383-be6b-a7984193d8ab';
 
         $items = [];
         foreach ($request->input('items', []) as $it) {
@@ -99,23 +105,53 @@ class CetakiaQuotationCT extends Controller
                 $prodId = $defaultProductId;
             }
 
-            // Resolusi unit_id:
-            $unitId = !empty($it['unit_id']) ? $it['unit_id'] : null;
+            // Resolusi unit_id sesuai aturan bisnis & API kontrak Cetakia:
+            // 1. Digital Print A3+ -> Lembar (lbr)
+            // 2. Large Format -> Pcs (pcs)
+            // 3. Brosur (Offset) -> Rim (rim)
+            // 4. Kalender -> Pcs (pcs)
+            // 5. Merchandise:
+            //    - Buku Nota (NCR & HVS) -> Rim (rim)
+            //    - Tali Lanyard, Papan Nama Dada, Plakat, Mug, Kartu PVC, Akrilik UV -> Pcs (pcs)
+            $unitId = null;
 
-            // Jika diberikan unit_name atau unit_code (misal: 'Lembar', 'lbr', dll)
-            if (empty($unitId) && (!empty($it['unit_name']) || !empty($it['unit_code']) || !empty($it['unit']))) {
-                $targetUnit = strtolower(trim((string) ($it['unit_name'] ?? $it['unit_code'] ?? $it['unit'])));
+            // Tahap 1: Jika client mengirim unit_id langsung, validasi kecocokan dengan daftar unit Cetakia
+            if (!empty($it['unit_id'])) {
                 foreach ($cetakiaUnits as $u) {
-                    $uName = strtolower(trim($u['unit_name'] ?? ''));
-                    $uCode = strtolower(trim($u['unit_code'] ?? ''));
-                    if ($uName === $targetUnit || $uCode === $targetUnit) {
+                    if ($u['id'] === $it['unit_id']) {
                         $unitId = $u['id'];
                         break;
                     }
                 }
             }
 
-            // Jika masih kosong, cari dari unit_id bawaan produk Cetakia yang cocok
+            // Tahap 2: Jika belum ada unit_id, cek dari unit_name, unit_code, atau unit string
+            if (empty($unitId) && (!empty($it['unit_name']) || !empty($it['unit_code']) || !empty($it['unit']))) {
+                $targetUnit = strtolower(trim((string) ($it['unit_name'] ?? $it['unit_code'] ?? $it['unit'])));
+                if (isset($unitMap[$targetUnit])) {
+                    $unitId = $unitMap[$targetUnit];
+                }
+            }
+
+            // Tahap 3: Pemetaan cerdas otomatis berdasarkan konteks nama item, kategori, atau deskripsi produk
+            if (empty($unitId)) {
+                $itemContext = strtolower(($it['item'] ?? '') . ' ' . ($it['category'] ?? '') . ' ' . ($it['description'] ?? ''));
+
+                // Brosur / Offset / Buku Nota -> Rim
+                if (str_contains($itemContext, 'brosur') || str_contains($itemContext, 'offset') || str_contains($itemContext, 'buku nota') || str_contains($itemContext, 'nota') || str_contains($itemContext, 'rim')) {
+                    $unitId = $rimUnitId;
+                }
+                // Digital Print A3+ -> Lembar
+                elseif (str_contains($itemContext, 'a3+') || str_contains($itemContext, 'digital print') || str_contains($itemContext, 'lembar')) {
+                    $unitId = $lembarUnitId;
+                }
+                // Large Format, Kalender, & Merchandise lain -> Pcs
+                elseif (str_contains($itemContext, 'kalender') || str_contains($itemContext, 'large format') || str_contains($itemContext, 'banner') || str_contains($itemContext, 'display') || str_contains($itemContext, 'lanyard') || str_contains($itemContext, 'nama dada') || str_contains($itemContext, 'name tag') || str_contains($itemContext, 'plakat') || str_contains($itemContext, 'mug') || str_contains($itemContext, 'pvc') || str_contains($itemContext, 'akrilik')) {
+                    $unitId = $pcsUnitId;
+                }
+            }
+
+            // Tahap 4: Fallback ke unit_id bawaan produk Cetakia jika ada
             if (empty($unitId)) {
                 foreach ($cetakiaProducts as $cp) {
                     if ($cp['id'] === $prodId && !empty($cp['unit_id'])) {
@@ -125,9 +161,9 @@ class CetakiaQuotationCT extends Controller
                 }
             }
 
-            // Khusus item estimasi digital print / A3+ / lembaran, default unit_id adalah Lembar
-            if (empty($unitId) && (stripos($it['item'] ?? '', 'A3+') !== false || stripos($it['item'] ?? '', 'Digital Print') !== false || stripos($it['item'] ?? '', 'Lembar') !== false)) {
-                $unitId = $defaultLembarUnitId;
+            // Tahap 5: Default absolut jika tidak terdefinisi adalah Pcs
+            if (empty($unitId)) {
+                $unitId = $pcsUnitId;
             }
 
             $rawDesc = (string) ($it['description'] ?? '');
