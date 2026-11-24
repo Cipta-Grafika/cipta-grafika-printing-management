@@ -1994,6 +1994,12 @@
                                     </div>
 
                                     {{-- Dimensi Panjang & Lebar (Hidden jika Display) --}}
+                                    <div id="dimensionHeaderWrap" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                        <span style="font-size: 11.5px; font-weight: 700; color: var(--t-muted); text-transform: uppercase; letter-spacing: 0.5px;">Dimensi Produk</span>
+                                        <button type="button" id="btnSwapDimensionsForm" class="btn" style="background: rgba(59, 130, 246, 0.1); color: var(--primary); border: 1px solid rgba(59, 130, 246, 0.25); font-size: 11.5px; padding: 3px 10px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; font-weight: 600; transition: all 0.2s ease;">
+                                            <i class="bi bi-arrow-left-right"></i> Tukar Panjang &amp; Lebar
+                                        </button>
+                                    </div>
                                     <div class="form-grid" id="dimensionFieldsGrid">
                                         {{-- Panjang --}}
                                         <div class="field" style="margin-bottom: 20px;">
@@ -2285,6 +2291,26 @@
                                     <p style="font-size: 12.5px; margin: 0; line-height: 1.5;">
                                         Silakan lengkapi pilihan <strong>Material</strong>, <strong>Ukuran (cm)</strong>, dan <strong>Jumlah</strong> untuk melihat kalkulasi harga real-time.
                                     </p>
+                                </div>
+
+                                {{-- ERROR / WARNING STATE --}}
+                                <div id="liveErrorState" style="display: none; padding: 24px 16px; border-radius: 12px; background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.3); text-align: center;">
+                                    <div style="width: 50px; height: 50px; margin: 0 auto 12px; border-radius: 14px; background: rgba(239, 68, 68, 0.15); color: #ef4444; display: flex; align-items: center; justify-content: center; font-size: 24px;">
+                                        <i class="bi bi-exclamation-triangle"></i>
+                                    </div>
+                                    <h4 style="font-size: 14.5px; font-weight: 700; color: #ef4444; margin: 0 0 8px;">Kalkulasi Belum Dapat Dihitung</h4>
+                                    <p id="liveErrorMessage" style="font-size: 12.5px; color: var(--t-base); margin: 0 0 12px; line-height: 1.5; word-break: break-word;">
+                                        -
+                                    </p>
+                                    <div id="liveErrorActionArea" style="margin-top: 10px;">
+                                        <button type="button" id="btnSwapDimensionsError" class="btn" style="display: none; background: #3b82f6; color: #fff; font-size: 12px; font-weight: 600; padding: 8px 14px; border-radius: 7px; border: none; cursor: pointer; align-items: center; justify-content: center; gap: 6px; width: 100%; box-shadow: 0 2px 6px rgba(59, 130, 246, 0.35); transition: all 0.2s ease;">
+                                            <i class="bi bi-arrow-left-right"></i> Tukar Posisi (<span id="swapLengthPreview"></span> × <span id="swapWidthPreview"></span> cm)
+                                        </button>
+                                        <p id="swapTipText" style="display: none; font-size: 11.5px; color: var(--t-muted); margin: 8px 0 0; line-height: 1.4;"></p>
+                                        <button type="button" id="btnDisableLaminationError" class="btn" style="display: none; background: rgba(255, 255, 255, 0.08); color: var(--t-base); font-size: 12px; font-weight: 600; padding: 8px 14px; border-radius: 7px; border: 1px solid var(--border); cursor: pointer; align-items: center; justify-content: center; gap: 6px; width: 100%; margin-top: 8px; transition: all 0.2s ease;">
+                                            <i class="bi bi-x-circle"></i> Ubah ke "Tanpa Laminasi"
+                                        </button>
+                                    </div>
                                 </div>
 
                                 {{-- ACTIVE RESULT CONTAINER --}}
@@ -3210,6 +3236,15 @@
             // Summary card elements
             const liveEmptyState = document.getElementById('liveEmptyState');
             const liveResultContainer = document.getElementById('liveResultContainer');
+            const liveErrorState = document.getElementById('liveErrorState');
+            const liveErrorMessage = document.getElementById('liveErrorMessage');
+            const btnSwapDimensionsError = document.getElementById('btnSwapDimensionsError');
+            const swapLengthPreview = document.getElementById('swapLengthPreview');
+            const swapWidthPreview = document.getElementById('swapWidthPreview');
+            const swapTipText = document.getElementById('swapTipText');
+            const btnDisableLaminationError = document.getElementById('btnDisableLaminationError');
+            const btnSwapDimensionsForm = document.getElementById('btnSwapDimensionsForm');
+            const dimensionHeaderWrap = document.getElementById('dimensionHeaderWrap');
             const liveCalcSpinner = document.getElementById('liveCalcSpinner');
             const livePriceTypeBadge = document.getElementById('livePriceTypeBadge');
             const btnResetForm = document.getElementById('btnResetForm');
@@ -3285,6 +3320,7 @@
             function toggleDisplayFields() {
                 const isDisplay = isDisplayCategory();
 
+                if (dimensionHeaderWrap) dimensionHeaderWrap.style.display = isDisplay ? 'none' : 'flex';
                 if (dimensionFieldsGrid) dimensionFieldsGrid.style.display = isDisplay ? 'none' : '';
                 if (materialSizeField) materialSizeField.style.display = isDisplay ? 'none' : '';
 
@@ -3462,7 +3498,9 @@
 
                     result.data.forEach(function(size) {
                         const optText = size.width + ' cm';
-                        materialSizeSelect.append(new Option(optText, size.id, false, false));
+                        const opt = new Option(optText, size.id, false, false);
+                        $(opt).attr('data-width', size.width);
+                        materialSizeSelect.append(opt);
                         materialPriceReferenceSelect.append(new Option(optText, size.id, false, false));
                     });
 
@@ -3546,12 +3584,19 @@
                     const result = await response.json();
                     if (!result.success) throw new Error(result.message || 'Ukuran laminasi gagal diambil.');
 
+                    const prodW = parseFloat(widthInput.value) || 0;
                     result.data.forEach(function(size) {
+                        const sizeW = parseFloat(size.width) || 0;
                         let label = formatNumber(size.width) + ' cm';
                         if (size.length !== null && size.length !== undefined) {
                             label += ' × ' + formatNumber(size.length) + ' cm';
                         }
-                        laminationSizeSelect.append(new Option(label, size.id, false, false));
+                        if (prodW > 0 && sizeW > 0 && sizeW < prodW) {
+                            label += ' (Tidak Muat)';
+                        }
+                        const opt = new Option(label, size.id, false, false);
+                        $(opt).attr('data-width', size.width);
+                        laminationSizeSelect.append(opt);
                     });
 
                     laminationSizeSelect.append(new Option('+ Custom / Input Manual', '__custom__', false, false));
@@ -4142,9 +4187,22 @@
                     }
                 }
 
+                // Cek kesiapan laminasi jika dipilih
+                const lamVal = laminationSelect.val();
+                if (lamVal && lamVal !== 'none') {
+                    const lamSizeVal = laminationSizeSelect.val();
+                    if (!lamSizeVal) {
+                        isReady = false;
+                    } else if (lamSizeVal === '__custom__') {
+                        const customLamW = parseFloat(laminationCustomWidthInput.val()) || 0;
+                        if (customLamW <= 0) isReady = false;
+                    }
+                }
+
                 if (!isReady) {
                     if (liveEmptyState) liveEmptyState.style.display = 'block';
                     if (liveResultContainer) liveResultContainer.style.display = 'none';
+                    if (liveErrorState) liveErrorState.style.display = 'none';
                     return;
                 }
 
@@ -4235,7 +4293,44 @@
                     const res = await response.json();
 
                     if (!response.ok || !res.success) {
-                        console.warn('Realtime calculation warning:', res.message || res.errors);
+                        const errorMsg = res.message || (res.errors ? Object.values(res.errors).flat().join(', ') : 'Terjadi kendala kalkulasi.');
+                        console.warn('Realtime calculation warning:', errorMsg);
+
+                        if (liveEmptyState) liveEmptyState.style.display = 'none';
+                        if (liveResultContainer) liveResultContainer.style.display = 'none';
+                        if (liveErrorState) {
+                            liveErrorState.style.display = 'block';
+                            if (liveErrorMessage) liveErrorMessage.textContent = errorMsg;
+
+                            // Cek opsi swap jika masalah lebar material
+                            const currentL = parseFloat(lengthInput.value) || 0;
+                            const currentW = parseFloat(widthInput.value) || 0;
+                            const selectedMatOpt = materialSizeSelect.find(':selected');
+                            const matWidth = materialSizeSelect.val() === '__custom__'
+                                ? (parseFloat(materialCustomWidthInput.val()) || 0)
+                                : (parseFloat(selectedMatOpt.data('width')) || 0);
+
+                            if (matWidth > 0 && currentW > matWidth && currentL <= matWidth && currentL > 0) {
+                                if (btnSwapDimensionsError) btnSwapDimensionsError.style.display = 'inline-flex';
+                                if (swapLengthPreview) swapLengthPreview.textContent = currentW;
+                                if (swapWidthPreview) swapWidthPreview.textContent = currentL;
+                                if (swapTipText) {
+                                    swapTipText.textContent = `Produk muat jika orientasi diputar: Panjang ${currentW} cm × Lebar ${currentL} cm (muat pada roll ${matWidth} cm).`;
+                                    swapTipText.style.display = 'block';
+                                }
+                            } else {
+                                if (btnSwapDimensionsError) btnSwapDimensionsError.style.display = 'none';
+                                if (swapTipText) swapTipText.style.display = 'none';
+                            }
+
+                            // Cek bantuan jika error laminasi kategori outdoor
+                            const isOutdoor = categorySelect.find(':selected').text().toLowerCase().includes('outdoor');
+                            if (errorMsg.toLowerCase().includes('laminasi') && (errorMsg.includes('belum tersedia') || isOutdoor)) {
+                                if (btnDisableLaminationError) btnDisableLaminationError.style.display = 'inline-flex';
+                            } else {
+                                if (btnDisableLaminationError) btnDisableLaminationError.style.display = 'none';
+                            }
+                        }
                         return;
                     }
 
@@ -4245,6 +4340,7 @@
                     // =========================================================
                     // 1. POPULATE LIVE SUMMARY PANEL (STICKY CARD KANAN)
                     // =========================================================
+                    if (liveErrorState) liveErrorState.style.display = 'none';
                     if (liveEmptyState) liveEmptyState.style.display = 'none';
                     if (liveResultContainer) liveResultContainer.style.display = 'block';
 
@@ -4551,6 +4647,27 @@
             materialCustomWidthInput.on('input', triggerRealtimeCalculation);
             laminationCustomWidthInput.on('input', triggerRealtimeCalculation);
 
+            function swapDimensions() {
+                const oldLength = lengthInput.value;
+                const oldWidth = widthInput.value;
+                if (!oldLength && !oldWidth) return;
+                lengthInput.value = oldWidth;
+                widthInput.value = oldLength;
+                triggerRealtimeCalculation();
+            }
+
+            if (btnSwapDimensionsForm) {
+                btnSwapDimensionsForm.addEventListener('click', swapDimensions);
+            }
+            if (btnSwapDimensionsError) {
+                btnSwapDimensionsError.addEventListener('click', swapDimensions);
+            }
+            if (btnDisableLaminationError) {
+                btnDisableLaminationError.addEventListener('click', function() {
+                    laminationSelect.val('none').trigger('change.select2');
+                });
+            }
+
             const custIdSelect = $('#customer_id');
             const custNameInput = document.getElementById('customer_name');
             const custPhoneInput = document.getElementById('customer_phone');
@@ -4707,6 +4824,7 @@
 
                 // Reset Summary Card
                 updatePriceTypeBadge();
+                if (liveErrorState) liveErrorState.style.display = 'none';
                 if (liveEmptyState) liveEmptyState.style.display = 'block';
                 if (liveResultContainer) liveResultContainer.style.display = 'none';
                 if (liveCalcSpinner) liveCalcSpinner.style.display = 'none';

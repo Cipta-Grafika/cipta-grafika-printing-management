@@ -585,6 +585,8 @@
 
                         image.src = item.cover_url;
                         image.alt = item.display_name;
+                        image.loading = 'lazy';
+                        image.decoding = 'async';
 
                         image.style.cssText = `
                     width: 100%;

@@ -215,12 +215,15 @@
         <div class="lg:col-span-1">
             <div class="h-fit rounded-2xl p-5 border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-white/5 lg:sticky lg:top-24 space-y-4">
                 
-                <h4 class="font-semibold text-sm text-zinc-900 dark:text-white pb-3 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
-                    <span>Ringkasan Estimasi</span>
-                    <span class="text-xs text-accent font-semibold flex items-center gap-1">
+                <div class="flex items-center justify-between gap-2 pb-3 border-b border-zinc-200 dark:border-zinc-800">
+                    <div class="min-w-0">
+                        <p class="font-semibold text-zinc-900 dark:text-white text-base">Estimasi Harga</p>
+                        <p class="text-xs text-zinc-400 mt-0.5 truncate">Kalkulasi bahan &amp; finishing</p>
+                    </div>
+                    <span class="text-xs px-2.5 py-1 rounded-full bg-accent/15 text-accent font-semibold border border-accent/20 flex items-center gap-1 shrink-0 whitespace-nowrap">
                         <i class="bi bi-shield-check"></i> Harga Pasti
                     </span>
-                </h4>
+                </div>
 
                 <div class="space-y-2.5 text-xs">
                     <div class="flex justify-between items-center text-zinc-600 dark:text-zinc-400">

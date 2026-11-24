@@ -1189,9 +1189,16 @@
                                 class="font-medium
                                     text-zinc-900
                                     dark:text-white
-                                    text-lg">
+                                    text-lg
+                                    flex
+                                    items-center
+                                    gap-2">
 
-                                Large Format Estimator
+                                <span>{{ !empty($estimator['isDisplay']) ? 'Estimator ' . $product['title'] : 'Estimator Format Besar & Spanduk' }}</span>
+
+                                <span class="text-xs px-2.5 py-0.5 rounded-full bg-accent/15 text-accent font-semibold border border-accent/20">
+                                    {{ !empty($estimator['isDisplay']) ? 'Display Banner' : 'Large Format Outdoor & Indoor' }}
+                                </span>
 
                             </p>
 
@@ -1202,7 +1209,7 @@
                                     tracking-widest
                                     mb-1">
 
-                                Kategori dan material tersaring sesuai kapabilitas sumber produksi.
+                                {{ !empty($estimator['isDisplay']) ? 'Kalkulasi rangka display, bahan cetak, laminasi, dan finishing otomatis dengan jaminan mutu terbaik.' : 'Kalkulasi spanduk, banner, dan cetak format besar sesuai ukuran presisi dan finishing pilihan Anda.' }}
 
                             </p>
 
@@ -1296,9 +1303,10 @@
                                                                                                             ========================= -->
 
                                 <div class="sm:col-span-2 mt-2">
-                                    <h4 class="text-sm font-semibold text-zinc-900 dark:text-white mb-3">
-                                        Spesifikasi Cetak
+                                    <h4 class="text-sm font-semibold text-zinc-900 dark:text-white mb-1">
+                                        Spesifikasi &amp; Dimensi Cetak
                                     </h4>
+                                    <p class="text-xs text-zinc-400">Tentukan material bahan, ukuran panjang × lebar, dan opsi laminasi pelindung.</p>
                                 </div>
 
                                 <div class="sm:col-span-2">
@@ -1323,7 +1331,7 @@
                                     <div class="relative">
                                         <input type="number" id="length" name="length" min="0.01"
                                             step="any" required placeholder="Contoh: 100"
-                                            class="w-full bg-zinc-850 border border-zinc-700 text-white text-sm rounded-xl px-4 py-3 pr-12">
+                                            class="w-full bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-white text-sm rounded-xl px-4 py-3 pr-12 focus:border-accent focus:ring-1 focus:ring-accent transition-colors">
                                         <span class="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-zinc-500">
                                             cm
                                         </span>
@@ -1340,7 +1348,7 @@
                                     <div class="relative">
                                         <input type="number" id="width" name="width" min="0.01"
                                             step="any" required placeholder="Contoh: 50"
-                                            class="w-full bg-zinc-850 border border-zinc-700 text-white text-sm rounded-xl px-4 py-3 pr-12">
+                                            class="w-full bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-white text-sm rounded-xl px-4 py-3 pr-12 focus:border-accent focus:ring-1 focus:ring-accent transition-colors">
                                         <span class="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-zinc-500">
                                             cm
                                         </span>
@@ -1356,7 +1364,7 @@
 
                                     <input type="number" id="qty" name="qty" min="1" step="1"
                                         value="1" required
-                                        class="w-full bg-zinc-850 border border-zinc-700 text-white text-sm rounded-xl px-4 py-3">
+                                        class="w-full bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-white text-sm rounded-xl px-4 py-3 focus:border-accent focus:ring-1 focus:ring-accent transition-colors">
                                 </div>
 
                                 <div id="materialSizeField">
@@ -1504,28 +1512,16 @@
                                     dark:bg-white/5">
 
 
-                                <!-- TITLE -->
-
-                                <p
-                                    class="text-sm
-                                        font-medium
-        
-                                        text-zinc-900
-                                        dark:text-white">
-
-                                    Estimasi Harga
-
-                                </p>
-
-
-                                <p
-                                    class="text-xs
-                                        text-zinc-400
-                                        mt-1">
-
-                                    Perkiraan berdasarkan konfigurasi saat ini
-
-                                </p>
+                                <!-- TITLE WITH BADGE -->
+                                <div class="flex items-center justify-between gap-2 pb-3 border-b border-zinc-200 dark:border-zinc-800">
+                                    <div class="min-w-0">
+                                        <p class="font-semibold text-zinc-900 dark:text-white text-base">Estimasi Harga</p>
+                                        <p class="text-xs text-zinc-400 mt-0.5 truncate">Kalkulasi ukuran &amp; material</p>
+                                    </div>
+                                    <span class="text-xs px-2.5 py-1 rounded-full bg-accent/15 text-accent font-semibold border border-accent/20 flex items-center gap-1 shrink-0 whitespace-nowrap">
+                                        <i class="bi bi-shield-check"></i> Harga Pasti
+                                    </span>
+                                </div>
 
 
 
@@ -1673,7 +1669,7 @@
                                             : addToBasket(@js($product['basketItem']))
                                     "
                                     class="w-full
-                                        mt-6
+                                        mt-3
                                         py-3
                                         rounded-xl
                                         text-white

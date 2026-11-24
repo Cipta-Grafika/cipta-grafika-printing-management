@@ -967,77 +967,31 @@ class DisplayCT extends Controller
 
         /*
     |--------------------------------------------------------------------------
-    | SESSION KEY
+    | OPTIMASI PENGIRIMAN GAMBAR & HTTP BROWSER CACHING
     |--------------------------------------------------------------------------
+    | Sajikan file langsung tanpa overhead copy & delete pada setiap request.
+    | Menggunakan ETag, Last-Modified, dan HTTP 304 Not Modified untuk
+    | mencegah transfer ulang data yang sudah di-cache oleh browser pengguna.
     */
-        $sessionKey = hash(
-            'sha256',
-            session()->getId()
-        );
+        $mtime = filemtime($sourceFile);
+        $size = filesize($sourceFile);
+        $etag = '"' . dechex($mtime) . '-' . dechex($size) . '"';
 
-        /*
-    |--------------------------------------------------------------------------
-    | TEMPORARY DIRECTORY
-    |--------------------------------------------------------------------------
-    */
-        $temporaryPath = public_path(
-            'temporary-files/display/' . $sessionKey
-        );
+        $clientEtag = request()->header('If-None-Match');
+        $clientMtime = request()->header('If-Modified-Since');
 
-        if (!is_dir($temporaryPath)) {
+        $headers = [
+            'Cache-Control' => 'public, max-age=604800, stale-while-revalidate=86400',
+            'ETag'          => $etag,
+            'Last-Modified' => gmdate('D, d M Y H:i:s', $mtime) . ' GMT',
+        ];
 
-            if (!mkdir($temporaryPath, 0755, true)) {
-                abort(500);
-            }
+        if (($clientEtag && trim($clientEtag) === $etag) ||
+            ($clientMtime && @strtotime($clientMtime) >= $mtime)) {
+            return response('', 304, $headers);
         }
 
-        /*
-    |--------------------------------------------------------------------------
-    | NAMA FILE TEMPORARY
-    |--------------------------------------------------------------------------
-    */
-        $temporaryFileName =
-            'display_' .
-            $displayImage->id .
-            '_' .
-            basename($displayImage->image_path);
-
-        $temporaryFilePath =
-            $temporaryPath .
-            DIRECTORY_SEPARATOR .
-            $temporaryFileName;
-
-        /*
-    |--------------------------------------------------------------------------
-    | COPY KE TEMPORARY
-    |--------------------------------------------------------------------------
-    */
-        if (!file_exists($temporaryFilePath)) {
-
-            if (!copy(
-                $sourceFile,
-                $temporaryFilePath
-            )) {
-                abort(500);
-            }
-        }
-
-        /*
-    |--------------------------------------------------------------------------
-    | RETURN FILE
-    |--------------------------------------------------------------------------
-    */
-        $response = response()->file(
-            $temporaryFilePath
-        )->deleteFileAfterSend(true);
-
-        app()->terminating(function () use ($temporaryPath) {
-            if (is_dir($temporaryPath)) {
-                @rmdir($temporaryPath);
-            }
-        });
-
-        return $response;
+        return response()->file($sourceFile, $headers);
     }
 
     public function cleanTemporary()

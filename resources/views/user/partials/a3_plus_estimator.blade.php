@@ -22,11 +22,14 @@
          HEADER
     ========================== -->
     <div>
-        <p class="font-medium text-zinc-900 dark:text-white text-lg">
-            {{ $isDisplayMode ? 'Estimator Paket Display A3+' : 'Digital Print A3+ Estimator' }}
+        <p class="font-medium text-zinc-900 dark:text-white text-lg flex items-center gap-2">
+            <span>{{ $isDisplayMode ? 'Estimator ' . ($product['title'] ?? 'Paket Display A3+') : 'Digital Print A3+ Estimator' }}</span>
+            <span class="text-xs px-2.5 py-0.5 rounded-full bg-accent/15 text-accent font-semibold border border-accent/20">
+                {{ $isDisplayMode ? 'Display & Stationery' : 'Digital Sheet A3+' }}
+            </span>
         </p>
         <p class="text-xs text-zinc-400 tracking-widest mb-1">
-            {{ $isDisplayMode ? 'Kalkulasi paket cetak otomatis termasuk Box dan finishing potong.' : 'Kalkulasi cetak digital A3+ otomatis berdasarkan spesifikasi dan finishing pilihan Anda.' }}
+            {{ $isDisplayMode ? 'Kalkulasi paket cetak otomatis termasuk Box dan finishing potong presisi.' : 'Kalkulasi cetak digital A3+ otomatis berdasarkan spesifikasi kertas dan finishing pilihan Anda.' }}
         </p>
     </div>
 
@@ -307,15 +310,18 @@
         <!-- =========================
              RIGHT SUMMARY (PRICE SUMMARY)
         ========================== -->
-        <div class="h-fit rounded-2xl p-5 border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-white/5">
-            <p class="text-sm font-medium text-zinc-900 dark:text-white">
-                Estimasi Harga
-            </p>
-            <p class="text-xs text-zinc-400 mt-1">
-                Perkiraan berdasarkan konfigurasi saat ini
-            </p>
+        <div class="h-fit rounded-2xl p-5 border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-white/5 space-y-4">
+            <div class="flex items-center justify-between gap-2 pb-3 border-b border-zinc-200 dark:border-zinc-800">
+                <div class="min-w-0">
+                    <p class="font-semibold text-zinc-900 dark:text-white text-base">Estimasi Harga</p>
+                    <p class="text-xs text-zinc-400 mt-0.5 truncate">Kalkulasi lembar &amp; finishing</p>
+                </div>
+                <span class="text-xs px-2.5 py-1 rounded-full bg-accent/15 text-accent font-semibold border border-accent/20 flex items-center gap-1 shrink-0 whitespace-nowrap">
+                    <i class="bi bi-shield-check"></i> Harga Pasti
+                </span>
+            </div>
 
-            <p id="a3EstimateStatus" class="text-xs text-zinc-400 mt-4" aria-live="polite">
+            <p id="a3EstimateStatus" class="text-xs text-zinc-400 mt-2" aria-live="polite">
                 {{ $isDisplayMode ? 'Pilih varian bahan dan sisi cetak untuk melihat estimasi.' : 'Pilih spesifikasi cetak dan material untuk melihat estimasi.' }}
             </p>
 
@@ -420,7 +426,7 @@
                         ? removeFromBasket(@js($product['basketItem']['id']))
                         : addToBasket(@js($product['basketItem']))
                 "
-                class="w-full mt-6 py-3 rounded-xl text-white cart-button text-sm font-medium hover:opacity-90 transition-opacity duration-200 flex items-center justify-center gap-2">
+                class="w-full mt-3 py-3 rounded-xl text-white cart-button text-sm font-medium hover:opacity-90 transition-opacity duration-200 flex items-center justify-center gap-2">
                 <template x-if="!isInBasket(@js($product['basketItem']['id']))">
                     <span class="flex items-center justify-center gap-2">
                         Tambahkan ke Keranjang

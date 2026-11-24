@@ -443,7 +443,8 @@
 
                         image.src = item.cover_url;
                         image.alt = item.engine_name + ' - ' + item.category_name;
-                        // image.loading = 'lazy';
+                        image.loading = 'lazy';
+                        image.decoding = 'async';
 
                         image.style.cssText = `
                             width: 100%;

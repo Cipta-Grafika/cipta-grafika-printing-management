@@ -396,13 +396,16 @@
         <!-- =========================
              RIGHT SUMMARY (PRICE SUMMARY CARD)
         ========================== -->
-        <div class="h-fit rounded-2xl p-5 border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-white/5 lg:sticky lg:top-24">
-            <p class="text-sm font-medium text-zinc-900 dark:text-white">
-                Ringkasan Estimasi Kalender
-            </p>
-            <p class="text-xs text-zinc-400 mt-1">
-                Kalkulasi otomatis &amp; deteksi jalur hemat langsung
-            </p>
+        <div class="h-fit rounded-2xl p-5 border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-white/5 lg:sticky lg:top-24 space-y-4">
+            <div class="flex items-center justify-between gap-2 pb-3 border-b border-zinc-200 dark:border-zinc-800">
+                <div class="min-w-0">
+                    <p class="font-semibold text-zinc-900 dark:text-white text-base">Estimasi Harga</p>
+                    <p class="text-xs text-zinc-400 mt-0.5 truncate">Kalkulasi jalur hemat cerdas</p>
+                </div>
+                <span class="text-xs px-2.5 py-1 rounded-full bg-accent/15 text-accent font-semibold border border-accent/20 flex items-center gap-1 shrink-0 whitespace-nowrap">
+                    <i class="bi bi-shield-check"></i> Harga Pasti
+                </span>
+            </div>
 
             <div id="calendarEstimateLoading" class="text-xs text-zinc-400 mt-4 flex items-center gap-2" style="display: none;">
                 <span class="inline-block animate-spin">⏳</span>

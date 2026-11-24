@@ -1332,9 +1332,15 @@ class EstimationCT extends Controller
                 );
 
             if ($objectsPerRow < 1) {
-                throw new Exception(
-                    'Ukuran produk tidak dapat dimuat pada lebar material.'
-                );
+                if ($productLength <= $materialWidth) {
+                    throw new Exception(
+                        "Ukuran lebar produk ({$productWidth} cm) melebihi lebar bahan ({$materialWidth} cm). Silakan tukar posisi Panjang ({$productLength} cm) dan Lebar ({$productWidth} cm) agar muat pada bahan."
+                    );
+                } else {
+                    throw new Exception(
+                        "Ukuran produk ({$productLength} × {$productWidth} cm) tidak dapat dimuat pada lebar bahan ({$materialWidth} cm)."
+                    );
+                }
             }
 
 
@@ -1601,7 +1607,7 @@ class EstimationCT extends Controller
 
                 if ($laminationWidth < $productWidth) {
                     throw new Exception(
-                        'Ukuran produk tidak dapat dimuat pada lebar laminasi.'
+                        "Ukuran lebar produk ({$productWidth} cm) melebihi lebar laminasi ({$laminationWidth} cm)."
                     );
                 }
             }
@@ -2921,6 +2927,18 @@ class EstimationCT extends Controller
         $cetakiaService = app(\App\Services\CetakiaApiService::class);
         $data['customers'] = $cetakiaService->getCustomers();
         $data['salesUsers'] = $cetakiaService->getSalesUsers();
+        
+        $cetakiaUnits = $cetakiaService->getUnits();
+        $lembarUnitId = '019b8a5f-486a-7779-a895-9cbfce459ae8';
+        foreach ($cetakiaUnits as $u) {
+            $uName = strtolower(trim($u['unit_name'] ?? ''));
+            $uCode = strtolower(trim($u['unit_code'] ?? ''));
+            if ($uName === 'lembar' || $uCode === 'lbr') {
+                $lembarUnitId = $u['id'];
+                break;
+            }
+        }
+        $data['cetakiaLembarUnitId'] = $lembarUnitId;
 
         return view('admin.estimation.a3-plus.create')->with($data);
     }

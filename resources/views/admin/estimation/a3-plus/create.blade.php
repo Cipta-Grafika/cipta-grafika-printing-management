@@ -5624,10 +5624,8 @@
                     lastCalculatedData.cutting ? (lastCalculatedData.cutting_name || 'Cutting') : 'Tanpa Cutting'
                 ].join('_');
 
-                // Kunci kuantitas: Mode Layout WAJIB menggunakan Jumlah Produk Jadi (pcs), Mode Direct menggunakan Lembar A3+
-                const isLayoutMode = ($('#production_mode').val() === 'layout' || lastCalculatedData.production_mode === 'Hitung Layout');
-                const formQty = parseInt($('#qty').val()) || 0;
-                const finalItemQty = isLayoutMode ? (formQty > 0 ? formQty : (parseInt(lastCalculatedData.qty) || 1)) : (parseInt(lastCalculatedData.total_sheets) || parseInt($('#sheet_qty').val()) || 1);
+                // Nilai kuantitas yang dikirim ke Quotation Cetakia adalah Jumlah Lembar (sheets), bukan nilai pcs
+                const finalItemQty = parseInt(lastCalculatedData.total_sheets) || parseInt($('#sheet_qty').val()) || 1;
                 const finalItemPrice = finalItemQty > 0 ? Math.round((subtotal / finalItemQty) * 100) / 100 : subtotal;
 
                 // Simpan payload untuk dieksekusi dari modal konfirmasi
@@ -5660,6 +5658,9 @@
                             description: itemDesc,
                             qty: finalItemQty,
                             price: finalItemPrice,
+                            unit_id: '{{ $cetakiaLembarUnitId ?? "019b8a5f-486a-7779-a895-9cbfce459ae8" }}',
+                            unit_name: 'Lembar',
+                            unit_code: 'lbr',
                             amount: subtotal
                         }
                     ],
@@ -5675,7 +5676,7 @@
                 // Isi data ke modal konfirmasi
                 $('#confirmCustomerName').text(custName);
                 $('#confirmSalesName').text(salesName);
-                $('#confirmItemDesc').text((lastCalculatedData.material_name || '-') + ' (' + finalItemQty.toLocaleString('id-ID') + (isLayoutMode ? ' pcs' : ' lbr A3+') + ')');
+                $('#confirmItemDesc').text((lastCalculatedData.material_name || '-') + ' (' + finalItemQty.toLocaleString('id-ID') + ' Lembar A3+)');
                 $('#confirmTermsText').text(termsText);
                 $('#confirmTaxText').text(isTax ? ('PPN 11% (+ ' + formatRupiah(taxAmt) + ')') : 'Non-PPN (0%)');
                 $('#confirmGrandTotal').text(formatRupiah(grandTotal));

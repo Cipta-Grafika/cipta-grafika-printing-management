@@ -67,6 +67,18 @@ class CetakiaQuotationCT extends Controller
         $cetakiaProducts = $this->cetakiaService->getProducts();
         $defaultProductId = !empty($cetakiaProducts[0]['id']) ? $cetakiaProducts[0]['id'] : '019ff93e-3c29-74df-a370-dc4b66d84913';
 
+        // Ambil daftar unit Cetakia untuk resolusi unit_id yang valid
+        $cetakiaUnits = $this->cetakiaService->getUnits();
+        $defaultLembarUnitId = '019b8a5f-486a-7779-a895-9cbfce459ae8';
+        foreach ($cetakiaUnits as $u) {
+            $uName = strtolower(trim($u['unit_name'] ?? ''));
+            $uCode = strtolower(trim($u['unit_code'] ?? ''));
+            if ($uName === 'lembar' || $uCode === 'lbr') {
+                $defaultLembarUnitId = $u['id'];
+                break;
+            }
+        }
+
         $items = [];
         foreach ($request->input('items', []) as $it) {
             $prodId = $it['product_id'] ?? null;
@@ -85,6 +97,37 @@ class CetakiaQuotationCT extends Controller
 
             if (empty($prodId)) {
                 $prodId = $defaultProductId;
+            }
+
+            // Resolusi unit_id:
+            $unitId = !empty($it['unit_id']) ? $it['unit_id'] : null;
+
+            // Jika diberikan unit_name atau unit_code (misal: 'Lembar', 'lbr', dll)
+            if (empty($unitId) && (!empty($it['unit_name']) || !empty($it['unit_code']) || !empty($it['unit']))) {
+                $targetUnit = strtolower(trim((string) ($it['unit_name'] ?? $it['unit_code'] ?? $it['unit'])));
+                foreach ($cetakiaUnits as $u) {
+                    $uName = strtolower(trim($u['unit_name'] ?? ''));
+                    $uCode = strtolower(trim($u['unit_code'] ?? ''));
+                    if ($uName === $targetUnit || $uCode === $targetUnit) {
+                        $unitId = $u['id'];
+                        break;
+                    }
+                }
+            }
+
+            // Jika masih kosong, cari dari unit_id bawaan produk Cetakia yang cocok
+            if (empty($unitId)) {
+                foreach ($cetakiaProducts as $cp) {
+                    if ($cp['id'] === $prodId && !empty($cp['unit_id'])) {
+                        $unitId = $cp['unit_id'];
+                        break;
+                    }
+                }
+            }
+
+            // Khusus item estimasi digital print / A3+ / lembaran, default unit_id adalah Lembar
+            if (empty($unitId) && (stripos($it['item'] ?? '', 'A3+') !== false || stripos($it['item'] ?? '', 'Digital Print') !== false || stripos($it['item'] ?? '', 'Lembar') !== false)) {
+                $unitId = $defaultLembarUnitId;
             }
 
             $rawDesc = (string) ($it['description'] ?? '');
@@ -118,7 +161,7 @@ class CetakiaQuotationCT extends Controller
                 'description' => $cleanDesc,
                 'qty'         => (float) $it['qty'],
                 'price'       => (float) $it['price'],
-                'unit_id'     => !empty($it['unit_id']) ? $it['unit_id'] : null,
+                'unit_id'     => $unitId,
                 'markup'      => (float) ($it['markup'] ?? 0),
                 'amount'      => round((float) $it['qty'] * (float) $it['price'], 2),
             ];
