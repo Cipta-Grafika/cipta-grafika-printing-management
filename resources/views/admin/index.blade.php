@@ -130,54 +130,54 @@
             --btn-color: #047857;
         }
 
-        /* Theme: Kalender (Purple / Violet) */
+        /* Theme: Kalender (Titanium / Steel Slate Metallic) */
         .estimator-card.theme-calendar {
-            --accent: #8b5cf6;
-            --accent-glow: rgba(139, 92, 246, 0.28);
-            --visual-bg: linear-gradient(135deg, rgba(139, 92, 246, 0.18) 0%, rgba(139, 92, 246, 0.04) 100%);
-            --card-border: rgba(139, 92, 246, 0.35);
+            --accent: #94a3b8;
+            --accent-glow: rgba(148, 163, 184, 0.28);
+            --visual-bg: linear-gradient(135deg, rgba(148, 163, 184, 0.18) 0%, rgba(148, 163, 184, 0.04) 100%);
+            --card-border: rgba(148, 163, 184, 0.35);
             --card-shadow: rgba(0, 0, 0, 0.3);
-            --chip-bg: rgba(139, 92, 246, 0.1);
-            --chip-border: rgba(139, 92, 246, 0.3);
-            --chip-color: #c4b5fd;
-            --btn-bg: rgba(139, 92, 246, 0.12);
-            --btn-border: rgba(139, 92, 246, 0.35);
-            --btn-color: #a78bfa;
+            --chip-bg: rgba(148, 163, 184, 0.1);
+            --chip-border: rgba(148, 163, 184, 0.3);
+            --chip-color: #cbd5e1;
+            --btn-bg: rgba(148, 163, 184, 0.12);
+            --btn-border: rgba(148, 163, 184, 0.35);
+            --btn-color: #e2e8f0;
         }
         [data-theme="light"] .estimator-card.theme-calendar {
-            --card-border: rgba(139, 92, 246, 0.4);
-            --card-shadow: rgba(139, 92, 246, 0.1);
-            --chip-bg: rgba(139, 92, 246, 0.08);
-            --chip-border: rgba(139, 92, 246, 0.28);
-            --chip-color: #6d28d9;
-            --btn-bg: #f5f3ff;
-            --btn-border: rgba(139, 92, 246, 0.38);
-            --btn-color: #6d28d9;
+            --card-border: rgba(71, 85, 105, 0.4);
+            --card-shadow: rgba(71, 85, 105, 0.1);
+            --chip-bg: rgba(71, 85, 105, 0.08);
+            --chip-border: rgba(71, 85, 105, 0.28);
+            --chip-color: #334155;
+            --btn-bg: #f8fafc;
+            --btn-border: rgba(71, 85, 105, 0.38);
+            --btn-color: #1e293b;
         }
 
-        /* Theme: Merchandise & Custom Gift (Amber / Gold Accent) */
+        /* Theme: Merchandise & Custom Gift (Electric Lime / Citron) */
         .estimator-card.theme-merchandise {
-            --accent: #f59e0b;
-            --accent-glow: rgba(245, 158, 11, 0.28);
-            --visual-bg: linear-gradient(135deg, rgba(245, 158, 11, 0.18) 0%, rgba(245, 158, 11, 0.04) 100%);
-            --card-border: rgba(245, 158, 11, 0.35);
+            --accent: #84cc16;
+            --accent-glow: rgba(132, 204, 22, 0.28);
+            --visual-bg: linear-gradient(135deg, rgba(132, 204, 22, 0.18) 0%, rgba(132, 204, 22, 0.04) 100%);
+            --card-border: rgba(132, 204, 22, 0.35);
             --card-shadow: rgba(0, 0, 0, 0.3);
-            --chip-bg: rgba(245, 158, 11, 0.1);
-            --chip-border: rgba(245, 158, 11, 0.3);
-            --chip-color: #fcd34d;
-            --btn-bg: rgba(255, 255, 255, 0.04);
-            --btn-border: var(--border);
-            --btn-color: var(--t-base);
+            --chip-bg: rgba(132, 204, 22, 0.1);
+            --chip-border: rgba(132, 204, 22, 0.3);
+            --chip-color: #bef264;
+            --btn-bg: rgba(132, 204, 22, 0.12);
+            --btn-border: rgba(132, 204, 22, 0.35);
+            --btn-color: #a3e635;
         }
         [data-theme="light"] .estimator-card.theme-merchandise {
-            --card-border: rgba(245, 158, 11, 0.4);
-            --card-shadow: rgba(245, 158, 11, 0.1);
-            --chip-bg: rgba(245, 158, 11, 0.08);
-            --chip-border: rgba(245, 158, 11, 0.28);
-            --chip-color: #b45309;
-            --btn-bg: #fffbeb;
-            --btn-border: rgba(245, 158, 11, 0.38);
-            --btn-color: #b45309;
+            --card-border: rgba(101, 163, 13, 0.4);
+            --card-shadow: rgba(101, 163, 13, 0.1);
+            --chip-bg: rgba(101, 163, 13, 0.08);
+            --chip-border: rgba(101, 163, 13, 0.28);
+            --chip-color: #4d7c0f;
+            --btn-bg: #f7fee7;
+            --btn-border: rgba(101, 163, 13, 0.38);
+            --btn-color: #4d7c0f;
         }
 
         /* Default Fallback */
@@ -413,23 +413,7 @@
             transform: translateY(-2px);
         }
 
-        /* Khusus Card Merchandise di Tema Dark: Border tombol Buat Estimasi jangan emas (baik normal maupun hover) */
-        [data-theme="dark"] .estimator-card.theme-merchandise .estimator-card__action,
-        :root:not([data-theme="light"]) .estimator-card.theme-merchandise .estimator-card__action {
-            background: rgba(59, 130, 246, 0.12) !important;
-            border: 1.5px solid rgba(59, 130, 246, 0.35) !important;
-            color: #60a5fa !important;
-            box-shadow: none !important;
-        }
 
-        [data-theme="dark"] .estimator-card.theme-merchandise .estimator-card__action:hover,
-        :root:not([data-theme="light"]) .estimator-card.theme-merchandise .estimator-card__action:hover {
-            background: #3b82f6 !important;
-            border: 1.5px solid #3b82f6 !important;
-            color: #ffffff !important;
-            box-shadow: 0 6px 18px rgba(59, 130, 246, 0.35) !important;
-            transform: translateY(-2px);
-        }
 
         .estimator-card__action:hover .action-arrow {
             transform: translateX(4px);
