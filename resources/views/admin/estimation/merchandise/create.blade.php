@@ -2532,6 +2532,7 @@
     {{-- =========================================================
         JAVASCRIPT ESTIMATOR MERCHANDISE
     ========================================================== --}}
+    @include('admin.estimation.partials.customer-select2')
     <script>
         document.addEventListener('DOMContentLoaded', function() {
 
@@ -2597,8 +2598,6 @@
             // State Pagination & Filter Matrix
             let matrixCurrentPage = 1;
             let matrixPageSize = 10;
-
-            @include('admin.estimation.partials.customer-select2')
 
             // Inisialisasi Select2 (Konsisten dengan Estimasi Kalender)
             if (typeof $ !== 'undefined' && $.fn.select2) {

@@ -2157,6 +2157,7 @@
     </div>
 
     {{-- JAVASCRIPT LOGIC & SELECT2 INTEGRATION --}}
+    @include('admin.estimation.partials.customer-select2')
     <script>
         const allProducts = @json($products);
         let latestResult = null;
@@ -2260,8 +2261,6 @@
             toast.querySelector('button').addEventListener('click', closeToast);
             setTimeout(closeToast, 3500);
         }
-
-        @include('admin.estimation.partials.customer-select2')
 
         document.addEventListener('DOMContentLoaded', function() {
             // 1. Inisialisasi Select2
