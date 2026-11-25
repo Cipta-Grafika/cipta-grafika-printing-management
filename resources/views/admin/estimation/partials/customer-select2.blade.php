@@ -89,6 +89,47 @@
        UNIVERSAL RESPONSIVE ENHANCEMENTS UNTUK SEMUA FORMULIR ESTIMASI
        (Digital Print A3+, Large Format, Offset/Brosur, Kalender, Merchandise)
        ========================================================================== */
+    /* Scrollbar Ramping & Elegan untuk Tabel Matriks Harga (Semua Layar) */
+    .details-digital-table-wrapper::-webkit-scrollbar,
+    .matrix-table-wrap::-webkit-scrollbar,
+    .table-responsive::-webkit-scrollbar,
+    .table-scroll::-webkit-scrollbar,
+    .dual-engine-table-wrap::-webkit-scrollbar,
+    .merch-matrix-table-wrap::-webkit-scrollbar,
+    .lf-matrix-table-wrap::-webkit-scrollbar,
+    .a3plus-matrix-table-wrap::-webkit-scrollbar,
+    .offset-matrix-table-wrap::-webkit-scrollbar,
+    .calendar-matrix-table-wrap::-webkit-scrollbar {
+        width: 5px !important;
+        height: 5px !important;
+    }
+    .details-digital-table-wrapper::-webkit-scrollbar-thumb,
+    .matrix-table-wrap::-webkit-scrollbar-thumb,
+    .table-responsive::-webkit-scrollbar-thumb,
+    .table-scroll::-webkit-scrollbar-thumb,
+    .dual-engine-table-wrap::-webkit-scrollbar-thumb,
+    .merch-matrix-table-wrap::-webkit-scrollbar-thumb,
+    .lf-matrix-table-wrap::-webkit-scrollbar-thumb,
+    .a3plus-matrix-table-wrap::-webkit-scrollbar-thumb,
+    .offset-matrix-table-wrap::-webkit-scrollbar-thumb,
+    .calendar-matrix-table-wrap::-webkit-scrollbar-thumb {
+        background: rgba(59, 130, 246, 0.45) !important;
+        border-radius: 4px !important;
+    }
+    .details-digital-table-wrapper::-webkit-scrollbar-track,
+    .matrix-table-wrap::-webkit-scrollbar-track,
+    .table-responsive::-webkit-scrollbar-track,
+    .table-scroll::-webkit-scrollbar-track,
+    .dual-engine-table-wrap::-webkit-scrollbar-track,
+    .merch-matrix-table-wrap::-webkit-scrollbar-track,
+    .lf-matrix-table-wrap::-webkit-scrollbar-track,
+    .a3plus-matrix-table-wrap::-webkit-scrollbar-track,
+    .offset-matrix-table-wrap::-webkit-scrollbar-track,
+    .calendar-matrix-table-wrap::-webkit-scrollbar-track {
+        background: var(--bg-muted) !important;
+        border-radius: 4px !important;
+    }
+
     @media (max-width: 1024px) {
         /* Hilangkan horizontal scrollbar pada window / body di tablet & ponsel */
         html,
@@ -355,21 +396,54 @@
             white-space: nowrap !important;
         }
 
-        /* Scrollbar Visual Halus untuk Tabel Matriks di Ponsel */
+        /* Hilangkan Scroll Trap Vertikal pada Tabel Matriks di Ponsel */
+        .details-digital-table-wrapper,
+        #sheetTableWrapper,
+        #displayTableWrapper,
+        #rollTableWrapper,
+        .matrix-table-wrap,
+        .table-responsive {
+            max-height: none !important;
+            overflow-y: visible !important;
+        }
+
+        /* Scrollbar Visual Halus & Ramping untuk Tabel Matriks di Ponsel (Lebar & Tinggi 4px) */
         .details-digital-table-wrapper::-webkit-scrollbar,
         .matrix-table-wrap::-webkit-scrollbar,
-        .table-responsive::-webkit-scrollbar {
-            height: 5px !important;
+        .table-responsive::-webkit-scrollbar,
+        .table-scroll::-webkit-scrollbar,
+        .dual-engine-table-wrap::-webkit-scrollbar,
+        .merch-matrix-table-wrap::-webkit-scrollbar,
+        .lf-matrix-table-wrap::-webkit-scrollbar,
+        .a3plus-matrix-table-wrap::-webkit-scrollbar,
+        .offset-matrix-table-wrap::-webkit-scrollbar,
+        .calendar-matrix-table-wrap::-webkit-scrollbar {
+            width: 4px !important;
+            height: 4px !important;
         }
         .details-digital-table-wrapper::-webkit-scrollbar-thumb,
         .matrix-table-wrap::-webkit-scrollbar-thumb,
-        .table-responsive::-webkit-scrollbar-thumb {
+        .table-responsive::-webkit-scrollbar-thumb,
+        .table-scroll::-webkit-scrollbar-thumb,
+        .dual-engine-table-wrap::-webkit-scrollbar-thumb,
+        .merch-matrix-table-wrap::-webkit-scrollbar-thumb,
+        .lf-matrix-table-wrap::-webkit-scrollbar-thumb,
+        .a3plus-matrix-table-wrap::-webkit-scrollbar-thumb,
+        .offset-matrix-table-wrap::-webkit-scrollbar-thumb,
+        .calendar-matrix-table-wrap::-webkit-scrollbar-thumb {
             background: rgba(59, 130, 246, 0.45) !important;
             border-radius: 4px !important;
         }
         .details-digital-table-wrapper::-webkit-scrollbar-track,
         .matrix-table-wrap::-webkit-scrollbar-track,
-        .table-responsive::-webkit-scrollbar-track {
+        .table-responsive::-webkit-scrollbar-track,
+        .table-scroll::-webkit-scrollbar-track,
+        .dual-engine-table-wrap::-webkit-scrollbar-track,
+        .merch-matrix-table-wrap::-webkit-scrollbar-track,
+        .lf-matrix-table-wrap::-webkit-scrollbar-track,
+        .a3plus-matrix-table-wrap::-webkit-scrollbar-track,
+        .offset-matrix-table-wrap::-webkit-scrollbar-track,
+        .calendar-matrix-table-wrap::-webkit-scrollbar-track {
             background: var(--bg-muted) !important;
             border-radius: 4px !important;
         }
@@ -416,25 +490,28 @@
             box-sizing: border-box !important;
         }
 
-        /* Container Tab & Button Offset / Kalender di Ponsel */
+        /* Container Tab & Button (Tipe Harga / Sisi Cetak) di Ponsel */
+        .matrix-tab-cluster {
+            width: 100% !important;
+        }
+
         .matrix-tab-container {
             display: flex !important;
-            flex-wrap: wrap !important;
+            flex-wrap: nowrap !important;
             width: 100% !important;
             max-width: 100% !important;
             box-sizing: border-box !important;
-            gap: 6px !important;
+            gap: 3px !important;
         }
 
         .matrix-tab-btn {
-            flex: 1 1 120px !important;
+            flex: 1 1 0 !important;
             min-width: 0 !important;
             text-align: center !important;
             justify-content: center !important;
-            white-space: normal !important;
-            word-break: break-word !important;
-            padding: 7px 10px !important;
-            font-size: 12px !important;
+            white-space: nowrap !important;
+            padding: 6px 3px !important;
+            font-size: 11px !important;
             box-sizing: border-box !important;
         }
 
