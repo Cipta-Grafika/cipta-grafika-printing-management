@@ -89,8 +89,8 @@
                         <section class="card merch-form-card">
 
                             <div class="card-head" style="border-bottom: 1px solid var(--border); padding: 18px 22px; margin-bottom: 0;">
-                                <div class="card-title-wrap">
-                                    <span class="eyebrow" style="color: var(--primary); font-weight: 700;">
+                                <div class="card-title-wrap" style="min-width: 0; max-width: 100%;">
+                                    <span class="eyebrow" style="color: var(--primary); font-weight: 700; white-space: normal; word-break: break-word; overflow-wrap: break-word; letter-spacing: 0.05em; display: block;">
                                         FORMULIR SPESIFIKASI ESTIMASI MERCHANDISE
                                     </span>
                                 </div>
@@ -203,7 +203,7 @@
 
                                         {{-- Alamat Penagihan & Pengiriman (Cetakia) --}}
                                         <div class="field" style="grid-column: 1 / -1;">
-                                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-wrap: wrap; gap: 6px;">
                                                 <label class="field-label" style="margin: 0;">
                                                     Alamat Penagihan &amp; Pengiriman (Cetakia)
                                                 </label>
@@ -212,7 +212,7 @@
                                                     Salin Alamat Penagihan ke Pengiriman
                                                 </button>
                                             </div>
-                                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px;">
+                                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
                                                 <div>
                                                     <label for="bill_to" style="font-size: 11.5px; color: var(--t-muted); display: block; margin-bottom: 3px;">Alamat Penagihan (Bill To)</label>
                                                     <textarea id="bill_to" name="bill_to" rows="2" class="textarea" style="resize: vertical; font-size: 12.5px; min-height: 60px;" placeholder="Alamat penagihan pelanggan..."></textarea>
@@ -1018,9 +1018,9 @@
                                 style="background: var(--bg-card); border-bottom: 1px solid var(--border); padding: 18px 22px; border-radius: 14px 14px 0 0; margin-bottom: 0;">
                                 <div
                                     style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; width: 100%;">
-                                    <div>
+                                    <div style="min-width: 0; max-width: 100%;">
                                         <span class="eyebrow"
-                                            style="color: var(--primary); font-size: 11px; font-weight: 700; letter-spacing: 0.6px; display: block;">
+                                            style="color: var(--primary); font-size: 11px; font-weight: 700; letter-spacing: 0.05em; display: block; white-space: normal; word-break: break-word; overflow-wrap: break-word;">
                                             HASIL KALKULASI ESTIMASI
                                         </span>
                                         <h3
@@ -1165,9 +1165,9 @@
                     <section class="card merch-matrix-card">
                         <div class="card-head"
                             style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; padding: 18px 22px; margin-bottom: 0; border-bottom: 1px solid var(--border);">
-                            <div>
-                                <div style="display: flex; align-items: center; gap: 8px;">
-                                    <span class="eyebrow" style="color: var(--primary); font-weight: 700;">
+                            <div style="min-width: 0; max-width: 100%;">
+                                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                    <span class="eyebrow" style="color: var(--primary); font-weight: 700; white-space: normal; word-break: break-word; overflow-wrap: break-word; letter-spacing: 0.05em;">
                                         TABEL DAFTAR HARGA &amp; PRICELIST RESMI
                                     </span>
                                     <span id="matrixCategoryIndicatorBadge" class="badge-cat-indicator">
@@ -1199,7 +1199,7 @@
                                     </select>
                                 </div>
 
-                                <div class="matrix-search-box" style="position: relative; min-width: 240px;">
+                                <div class="matrix-search-box" style="position: relative; flex: 1 1 200px; min-width: 0;">
                                     <input type="text" id="merchMatrixSearch" class="input"
                                         placeholder="Cari varian, ketebalan, harga..."
                                         style="padding-left: 34px; padding-right: 30px; font-size: 12.5px; height: 36px; border-radius: 8px;">
@@ -1645,6 +1645,12 @@
         .merch-sticky-card,
         .merch-matrix-card {
             padding: 0;
+        }
+
+        .merch-form-card .card-head,
+        .merch-sticky-card .card-head,
+        .merch-matrix-card .card-head {
+            padding: 18px 22px;
         }
 
         /* ---------------------------------------------------------

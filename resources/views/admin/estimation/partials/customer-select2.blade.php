@@ -84,6 +84,327 @@
         line-height: 1 !important;
         display: inline-block !important;
     }
+
+    /* ==========================================================================
+       UNIVERSAL RESPONSIVE ENHANCEMENTS UNTUK SEMUA FORMULIR ESTIMASI
+       (Digital Print A3+, Large Format, Offset/Brosur, Kalender, Merchandise)
+       ========================================================================== */
+    @media (max-width: 1024px) {
+        /* Hilangkan horizontal scrollbar pada window / body di tablet & ponsel */
+        html,
+        body {
+            overflow-x: hidden !important;
+            max-width: 100vw !important;
+            width: 100% !important;
+            position: relative;
+        }
+
+        .shell,
+        .main {
+            overflow-x: hidden !important;
+            max-width: 100% !important;
+            width: 100% !important;
+            min-width: 0 !important;
+            box-sizing: border-box !important;
+        }
+
+        /* Susun kolom estimator menjadi vertikal (Form di atas, Summary di bawah) */
+        .a3plus-estimator-grid,
+        .lf-estimator-grid,
+        .offset-estimator-grid,
+        .calendar-estimator-grid,
+        .merch-estimator-grid {
+            grid-template-columns: 1fr !important;
+            gap: 20px !important;
+            width: 100% !important;
+        }
+
+        /* Lepas sticky positioning pada mobile/tablet agar scroll mulus */
+        .calendar-sticky-wrap,
+        .merch-sticky-col,
+        .merch-sticky-card {
+            position: static !important;
+            top: auto !important;
+        }
+
+        .content {
+            overflow-x: hidden !important;
+            max-width: 100% !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
+        }
+    }
+
+    @media (max-width: 768px) {
+        /* Container dan Layout Utama */
+        .shell,
+        .main,
+        .content {
+            max-width: 100% !important;
+            min-width: 0 !important;
+            box-sizing: border-box !important;
+        }
+        .content {
+            padding: 16px 12px 24px !important;
+            overflow-x: hidden !important;
+        }
+
+        /* Pastikan footer tidak memicu horizontal scroll */
+        .d-footer {
+            max-width: 100% !important;
+            box-sizing: border-box !important;
+            overflow-x: hidden !important;
+        }
+
+        /* Hero Section Header Form Estimasi */
+        .hero {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 12px !important;
+            margin-bottom: 18px !important;
+        }
+        .hero-text {
+            min-width: 0 !important;
+            width: 100% !important;
+        }
+        .hero-title {
+            font-size: 1.35rem !important;
+            line-height: 1.3 !important;
+        }
+        .hero-sub {
+            font-size: 12.5px !important;
+        }
+
+        /* Kartu Form Estimasi */
+        .card,
+        .merch-form-card,
+        .merch-sticky-card,
+        .merch-matrix-card,
+        .calendar-form-card,
+        .a3plus-form-col .card,
+        .lf-form-col .card,
+        .offset-form-col .card {
+            max-width: 100% !important;
+            min-width: 0 !important;
+            box-sizing: border-box !important;
+            border-radius: 12px !important;
+        }
+
+        /* Header Kartu & Eyebrow: Mencegah Teks Terpotong di Layar Kecil */
+        .card-head {
+            padding: 14px 16px !important;
+            flex-wrap: wrap !important;
+            gap: 10px !important;
+            min-width: 0 !important;
+            box-sizing: border-box !important;
+        }
+        .card-head > :last-child,
+        .card-title-wrap {
+            flex-shrink: 1 !important;
+            min-width: 0 !important;
+            max-width: 100% !important;
+        }
+        .card-head .eyebrow,
+        .card-title-wrap .eyebrow,
+        .form-section-head .eyebrow,
+        .hero .eyebrow,
+        .eyebrow {
+            white-space: normal !important;
+            word-break: break-word !important;
+            overflow-wrap: break-word !important;
+            letter-spacing: 0.05em !important;
+            line-height: 1.4 !important;
+            display: block !important;
+            max-width: 100% !important;
+            font-size: 11px !important;
+        }
+
+        /* Padding Responsif pada Bagian Formulir & Tab Panel */
+        .form-section,
+        .tab-panel,
+        .card-body,
+        .card-foot {
+            padding-left: 14px !important;
+            padding-right: 14px !important;
+            box-sizing: border-box !important;
+        }
+        .form-section {
+            padding-top: 16px !important;
+            padding-bottom: 16px !important;
+        }
+
+        /* Elemen Input & Select2 */
+        .field,
+        .input,
+        .select,
+        .textarea,
+        .select2-container {
+            max-width: 100% !important;
+            width: 100% !important;
+            min-width: 0 !important;
+            box-sizing: border-box !important;
+        }
+        .select2-container .select2-selection--single {
+            max-width: 100% !important;
+            box-sizing: border-box !important;
+        }
+        .select2-container .select2-selection__rendered {
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            max-width: calc(100vw - 80px) !important;
+        }
+
+        /* Cegah flex label & button penagihan keluar batas */
+        .field > div[style*="display: flex"] {
+            flex-wrap: wrap !important;
+            gap: 6px !important;
+        }
+
+        /* Cegah toast notifikasi memicu horizontal scroll */
+        .wa-toast-container,
+        .toast-container,
+        #toastContainer {
+            overflow: hidden !important;
+            max-width: 100vw !important;
+        }
+
+        /* Tombol & Aksi Form */
+        .form-actions,
+        .card-foot-actions,
+        .btn-group-responsive {
+            flex-direction: column !important;
+            width: 100% !important;
+            gap: 8px !important;
+        }
+        .form-actions .btn,
+        .form-actions button,
+        .btn-submit-main {
+            width: 100% !important;
+            justify-content: center !important;
+        }
+        .btn-copy-matrix,
+        .btn-copy-matrix-wa {
+            max-width: 100% !important;
+            white-space: normal !important;
+            word-break: break-word !important;
+        }
+
+        /* Tabel Matriks / Pricelist Scroll Horizontal Halus */
+        .matrix-table-wrap,
+        .table-responsive,
+        .table-scroll,
+        .details-digital-table-wrapper,
+        .dual-engine-table-wrap,
+        .merch-matrix-table-wrap,
+        .lf-matrix-table-wrap,
+        .a3plus-matrix-table-wrap,
+        .offset-matrix-table-wrap,
+        .calendar-matrix-table-wrap {
+            width: 100% !important;
+            max-width: 100% !important;
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch !important;
+            display: block !important;
+            box-sizing: border-box !important;
+        }
+
+        /* Toolbar Pencarian Matriks Harga */
+        .matrix-toolbar-wrap {
+            flex-direction: column !important;
+            align-items: stretch !important;
+            gap: 10px !important;
+            width: 100% !important;
+        }
+        .matrix-search-box {
+            min-width: 0 !important;
+            width: 100% !important;
+            max-width: 100% !important;
+        }
+
+        /* Tab Navigasi Merchandise */
+        .merch-tabs-nav {
+            gap: 8px !important;
+        }
+        .merch-tab-btn {
+            padding: 9px 12px !important;
+            font-size: 12px !important;
+            border-radius: 8px !important;
+            flex: 1 1 calc(50% - 8px);
+            min-width: 135px;
+            box-sizing: border-box;
+        }
+    }
+
+    @media (max-width: 640px) {
+        /* Form Grid Menjadi 1 Kolom Rapi di Smartphone */
+        .form-grid,
+        [style*="grid-template-columns"],
+        .choice-cards-grid,
+        .cal-type-grid {
+            grid-template-columns: 1fr !important;
+            gap: 12px !important;
+        }
+
+        /* Pilihan Radio & Pill Option */
+        .choice-pills,
+        .laminate-mode-pills,
+        .radio-pill-group {
+            display: flex !important;
+            flex-wrap: wrap !important;
+            gap: 8px !important;
+        }
+        .choice-pill,
+        .radio-pill {
+            flex: 1 1 auto !important;
+            text-align: center !important;
+        }
+
+        /* Tombol Cepat Masa Berlaku Penawaran */
+        .quote-preset-buttons {
+            display: flex !important;
+            flex-wrap: wrap !important;
+            gap: 6px !important;
+        }
+        .quote-preset-btn {
+            flex: 1 1 auto !important;
+        }
+
+        /* Tombol Salin Alamat */
+        .btn-copy-address {
+            white-space: normal !important;
+            word-break: break-word !important;
+            font-size: 11px !important;
+        }
+
+        /* Modal Dialog Konfirmasi Cetakia */
+        .cetakia-confirm-modal-box,
+        #modalCetakiaConfirm .modal-dialog,
+        #modalCetakiaConfirm > div {
+            max-width: calc(100vw - 20px) !important;
+            margin: 10px !important;
+            width: 100% !important;
+        }
+    }
+
+    @media (max-width: 420px) {
+        .content {
+            padding: 12px 8px 20px !important;
+        }
+        .card-head {
+            padding: 12px 12px !important;
+        }
+        .form-section,
+        .tab-panel,
+        .card-body {
+            padding-left: 12px !important;
+            padding-right: 12px !important;
+        }
+        .merch-tab-btn {
+            flex: 1 1 100% !important;
+            width: 100% !important;
+        }
+    }
 </style>
 
 <script>
