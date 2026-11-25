@@ -305,8 +305,73 @@
             max-width: 100% !important;
             overflow-x: auto !important;
             -webkit-overflow-scrolling: touch !important;
-            display: block !important;
             box-sizing: border-box !important;
+        }
+
+        /* Kolom Sticky yang Ramping & Proporsional di Ponsel (A3+ & Large Format) */
+        .details-digital-table .details-digital-col-no,
+        #a3plusPriceListTable .details-digital-col-no,
+        #displayPriceListTable .details-digital-col-no,
+        #lfPriceListTable .details-digital-col-no {
+            width: 32px !important;
+            min-width: 32px !important;
+            max-width: 32px !important;
+            padding: 6px 3px !important;
+            text-align: center !important;
+        }
+
+        .details-digital-table .details-digital-col-material,
+        #a3plusPriceListTable .details-digital-col-material,
+        #displayPriceListTable .details-digital-col-material,
+        #lfPriceListTable .details-digital-col-material {
+            left: 32px !important;
+            min-width: 110px !important;
+            max-width: 135px !important;
+            width: 125px !important;
+            padding: 6px 8px !important;
+            font-size: 11.5px !important;
+            white-space: normal !important;
+            word-break: break-word !important;
+            overflow-wrap: break-word !important;
+            line-height: 1.35 !important;
+        }
+
+        /* Sel Data Tabel Digital & Large Format di Ponsel */
+        .details-digital-table th,
+        .details-digital-table td {
+            padding: 6px 8px !important;
+            font-size: 11.5px !important;
+        }
+
+        /* Tabel Matriks Kalender, Offset & Merchandise: Padding Kompak */
+        .matrix-table th,
+        .matrix-table td,
+        .table-compare th,
+        .table-compare td,
+        #merchMatrixTable th,
+        #merchMatrixTable td {
+            padding: 7px 9px !important;
+            font-size: 11.5px !important;
+            white-space: nowrap !important;
+        }
+
+        /* Scrollbar Visual Halus untuk Tabel Matriks di Ponsel */
+        .details-digital-table-wrapper::-webkit-scrollbar,
+        .matrix-table-wrap::-webkit-scrollbar,
+        .table-responsive::-webkit-scrollbar {
+            height: 5px !important;
+        }
+        .details-digital-table-wrapper::-webkit-scrollbar-thumb,
+        .matrix-table-wrap::-webkit-scrollbar-thumb,
+        .table-responsive::-webkit-scrollbar-thumb {
+            background: rgba(59, 130, 246, 0.45) !important;
+            border-radius: 4px !important;
+        }
+        .details-digital-table-wrapper::-webkit-scrollbar-track,
+        .matrix-table-wrap::-webkit-scrollbar-track,
+        .table-responsive::-webkit-scrollbar-track {
+            background: var(--bg-muted) !important;
+            border-radius: 4px !important;
         }
 
         /* Toolbar Pencarian Matriks Harga */
