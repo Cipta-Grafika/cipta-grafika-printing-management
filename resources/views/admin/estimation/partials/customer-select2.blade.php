@@ -374,6 +374,77 @@
             border-radius: 4px !important;
         }
 
+        /* Switcher & Tab Scope Responsif di Ponsel (A3+ & Large Format) */
+        .matrix-head-title-wrap {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 10px !important;
+            width: 100% !important;
+        }
+
+        .matrix-head-text {
+            width: 100% !important;
+            min-width: 0 !important;
+        }
+
+        .matrix-scope-switcher {
+            display: flex !important;
+            flex-wrap: wrap !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            box-sizing: border-box !important;
+            gap: 6px !important;
+            margin-top: 10px !important;
+            padding: 4px !important;
+        }
+
+        .matrix-scope-tab {
+            display: inline-flex !important;
+            flex: 1 1 180px !important;
+            min-width: 0 !important;
+            max-width: 100% !important;
+            width: 100% !important;
+            justify-content: center !important;
+            align-items: center !important;
+            text-align: center !important;
+            white-space: normal !important;
+            word-break: break-word !important;
+            overflow-wrap: break-word !important;
+            padding: 8px 12px !important;
+            font-size: 12px !important;
+            line-height: 1.3 !important;
+            box-sizing: border-box !important;
+        }
+
+        /* Container Tab & Button Offset / Kalender di Ponsel */
+        .matrix-tab-container {
+            display: flex !important;
+            flex-wrap: wrap !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            box-sizing: border-box !important;
+            gap: 6px !important;
+        }
+
+        .matrix-tab-btn {
+            flex: 1 1 120px !important;
+            min-width: 0 !important;
+            text-align: center !important;
+            justify-content: center !important;
+            white-space: normal !important;
+            word-break: break-word !important;
+            padding: 7px 10px !important;
+            font-size: 12px !important;
+            box-sizing: border-box !important;
+        }
+
+        .btn-copy-matrix {
+            width: 100% !important;
+            justify-content: center !important;
+            box-sizing: border-box !important;
+            padding: 9px 14px !important;
+        }
+
         /* Toolbar Pencarian Matriks Harga */
         .matrix-toolbar-wrap {
             flex-direction: column !important;
