@@ -76,6 +76,121 @@ class CetakiaApiService
     }
 
     /**
+     * Ambil daftar Customer dari Cetakia dengan paginasi & keyword pencarian (Select2 Infinite Scroll)
+     *
+     * @param int $page
+     * @param int $limit
+     * @param string|null $keyword
+     * @return array{results: array, pagination: array{more: bool, page: int, limit: int}}
+     */
+    public function getCustomersPaginated(int $page = 1, int $limit = 50, ?string $keyword = null): array
+    {
+        $limit = max(1, min(200, $limit));
+        $page = max(1, $page);
+        $keyword = trim((string) $keyword);
+
+        $cacheKey = 'cetakia_cust_page_' . md5("p_{$page}_l_{$limit}_k_{$keyword}");
+
+        return Cache::remember($cacheKey, 300, function () use ($page, $limit, $keyword) {
+            try {
+                if (empty($this->apiKey)) {
+                    return $this->searchFallbackCustomers($page, $limit, $keyword);
+                }
+
+                $queryParams = [
+                    'page'  => $page,
+                    'limit' => $limit,
+                ];
+                if ($keyword !== '') {
+                    $queryParams['keyword'] = $keyword;
+                }
+
+                $response = Http::withHeaders($this->getHeaders())
+                    ->timeout($this->timeout)
+                    ->get("{$this->baseUrl}/customers/list", $queryParams);
+
+                if ($response->successful()) {
+                    $json = $response->json();
+                    $data = $json['data'] ?? [];
+                    $pag  = $json['pagination'] ?? [];
+
+                    $results = [];
+                    foreach ($data as $c) {
+                        $name = $c['name'] ?? '-';
+                        $results[] = [
+                            'id'            => $c['id'],
+                            'text'          => $name,
+                            'name'          => $name,
+                            'customer_code' => $c['customer_code'] ?? '',
+                            'bill_to'       => $c['bill_to'] ?? '',
+                            'ship_to'       => $c['ship_to'] ?? '',
+                        ];
+                    }
+
+                    return [
+                        'results'    => $results,
+                        'pagination' => [
+                            'more'  => !empty($pag['hasNext']),
+                            'page'  => $page,
+                            'limit' => $limit,
+                        ],
+                    ];
+                }
+
+                Log::warning('CetakiaApiService: Gagal mengambil data customers paginated, status: ' . $response->status());
+            } catch (\Throwable $e) {
+                Log::error('CetakiaApiService Error getCustomersPaginated: ' . $e->getMessage());
+            }
+
+            return $this->searchFallbackCustomers($page, $limit, $keyword);
+        });
+    }
+
+    /**
+     * Fallback pencarian customer lokal jika offline
+     */
+    protected function searchFallbackCustomers(int $page = 1, int $limit = 50, string $keyword = ''): array
+    {
+        $all = CetakiaCustomer::all();
+        if ($keyword !== '') {
+            $kw = strtolower($keyword);
+            $all = array_filter($all, function ($item) use ($kw) {
+                $name = strtolower($item['name'] ?? '');
+                $code = strtolower($item['customer_code'] ?? '');
+                return str_contains($name, $kw) || str_contains($code, $kw);
+            });
+            $all = array_values($all);
+        }
+
+        $total = count($all);
+        $offset = ($page - 1) * $limit;
+        $slice = array_slice($all, $offset, $limit);
+        $more = ($offset + $limit) < $total;
+
+        $results = [];
+        foreach ($slice as $c) {
+            $name = $c['name'] ?? '-';
+            $results[] = [
+                'id'            => $c['id'],
+                'text'          => $name,
+                'name'          => $name,
+                'customer_code' => $c['customer_code'] ?? '',
+                'bill_to'       => $c['bill_to'] ?? '',
+                'ship_to'       => $c['ship_to'] ?? '',
+            ];
+        }
+
+        return [
+            'results'    => $results,
+            'pagination' => [
+                'more'  => $more,
+                'page'  => $page,
+                'limit' => $limit,
+            ],
+        ];
+    }
+
+    /**
      * Ambil daftar Sales & Manajer dari Cetakia (dengan caching & fallback)
      *
      * @return array<int, array{id: string, name: string, username: string, phone: ?string, role: string, role_name: string}>

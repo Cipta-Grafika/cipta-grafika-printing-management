@@ -273,4 +273,18 @@ class CetakiaQuotationCT extends Controller
 
         return response()->json($result, $result['statusCode'] ?? 200);
     }
+
+    /**
+     * Endpoint JSON untuk Select2 Infinite Scroll & Pencarian Pelanggan Cetakia
+     */
+    public function getCustomersAjax(Request $request): JsonResponse
+    {
+        $page    = max(1, (int) $request->input('page', 1));
+        $limit   = max(1, min(100, (int) $request->input('limit', 50)));
+        $keyword = (string) ($request->input('keyword') ?? $request->input('q') ?? $request->input('search') ?? '');
+
+        $data = $this->cetakiaService->getCustomersPaginated($page, $limit, $keyword);
+
+        return response()->json($data);
+    }
 }

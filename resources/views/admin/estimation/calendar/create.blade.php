@@ -1275,17 +1275,8 @@
                                             <label class="field-label" for="customer_id">
                                                 Nama Pelanggan / Perusahaan (Cetakia) <span style="color: #ef4444;">*</span>
                                             </label>
-                                            <select id="customer_id" name="customer_id" class="select select2">
+                                            <select id="customer_id" name="customer_id" class="select" style="width: 100%;">
                                                 <option value="">-- Pilih Pelanggan (Cetakia) --</option>
-                                                @foreach ($customers ?? \App\Support\CetakiaCustomer::all() as $cust)
-                                                    <option value="{{ $cust['id'] }}" 
-                                                        data-name="{{ $cust['name'] ?? '' }}"
-                                                        data-code="{{ $cust['customer_code'] ?? $cust['code'] ?? '' }}"
-                                                        data-bill-to="{{ $cust['bill_to'] ?? '' }}"
-                                                        data-ship-to="{{ $cust['ship_to'] ?? '' }}">
-                                                        {{ $cust['name'] }}
-                                                    </option>
-                                                @endforeach
                                             </select>
                                             <input type="hidden" id="customer_name" name="customer_name" value="">
                                         </div>
@@ -2036,12 +2027,12 @@
                         </div>
                         <div>
                             <span class="badge" style="background: rgba(255, 255, 255, 0.2); color: #fff; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 4px;">
-                                CETAKIA &middot; DEV MODE
+                                CETAKIA &middot; INTEGRASI RESMI
                             </span>
                             <h3 style="margin: 0; font-size: 17.5px; font-weight: 700; color: #fff;">Konfirmasi Kirim Penawaran</h3>
                         </div>
                     </div>
-                    <button type="button" id="btnCloseConfirmModal" class="modal-close-btn" style="color: #fff; opacity: 0.8; font-size: 18px;" aria-label="Tutup">
+                    <button type="button" id="btnCloseConfirmModal" class="btn-modal-close-confirm" aria-label="Tutup">
                         <i class="bi bi-x-lg"></i>
                     </button>
                 </div>
@@ -2117,7 +2108,7 @@
                     <i class="bi bi-check-lg"></i>
                 </div>
                 <h3 style="margin: 0 0 6px; font-size: 19px; font-weight: 700; color: #fff;">Quotation Berhasil Terkirim!</h3>
-                <p style="margin: 0; font-size: 13px; opacity: 0.9;">Penawaran harga telah resmi tercatat di sistem Cetakia (Dev Mode).</p>
+                <p style="margin: 0; font-size: 13px; opacity: 0.9;">Penawaran harga telah resmi tercatat di sistem Cetakia.</p>
             </div>
 
             <div style="padding: 24px; text-align: left;">
@@ -2270,12 +2261,17 @@
             setTimeout(closeToast, 3500);
         }
 
+        @include('admin.estimation.partials.customer-select2')
+
         document.addEventListener('DOMContentLoaded', function() {
             // 1. Inisialisasi Select2
             if (typeof $ !== 'undefined' && $.fn.select2) {
-                $('.select2').select2({
+                $('.select2').not('#customer_id').select2({
                     width: '100%'
                 });
+
+                // Inisialisasi Customer Select2 dengan Infinite Scroll & Animasi Loading
+                initCetakiaCustomerSelect2('#customer_id');
 
                 $('#customer_id').on('change', function() {
                     const custVal = $(this).val();
@@ -3183,11 +3179,10 @@
 
             const r = latestResult;
             const isMeja = (r.calendar_type === 'meja');
-            let itemName = '';
+            const itemName = (r.material_name || (isMeja ? 'Kalender Meja' : 'Kalender Dinding')).trim();
             let itemDesc = '';
 
             if (isMeja) {
-                itemName = 'Cetak Kalender Meja ' + (r.size_label || '') + ' (' + (r.recommended_route === 'digital' ? 'Digital Print A3+' : 'Offset SM 52') + ')';
                 itemDesc = [
                     (r.material_name || '-'),
                     (r.leaf_count || 1) + ' Lembar',
@@ -3198,7 +3193,6 @@
                 ].join('_');
             } else {
                 const finishingName = (r.finishing_detail?.name || 'Klem Seng Spiral').replace(/[\/\\:]/g, ' ');
-                itemName = 'Cetak Kalender Dinding ' + (r.size_label || '') + ' (' + (r.recommended_route === 'digital' ? 'Digital Print A3+' : ('Offset ' + (r.offset?.machine_key || 'SM52'))) + ')';
                 itemDesc = [
                     (r.material_name || '-'),
                     (r.leaf_count || 1) + ' Lembar',

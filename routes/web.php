@@ -228,6 +228,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/admin/estimation/create-a3plus/get-pricelist', [EstimationCT::class, 'getPriceListA3plus'])->name('admin_get_pricelist_a3plus');
     Route::post('/admin/estimation/create-a3plus', [EstimationCT::class, 'storeA3plus'])->name('admin_store_a3plus');
     Route::post('/admin/cetakia/quotations', [CetakiaQuotationCT::class, 'store'])->name('admin_cetakia_quotation_store');
+    Route::get('/admin/cetakia/customers/ajax', [CetakiaQuotationCT::class, 'getCustomersAjax'])->name('admin_cetakia_customers_ajax');
 
     // Cetak Offset Estimation
     Route::get('/admin/estimations/create-offset', [OffsetEstimationCT::class, 'create'])->name('admin_create_offset_estimation');

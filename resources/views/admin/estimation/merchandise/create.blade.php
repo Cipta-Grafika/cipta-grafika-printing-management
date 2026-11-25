@@ -119,17 +119,8 @@
                                             <label for="merch_customer_id" class="field-label">
                                                 Nama Pelanggan (Cetakia) <span class="req">*</span>
                                             </label>
-                                            <select id="merch_customer_id" name="customer_id" class="select select2">
+                                            <select id="merch_customer_id" name="customer_id" class="select" style="width: 100%;">
                                                 <option value="">-- Pilih Pelanggan (Cetakia) --</option>
-                                                @foreach ($customers ?? [] as $cust)
-                                                    <option value="{{ $cust['id'] }}"
-                                                        data-code="{{ $cust['customer_code'] ?? $cust['code'] ?? '' }}"
-                                                        data-name="{{ $cust['name'] }}"
-                                                        data-bill-to="{{ $cust['bill_to'] ?? '' }}"
-                                                        data-ship-to="{{ $cust['ship_to'] ?? '' }}">
-                                                        {{ $cust['name'] }}
-                                                    </option>
-                                                @endforeach
                                             </select>
                                             <input type="hidden" id="merch_customer_name" name="customer_name" value="">
                                         </div>
@@ -1417,12 +1408,12 @@
                         </div>
                         <div>
                             <span class="badge" style="background: rgba(255, 255, 255, 0.2); color: #fff; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 4px;">
-                                CETAKIA &middot; DEV MODE
+                                CETAKIA &middot; INTEGRASI RESMI
                             </span>
                             <h3 style="margin: 0; font-size: 17.5px; font-weight: 700; color: #fff;">Konfirmasi Kirim Penawaran</h3>
                         </div>
                     </div>
-                    <button type="button" id="btnCloseConfirmModal" class="modal-close-btn" style="color: #fff; opacity: 0.8; font-size: 18px;" aria-label="Tutup">
+                    <button type="button" id="btnCloseConfirmModal" class="btn-modal-close-confirm" aria-label="Tutup">
                         <i class="bi bi-x-lg"></i>
                     </button>
                 </div>
@@ -1498,7 +1489,7 @@
                     <i class="bi bi-check-lg"></i>
                 </div>
                 <h3 style="margin: 0 0 6px; font-size: 19px; font-weight: 700; color: #fff;">Quotation Berhasil Terkirim!</h3>
-                <p style="margin: 0; font-size: 13px; opacity: 0.9;">Penawaran harga telah resmi tercatat di sistem Cetakia (Dev Mode).</p>
+                <p style="margin: 0; font-size: 13px; opacity: 0.9;">Penawaran harga telah resmi tercatat di sistem Cetakia.</p>
             </div>
 
             <div style="padding: 24px; text-align: left;">
@@ -2607,37 +2598,22 @@
             let matrixCurrentPage = 1;
             let matrixPageSize = 10;
 
+            @include('admin.estimation.partials.customer-select2')
+
             // Inisialisasi Select2 (Konsisten dengan Estimasi Kalender)
             if (typeof $ !== 'undefined' && $.fn.select2) {
-                $('.field .select2').select2({
+                $('.field .select2').not('#merch_customer_id').select2({
                     width: '100%'
+                });
+
+                // Inisialisasi Customer Select2 dengan Infinite Scroll & Animasi Loading
+                initCetakiaCustomerSelect2('#merch_customer_id', {
+                    nameInputId: 'merch_customer_name'
                 });
 
                 $('#merchMatrixPageSize').select2({
                     width: '85px',
                     minimumResultsForSearch: -1
-                });
-
-                $('#merch_customer_id').on('change', function() {
-                    const custVal = $(this).val();
-                    const sel = $(this).find('option:selected');
-                    const cNameInput = document.getElementById('merch_customer_name');
-                    if (!custVal) {
-                        if (cNameInput) cNameInput.value = '';
-                        $('#bill_to').val('');
-                        $('#ship_to').val('');
-                    } else {
-                        const custName = (sel.data('name') || sel.text() || '').trim();
-                        if (cNameInput) {
-                            cNameInput.value = custName;
-                        }
-                        const rawBillTo = (sel.data('bill-to') || '').toString().trim();
-                        const rawShipTo = (sel.data('ship-to') || '').toString().trim();
-                        const finalBillTo = rawBillTo || custName;
-                        const finalShipTo = rawShipTo || finalBillTo;
-                        $('#bill_to').val(finalBillTo);
-                        $('#ship_to').val(finalShipTo);
-                    }
                 });
 
                 // Salin Bill To ke Ship To
@@ -4733,7 +4709,7 @@ const isTax = $('#tax_enabled_check').is(':checked');
                 const termsText = $('#cetakia_terms option:selected').text().trim() || 'Cash / Tunai';
 
                 const r = latestMerchCalculation;
-                const itemName = r.productName;
+                const itemName = (r.materialName || r.productName).trim();
                 const itemDesc = (r.itemDesc || '')
                     .replace(/[:：]/g, ' ')
                     .replace(/×/g, 'x')
