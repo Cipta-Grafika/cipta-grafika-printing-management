@@ -2361,6 +2361,10 @@
                                             <strong id="liveSellingPricePerPcs" class="sub-val">Rp 0,00</strong>
                                         </div>
                                         <div class="sub-divider">
+                                            <span class="sub-label">Harga / Lembar:</span>
+                                            <strong id="liveSellingPricePerSheet" class="sub-val" style="color: var(--primary);">Rp 0,00</strong>
+                                        </div>
+                                        <div class="sub-divider">
                                             <span class="sub-label">Kebutuhan Bahan:</span>
                                             <strong id="liveTotalSheetsSub" class="sub-val">0 Lembar A3+</strong>
                                         </div>
@@ -2916,6 +2920,10 @@
                             <div class="tech-spec-value" id="techTotalSheets" style="color: var(--primary);">-</div>
                         </div>
                         <div class="tech-spec-item">
+                            <div class="tech-spec-label">Harga per Lembar</div>
+                            <div class="tech-spec-value" id="techPricePerSheetSpec" style="color: var(--primary); font-weight: 700;">-</div>
+                        </div>
+                        <div class="tech-spec-item">
                             <div class="tech-spec-label">Estimasi Waktu</div>
                             <div class="tech-spec-value" id="techLeadTime">-</div>
                         </div>
@@ -2989,12 +2997,21 @@
                             <tr style="border-top: 2px solid var(--border);">
                                 <th colspan="2" style="padding: 10px; text-align: left; font-size: 12.5px; font-weight: 800; text-transform: uppercase;">
                                     TOTAL AKHIR HARGA JUAL
+                                    <div id="techPricePerSheetRow" style="font-size: 11.5px; font-weight: 600; color: var(--primary); text-transform: none; margin-top: 3px;">
+                                        @ Rp 0 / Lembar
+                                    </div>
                                 </th>
                                 <th id="techTotalHppCol" style="padding: 10px; text-align: right; font-weight: 800; color: var(--t-base);">
                                     HPP: Rp 0
+                                    <div id="techHppPerSheetCol" style="font-size: 11px; font-weight: 500; color: var(--t-muted); margin-top: 2px;">
+                                        (HPP: Rp 0 / lbr)
+                                    </div>
                                 </th>
                                 <th id="techGrandTotalCol" style="padding: 10px; text-align: right; font-weight: 800; color: var(--primary); font-size: 1.1rem;">
                                     Rp 0
+                                    <div id="techGrandTotalPerSheetCol" style="font-size: 11px; font-weight: 700; color: var(--primary); margin-top: 2px;">
+                                        (Rp 0 / lbr)
+                                    </div>
                                 </th>
                             </tr>
                         </tfoot>
@@ -3029,10 +3046,16 @@
                         <div class="tech-kpi-card">
                             <span class="tech-kpi-label">Total HPP Produksi</span>
                             <span class="tech-kpi-val" id="techKpiTotalHpp">Rp 0</span>
+                            <span class="tech-kpi-sub" id="techKpiHppPerSheet" style="font-size: 11px; color: var(--t-muted); font-weight: 500; margin-top: 4px; display: block;">
+                                Rp 0 / Lembar
+                            </span>
                         </div>
                         <div class="tech-kpi-card highlight">
                             <span class="tech-kpi-label" style="color: var(--primary);">Total Harga Jual</span>
                             <span class="tech-kpi-val" id="techKpiGrandTotal" style="color: var(--primary);">Rp 0</span>
+                            <span class="tech-kpi-sub" id="techKpiPricePerSheet" style="font-size: 11.5px; color: var(--primary); font-weight: 700; margin-top: 4px; display: block;">
+                                Rp 0 / Lembar
+                            </span>
                         </div>
                         <div class="tech-kpi-card profit">
                             <span class="tech-kpi-label" style="color: #10b981;">Estimasi Profit</span>
@@ -4366,9 +4389,20 @@
                     const elPerPcs = document.getElementById('liveSellingPricePerPcs');
                     if (elPerPcs) elPerPcs.textContent = formatRupiah(resultData.price_per_pcs);
 
+                    // Perhitungan Harga Satuan per Lembar (Konsisten dengan Quotation Cetakia)
+                    const totalSheets = parseInt(resultData.total_sheets) || parseInt($('#sheet_qty').val()) || 1;
+                    const grandTotal = parseFloat(resultData.grand_total) || 0;
+                    const totalHpp = parseFloat(resultData.total_hpp) || 0;
+                    const pricePerSheet = totalSheets > 0 ? Math.round((grandTotal / totalSheets) * 100) / 100 : grandTotal;
+                    const hppPerSheet = totalSheets > 0 ? Math.round((totalHpp / totalSheets) * 100) / 100 : totalHpp;
+
+                    // Harga / Lembar di Sticky Summary Card
+                    const elPricePerSheet = document.getElementById('liveSellingPricePerSheet');
+                    if (elPricePerSheet) elPricePerSheet.textContent = formatRupiah(pricePerSheet);
+
                     // Kebutuhan Lembar A3+
                     const elSheetsSub = document.getElementById('liveTotalSheetsSub');
-                    if (elSheetsSub) elSheetsSub.textContent = `${(resultData.total_sheets || 0).toLocaleString('id-ID')} Lembar A3+`;
+                    if (elSheetsSub) elSheetsSub.textContent = `${totalSheets.toLocaleString('id-ID')} Lembar A3+`;
 
                     // Badges
                     const elImpositionBadge = document.getElementById('liveImpositionBadge');
@@ -4556,7 +4590,8 @@
                     setTxt('techProductionMode', resultData.production_mode || (modeSelect.val() === 'layout' ? 'Hitung Layout' : 'Direct Sheet'));
                     setTxt('techFinishedSize', resultData.finished_size || ((lengthInput.value || '-') + ' × ' + (widthInput.value || '-') + ' cm'));
                     setTxt('techImposition', resultData.imposition_info || (resultData.up_count ? `${resultData.up_count} objek/lbr` : '-'));
-                    setTxt('techTotalSheets', `${(resultData.total_sheets || 0).toLocaleString('id-ID')} Lembar A3+`);
+                    setTxt('techTotalSheets', `${totalSheets.toLocaleString('id-ID')} Lembar A3+`);
+                    setTxt('techPricePerSheetSpec', `${formatRupiah(pricePerSheet)} / Lembar`);
                     setTxt('techLeadTime', quoteLead);
 
                     // Technical Breakdown Rows
@@ -4595,7 +4630,9 @@
 
                     // 4-Card KPI Financial Summary
                     setTxt('techKpiTotalHpp', formatRupiah(resultData.total_hpp));
+                    setTxt('techKpiHppPerSheet', `${formatRupiah(hppPerSheet)} / Lembar`);
                     setTxt('techKpiGrandTotal', formatRupiah(resultData.grand_total));
+                    setTxt('techKpiPricePerSheet', `${formatRupiah(pricePerSheet)} / Lembar`);
                     setTxt('techKpiProfit', formatRupiah(resultData.profit));
                     setTxt('techKpiMargin', formatPercentage(resultData.margin));
                     setTxt('techKpiMarkup', formatPercentage(resultData.markup));
@@ -4628,7 +4665,10 @@
                     }
 
                     setTxt('techTotalHppCol', 'HPP: ' + formatRupiah(resultData.total_hpp));
+                    setTxt('techHppPerSheetCol', `(HPP: ${formatRupiah(hppPerSheet)} / lbr)`);
                     setTxt('techGrandTotalCol', formatRupiah(resultData.grand_total));
+                    setTxt('techGrandTotalPerSheetCol', `(${formatRupiah(pricePerSheet)} / lbr)`);
+                    setTxt('techPricePerSheetRow', `@ ${formatRupiah(pricePerSheet)} / Lembar`);
 
                 } catch (err) {
                     console.error('Calculation Error:', err);
@@ -4891,10 +4931,17 @@
                 setTxt('techRow3Hpp', 'Rp 0');
                 setTxt('techRow3Subtotal', 'Rp 0');
                 setTxt('techKpiTotalHpp', 'Rp 0');
+                setTxt('techKpiHppPerSheet', 'Rp 0 / Lembar');
                 setTxt('techKpiGrandTotal', 'Rp 0');
+                setTxt('techKpiPricePerSheet', 'Rp 0 / Lembar');
                 setTxt('techKpiProfit', 'Rp 0');
                 setTxt('techKpiMargin', '0%');
                 setTxt('techKpiMarkup', '0%');
+                setTxt('liveSellingPricePerSheet', 'Rp 0,00');
+                setTxt('techPricePerSheetSpec', '-');
+                setTxt('techHppPerSheetCol', '(HPP: Rp 0 / lbr)');
+                setTxt('techGrandTotalPerSheetCol', '(Rp 0 / lbr)');
+                setTxt('techPricePerSheetRow', '@ Rp 0 / Lembar');
 
                 if (typeof showToast === 'function') {
                     showToast('info', 'Formulir estimasi telah direset.');
@@ -5500,6 +5547,11 @@
                 const finalQty = isLayoutMode ? (formQty > 0 ? formQty : (parseInt(lastCalculatedData.qty) || 1)) : (parseInt(lastCalculatedData.total_sheets) || parseInt($('#sheet_qty').val()) || 1);
                 if (finalQty > 0) {
                     $('#liveSellingPricePerPcs').text(formatRupiah(grandTotalWithTax / finalQty));
+                }
+
+                const finalSheets = parseInt(lastCalculatedData.total_sheets) || parseInt($('#sheet_qty').val()) || 1;
+                if (finalSheets > 0) {
+                    $('#liveSellingPricePerSheet').text(formatRupiah(grandTotalWithTax / finalSheets));
                 }
             }
 
