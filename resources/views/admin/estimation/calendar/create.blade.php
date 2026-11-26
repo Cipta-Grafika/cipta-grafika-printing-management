@@ -707,13 +707,30 @@
             margin-top: 8px;
             padding: 11px 18px;
             border-radius: 10px;
-            background: rgba(255, 255, 255, 0.12);
-            color: #ffffff;
+            background: var(--bg-card);
+            color: var(--t-base);
             font-weight: 600;
             font-size: 13px;
-            border: 1.5px solid rgba(255, 255, 255, 0.28);
+            border: 1.5px solid var(--border);
             cursor: pointer;
             transition: all 0.2s ease;
+        }
+
+        .btn-action-wa i {
+            color: #22c55e;
+            font-size: 15px;
+            transition: transform 0.2s ease;
+        }
+
+        .btn-action-wa:hover {
+            background: var(--bg-hover);
+            border-color: #22c55e;
+            color: #22c55e;
+            box-shadow: 0 2px 8px rgba(34, 197, 94, 0.15);
+        }
+
+        .btn-action-wa:hover i {
+            transform: scale(1.15);
         }
 
         :root[data-theme="dark"] .btn-action-wa,
@@ -723,7 +740,6 @@
             border: 1.5px solid var(--border);
         }
 
-        .btn-action-wa:hover,
         :root[data-theme="dark"] .btn-action-wa:hover,
         html[data-theme="dark"] .btn-action-wa:hover {
             background: rgba(34, 197, 94, 0.15);
@@ -1143,6 +1159,158 @@
             align-items: center;
             gap: 4px;
         }
+
+        /* Modular Form Cards - Modern Clean UX */
+        .form-module-card {
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+            overflow: hidden;
+            transition: box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+
+        .form-module-card:hover {
+            border-color: rgba(37, 99, 235, 0.3);
+        }
+
+        .form-module-card-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .form-module-head-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .form-module-step-badge {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.15) 0%, rgba(37, 99, 235, 0.08) 100%);
+            color: var(--primary);
+            font-size: 13px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(37, 99, 235, 0.25);
+            flex-shrink: 0;
+        }
+
+        .form-module-title {
+            font-size: 14.5px;
+            font-weight: 700;
+            color: var(--t-base);
+            margin: 0;
+            line-height: 1.3;
+        }
+
+        .form-module-subtitle {
+            font-size: 12px;
+            color: var(--t-muted);
+            margin: 2px 0 0;
+            line-height: 1.4;
+        }
+
+        .form-module-card-body {
+            padding: 20px;
+        }
+
+        /* Dedicated Address Sync Panel for Cetakia Quotation */
+        .address-sync-panel {
+            background: var(--bg-muted);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px 16px;
+            margin-top: 14px;
+            margin-bottom: 16px;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .address-sync-panel:focus-within {
+            border-color: rgba(37, 99, 235, 0.35);
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.06);
+        }
+
+        .address-sync-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .address-sync-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--t-base);
+        }
+
+        .badge-req-cetakia {
+            font-size: 10.5px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 20px;
+            background: rgba(37, 99, 235, 0.12);
+            color: var(--primary);
+            border: 1px solid rgba(37, 99, 235, 0.25);
+            letter-spacing: 0.2px;
+        }
+
+        .address-textarea {
+            min-height: 56px;
+            line-height: 1.4;
+            font-size: 13px;
+        }
+
+        /* Divider inside card */
+        .form-module-divider {
+            height: 1px;
+            background: var(--border);
+            margin: 20px 0;
+        }
+
+        @media (max-width: 768px) {
+            .form-module-card {
+                margin-bottom: 16px;
+                border-radius: 10px;
+            }
+            .form-module-card-head {
+                padding: 12px 14px;
+            }
+            .form-module-card-body {
+                padding: 14px;
+            }
+            .form-module-title {
+                font-size: 13.5px;
+            }
+            .form-module-subtitle {
+                font-size: 11.5px;
+            }
+            .address-sync-panel {
+                padding: 12px;
+                margin-bottom: 16px;
+            }
+            .address-sync-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 6px;
+            }
+            .address-sync-header .btn-copy-address {
+                align-self: flex-start;
+            }
+        }
     </style>
 
     <div class="shell">
@@ -1182,28 +1350,24 @@
                         KOLOM KIRI: FORMULIR INPUT SPESIFIKASI (7 COLS)
                     ========================================================== --}}
                     <div class="calendar-form-col">
-                        <section class="card" style="margin-bottom: 24px;">
+                        <form id="calendarEstimationForm" onsubmit="return false;">
+                            @csrf
 
-                            <div class="card-head" style="border-bottom: 1px solid var(--border);">
-                                <div class="card-title-wrap">
-                                    <span class="eyebrow" style="color: var(--primary); font-weight: 700;">
-                                        FORMULIR SPESIFIKASI PESANAN
-                                    </span>
-                                </div>
-                            </div>
-
-                            <form id="calendarEstimationForm" onsubmit="return false;">
-                                @csrf
-
-                                {{-- 1. INFORMASI PELANGGAN & CABANG --}}
-                                <div class="form-section"
-                                    style="padding: 18px 20px; border-bottom: 1px solid var(--border);">
-                                    <div class="form-section-head" style="margin-bottom: 14px;">
-                                        <span class="eyebrow" style="font-weight: 700; color: var(--primary);">
-                                            1. INFORMASI CABANG &amp; HARGA
-                                        </span>
+                            {{-- =========================================================
+                                1. INFORMASI PELANGGAN & CABANG
+                            ========================================================== --}}
+                            <section class="card form-module-card">
+                                <div class="form-module-card-head">
+                                    <div class="form-module-head-left">
+                                        <div class="form-module-step-badge">1</div>
+                                        <div>
+                                            <h3 class="form-module-title">Informasi Pelanggan &amp; Lokasi</h3>
+                                            <p class="form-module-subtitle">Cabang operasional, profil harga, sales PIC, dan data penawaran resmi Cetakia.</p>
+                                        </div>
                                     </div>
+                                </div>
 
+                                <div class="form-module-card-body">
                                     <div class="form-grid"
                                         style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px;">
                                         {{-- Lokasi Cabang --}}
@@ -1291,30 +1455,38 @@
                                         </div>
                                     </div>
 
-                                    {{-- Alamat Penagihan & Pengiriman (Cetakia Quotation) --}}
-                                    <div class="form-grid"
-                                        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-top: 14px;">
-                                        {{-- Alamat Penagihan (Bill To) --}}
-                                        <div class="field">
-                                            <label class="field-label" for="bill_to">
-                                                Alamat Penagihan (Bill To)
-                                            </label>
-                                            <textarea id="bill_to" name="bill_to" class="input" rows="2" style="height: auto; resize: vertical;"
-                                                placeholder="Alamat penagihan pelanggan..."></textarea>
+                                    {{-- Panel Alamat Penagihan & Pengiriman (Quotation Cetakia - WAJIB) --}}
+                                    <div class="address-sync-panel">
+                                        <div class="address-sync-header">
+                                            <div class="address-sync-title">
+                                                <i class="bi bi-geo-alt-fill" style="color: var(--primary);"></i>
+                                                <span>Alamat Penagihan &amp; Pengiriman (Quotation Cetakia)</span>
+                                                <span class="badge-req-cetakia">Wajib Cetakia</span>
+                                            </div>
+                                            <button type="button" id="btn_copy_bill_to_cal" class="btn-copy-address" title="Salin Alamat Penagihan ke Alamat Pengiriman">
+                                                <i class="bi bi-copy"></i> Sama dgn Bill To
+                                            </button>
                                         </div>
 
-                                        {{-- Alamat Pengiriman (Ship To) --}}
-                                        <div class="field">
-                                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                                                <label class="field-label" for="ship_to" style="margin-bottom: 0;">
-                                                    Alamat Pengiriman (Ship To)
+                                        <div class="form-grid"
+                                            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px;">
+                                            {{-- Alamat Penagihan (Bill To) --}}
+                                            <div class="field" style="margin-bottom: 0;">
+                                                <label class="field-label" for="bill_to" style="font-size: 12px; margin-bottom: 4px; color: var(--t-muted);">
+                                                    Alamat Penagihan (Bill To) <span class="req" style="color: #ef4444;">*</span>
                                                 </label>
-                                                <button type="button" id="btn_copy_bill_to_cal" class="btn-copy-address" title="Salin dari Alamat Penagihan">
-                                                    <i class="bi bi-copy"></i> Sama dgn Bill To
-                                                </button>
+                                                <textarea id="bill_to" name="bill_to" class="input address-textarea" rows="2" style="height: auto; min-height: 58px; resize: vertical;"
+                                                    placeholder="Alamat penagihan pelanggan..."></textarea>
                                             </div>
-                                            <textarea id="ship_to" name="ship_to" class="input" rows="2" style="height: auto; resize: vertical;"
-                                                placeholder="Alamat tujuan pengiriman..."></textarea>
+
+                                            {{-- Alamat Pengiriman (Ship To) --}}
+                                            <div class="field" style="margin-bottom: 0;">
+                                                <label class="field-label" for="ship_to" style="font-size: 12px; margin-bottom: 4px; color: var(--t-muted);">
+                                                    Alamat Pengiriman (Ship To) <span class="req" style="color: #ef4444;">*</span>
+                                                </label>
+                                                <textarea id="ship_to" name="ship_to" class="input address-textarea" rows="2" style="height: auto; min-height: 58px; resize: vertical;"
+                                                    placeholder="Alamat tujuan pengiriman..."></textarea>
+                                            </div>
                                         </div>
                                     </div>
 
@@ -1349,22 +1521,36 @@
                                     </div>
 
                                     {{-- Catatan Khusus Penawaran / Produksi --}}
-                                    <div class="field" style="margin-top: 14px;">
+                                    <div class="field" style="margin-top: 14px; margin-bottom: 0;">
                                         <label class="field-label" for="customer_notes">
-                                            Catatan Khusus Penawaran / Produksi (Opsional)
+                                            Catatan Khusus Penawaran / Produksi <span style="font-weight: 400; color: var(--t-muted); font-size: 11.5px;">(Opsional)</span>
                                         </label>
                                         <input type="text" id="customer_notes" name="customer_notes" class="input"
                                             placeholder="Contoh: Packing per 50 pcs kardus rapi, jilid spiral putih...">
                                     </div>
                                 </div>
+                            </section>
 
-                                {{-- 2. TIPE KALENDER SWITCHER (CARD SELECTOR) --}}
-                                <div class="form-section"
-                                    style="padding: 18px 20px; border-bottom: 1px solid var(--border);">
+                            {{-- =========================================================
+                                2. MODEL & SPESIFIKASI KALENDER
+                            ========================================================== --}}
+                            <section class="card form-module-card">
+                                <div class="form-module-card-head">
+                                    <div class="form-module-head-left">
+                                        <div class="form-module-step-badge">2</div>
+                                        <div>
+                                            <h3 class="form-module-title">Model &amp; Spesifikasi Kalender</h3>
+                                            <p class="form-module-subtitle">Kategori kalender dinding/meja, ukuran jadi, bahan kertas, dan pilihan finishing.</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-module-card-body">
+                                    {{-- Tipe Kalender Switcher --}}
                                     <label class="field-label" style="margin-bottom: 12px; font-weight: 700;">
                                         Kategori Kalender <span class="req">*</span>
                                     </label>
-                                    <div class="cal-type-grid">
+                                    <div class="cal-type-grid" style="margin-bottom: 20px;">
                                         <div class="cal-card-option active" id="btnTypeDinding"
                                             onclick="selectCalendarType('dinding')">
                                             <div class="cal-card-indicator">
@@ -1415,16 +1601,8 @@
                                         </div>
                                     </div>
                                     <input type="hidden" id="calendar_type" name="calendar_type" value="dinding">
-                                </div>
 
-                                {{-- 3. SPESIFIKASI PRODUK & BAHAN --}}
-                                <div class="form-section"
-                                    style="padding: 18px 20px; border-bottom: 1px solid var(--border);">
-                                    <div class="form-section-head" style="margin-bottom: 14px;">
-                                        <span class="eyebrow" style="font-weight: 700; color: var(--primary);">
-                                            2. UKURAN &amp; BAHAN KERTAS
-                                        </span>
-                                    </div>
+                                    <div class="form-module-divider"></div>
 
                                     <div class="form-grid"
                                         style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px;">
@@ -1493,54 +1671,58 @@
                                             </div>
                                         </div>
                                     </div>
-                                </div>
 
-                                {{-- 4. KHUSUS KALENDER MEJA: DUDUKAN / PENOPANG --}}
-                                <div class="form-section" id="deskOptionsSection"
-                                    style="padding: 18px 20px; border-bottom: 1px solid var(--border); display: none;">
-                                    <div class="form-section-head" style="margin-bottom: 14px;">
-                                        <span class="eyebrow" style="font-weight: 700; color: var(--primary);">
-                                            3. SPESIFIKASI DUDUKAN MEJA (BOARD)
+                                    {{-- Khusus Kalender Meja: Dudukan / Penopang --}}
+                                    <div id="deskOptionsSection" style="margin-top: 16px; padding: 14px 16px; background: var(--bg-muted); border-radius: 10px; border: 1px solid var(--border); display: none;">
+                                        <span class="eyebrow" style="font-weight: 700; color: var(--primary); display: block; margin-bottom: 12px;">
+                                            SPESIFIKASI DUDUKAN MEJA (BOARD)
                                         </span>
-                                    </div>
+                                        <div class="form-grid"
+                                            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px;">
+                                            {{-- Jenis Dudukan --}}
+                                            <div class="field" style="margin-bottom: 0;">
+                                                <label class="field-label" for="support_type">
+                                                    Model Dudukan / Penopang
+                                                </label>
+                                                <select id="support_type" name="support_type" class="select select2">
+                                                    <option value="printing_fc" selected>Printing Full Color (Cover Custom)
+                                                    </option>
+                                                    <option value="hardcover_polos">Hardcover Polos (Beli Jadi)</option>
+                                                </select>
+                                            </div>
 
-                                    <div class="form-grid"
-                                        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px;">
-                                        {{-- Jenis Dudukan --}}
-                                        <div class="field">
-                                            <label class="field-label" for="support_type">
-                                                Model Dudukan / Penopang
-                                            </label>
-                                            <select id="support_type" name="support_type" class="select select2">
-                                                <option value="printing_fc" selected>Printing Full Color (Cover Custom)
-                                                </option>
-                                                <option value="hardcover_polos">Hardcover Polos (Beli Jadi)</option>
-                                            </select>
-                                        </div>
-
-                                        {{-- Jenis Karton Board --}}
-                                        <div class="field">
-                                            <label class="field-label" for="board_type">
-                                                Ketebalan Board
-                                            </label>
-                                            <select id="board_type" name="board_type" class="select select2">
-                                                <option value="boot_30" selected>Karton Boot 30 (Tebal / Premium)</option>
-                                                <option value="boot_40">Karton Boot 40 (Standar)</option>
-                                            </select>
+                                            {{-- Jenis Karton Board --}}
+                                            <div class="field" style="margin-bottom: 0;">
+                                                <label class="field-label" for="board_type">
+                                                    Ketebalan Board
+                                                </label>
+                                                <select id="board_type" name="board_type" class="select select2">
+                                                    <option value="boot_30" selected>Karton Boot 30 (Tebal / Premium)</option>
+                                                    <option value="boot_40">Karton Boot 40 (Standar)</option>
+                                                </select>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
+                            </section>
 
-                                {{-- 5. KUANTITAS & PROFIL HARGA --}}
-                                <div class="form-section" style="padding: 18px 20px;">
-                                    <div class="form-section-head" style="margin-bottom: 14px;">
-                                        <span class="eyebrow" style="font-weight: 700; color: var(--primary);">
-                                            4. JUMLAH PESANAN (QTY)
-                                        </span>
+                            {{-- =========================================================
+                                3. JUMLAH PESANAN (QTY)
+                            ========================================================== --}}
+                            <section class="card form-module-card">
+                                <div class="form-module-card-head">
+                                    <div class="form-module-head-left">
+                                        <div class="form-module-step-badge">3</div>
+                                        <div>
+                                            <h3 class="form-module-title">Jumlah Pesanan (Kuantitas)</h3>
+                                            <p class="form-module-subtitle">Kuantitas cetak pesanan pcs dan simulasi markup harga bertingkat.</p>
+                                        </div>
                                     </div>
+                                </div>
 
+                                <div class="form-module-card-body">
                                     <div class="form-grid" style="display: grid; grid-template-columns: 1fr; gap: 16px;">
-                                        <div class="field">
+                                        <div class="field" style="margin-bottom: 0;">
                                             <label class="field-label" for="qty">
                                                 Kuantitas Cetak (Pcs) <span class="req">*</span>
                                             </label>
@@ -1572,15 +1754,23 @@
                                         </div>
                                     </div>
                                 </div>
+                            </section>
 
-                                {{-- 5. DISKON PENJUALAN --}}
-                                <div class="form-section" style="padding: 18px 20px;">
-                                    <div class="form-section-head" style="margin-bottom: 14px;">
-                                        <span class="eyebrow" style="font-weight: 700; color: var(--primary);">
-                                            5. DISKON PENJUALAN
-                                        </span>
+                            {{-- =========================================================
+                                4. DISKON & AKSI FORMULIR
+                            ========================================================== --}}
+                            <section class="card form-module-card" style="margin-bottom: 24px;">
+                                <div class="form-module-card-head">
+                                    <div class="form-module-head-left">
+                                        <div class="form-module-step-badge">4</div>
+                                        <div>
+                                            <h3 class="form-module-title">Diskon &amp; Aksi Formulir</h3>
+                                            <p class="form-module-subtitle">Potongan harga penawaran dan aksi formulir estimasi.</p>
+                                        </div>
                                     </div>
+                                </div>
 
+                                <div class="form-module-card-body">
                                     <div class="field" style="margin-bottom: 16px;">
                                         <label class="field-label">
                                             Jenis Diskon
@@ -1634,7 +1824,7 @@
 
                                     <div class="form-grid">
                                         {{-- Input Diskon --}}
-                                        <div class="field" id="discountValueField" hidden>
+                                        <div class="field" id="discountValueField" hidden style="margin-bottom: 0;">
                                             <div style="display: flex; align-items: center; gap: 5px;">
                                                 <label class="field-label" for="discount_value" id="discountValueLabel">
                                                     Nilai Diskon
@@ -1652,30 +1842,24 @@
                                     </div>
                                 </div>
 
-                                {{-- ACTION BUTTONS: KEMBALI & RESET --}}
-                                <div class="card-foot"
-                                    style="padding: 16px 20px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; background: var(--bg-muted);">
-                                    <a href="{{ route('admin_home') }}" class="btn-secondary-custom">
-                                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none"
-                                            stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
-                                            stroke-linejoin="round">
-                                            <path d="m15 18-6-6 6-6" />
-                                        </svg>
-                                        <span>Kembali</span>
-                                    </a>
-                                    <button type="button" class="btn-secondary-custom" onclick="resetCalendarForm()">
-                                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none"
-                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                            stroke-linejoin="round">
-                                            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-                                            <path d="M3 3v5h5" />
-                                        </svg>
-                                        <span>Reset Form</span>
-                                    </button>
-                                </div>
+                                {{-- Card Actions: Status, Reset & Batal --}}
+                                <div class="form-actions" style="padding: 16px 20px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                                    <span class="badge dot success" id="realtimeStatusBadge">
+                                        <i class="bi bi-lightning-charge-fill" style="margin-right: 4px;"></i> Kalkulasi Otomatis Aktif
+                                    </span>
 
-                            </form>
-                        </section>
+                                    <div style="display: flex; gap: 8px;">
+                                        <button type="button" class="btn btn--ghost" onclick="resetCalendarForm()">
+                                            <i class="bi bi-arrow-counterclockwise"></i> Reset Form
+                                        </button>
+                                        <a href="{{ route('admin_home') }}" class="btn btn--ghost">
+                                            Batal
+                                        </a>
+                                    </div>
+                                </div>
+                            </section>
+
+                        </form>
                     </div>
 
                     {{-- =========================================================

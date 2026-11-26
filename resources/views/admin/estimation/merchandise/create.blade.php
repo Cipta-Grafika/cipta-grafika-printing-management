@@ -22,7 +22,9 @@
                             Buat Estimasi Merchandise, Identitas &amp; Form Administrasi
                         </h1>
                         <p class="hero-sub" style="margin: 0; color: var(--t-muted); font-size: 13.5px; line-height: 1.5;">
-                            Satu halaman terpadu untuk kalkulasi instan <strong>Merchandise &amp; Souvenir</strong> (Mug Sublimasi, Plakat, Akrilik UV), <strong>Identitas Korporat</strong> (Tali Lanyard, Kartu ID Card/KTA PVC, Name Tag), serta <strong>Form Administrasi</strong> (Buku Nota NCR &amp; HVS).
+                            Satu halaman terpadu untuk kalkulasi instan <strong>Merchandise &amp; Souvenir</strong> (Mug
+                            Sublimasi, Plakat, Akrilik UV), <strong>Identitas Korporat</strong> (Tali Lanyard, Kartu ID
+                            Card/KTA PVC, Name Tag), serta <strong>Form Administrasi</strong> (Buku Nota NCR &amp; HVS).
                         </p>
                     </div>
                     <div>
@@ -86,31 +88,25 @@
                         KOLOM KIRI: FORM ESTIMASI
                     ========================================================== --}}
                     <div class="merch-form-col">
-                        <section class="card merch-form-card">
+                        <form id="merchEstimationForm" onsubmit="event.preventDefault();">
+                            @csrf
 
-                            <div class="card-head" style="border-bottom: 1px solid var(--border); padding: 18px 22px; margin-bottom: 0;">
-                                <div class="card-title-wrap" style="min-width: 0; max-width: 100%;">
-                                    <span class="eyebrow" style="color: var(--primary); font-weight: 700; white-space: normal; word-break: break-word; overflow-wrap: break-word; letter-spacing: 0.05em; display: block;">
-                                        FORMULIR SPESIFIKASI ESTIMASI MERCHANDISE
-                                    </span>
-                                </div>
-                            </div>
-
-                            <form id="merchEstimationForm" onsubmit="event.preventDefault();">
-                                @csrf
-
-                                {{-- =========================================================
-                                    1. INFORMASI PELANGGAN & LOKASI
-                                ========================================================== --}}
-                                <div class="form-section"
-                                    style="padding: 20px 22px; border-bottom: 1px solid var(--border);">
-                                    <div class="form-section-head" style="margin-bottom: 16px;">
-                                        <span class="eyebrow"
-                                            style="font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 6px;">
-                                            <i class="bi bi-person-badge"></i> 1. INFORMASI PELANGGAN &amp; LOKASI
-                                        </span>
+                            {{-- =========================================================
+                                1. INFORMASI PELANGGAN & LOKASI
+                            ========================================================== --}}
+                            <section class="card form-module-card">
+                                <div class="form-module-card-head">
+                                    <div class="form-module-head-left">
+                                        <div class="form-module-step-badge">1</div>
+                                        <div>
+                                            <h3 class="form-module-title">Informasi Pelanggan &amp; Lokasi</h3>
+                                            <p class="form-module-subtitle">Cabang operasional, sales PIC, dan data
+                                                penawaran resmi Cetakia.</p>
+                                        </div>
                                     </div>
+                                </div>
 
+                                <div class="form-module-card-body">
                                     <div class="form-grid"
                                         style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px;">
 
@@ -119,10 +115,12 @@
                                             <label for="merch_customer_id" class="field-label">
                                                 Nama Pelanggan (Cetakia) <span class="req">*</span>
                                             </label>
-                                            <select id="merch_customer_id" name="customer_id" class="select" style="width: 100%;">
+                                            <select id="merch_customer_id" name="customer_id" class="select"
+                                                style="width: 100%;">
                                                 <option value="">-- Pilih Pelanggan (Cetakia) --</option>
                                             </select>
-                                            <input type="hidden" id="merch_customer_name" name="customer_name" value="">
+                                            <input type="hidden" id="merch_customer_name" name="customer_name"
+                                                value="">
                                         </div>
 
                                         {{-- Sales PIC (Cetakia) --}}
@@ -133,7 +131,8 @@
                                             <select id="cetakia_user_id" name="user_id" class="select select2">
                                                 <option value="">-- Pilih Sales PIC --</option>
                                                 @foreach ($salesUsers ?? [] as $sales)
-                                                    <option value="{{ $sales['id'] }}" {{ $loop->first ? 'selected' : '' }}>
+                                                    <option value="{{ $sales['id'] }}"
+                                                        {{ $loop->first ? 'selected' : '' }}>
                                                         {{ $sales['name'] }} ({{ $sales['email'] ?? 'Sales' }})
                                                     </option>
                                                 @endforeach
@@ -176,728 +175,919 @@
                                                 <option value="30">Tempo 30 Hari</option>
                                             </select>
                                         </div>
+                                    </div>
 
+                                    {{-- Panel Alamat Penagihan & Pengiriman (Quotation Cetakia - WAJIB) --}}
+                                    <div class="address-sync-panel">
+                                        <div class="address-sync-header">
+                                            <div class="address-sync-title">
+                                                <i class="bi bi-geo-alt-fill" style="color: var(--primary);"></i>
+                                                <span>Alamat Penagihan &amp; Pengiriman (Quotation Cetakia)</span>
+                                                <span class="badge-req-cetakia">Wajib Cetakia</span>
+                                            </div>
+                                            <button type="button" id="btn_copy_bill_to_merch" class="btn-copy-address"
+                                                title="Salin Alamat Penagihan ke Alamat Pengiriman">
+                                                <i class="bi bi-copy"></i> Sama dgn Bill To
+                                            </button>
+                                        </div>
+
+                                        <div class="form-grid"
+                                            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+                                            <div class="field" style="margin-bottom: 0;">
+                                                <label for="bill_to" class="field-label"
+                                                    style="font-size: 12px; margin-bottom: 4px; color: var(--t-muted);">
+                                                    Alamat Penagihan (Bill To) <span class="req"
+                                                        style="color: #ef4444;">*</span>
+                                                </label>
+                                                <textarea id="bill_to" name="bill_to" rows="2" class="textarea address-textarea"
+                                                    style="resize: vertical; min-height: 58px;" placeholder="Alamat penagihan pelanggan..."></textarea>
+                                            </div>
+                                            <div class="field" style="margin-bottom: 0;">
+                                                <label for="ship_to" class="field-label"
+                                                    style="font-size: 12px; margin-bottom: 4px; color: var(--t-muted);">
+                                                    Alamat Pengiriman (Ship To) <span class="req"
+                                                        style="color: #ef4444;">*</span>
+                                                </label>
+                                                <textarea id="ship_to" name="ship_to" rows="2" class="textarea address-textarea"
+                                                    style="resize: vertical; min-height: 58px;" placeholder="Alamat pengiriman pesanan..."></textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {{-- Masa Berlaku & Tanggal Penawaran (Cetakia Quotation) --}}
+                                    <div class="form-grid"
+                                        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px;">
                                         {{-- Tanggal Penawaran --}}
                                         <div class="field">
                                             <label for="quotation_date" class="field-label">
                                                 Tanggal Penawaran
                                             </label>
-                                            <input type="date" id="quotation_date" name="quotation_date" class="input"
-                                                value="{{ date('Y-m-d') }}">
+                                            <input type="date" id="quotation_date" name="quotation_date"
+                                                class="input" value="{{ date('Y-m-d') }}">
                                         </div>
 
                                         {{-- Masa Berlaku Penawaran (Expired) --}}
                                         <div class="field">
-                                            <label for="quotation_expired" class="field-label">
-                                                Masa Berlaku Penawaran
-                                            </label>
-                                            <input type="date" id="quotation_expired" name="quotation_expired" class="input"
-                                                value="{{ date('Y-m-d', strtotime('+30 days')) }}">
-                                            <div style="display: flex; gap: 5px; margin-top: 6px;">
-                                                <button type="button" class="quote-preset-btn btn-expire-preset-merch" data-days="3" title="Berlaku 3 Hari">+3 Hr</button>
-                                                <button type="button" class="quote-preset-btn btn-expire-preset-merch" data-days="7" title="Berlaku 7 Hari">+7 Hr</button>
-                                                <button type="button" class="quote-preset-btn btn-expire-preset-merch" data-days="14" title="Berlaku 14 Hari">+14 Hr</button>
-                                                <button type="button" class="quote-preset-btn btn-expire-preset-merch active" data-days="30" title="Berlaku 30 Hari">+30 Hr</button>
-                                            </div>
-                                        </div>
-
-                                        {{-- Alamat Penagihan & Pengiriman (Cetakia) --}}
-                                        <div class="field" style="grid-column: 1 / -1;">
-                                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-wrap: wrap; gap: 6px;">
-                                                <label class="field-label" style="margin: 0;">
-                                                    Alamat Penagihan &amp; Pengiriman (Cetakia)
+                                            <div
+                                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                                                <label for="quotation_expired" class="field-label"
+                                                    style="margin-bottom: 0;">
+                                                    Masa Berlaku Penawaran
                                                 </label>
-                                                <button type="button" id="btn_copy_bill_to_merch"
-                                                    style="background: none; border: none; color: var(--primary); font-size: 12px; cursor: pointer; text-decoration: underline; padding: 0;">
-                                                    Salin Alamat Penagihan ke Pengiriman
-                                                </button>
-                                            </div>
-                                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
-                                                <div>
-                                                    <label for="bill_to" style="font-size: 11.5px; color: var(--t-muted); display: block; margin-bottom: 3px;">Alamat Penagihan (Bill To)</label>
-                                                    <textarea id="bill_to" name="bill_to" rows="2" class="textarea" style="resize: vertical; font-size: 12.5px; min-height: 60px;" placeholder="Alamat penagihan pelanggan..."></textarea>
-                                                </div>
-                                                <div>
-                                                    <label for="ship_to" style="font-size: 11.5px; color: var(--t-muted); display: block; margin-bottom: 3px;">Alamat Pengiriman (Ship To)</label>
-                                                    <textarea id="ship_to" name="ship_to" rows="2" class="textarea" style="resize: vertical; font-size: 12.5px; min-height: 60px;" placeholder="Alamat pengiriman pesanan..."></textarea>
+                                                <div style="display: flex; gap: 5px;">
+                                                    <button type="button"
+                                                        class="quote-preset-btn btn-expire-preset-merch" data-days="3"
+                                                        title="Berlaku 3 Hari">+3 Hr</button>
+                                                    <button type="button"
+                                                        class="quote-preset-btn btn-expire-preset-merch" data-days="7"
+                                                        title="Berlaku 7 Hari">+7 Hr</button>
+                                                    <button type="button"
+                                                        class="quote-preset-btn btn-expire-preset-merch" data-days="14"
+                                                        title="Berlaku 14 Hari">+14 Hr</button>
+                                                    <button type="button"
+                                                        class="quote-preset-btn btn-expire-preset-merch active"
+                                                        data-days="30" title="Berlaku 30 Hari">+30 Hr</button>
                                                 </div>
                                             </div>
+                                            <input type="date" id="quotation_expired" name="quotation_expired"
+                                                class="input" value="{{ date('Y-m-d', strtotime('+30 days')) }}">
                                         </div>
+                                    </div>
+                                </div>
+                            </section>
 
+                            {{-- =========================================================
+                                2. PANEL SPESIFIKASI DINAMIS (BERDASARKAN TAB AKTIF)
+                            ========================================================== --}}
+                            <section class="card form-module-card">
+                                <div class="form-module-card-head">
+                                    <div class="form-module-head-left">
+                                        <div class="form-module-step-badge">2</div>
+                                        <div>
+                                            <h3 class="form-module-title">Spesifikasi Produk Merchandise</h3>
+                                            <p class="form-module-subtitle">Konfigurasi parameter teknis, material, dan
+                                                kuantitas produk berdasarkan kategori aktif.</p>
+                                        </div>
                                     </div>
                                 </div>
 
-                                {{-- =========================================================
-                                    2. PANEL SPESIFIKASI DINAMIS (BERDASARKAN TAB AKTIF)
-                                ========================================================== --}}
+                                <div class="form-module-card-body" style="padding: 0;">
 
-                                {{-- A. PANEL TALI LANYARD & ID CARD --}}
-                                <div id="panelLanyard" class="tab-panel" style="display: block; padding: 20px 22px; border-bottom: 1px solid var(--border);">
-                                    <div class="form-section-head" style="margin-bottom: 18px;">
-                                        <span class="eyebrow"
-                                            style="font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 6px;">
-                                            <i class="bi bi-gear"></i> 2. SPESIFIKASI TALI LANYARD &amp; ID CARD
-                                        </span>
-                                    </div>
+                                    {{-- A. PANEL TALI LANYARD & ID CARD --}}
+                                    <div id="panelLanyard" class="tab-panel"
+                                        style="display: block; padding: 20px 22px; border-bottom: 1px solid var(--border);">
+                                        <div class="form-section-head" style="margin-bottom: 18px;">
+                                            <span class="eyebrow"
+                                                style="font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 6px;">
+                                                <i class="bi bi-gear"></i> 2. SPESIFIKASI TALI LANYARD &amp; ID CARD
+                                            </span>
+                                        </div>
 
-                                    {{-- Lebar Tali --}}
-                                    <div class="field" style="margin-bottom: 20px;">
-                                        <label class="field-label">Pilihan Lebar Tali Lanyard <span
-                                                class="req">*</span></label>
-                                        <div class="choice-cards-grid">
-                                            <label class="choice-card active" id="cardLanyardWidth2cm">
-                                                <input type="radio" name="lanyard_width" value="2cm" checked
-                                                    style="display:none;">
-                                                <div class="choice-title">Lebar 2.0 cm</div>
-                                                <div class="choice-sub">Standar kantor, instansi, &amp; event populer.
+                                        {{-- Lebar Tali --}}
+                                        <div class="field" style="margin-bottom: 20px;">
+                                            <label class="field-label">Pilihan Lebar Tali Lanyard <span
+                                                    class="req">*</span></label>
+                                            <div class="choice-cards-grid">
+                                                <label class="choice-card active" id="cardLanyardWidth2cm">
+                                                    <input type="radio" name="lanyard_width" value="2cm" checked
+                                                        style="display:none;">
+                                                    <div class="choice-title">Lebar 2.0 cm</div>
+                                                    <div class="choice-sub">Standar kantor, instansi, &amp; event populer.
+                                                    </div>
+                                                </label>
+                                                <label class="choice-card" id="cardLanyardWidth25cm">
+                                                    <input type="radio" name="lanyard_width" value="2.5cm"
+                                                        style="display:none;">
+                                                    <div class="choice-title">Lebar 2.5 cm</div>
+                                                    <div class="choice-sub">Ukuran lebar premium, desain teks &amp; logo
+                                                        lebih
+                                                        jelas.</div>
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        {{-- Kelengkapan Paket --}}
+                                        <div class="field" style="margin-bottom: 20px;">
+                                            <label class="field-label">Kelengkapan Paket Cetak <span
+                                                    class="req">*</span></label>
+                                            <div class="choice-cards-grid">
+                                                <label class="choice-card active" id="cardLanyardPkgSet">
+                                                    <input type="radio" name="lanyard_package" value="set" checked
+                                                        style="display:none;">
+                                                    <div class="choice-title">1 Set Lengkap (Rekomendasi)</div>
+                                                    <div class="choice-sub">Termasuk Tali Lanyard + Casing Holder + ID Card
+                                                        PVC
+                                                        Tebal. Siap pakai.</div>
+                                                </label>
+                                                <label class="choice-card" id="cardLanyardPkgTali">
+                                                    <input type="radio" name="lanyard_package" value="tali"
+                                                        style="display:none;">
+                                                    <div class="choice-title">Hanya Tali Saja</div>
+                                                    <div class="choice-sub">Tali Lanyard Printing 2 Sisi + Kait Besi Kokoh
+                                                        +
+                                                        Stopper Putar.</div>
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        {{-- Kuantitas & Quick Select --}}
+                                        <div class="field">
+                                            <label class="field-label">Jumlah Kuantitas Pesanan (Pcs) <span
+                                                    class="req">*</span></label>
+                                            <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                                                <div style="display: inline-flex; align-items: center;">
+                                                    <button type="button" class="qty-btn"
+                                                        id="btnLanyardQtyMinus">-</button>
+                                                    <input type="number" id="lanyardQtyInput" class="input qty-input"
+                                                        value="25" min="1" step="1">
+                                                    <button type="button" class="qty-btn"
+                                                        id="btnLanyardQtyPlus">+</button>
                                                 </div>
-                                            </label>
-                                            <label class="choice-card" id="cardLanyardWidth25cm">
-                                                <input type="radio" name="lanyard_width" value="2.5cm"
-                                                    style="display:none;">
-                                                <div class="choice-title">Lebar 2.5 cm</div>
-                                                <div class="choice-sub">Ukuran lebar premium, desain teks &amp; logo lebih
-                                                    jelas.</div>
-                                            </label>
-                                        </div>
-                                    </div>
-
-                                    {{-- Kelengkapan Paket --}}
-                                    <div class="field" style="margin-bottom: 20px;">
-                                        <label class="field-label">Kelengkapan Paket Cetak <span
-                                                class="req">*</span></label>
-                                        <div class="choice-cards-grid">
-                                            <label class="choice-card active" id="cardLanyardPkgSet">
-                                                <input type="radio" name="lanyard_package" value="set" checked
-                                                    style="display:none;">
-                                                <div class="choice-title">1 Set Lengkap (Rekomendasi)</div>
-                                                <div class="choice-sub">Termasuk Tali Lanyard + Casing Holder + ID Card PVC
-                                                    Tebal. Siap pakai.</div>
-                                            </label>
-                                            <label class="choice-card" id="cardLanyardPkgTali">
-                                                <input type="radio" name="lanyard_package" value="tali"
-                                                    style="display:none;">
-                                                <div class="choice-title">Hanya Tali Saja</div>
-                                                <div class="choice-sub">Tali Lanyard Printing 2 Sisi + Kait Besi Kokoh +
-                                                    Stopper Putar.</div>
-                                            </label>
-                                        </div>
-                                    </div>
-
-                                    {{-- Kuantitas & Quick Select --}}
-                                    <div class="field">
-                                        <label class="field-label">Jumlah Kuantitas Pesanan (Pcs) <span
-                                                class="req">*</span></label>
-                                        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-                                            <div style="display: inline-flex; align-items: center;">
-                                                <button type="button" class="qty-btn" id="btnLanyardQtyMinus">-</button>
-                                                <input type="number" id="lanyardQtyInput" class="input qty-input"
-                                                    value="25" min="1" step="1">
-                                                <button type="button" class="qty-btn" id="btnLanyardQtyPlus">+</button>
+                                                <div class="quick-qty-group">
+                                                    <button type="button" class="quick-qty-btn" data-qty="5">5
+                                                        pcs</button>
+                                                    <button type="button" class="quick-qty-btn" data-qty="10">10
+                                                        pcs</button>
+                                                    <button type="button" class="quick-qty-btn active" data-qty="25">25
+                                                        pcs</button>
+                                                    <button type="button" class="quick-qty-btn" data-qty="50">50
+                                                        pcs</button>
+                                                    <button type="button" class="quick-qty-btn" data-qty="100">100
+                                                        pcs</button>
+                                                    <button type="button" class="quick-qty-btn" data-qty="200">&gt; 100
+                                                        pcs</button>
+                                                </div>
                                             </div>
-                                            <div class="quick-qty-group">
-                                                <button type="button" class="quick-qty-btn" data-qty="5">5
-                                                    pcs</button>
-                                                <button type="button" class="quick-qty-btn" data-qty="10">10
-                                                    pcs</button>
-                                                <button type="button" class="quick-qty-btn active" data-qty="25">25
-                                                    pcs</button>
-                                                <button type="button" class="quick-qty-btn" data-qty="50">50
-                                                    pcs</button>
-                                                <button type="button" class="quick-qty-btn" data-qty="100">100
-                                                    pcs</button>
-                                                <button type="button" class="quick-qty-btn" data-qty="200">&gt; 100
-                                                    pcs</button>
-                                            </div>
-                                        </div>
-                                        <small class="field-help" style="margin-top: 2px;">
-                                            Harga otomatis berpindah ke tier kuantitas resmi (1-4 pcs, 5-12 pcs, 13-25
-                                            pcs, 26-50 pcs, 51-100 pcs, &gt;100 pcs).
-                                        </small>
-                                    </div>
-                                </div>
-
-                                {{-- B. PANEL PAPAN NAMA DADA (NAME TAG) --}}
-                                <div id="panelNametag" class="tab-panel" style="display: none; padding: 20px 22px; border-bottom: 1px solid var(--border);">
-                                    <div class="form-section-head" style="margin-bottom: 18px;">
-                                        <span class="eyebrow"
-                                            style="font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 6px;">
-                                            <i class="bi bi-tag"></i> 2. SPESIFIKASI PAPAN NAMA DADA (NAME TAG)
-                                        </span>
-                                    </div>
-
-                                    {{-- Tipe Finishing Name Tag --}}
-                                    <div class="field" style="margin-bottom: 20px;">
-                                        <label class="field-label">Varian Lapisan &amp; Finishing Papan Nama <span
-                                                class="req">*</span></label>
-                                        <div class="choice-cards-grid">
-                                            <label class="choice-card" id="cardNametagBiasa">
-                                                <input type="radio" name="nametag_type" value="biasa"
-                                                    style="display:none;">
-                                                <div class="choice-title">Papan Nama Biasa</div>
-                                                <div class="choice-sub">Akrilik standar tanpa lapisan resin cembung.</div>
-                                                <div class="choice-price">Rp 25.000 / pcs</div>
-                                            </label>
-                                            <label class="choice-card active" id="cardNametagResin">
-                                                <input type="radio" name="nametag_type" value="resin" checked
-                                                    style="display:none;">
-                                                <div class="choice-title">Papan Nama Resin</div>
-                                                <div class="choice-sub">Lapisan resin Lycal cembung jernih, mengkilap &amp;
-                                                    tahan gores.</div>
-                                                <div class="choice-price">Rp 35.000 / pcs</div>
-                                            </label>
-                                            <label class="choice-card" id="cardNametagResinEmas">
-                                                <input type="radio" name="nametag_type" value="resin_emas"
-                                                    style="display:none;">
-                                                <div class="choice-title">Papan Nama Resin Emas</div>
-                                                <div class="choice-sub">Base plat kuningan / logam emas mewah + resin
-                                                    cembung.</div>
-                                                <div class="choice-price">Rp 35.000 / pcs</div>
-                                            </label>
+                                            <small class="field-help" style="margin-top: 2px;">
+                                                Harga otomatis berpindah ke tier kuantitas resmi (1-4 pcs, 5-12 pcs, 13-25
+                                                pcs, 26-50 pcs, 51-100 pcs, &gt;100 pcs).
+                                            </small>
                                         </div>
                                     </div>
 
-                                    {{-- Jenis Pengait --}}
-                                    <div class="field" style="margin-bottom: 20px;">
-                                        <label class="field-label">Model Pengait Belakang <span class="req">*</span></label>
-                                        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-                                            <label class="choice-pill active" id="pillFastenerMagnet">
-                                                <input type="radio" name="nametag_fastener" value="magnet" checked>
-                                                <i class="bi bi-magnet me-1"></i> Magnet Neodymium (Kuat &amp; Tidak
-                                                Merusak Baju)
-                                            </label>
-                                            <label class="choice-pill" id="pillFastenerPeniti">
-                                                <input type="radio" name="nametag_fastener" value="peniti">
-                                                <i class="bi bi-pin-angle me-1"></i> Peniti Stainless Standar
-                                            </label>
-                                        </div>
-                                    </div>
-
-                                    {{-- Kuantitas Name Tag --}}
-                                    <div class="field">
-                                        <label class="field-label">Jumlah Pesanan (Pcs) <span class="req">*</span></label>
-                                        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-                                            <div style="display: inline-flex; align-items: center;">
-                                                <button type="button" class="qty-btn" id="btnNametagQtyMinus">-</button>
-                                                <input type="number" id="nametagQtyInput" class="input qty-input"
-                                                    value="10" min="1" step="1">
-                                                <button type="button" class="qty-btn" id="btnNametagQtyPlus">+</button>
-                                            </div>
-                                            <div class="quick-qty-group">
-                                                <button type="button" class="quick-qty-btn" data-qty="1">1
-                                                    pcs</button>
-                                                <button type="button" class="quick-qty-btn" data-qty="5">5
-                                                    pcs</button>
-                                                <button type="button" class="quick-qty-btn active" data-qty="10">10
-                                                    pcs</button>
-                                                <button type="button" class="quick-qty-btn" data-qty="25">25
-                                                    pcs</button>
-                                                <button type="button" class="quick-qty-btn" data-qty="50">50
-                                                    pcs</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {{-- C. PANEL PLAKAT AKRILIK UV & KAYU --}}
-                                <div id="panelPlakat" class="tab-panel" style="display: none; padding: 20px 22px; border-bottom: 1px solid var(--border);">
-                                    <div class="form-section-head" style="margin-bottom: 18px;">
-                                        <span class="eyebrow"
-                                            style="font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 6px;">
-                                            <i class="bi bi-trophy"></i> 2. SPESIFIKASI PLAKAT AKRILIK UV &amp; KAYU
-                                        </span>
-                                    </div>
-
-                                    {{-- Bahan Plakat --}}
-                                    <div class="field" style="margin-bottom: 20px;">
-                                        <label class="field-label">Pilihan Bahan Dasar Plakat <span
-                                                class="req">*</span></label>
-                                        <div class="choice-cards-grid">
-                                            <label class="choice-card active" id="cardPlakatMatAkrilik">
-                                                <input type="radio" name="plakat_material" value="akrilik" checked
-                                                    style="display:none;">
-                                                <div class="choice-title">Plakat Akrilik UV (20x15 cm)</div>
-                                                <div class="choice-sub">Cetak flatbed UV Resolusi Tinggi, tajam &amp; tahan
-                                                    luntur.</div>
-                                            </label>
-                                            <label class="choice-card" id="cardPlakatMatKayu">
-                                                <input type="radio" name="plakat_material" value="kayu"
-                                                    style="display:none;">
-                                                <div class="choice-title">Plakat Kayu (+ Box Beludru)</div>
-                                                <div class="choice-sub">Kayu solid ukir mewah, pelat logam
-                                                    kuningan/akrilik, bonus box beludru.</div>
-                                                <div class="choice-price">Rp 180.000 / pcs</div>
-                                            </label>
-                                        </div>
-                                    </div>
-
-                                    {{-- Sub-opsi Khusus Akrilik --}}
-                                    <div id="plakatAkrilikOptions"
-                                        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 18px; margin-bottom: 20px;">
-
-                                        {{-- Ketebalan Akrilik --}}
-                                        <div class="field">
-                                            <label class="field-label">Ketebalan Akrilik <span class="req">*</span></label>
-                                            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                                                <label class="choice-pill" id="pillPlakatThk2mm">
-                                                    <input type="radio" name="plakat_thickness" value="2mm"> 2 mm
-                                                </label>
-                                                <label class="choice-pill active" id="pillPlakatThk3mm">
-                                                    <input type="radio" name="plakat_thickness" value="3mm" checked>
-                                                    3 mm
-                                                </label>
-                                                <label class="choice-pill" id="pillPlakatThk5mm">
-                                                    <input type="radio" name="plakat_thickness" value="5mm"> 5 mm
-                                                </label>
-                                                <label class="choice-pill" id="pillPlakatThk1cm">
-                                                    <input type="radio" name="plakat_thickness" value="1cm"> 1 cm
-                                                    (10mm)
-                                                </label>
-                                            </div>
+                                    {{-- B. PANEL PAPAN NAMA DADA (NAME TAG) --}}
+                                    <div id="panelNametag" class="tab-panel"
+                                        style="display: none; padding: 20px 22px; border-bottom: 1px solid var(--border);">
+                                        <div class="form-section-head" style="margin-bottom: 18px;">
+                                            <span class="eyebrow"
+                                                style="font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 6px;">
+                                                <i class="bi bi-tag"></i> 2. SPESIFIKASI PAPAN NAMA DADA (NAME TAG)
+                                            </span>
                                         </div>
 
-                                        {{-- Jenis Dudukan (Base) --}}
-                                        <div class="field">
-                                            <label class="field-label">Jenis Kaki / Dudukan <span
+                                        {{-- Tipe Finishing Name Tag --}}
+                                        <div class="field" style="margin-bottom: 20px;">
+                                            <label class="field-label">Varian Lapisan &amp; Finishing Papan Nama <span
                                                     class="req">*</span></label>
-                                            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                                                <label class="choice-pill active" id="pillPlakatBaseAkrilik">
-                                                    <input type="radio" name="plakat_base" value="akrilik" checked>
-                                                    Dudukan Akrilik Bening
+                                            <div class="choice-cards-grid">
+                                                <label class="choice-card" id="cardNametagBiasa">
+                                                    <input type="radio" name="nametag_type" value="biasa"
+                                                        style="display:none;">
+                                                    <div class="choice-title">Papan Nama Biasa</div>
+                                                    <div class="choice-sub">Akrilik standar tanpa lapisan resin cembung.
+                                                    </div>
+                                                    <div class="choice-price">Rp 25.000 / pcs</div>
                                                 </label>
-                                                <label class="choice-pill" id="pillPlakatBaseHitam">
-                                                    <input type="radio" name="plakat_base" value="hitam"> Dudukan
-                                                    Hitam Elegan
+                                                <label class="choice-card active" id="cardNametagResin">
+                                                    <input type="radio" name="nametag_type" value="resin" checked
+                                                        style="display:none;">
+                                                    <div class="choice-title">Papan Nama Resin</div>
+                                                    <div class="choice-sub">Lapisan resin Lycal cembung jernih, mengkilap
+                                                        &amp;
+                                                        tahan gores.</div>
+                                                    <div class="choice-price">Rp 35.000 / pcs</div>
+                                                </label>
+                                                <label class="choice-card" id="cardNametagResinEmas">
+                                                    <input type="radio" name="nametag_type" value="resin_emas"
+                                                        style="display:none;">
+                                                    <div class="choice-title">Papan Nama Resin Emas</div>
+                                                    <div class="choice-sub">Base plat kuningan / logam emas mewah + resin
+                                                        cembung.</div>
+                                                    <div class="choice-price">Rp 35.000 / pcs</div>
                                                 </label>
                                             </div>
                                         </div>
 
-                                        {{-- Kemasan Box Beludru --}}
-                                        <div class="field">
-                                            <label class="field-label">Kemasan Kotak (Box Beludru) <span
+                                        {{-- Jenis Pengait --}}
+                                        <div class="field" style="margin-bottom: 20px;">
+                                            <label class="field-label">Model Pengait Belakang <span
                                                     class="req">*</span></label>
-                                            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                                                <label class="choice-pill active" id="pillPlakatWithBox">
-                                                    <input type="radio" name="plakat_box" value="box" checked>
-                                                    <i class="bi bi-box2 me-1"></i> Termasuk Box Beludru
+                                            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                                                <label class="choice-pill active" id="pillFastenerMagnet">
+                                                    <input type="radio" name="nametag_fastener" value="magnet" checked>
+                                                    <i class="bi bi-magnet me-1"></i> Magnet Neodymium (Kuat &amp; Tidak
+                                                    Merusak Baju)
                                                 </label>
-                                                <label class="choice-pill" id="pillPlakatNoBox">
-                                                    <input type="radio" name="plakat_box" value="tanpa_box">
-                                                    Tanpa Box (Plakat Saja)
+                                                <label class="choice-pill" id="pillFastenerPeniti">
+                                                    <input type="radio" name="nametag_fastener" value="peniti">
+                                                    <i class="bi bi-pin-angle me-1"></i> Peniti Stainless Standar
                                                 </label>
                                             </div>
                                         </div>
 
-                                    </div>
-
-                                    {{-- Kuantitas & Biaya Desain --}}
-                                    <div class="field" style="margin-bottom: 20px;">
-                                        <label class="field-label">Jumlah Pesanan (Pcs) <span class="req">*</span></label>
-                                        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-                                            <div style="display: inline-flex; align-items: center;">
-                                                <button type="button" class="qty-btn" id="btnPlakatQtyMinus">-</button>
-                                                <input type="number" id="plakatQtyInput" class="input qty-input"
-                                                    value="1" min="1" step="1">
-                                                <button type="button" class="qty-btn" id="btnPlakatQtyPlus">+</button>
-                                            </div>
-                                            <div class="quick-qty-group">
-                                                <button type="button" class="quick-qty-btn active" data-qty="1">1
-                                                    pcs</button>
-                                                <button type="button" class="quick-qty-btn" data-qty="3">3
-                                                    pcs</button>
-                                                <button type="button" class="quick-qty-btn" data-qty="5">5
-                                                    pcs</button>
-                                                <button type="button" class="quick-qty-btn" data-qty="10">10
-                                                    pcs</button>
-                                                <button type="button" class="quick-qty-btn" data-qty="20">20
-                                                    pcs</button>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {{-- Opsi Desain --}}
-                                    <div class="field"
-                                        style="padding: 13px 16px; border-radius: 10px; background: var(--bg-muted); border: 1px solid var(--border);">
-                                        <label
-                                            style="display: flex; align-items: center; gap: 12px; cursor: pointer; margin: 0; user-select: none;">
-                                            <input type="checkbox" id="checkPlakatDesign"
-                                                style="width: 18px; height: 18px; accent-color: var(--primary); flex-shrink: 0;">
-                                            <div>
-                                                <span style="font-weight: 600; color: var(--t-base); font-size: 13px;">Tambah Jasa Desain /
-                                                    Setting Plakat (+ Rp 35.000)</span>
-                                                <small style="display: block; color: var(--t-muted); font-size: 11.5px; margin-top: 2px;">
-                                                    Centang jika pemesan belum memiliki file vector/siap cetak dan
-                                                    membutuhkan tim desainer membuat layout plakat.
-                                                </small>
-                                            </div>
-                                        </label>
-                                    </div>
-
-                                </div>
-
-                                {{-- D. PANEL BUKU NOTA (NCR & HVS) --}}
-                                <div id="panelNota" class="tab-panel" style="display: none; padding: 20px 22px; border-bottom: 1px solid var(--border);">
-                                    <div class="form-section-head" style="margin-bottom: 18px;">
-                                        <span class="eyebrow"
-                                            style="font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 6px;">
-                                            <i class="bi bi-journal-text"></i> 2. SPESIFIKASI BUKU NOTA (NCR &amp; HVS)
-                                        </span>
-                                    </div>
-
-                                    {{-- Jenis Kertas --}}
-                                    <div class="field" style="margin-bottom: 20px;">
-                                        <label class="field-label">Jenis Kertas Nota <span class="req">*</span></label>
-                                        <div class="choice-cards-grid">
-                                            <label class="choice-card active" id="cardNotaPaperNcr">
-                                                <input type="radio" name="nota_paper" value="ncr" checked
-                                                    style="display:none;">
-                                                <div class="choice-title">Kertas NCR Carbonless (50 Set)</div>
-                                                <div class="choice-sub">Tembus otomatis tanpa kertas karbon tambahan. Isi
-                                                    50 set per buku.</div>
-                                            </label>
-                                            <label class="choice-card" id="cardNotaPaperHvs">
-                                                <input type="radio" name="nota_paper" value="hvs"
-                                                    style="display:none;">
-                                                <div class="choice-title">Kertas HVS Putih (100 Sheet)</div>
-                                                <div class="choice-sub">Kertas HVS putih standar 1 ply, tebal &amp; bersih.
-                                                    Isi 100 lembar per buku.</div>
-                                            </label>
-                                        </div>
-                                    </div>
-
-                                    <div class="form-grid"
-                                        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; margin-bottom: 20px;">
-
-                                        {{-- Jumlah Rangkap (Ply) --}}
+                                        {{-- Kuantitas Name Tag --}}
                                         <div class="field">
-                                            <label class="field-label">Jumlah Rangkap (Ply) <span
+                                            <label class="field-label">Jumlah Pesanan (Pcs) <span
                                                     class="req">*</span></label>
-                                            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                                                <label class="choice-pill" id="pillNotaPly1" style="display: none;">
-                                                    <input type="radio" name="nota_ply" value="1"> 1 Ply (HVS)
-                                                </label>
-                                                <label class="choice-pill active" id="pillNotaPly2">
-                                                    <input type="radio" name="nota_ply" value="2" checked> 2 Ply
-                                                    (2 Rangkap)
-                                                </label>
-                                                <label class="choice-pill" id="pillNotaPly3">
-                                                    <input type="radio" name="nota_ply" value="3"> 3 Ply (3
-                                                    Rangkap)
-                                                </label>
-                                                <label class="choice-pill" id="pillNotaPly4">
-                                                    <input type="radio" name="nota_ply" value="4"> 4 Ply (4
-                                                    Rangkap)
-                                                </label>
-                                            </div>
-                                        </div>
-
-                                        {{-- Jumlah Warna Tinta Cetak --}}
-                                        <div class="field">
-                                            <label class="field-label">Jumlah Warna Tinta Cetak <span
-                                                    class="req">*</span></label>
-                                            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                                                <label class="choice-pill active" id="pillNotaInk1">
-                                                    <input type="radio" name="nota_ink" value="1" checked> 1 Warna
-                                                    Tinta
-                                                </label>
-                                                <label class="choice-pill" id="pillNotaInk2">
-                                                    <input type="radio" name="nota_ink" value="2"> 2 Warna Tinta
-                                                </label>
-                                                <label class="choice-pill" id="pillNotaInk3">
-                                                    <input type="radio" name="nota_ink" value="3"> 3 Warna Tinta
-                                                </label>
-                                            </div>
-                                        </div>
-
-                                        {{-- Ukuran Buku Jadi --}}
-                                        <div class="field">
-                                            <label class="field-label" for="nota_size_select">Ukuran Buku Jadi (Per Paket Rim) <span
-                                                    class="req">*</span></label>
-                                            <select id="nota_size_select" class="select select2">
-                                                <option value="1/4" data-books="40" selected>1/4 Folio (10.5 x 16.5 cm)
-                                                    - Dapat 40 Buku / rim</option>
-                                                <option value="1/3" data-books="30">1/3 Folio (10.8 x 21.5 cm) - Dapat
-                                                    30 Buku / rim</option>
-                                                <option value="1/2" data-books="20">1/2 Folio (16.5 x 21.5 cm) - Dapat
-                                                    20 Buku / rim</option>
-                                                <option value="1" data-books="10">1 Folio Penuh (21.5 x 33 cm) -
-                                                    Dapat 10 Buku / rim</option>
-                                            </select>
-                                        </div>
-
-                                    </div>
-
-                                    {{-- Kuantitas Paket Rim --}}
-                                    <div class="field" style="margin-bottom: 20px;">
-                                        <label class="field-label">Jumlah Paket Cetak (Rim Plano Folio) <span
-                                                class="req">*</span></label>
-                                        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-                                            <div style="display: inline-flex; align-items: center;">
-                                                <button type="button" class="qty-btn" id="btnNotaQtyMinus">-</button>
-                                                <input type="number" id="notaQtyInput" class="input qty-input"
-                                                    value="1" min="1" step="1">
-                                                <button type="button" class="qty-btn" id="btnNotaQtyPlus">+</button>
-                                            </div>
-                                            <div class="quick-qty-group">
-                                                <button type="button" class="quick-qty-btn active" data-qty="1">1 Rim
-                                                    (Paket)</button>
-                                                <button type="button" class="quick-qty-btn" data-qty="2">2
-                                                    Rim</button>
-                                                <button type="button" class="quick-qty-btn" data-qty="3">3
-                                                    Rim</button>
-                                                <button type="button" class="quick-qty-btn" data-qty="5">5
-                                                    Rim</button>
-                                                <button type="button" class="quick-qty-btn" data-qty="10">10
-                                                    Rim</button>
+                                            <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                                                <div style="display: inline-flex; align-items: center;">
+                                                    <button type="button" class="qty-btn"
+                                                        id="btnNametagQtyMinus">-</button>
+                                                    <input type="number" id="nametagQtyInput" class="input qty-input"
+                                                        value="10" min="1" step="1">
+                                                    <button type="button" class="qty-btn"
+                                                        id="btnNametagQtyPlus">+</button>
+                                                </div>
+                                                <div class="quick-qty-group">
+                                                    <button type="button" class="quick-qty-btn" data-qty="1">1
+                                                        pcs</button>
+                                                    <button type="button" class="quick-qty-btn" data-qty="5">5
+                                                        pcs</button>
+                                                    <button type="button" class="quick-qty-btn active" data-qty="10">10
+                                                        pcs</button>
+                                                    <button type="button" class="quick-qty-btn" data-qty="25">25
+                                                        pcs</button>
+                                                    <button type="button" class="quick-qty-btn" data-qty="50">50
+                                                        pcs</button>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
 
-                                    {{-- Opsi Nomorator & Jasa Desain Nota --}}
-                                    <div style="display: flex; flex-direction: column; gap: 10px;">
-                                        <div
+                                    {{-- C. PANEL PLAKAT AKRILIK UV & KAYU --}}
+                                    <div id="panelPlakat" class="tab-panel"
+                                        style="display: none; padding: 20px 22px; border-bottom: 1px solid var(--border);">
+                                        <div class="form-section-head" style="margin-bottom: 18px;">
+                                            <span class="eyebrow"
+                                                style="font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 6px;">
+                                                <i class="bi bi-trophy"></i> 2. SPESIFIKASI PLAKAT AKRILIK UV &amp; KAYU
+                                            </span>
+                                        </div>
+
+                                        {{-- Bahan Plakat --}}
+                                        <div class="field" style="margin-bottom: 20px;">
+                                            <label class="field-label">Pilihan Bahan Dasar Plakat <span
+                                                    class="req">*</span></label>
+                                            <div class="choice-cards-grid">
+                                                <label class="choice-card active" id="cardPlakatMatAkrilik">
+                                                    <input type="radio" name="plakat_material" value="akrilik" checked
+                                                        style="display:none;">
+                                                    <div class="choice-title">Plakat Akrilik UV (20x15 cm)</div>
+                                                    <div class="choice-sub">Cetak flatbed UV Resolusi Tinggi, tajam &amp;
+                                                        tahan
+                                                        luntur.</div>
+                                                </label>
+                                                <label class="choice-card" id="cardPlakatMatKayu">
+                                                    <input type="radio" name="plakat_material" value="kayu"
+                                                        style="display:none;">
+                                                    <div class="choice-title">Plakat Kayu (+ Box Beludru)</div>
+                                                    <div class="choice-sub">Kayu solid ukir mewah, pelat logam
+                                                        kuningan/akrilik, bonus box beludru.</div>
+                                                    <div class="choice-price">Rp 180.000 / pcs</div>
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        {{-- Sub-opsi Khusus Akrilik --}}
+                                        <div id="plakatAkrilikOptions"
+                                            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 18px; margin-bottom: 20px;">
+
+                                            {{-- Ketebalan Akrilik --}}
+                                            <div class="field">
+                                                <label class="field-label">Ketebalan Akrilik <span
+                                                        class="req">*</span></label>
+                                                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                                    <label class="choice-pill" id="pillPlakatThk2mm">
+                                                        <input type="radio" name="plakat_thickness" value="2mm"> 2
+                                                        mm
+                                                    </label>
+                                                    <label class="choice-pill active" id="pillPlakatThk3mm">
+                                                        <input type="radio" name="plakat_thickness" value="3mm"
+                                                            checked>
+                                                        3 mm
+                                                    </label>
+                                                    <label class="choice-pill" id="pillPlakatThk5mm">
+                                                        <input type="radio" name="plakat_thickness" value="5mm"> 5
+                                                        mm
+                                                    </label>
+                                                    <label class="choice-pill" id="pillPlakatThk1cm">
+                                                        <input type="radio" name="plakat_thickness" value="1cm"> 1
+                                                        cm
+                                                        (10mm)
+                                                    </label>
+                                                </div>
+                                            </div>
+
+                                            {{-- Jenis Dudukan (Base) --}}
+                                            <div class="field">
+                                                <label class="field-label">Jenis Kaki / Dudukan <span
+                                                        class="req">*</span></label>
+                                                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                                    <label class="choice-pill active" id="pillPlakatBaseAkrilik">
+                                                        <input type="radio" name="plakat_base" value="akrilik" checked>
+                                                        Dudukan Akrilik Bening
+                                                    </label>
+                                                    <label class="choice-pill" id="pillPlakatBaseHitam">
+                                                        <input type="radio" name="plakat_base" value="hitam"> Dudukan
+                                                        Hitam Elegan
+                                                    </label>
+                                                </div>
+                                            </div>
+
+                                            {{-- Kemasan Box Beludru --}}
+                                            <div class="field">
+                                                <label class="field-label">Kemasan Kotak (Box Beludru) <span
+                                                        class="req">*</span></label>
+                                                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                                    <label class="choice-pill active" id="pillPlakatWithBox">
+                                                        <input type="radio" name="plakat_box" value="box" checked>
+                                                        <i class="bi bi-box2 me-1"></i> Termasuk Box Beludru
+                                                    </label>
+                                                    <label class="choice-pill" id="pillPlakatNoBox">
+                                                        <input type="radio" name="plakat_box" value="tanpa_box">
+                                                        Tanpa Box (Plakat Saja)
+                                                    </label>
+                                                </div>
+                                            </div>
+
+                                        </div>
+
+                                        {{-- Kuantitas & Biaya Desain --}}
+                                        <div class="field" style="margin-bottom: 20px;">
+                                            <label class="field-label">Jumlah Pesanan (Pcs) <span
+                                                    class="req">*</span></label>
+                                            <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                                                <div style="display: inline-flex; align-items: center;">
+                                                    <button type="button" class="qty-btn"
+                                                        id="btnPlakatQtyMinus">-</button>
+                                                    <input type="number" id="plakatQtyInput" class="input qty-input"
+                                                        value="1" min="1" step="1">
+                                                    <button type="button" class="qty-btn"
+                                                        id="btnPlakatQtyPlus">+</button>
+                                                </div>
+                                                <div class="quick-qty-group">
+                                                    <button type="button" class="quick-qty-btn active" data-qty="1">1
+                                                        pcs</button>
+                                                    <button type="button" class="quick-qty-btn" data-qty="3">3
+                                                        pcs</button>
+                                                    <button type="button" class="quick-qty-btn" data-qty="5">5
+                                                        pcs</button>
+                                                    <button type="button" class="quick-qty-btn" data-qty="10">10
+                                                        pcs</button>
+                                                    <button type="button" class="quick-qty-btn" data-qty="20">20
+                                                        pcs</button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {{-- Opsi Desain --}}
+                                        <div class="field"
                                             style="padding: 13px 16px; border-radius: 10px; background: var(--bg-muted); border: 1px solid var(--border);">
                                             <label
                                                 style="display: flex; align-items: center; gap: 12px; cursor: pointer; margin: 0; user-select: none;">
-                                                <input type="checkbox" id="checkNotaNumerator" checked
+                                                <input type="checkbox" id="checkPlakatDesign"
                                                     style="width: 18px; height: 18px; accent-color: var(--primary); flex-shrink: 0;">
                                                 <div>
-                                                    <span style="font-weight: 600; color: var(--t-base); font-size: 13px;">Tambah Nomorator
-                                                        Otomatis 6 Digit (Gratis / Standar)</span>
+                                                    <span
+                                                        style="font-weight: 600; color: var(--t-base); font-size: 13px;">Tambah
+                                                        Jasa Desain /
+                                                        Setting Plakat (+ Rp 35.000)</span>
                                                     <small
                                                         style="display: block; color: var(--t-muted); font-size: 11.5px; margin-top: 2px;">
-                                                        Penomoran berurutan rapi di pojok nota (misal: No. 000001 s.d
-                                                        selesai).
+                                                        Centang jika pemesan belum memiliki file vector/siap cetak dan
+                                                        membutuhkan tim desainer membuat layout plakat.
                                                     </small>
                                                 </div>
                                             </label>
                                         </div>
 
-                                        <div
-                                            style="padding: 13px 16px; border-radius: 10px; background: var(--bg-muted); border: 1px solid var(--border);">
-                                            <label
-                                                style="display: flex; align-items: center; gap: 12px; cursor: pointer; margin: 0; user-select: none;">
-                                                <input type="checkbox" id="checkNotaDesign"
-                                                    style="width: 18px; height: 18px; accent-color: var(--primary); flex-shrink: 0;">
-                                                <div>
-                                                    <span style="font-weight: 600; color: var(--t-base); font-size: 13px;">Jasa Setting /
-                                                        Pembuatan Desain Form Nota (+ Rp 30.000)</span>
-                                                    <small
-                                                        style="display: block; color: var(--t-muted); font-size: 11.5px; margin-top: 2px;">
-                                                        Centang jika pemesan belum memiliki file layout nota dan butuh
-                                                        didesainkan oleh tim kami.
-                                                    </small>
+                                    </div>
+
+                                    {{-- D. PANEL BUKU NOTA (NCR & HVS) --}}
+                                    <div id="panelNota" class="tab-panel"
+                                        style="display: none; padding: 20px 22px; border-bottom: 1px solid var(--border);">
+                                        <div class="form-section-head" style="margin-bottom: 18px;">
+                                            <span class="eyebrow"
+                                                style="font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 6px;">
+                                                <i class="bi bi-journal-text"></i> 2. SPESIFIKASI BUKU NOTA (NCR &amp; HVS)
+                                            </span>
+                                        </div>
+
+                                        {{-- Jenis Kertas --}}
+                                        <div class="field" style="margin-bottom: 20px;">
+                                            <label class="field-label">Jenis Kertas Nota <span
+                                                    class="req">*</span></label>
+                                            <div class="choice-cards-grid">
+                                                <label class="choice-card active" id="cardNotaPaperNcr">
+                                                    <input type="radio" name="nota_paper" value="ncr" checked
+                                                        style="display:none;">
+                                                    <div class="choice-title">Kertas NCR Carbonless (50 Set)</div>
+                                                    <div class="choice-sub">Tembus otomatis tanpa kertas karbon tambahan.
+                                                        Isi
+                                                        50 set per buku.</div>
+                                                </label>
+                                                <label class="choice-card" id="cardNotaPaperHvs">
+                                                    <input type="radio" name="nota_paper" value="hvs"
+                                                        style="display:none;">
+                                                    <div class="choice-title">Kertas HVS Putih (100 Sheet)</div>
+                                                    <div class="choice-sub">Kertas HVS putih standar 1 ply, tebal &amp;
+                                                        bersih.
+                                                        Isi 100 lembar per buku.</div>
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-grid"
+                                            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; margin-bottom: 20px;">
+
+                                            {{-- Jumlah Rangkap (Ply) --}}
+                                            <div class="field">
+                                                <label class="field-label">Jumlah Rangkap (Ply) <span
+                                                        class="req">*</span></label>
+                                                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                                    <label class="choice-pill" id="pillNotaPly1" style="display: none;">
+                                                        <input type="radio" name="nota_ply" value="1"> 1 Ply (HVS)
+                                                    </label>
+                                                    <label class="choice-pill active" id="pillNotaPly2">
+                                                        <input type="radio" name="nota_ply" value="2" checked> 2
+                                                        Ply
+                                                        (2 Rangkap)
+                                                    </label>
+                                                    <label class="choice-pill" id="pillNotaPly3">
+                                                        <input type="radio" name="nota_ply" value="3"> 3 Ply (3
+                                                        Rangkap)
+                                                    </label>
+                                                    <label class="choice-pill" id="pillNotaPly4">
+                                                        <input type="radio" name="nota_ply" value="4"> 4 Ply (4
+                                                        Rangkap)
+                                                    </label>
                                                 </div>
-                                            </label>
+                                            </div>
+
+                                            {{-- Jumlah Warna Tinta Cetak --}}
+                                            <div class="field">
+                                                <label class="field-label">Jumlah Warna Tinta Cetak <span
+                                                        class="req">*</span></label>
+                                                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                                    <label class="choice-pill active" id="pillNotaInk1">
+                                                        <input type="radio" name="nota_ink" value="1" checked> 1
+                                                        Warna
+                                                        Tinta
+                                                    </label>
+                                                    <label class="choice-pill" id="pillNotaInk2">
+                                                        <input type="radio" name="nota_ink" value="2"> 2 Warna
+                                                        Tinta
+                                                    </label>
+                                                    <label class="choice-pill" id="pillNotaInk3">
+                                                        <input type="radio" name="nota_ink" value="3"> 3 Warna
+                                                        Tinta
+                                                    </label>
+                                                </div>
+                                            </div>
+
+                                            {{-- Ukuran Buku Jadi --}}
+                                            <div class="field">
+                                                <label class="field-label" for="nota_size_select">Ukuran Buku Jadi (Per
+                                                    Paket Rim) <span class="req">*</span></label>
+                                                <select id="nota_size_select" class="select select2">
+                                                    <option value="1/4" data-books="40" selected>1/4 Folio (10.5 x 16.5
+                                                        cm)
+                                                        - Dapat 40 Buku / rim</option>
+                                                    <option value="1/3" data-books="30">1/3 Folio (10.8 x 21.5 cm) -
+                                                        Dapat
+                                                        30 Buku / rim</option>
+                                                    <option value="1/2" data-books="20">1/2 Folio (16.5 x 21.5 cm) -
+                                                        Dapat
+                                                        20 Buku / rim</option>
+                                                    <option value="1" data-books="10">1 Folio Penuh (21.5 x 33 cm) -
+                                                        Dapat 10 Buku / rim</option>
+                                                </select>
+                                            </div>
+
+                                        </div>
+
+                                        {{-- Kuantitas Paket Rim --}}
+                                        <div class="field" style="margin-bottom: 20px;">
+                                            <label class="field-label">Jumlah Paket Cetak (Rim Plano Folio) <span
+                                                    class="req">*</span></label>
+                                            <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                                                <div style="display: inline-flex; align-items: center;">
+                                                    <button type="button" class="qty-btn"
+                                                        id="btnNotaQtyMinus">-</button>
+                                                    <input type="number" id="notaQtyInput" class="input qty-input"
+                                                        value="1" min="1" step="1">
+                                                    <button type="button" class="qty-btn" id="btnNotaQtyPlus">+</button>
+                                                </div>
+                                                <div class="quick-qty-group">
+                                                    <button type="button" class="quick-qty-btn active" data-qty="1">1
+                                                        Rim
+                                                        (Paket)</button>
+                                                    <button type="button" class="quick-qty-btn" data-qty="2">2
+                                                        Rim</button>
+                                                    <button type="button" class="quick-qty-btn" data-qty="3">3
+                                                        Rim</button>
+                                                    <button type="button" class="quick-qty-btn" data-qty="5">5
+                                                        Rim</button>
+                                                    <button type="button" class="quick-qty-btn" data-qty="10">10
+                                                        Rim</button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {{-- Opsi Nomorator & Jasa Desain Nota --}}
+                                        <div style="display: flex; flex-direction: column; gap: 10px;">
+                                            <div
+                                                style="padding: 13px 16px; border-radius: 10px; background: var(--bg-muted); border: 1px solid var(--border);">
+                                                <label
+                                                    style="display: flex; align-items: center; gap: 12px; cursor: pointer; margin: 0; user-select: none;">
+                                                    <input type="checkbox" id="checkNotaNumerator" checked
+                                                        style="width: 18px; height: 18px; accent-color: var(--primary); flex-shrink: 0;">
+                                                    <div>
+                                                        <span
+                                                            style="font-weight: 600; color: var(--t-base); font-size: 13px;">Tambah
+                                                            Nomorator
+                                                            Otomatis 6 Digit (Gratis / Standar)</span>
+                                                        <small
+                                                            style="display: block; color: var(--t-muted); font-size: 11.5px; margin-top: 2px;">
+                                                            Penomoran berurutan rapi di pojok nota (misal: No. 000001 s.d
+                                                            selesai).
+                                                        </small>
+                                                    </div>
+                                                </label>
+                                            </div>
+
+                                            <div
+                                                style="padding: 13px 16px; border-radius: 10px; background: var(--bg-muted); border: 1px solid var(--border);">
+                                                <label
+                                                    style="display: flex; align-items: center; gap: 12px; cursor: pointer; margin: 0; user-select: none;">
+                                                    <input type="checkbox" id="checkNotaDesign"
+                                                        style="width: 18px; height: 18px; accent-color: var(--primary); flex-shrink: 0;">
+                                                    <div>
+                                                        <span
+                                                            style="font-weight: 600; color: var(--t-base); font-size: 13px;">Jasa
+                                                            Setting /
+                                                            Pembuatan Desain Form Nota (+ Rp 30.000)</span>
+                                                        <small
+                                                            style="display: block; color: var(--t-muted); font-size: 11.5px; margin-top: 2px;">
+                                                            Centang jika pemesan belum memiliki file layout nota dan butuh
+                                                            didesainkan oleh tim kami.
+                                                        </small>
+                                                    </div>
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                    </div>
+
+                                    {{-- E. PANEL MUG SUBLIMASI --}}
+                                    <div id="panelMug" class="tab-panel"
+                                        style="display: none; padding: 20px 22px; border-bottom: 1px solid var(--border);">
+                                        <div class="form-section-head" style="margin-bottom: 18px;">
+                                            <span class="eyebrow"
+                                                style="font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 6px;">
+                                                <i class="bi bi-cup-hot"></i> 5. SPESIFIKASI MUG SUBLIMASI
+                                            </span>
+                                            <p style="margin: 4px 0 0; font-size: 13px; color: var(--t-muted);">
+                                                Mug keramik putih standar SNI (11 oz) dicetak sublimasi full color tahan
+                                                cuci, mengkilap, dan anti luntur.
+                                            </p>
+                                        </div>
+
+                                        {{-- Info Daftar Tier Mug --}}
+                                        <div class="field" style="margin-bottom: 20px;">
+                                            <label class="field-label">Tingkatan Harga Grosir (Tier Pricelist)</label>
+                                            <div
+                                                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px;">
+                                                <div class="tier-preview-card" data-tier-min="1" data-tier-max="5"
+                                                    style="padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-muted); text-align: center;">
+                                                    <div style="font-size: 11px; font-weight: 700; color: var(--t-muted);">
+                                                        1 – 5 pcs</div>
+                                                    <div
+                                                        style="font-size: 14px; font-weight: 700; color: #c2a857; margin-top: 2px;">
+                                                        Rp 30.000</div>
+                                                    <div style="font-size: 10.5px; color: var(--t-muted);">/ pcs</div>
+                                                </div>
+                                                <div class="tier-preview-card" data-tier-min="6" data-tier-max="10"
+                                                    style="padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-muted); text-align: center;">
+                                                    <div style="font-size: 11px; font-weight: 700; color: var(--t-muted);">
+                                                        6 – 10 pcs</div>
+                                                    <div
+                                                        style="font-size: 14px; font-weight: 700; color: #c2a857; margin-top: 2px;">
+                                                        Rp 28.000</div>
+                                                    <div style="font-size: 10.5px; color: var(--t-muted);">/ pcs</div>
+                                                </div>
+                                                <div class="tier-preview-card" data-tier-min="11" data-tier-max="20"
+                                                    style="padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-muted); text-align: center;">
+                                                    <div style="font-size: 11px; font-weight: 700; color: var(--t-muted);">
+                                                        11 – 20 pcs</div>
+                                                    <div
+                                                        style="font-size: 14px; font-weight: 700; color: #c2a857; margin-top: 2px;">
+                                                        Rp 26.000</div>
+                                                    <div style="font-size: 10.5px; color: var(--t-muted);">/ pcs</div>
+                                                </div>
+                                                <div class="tier-preview-card" data-tier-min="21" data-tier-max="30"
+                                                    style="padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-muted); text-align: center;">
+                                                    <div style="font-size: 11px; font-weight: 700; color: var(--t-muted);">
+                                                        21 – 30 pcs</div>
+                                                    <div
+                                                        style="font-size: 14px; font-weight: 700; color: #c2a857; margin-top: 2px;">
+                                                        Rp 25.000</div>
+                                                    <div style="font-size: 10.5px; color: var(--t-muted);">/ pcs</div>
+                                                </div>
+                                                <div class="tier-preview-card" data-tier-min="31" data-tier-max="50"
+                                                    style="padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-muted); text-align: center;">
+                                                    <div style="font-size: 11px; font-weight: 700; color: var(--t-muted);">
+                                                        31 – 50 pcs</div>
+                                                    <div
+                                                        style="font-size: 14px; font-weight: 700; color: #c2a857; margin-top: 2px;">
+                                                        Rp 24.000</div>
+                                                    <div style="font-size: 10.5px; color: var(--t-muted);">/ pcs</div>
+                                                </div>
+                                                <div class="tier-preview-card" data-tier-min="51"
+                                                    data-tier-max="Infinity"
+                                                    style="padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-muted); text-align: center;">
+                                                    <div style="font-size: 11px; font-weight: 700; color: var(--t-muted);">
+                                                        > 50 pcs</div>
+                                                    <div
+                                                        style="font-size: 14px; font-weight: 700; color: #c2a857; margin-top: 2px;">
+                                                        Rp 23.000</div>
+                                                    <div style="font-size: 10.5px; color: var(--t-muted);">/ pcs</div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {{-- Kuantitas Pesanan Mug --}}
+                                        <div class="field">
+                                            <label class="field-label">Jumlah Pesanan Mug (Pcs) <span
+                                                    class="req">*</span></label>
+                                            <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                                                <div style="display: inline-flex; align-items: center;">
+                                                    <button type="button" class="qty-btn" id="btnMugQtyMinus">-</button>
+                                                    <input type="number" id="mugQtyInput" class="input qty-input"
+                                                        value="12" min="1" step="1">
+                                                    <button type="button" class="qty-btn" id="btnMugQtyPlus">+</button>
+                                                </div>
+                                                <div class="quick-qty-group">
+                                                    <button type="button" class="quick-qty-btn" data-qty="1">1
+                                                        pcs</button>
+                                                    <button type="button" class="quick-qty-btn" data-qty="6">6
+                                                        pcs</button>
+                                                    <button type="button" class="quick-qty-btn active" data-qty="12">12
+                                                        pcs</button>
+                                                    <button type="button" class="quick-qty-btn" data-qty="24">24
+                                                        pcs</button>
+                                                    <button type="button" class="quick-qty-btn" data-qty="50">50
+                                                        pcs</button>
+                                                    <button type="button" class="quick-qty-btn" data-qty="100">100
+                                                        pcs</button>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
 
+                                    {{-- F. PANEL KARTU PVC (ID CARD / KTA) --}}
+                                    <div id="panelPvcCard" class="tab-panel"
+                                        style="display: none; padding: 20px 22px; border-bottom: 1px solid var(--border);">
+                                        <div class="form-section-head" style="margin-bottom: 18px;">
+                                            <span class="eyebrow"
+                                                style="font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 6px;">
+                                                <i class="bi bi-person-badge"></i> 6. SPESIFIKASI KARTU PVC (ID CARD / KTA)
+                                            </span>
+                                            <p style="margin: 4px 0 0; font-size: 13px; color: var(--t-muted);">
+                                                Material kartu PVC seukuran kartu ATM (85.6 x 54 mm, tebal 0.76 mm). Cetak 2
+                                                sisi full color, anti air &amp; tahan pudar.
+                                            </p>
+                                        </div>
+
+                                        {{-- Info Daftar Tier PVC --}}
+                                        <div class="field" style="margin-bottom: 20px;">
+                                            <label class="field-label">Tingkatan Harga Grosir (Tier Pricelist)</label>
+                                            <div
+                                                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px;">
+                                                <div class="tier-preview-card" data-tier-min="1" data-tier-max="1"
+                                                    style="padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-muted); text-align: center;">
+                                                    <div
+                                                        style="font-size: 10.5px; font-weight: 700; color: var(--t-muted);">
+                                                        1 pcs</div>
+                                                    <div
+                                                        style="font-size: 13px; font-weight: 700; color: #c2a857; margin-top: 2px;">
+                                                        Rp 30.000</div>
+                                                </div>
+                                                <div class="tier-preview-card" data-tier-min="2" data-tier-max="5"
+                                                    style="padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-muted); text-align: center;">
+                                                    <div
+                                                        style="font-size: 10.5px; font-weight: 700; color: var(--t-muted);">
+                                                        2 – 5 pcs</div>
+                                                    <div
+                                                        style="font-size: 13px; font-weight: 700; color: #c2a857; margin-top: 2px;">
+                                                        Rp 20.000</div>
+                                                </div>
+                                                <div class="tier-preview-card" data-tier-min="6" data-tier-max="10"
+                                                    style="padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-muted); text-align: center;">
+                                                    <div
+                                                        style="font-size: 10.5px; font-weight: 700; color: var(--t-muted);">
+                                                        6 – 10 pcs</div>
+                                                    <div
+                                                        style="font-size: 13px; font-weight: 700; color: #c2a857; margin-top: 2px;">
+                                                        Rp 15.000</div>
+                                                </div>
+                                                <div class="tier-preview-card" data-tier-min="11" data-tier-max="50"
+                                                    style="padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-muted); text-align: center;">
+                                                    <div
+                                                        style="font-size: 10.5px; font-weight: 700; color: var(--t-muted);">
+                                                        11 – 50 pcs</div>
+                                                    <div
+                                                        style="font-size: 13px; font-weight: 700; color: #c2a857; margin-top: 2px;">
+                                                        Rp 10.000</div>
+                                                </div>
+                                                <div class="tier-preview-card" data-tier-min="51" data-tier-max="100"
+                                                    style="padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-muted); text-align: center;">
+                                                    <div
+                                                        style="font-size: 10.5px; font-weight: 700; color: var(--t-muted);">
+                                                        51 – 100 pcs</div>
+                                                    <div
+                                                        style="font-size: 13px; font-weight: 700; color: #c2a857; margin-top: 2px;">
+                                                        Rp 7.000</div>
+                                                </div>
+                                                <div class="tier-preview-card" data-tier-min="101" data-tier-max="300"
+                                                    style="padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-muted); text-align: center;">
+                                                    <div
+                                                        style="font-size: 10.5px; font-weight: 700; color: var(--t-muted);">
+                                                        101 – 300</div>
+                                                    <div
+                                                        style="font-size: 13px; font-weight: 700; color: #c2a857; margin-top: 2px;">
+                                                        Rp 5.000</div>
+                                                </div>
+                                                <div class="tier-preview-card" data-tier-min="301"
+                                                    data-tier-max="Infinity"
+                                                    style="padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-muted); text-align: center;">
+                                                    <div
+                                                        style="font-size: 10.5px; font-weight: 700; color: var(--t-muted);">
+                                                        > 300 pcs</div>
+                                                    <div
+                                                        style="font-size: 13px; font-weight: 700; color: #c2a857; margin-top: 2px;">
+                                                        Rp 5.000</div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {{-- Kuantitas Pesanan Kartu PVC --}}
+                                        <div class="field">
+                                            <label class="field-label">Jumlah Pesanan Kartu PVC (Pcs) <span
+                                                    class="req">*</span></label>
+                                            <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                                                <div style="display: inline-flex; align-items: center;">
+                                                    <button type="button" class="qty-btn"
+                                                        id="btnPvcCardQtyMinus">-</button>
+                                                    <input type="number" id="pvcCardQtyInput" class="input qty-input"
+                                                        value="20" min="1" step="1">
+                                                    <button type="button" class="qty-btn"
+                                                        id="btnPvcCardQtyPlus">+</button>
+                                                </div>
+                                                <div class="quick-qty-group">
+                                                    <button type="button" class="quick-qty-btn" data-qty="1">1
+                                                        pcs</button>
+                                                    <button type="button" class="quick-qty-btn" data-qty="5">5
+                                                        pcs</button>
+                                                    <button type="button" class="quick-qty-btn active" data-qty="20">20
+                                                        pcs</button>
+                                                    <button type="button" class="quick-qty-btn" data-qty="50">50
+                                                        pcs</button>
+                                                    <button type="button" class="quick-qty-btn" data-qty="100">100
+                                                        pcs</button>
+                                                    <button type="button" class="quick-qty-btn" data-qty="300">300
+                                                        pcs</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {{-- G. PANEL BAHAN AKRILIK UV --}}
+                                    <div id="panelAkrilikUv" class="tab-panel"
+                                        style="display: none; padding: 20px 22px; border-bottom: 1px solid var(--border);">
+                                        <div class="form-section-head" style="margin-bottom: 18px;">
+                                            <span class="eyebrow"
+                                                style="font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 6px;">
+                                                <i class="bi bi-gem"></i> 7. SPESIFIKASI BAHAN AKRILIK UV (2 MUKA 1 LAPIS)
+                                            </span>
+                                            <p style="margin: 4px 0 0; font-size: 13px; color: var(--t-muted);">
+                                                Cetak langsung di atas akrilik bening (Direct-to-Acrylic Flatbed UV) 2 muka
+                                                / double sided dengan 1 lapis akrilik solid.
+                                            </p>
+                                        </div>
+
+                                        {{-- Varian Produk Akrilik UV --}}
+                                        <div class="field" style="margin-bottom: 20px;">
+                                            <label class="field-label">Pilihan Varian Produk Akrilik UV <span
+                                                    class="req">*</span></label>
+                                            <div class="choice-cards-grid">
+                                                <label class="choice-card active" id="cardAkrilikGantungan">
+                                                    <input type="radio" name="akrilik_variant" value="gantungan"
+                                                        checked style="display:none;">
+                                                    <div class="choice-title">Gantungan Kunci Akrilik UV</div>
+                                                    <div class="choice-sub">2 Muka 1 Lapis Akrilik Bening 3 mm + Ring
+                                                        Gantungan Kunci Kuat.</div>
+                                                    <div class="choice-price">Rp 20.000 / pcs</div>
+                                                </label>
+                                                <label class="choice-card" id="cardAkrilikStandee">
+                                                    <input type="radio" name="akrilik_variant" value="standee"
+                                                        style="display:none;">
+                                                    <div class="choice-title">Standee Mini Akrilik UV</div>
+                                                    <div class="choice-sub">2 Muka 1 Lapis Akrilik Bening 3 mm + Dudukan
+                                                        Akrilik Mini Meja.</div>
+                                                    <div class="choice-price">Rp 20.000 / pcs</div>
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        {{-- Kuantitas Pesanan Akrilik UV --}}
+                                        <div class="field">
+                                            <label class="field-label">Jumlah Pesanan (Pcs) <span
+                                                    class="req">*</span></label>
+                                            <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                                                <div style="display: inline-flex; align-items: center;">
+                                                    <button type="button" class="qty-btn"
+                                                        id="btnAkrilikUvQtyMinus">-</button>
+                                                    <input type="number" id="akrilikUvQtyInput" class="input qty-input"
+                                                        value="10" min="1" step="1">
+                                                    <button type="button" class="qty-btn"
+                                                        id="btnAkrilikUvQtyPlus">+</button>
+                                                </div>
+                                                <div class="quick-qty-group">
+                                                    <button type="button" class="quick-qty-btn" data-qty="1">1
+                                                        pcs</button>
+                                                    <button type="button" class="quick-qty-btn" data-qty="5">5
+                                                        pcs</button>
+                                                    <button type="button" class="quick-qty-btn active" data-qty="10">10
+                                                        pcs</button>
+                                                    <button type="button" class="quick-qty-btn" data-qty="25">25
+                                                        pcs</button>
+                                                    <button type="button" class="quick-qty-btn" data-qty="50">50
+                                                        pcs</button>
+                                                    <button type="button" class="quick-qty-btn" data-qty="100">100
+                                                        pcs</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                            </section>
+
+                            {{-- =========================================================
+                                3. DISKON, CATATAN & AKSI
+                            ========================================================== --}}
+                            <section class="card form-module-card" style="margin-bottom: 24px;">
+                                <div class="form-module-card-head">
+                                    <div class="form-module-head-left">
+                                        <div class="form-module-step-badge">3</div>
+                                        <div>
+                                            <h3 class="form-module-title">Diskon, Catatan &amp; Aksi</h3>
+                                            <p class="form-module-subtitle">Potongan harga penawaran, catatan
+                                                produksi/instruksi, dan aksi formulir.</p>
+                                        </div>
+                                    </div>
                                 </div>
 
-                                {{-- E. PANEL MUG SUBLIMASI --}}
-                                <div id="panelMug" class="tab-panel" style="display: none; padding: 20px 22px; border-bottom: 1px solid var(--border);">
-                                    <div class="form-section-head" style="margin-bottom: 18px;">
-                                        <span class="eyebrow"
-                                            style="font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 6px;">
-                                            <i class="bi bi-cup-hot"></i> 5. SPESIFIKASI MUG SUBLIMASI
-                                        </span>
-                                        <p style="margin: 4px 0 0; font-size: 13px; color: var(--t-muted);">
-                                            Mug keramik putih standar SNI (11 oz) dicetak sublimasi full color tahan cuci, mengkilap, dan anti luntur.
-                                        </p>
-                                    </div>
-
-                                    {{-- Info Daftar Tier Mug --}}
-                                    <div class="field" style="margin-bottom: 20px;">
-                                        <label class="field-label">Tingkatan Harga Grosir (Tier Pricelist)</label>
-                                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px;">
-                                            <div class="tier-preview-card" data-tier-min="1" data-tier-max="5" style="padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-muted); text-align: center;">
-                                                <div style="font-size: 11px; font-weight: 700; color: var(--t-muted);">1 – 5 pcs</div>
-                                                <div style="font-size: 14px; font-weight: 700; color: #c2a857; margin-top: 2px;">Rp 30.000</div>
-                                                <div style="font-size: 10.5px; color: var(--t-muted);">/ pcs</div>
-                                            </div>
-                                            <div class="tier-preview-card" data-tier-min="6" data-tier-max="10" style="padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-muted); text-align: center;">
-                                                <div style="font-size: 11px; font-weight: 700; color: var(--t-muted);">6 – 10 pcs</div>
-                                                <div style="font-size: 14px; font-weight: 700; color: #c2a857; margin-top: 2px;">Rp 28.000</div>
-                                                <div style="font-size: 10.5px; color: var(--t-muted);">/ pcs</div>
-                                            </div>
-                                            <div class="tier-preview-card" data-tier-min="11" data-tier-max="20" style="padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-muted); text-align: center;">
-                                                <div style="font-size: 11px; font-weight: 700; color: var(--t-muted);">11 – 20 pcs</div>
-                                                <div style="font-size: 14px; font-weight: 700; color: #c2a857; margin-top: 2px;">Rp 26.000</div>
-                                                <div style="font-size: 10.5px; color: var(--t-muted);">/ pcs</div>
-                                            </div>
-                                            <div class="tier-preview-card" data-tier-min="21" data-tier-max="30" style="padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-muted); text-align: center;">
-                                                <div style="font-size: 11px; font-weight: 700; color: var(--t-muted);">21 – 30 pcs</div>
-                                                <div style="font-size: 14px; font-weight: 700; color: #c2a857; margin-top: 2px;">Rp 25.000</div>
-                                                <div style="font-size: 10.5px; color: var(--t-muted);">/ pcs</div>
-                                            </div>
-                                            <div class="tier-preview-card" data-tier-min="31" data-tier-max="50" style="padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-muted); text-align: center;">
-                                                <div style="font-size: 11px; font-weight: 700; color: var(--t-muted);">31 – 50 pcs</div>
-                                                <div style="font-size: 14px; font-weight: 700; color: #c2a857; margin-top: 2px;">Rp 24.000</div>
-                                                <div style="font-size: 10.5px; color: var(--t-muted);">/ pcs</div>
-                                            </div>
-                                            <div class="tier-preview-card" data-tier-min="51" data-tier-max="Infinity" style="padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-muted); text-align: center;">
-                                                <div style="font-size: 11px; font-weight: 700; color: var(--t-muted);">> 50 pcs</div>
-                                                <div style="font-size: 14px; font-weight: 700; color: #c2a857; margin-top: 2px;">Rp 23.000</div>
-                                                <div style="font-size: 10.5px; color: var(--t-muted);">/ pcs</div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {{-- Kuantitas Pesanan Mug --}}
-                                    <div class="field">
-                                        <label class="field-label">Jumlah Pesanan Mug (Pcs) <span class="req">*</span></label>
-                                        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-                                            <div style="display: inline-flex; align-items: center;">
-                                                <button type="button" class="qty-btn" id="btnMugQtyMinus">-</button>
-                                                <input type="number" id="mugQtyInput" class="input qty-input"
-                                                    value="12" min="1" step="1">
-                                                <button type="button" class="qty-btn" id="btnMugQtyPlus">+</button>
-                                            </div>
-                                            <div class="quick-qty-group">
-                                                <button type="button" class="quick-qty-btn" data-qty="1">1 pcs</button>
-                                                <button type="button" class="quick-qty-btn" data-qty="6">6 pcs</button>
-                                                <button type="button" class="quick-qty-btn active" data-qty="12">12 pcs</button>
-                                                <button type="button" class="quick-qty-btn" data-qty="24">24 pcs</button>
-                                                <button type="button" class="quick-qty-btn" data-qty="50">50 pcs</button>
-                                                <button type="button" class="quick-qty-btn" data-qty="100">100 pcs</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {{-- F. PANEL KARTU PVC (ID CARD / KTA) --}}
-                                <div id="panelPvcCard" class="tab-panel" style="display: none; padding: 20px 22px; border-bottom: 1px solid var(--border);">
-                                    <div class="form-section-head" style="margin-bottom: 18px;">
-                                        <span class="eyebrow"
-                                            style="font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 6px;">
-                                            <i class="bi bi-person-badge"></i> 6. SPESIFIKASI KARTU PVC (ID CARD / KTA)
-                                        </span>
-                                        <p style="margin: 4px 0 0; font-size: 13px; color: var(--t-muted);">
-                                            Material kartu PVC seukuran kartu ATM (85.6 x 54 mm, tebal 0.76 mm). Cetak 2 sisi full color, anti air &amp; tahan pudar.
-                                        </p>
-                                    </div>
-
-                                    {{-- Info Daftar Tier PVC --}}
-                                    <div class="field" style="margin-bottom: 20px;">
-                                        <label class="field-label">Tingkatan Harga Grosir (Tier Pricelist)</label>
-                                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px;">
-                                            <div class="tier-preview-card" data-tier-min="1" data-tier-max="1" style="padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-muted); text-align: center;">
-                                                <div style="font-size: 10.5px; font-weight: 700; color: var(--t-muted);">1 pcs</div>
-                                                <div style="font-size: 13px; font-weight: 700; color: #c2a857; margin-top: 2px;">Rp 30.000</div>
-                                            </div>
-                                            <div class="tier-preview-card" data-tier-min="2" data-tier-max="5" style="padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-muted); text-align: center;">
-                                                <div style="font-size: 10.5px; font-weight: 700; color: var(--t-muted);">2 – 5 pcs</div>
-                                                <div style="font-size: 13px; font-weight: 700; color: #c2a857; margin-top: 2px;">Rp 20.000</div>
-                                            </div>
-                                            <div class="tier-preview-card" data-tier-min="6" data-tier-max="10" style="padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-muted); text-align: center;">
-                                                <div style="font-size: 10.5px; font-weight: 700; color: var(--t-muted);">6 – 10 pcs</div>
-                                                <div style="font-size: 13px; font-weight: 700; color: #c2a857; margin-top: 2px;">Rp 15.000</div>
-                                            </div>
-                                            <div class="tier-preview-card" data-tier-min="11" data-tier-max="50" style="padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-muted); text-align: center;">
-                                                <div style="font-size: 10.5px; font-weight: 700; color: var(--t-muted);">11 – 50 pcs</div>
-                                                <div style="font-size: 13px; font-weight: 700; color: #c2a857; margin-top: 2px;">Rp 10.000</div>
-                                            </div>
-                                            <div class="tier-preview-card" data-tier-min="51" data-tier-max="100" style="padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-muted); text-align: center;">
-                                                <div style="font-size: 10.5px; font-weight: 700; color: var(--t-muted);">51 – 100 pcs</div>
-                                                <div style="font-size: 13px; font-weight: 700; color: #c2a857; margin-top: 2px;">Rp 7.000</div>
-                                            </div>
-                                            <div class="tier-preview-card" data-tier-min="101" data-tier-max="300" style="padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-muted); text-align: center;">
-                                                <div style="font-size: 10.5px; font-weight: 700; color: var(--t-muted);">101 – 300</div>
-                                                <div style="font-size: 13px; font-weight: 700; color: #c2a857; margin-top: 2px;">Rp 5.000</div>
-                                            </div>
-                                            <div class="tier-preview-card" data-tier-min="301" data-tier-max="Infinity" style="padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-muted); text-align: center;">
-                                                <div style="font-size: 10.5px; font-weight: 700; color: var(--t-muted);">> 300 pcs</div>
-                                                <div style="font-size: 13px; font-weight: 700; color: #c2a857; margin-top: 2px;">Rp 5.000</div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {{-- Kuantitas Pesanan Kartu PVC --}}
-                                    <div class="field">
-                                        <label class="field-label">Jumlah Pesanan Kartu PVC (Pcs) <span class="req">*</span></label>
-                                        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-                                            <div style="display: inline-flex; align-items: center;">
-                                                <button type="button" class="qty-btn" id="btnPvcCardQtyMinus">-</button>
-                                                <input type="number" id="pvcCardQtyInput" class="input qty-input"
-                                                    value="20" min="1" step="1">
-                                                <button type="button" class="qty-btn" id="btnPvcCardQtyPlus">+</button>
-                                            </div>
-                                            <div class="quick-qty-group">
-                                                <button type="button" class="quick-qty-btn" data-qty="1">1 pcs</button>
-                                                <button type="button" class="quick-qty-btn" data-qty="5">5 pcs</button>
-                                                <button type="button" class="quick-qty-btn active" data-qty="20">20 pcs</button>
-                                                <button type="button" class="quick-qty-btn" data-qty="50">50 pcs</button>
-                                                <button type="button" class="quick-qty-btn" data-qty="100">100 pcs</button>
-                                                <button type="button" class="quick-qty-btn" data-qty="300">300 pcs</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {{-- G. PANEL BAHAN AKRILIK UV --}}
-                                <div id="panelAkrilikUv" class="tab-panel" style="display: none; padding: 20px 22px; border-bottom: 1px solid var(--border);">
-                                    <div class="form-section-head" style="margin-bottom: 18px;">
-                                        <span class="eyebrow"
-                                            style="font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 6px;">
-                                            <i class="bi bi-gem"></i> 7. SPESIFIKASI BAHAN AKRILIK UV (2 MUKA 1 LAPIS)
-                                        </span>
-                                        <p style="margin: 4px 0 0; font-size: 13px; color: var(--t-muted);">
-                                            Cetak langsung di atas akrilik bening (Direct-to-Acrylic Flatbed UV) 2 muka / double sided dengan 1 lapis akrilik solid.
-                                        </p>
-                                    </div>
-
-                                    {{-- Varian Produk Akrilik UV --}}
-                                    <div class="field" style="margin-bottom: 20px;">
-                                        <label class="field-label">Pilihan Varian Produk Akrilik UV <span class="req">*</span></label>
-                                        <div class="choice-cards-grid">
-                                            <label class="choice-card active" id="cardAkrilikGantungan">
-                                                <input type="radio" name="akrilik_variant" value="gantungan" checked style="display:none;">
-                                                <div class="choice-title">Gantungan Kunci Akrilik UV</div>
-                                                <div class="choice-sub">2 Muka 1 Lapis Akrilik Bening 3 mm + Ring Gantungan Kunci Kuat.</div>
-                                                <div class="choice-price">Rp 20.000 / pcs</div>
-                                            </label>
-                                            <label class="choice-card" id="cardAkrilikStandee">
-                                                <input type="radio" name="akrilik_variant" value="standee" style="display:none;">
-                                                <div class="choice-title">Standee Mini Akrilik UV</div>
-                                                <div class="choice-sub">2 Muka 1 Lapis Akrilik Bening 3 mm + Dudukan Akrilik Mini Meja.</div>
-                                                <div class="choice-price">Rp 20.000 / pcs</div>
-                                            </label>
-                                        </div>
-                                    </div>
-
-                                    {{-- Kuantitas Pesanan Akrilik UV --}}
-                                    <div class="field">
-                                        <label class="field-label">Jumlah Pesanan (Pcs) <span class="req">*</span></label>
-                                        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-                                            <div style="display: inline-flex; align-items: center;">
-                                                <button type="button" class="qty-btn" id="btnAkrilikUvQtyMinus">-</button>
-                                                <input type="number" id="akrilikUvQtyInput" class="input qty-input"
-                                                    value="10" min="1" step="1">
-                                                <button type="button" class="qty-btn" id="btnAkrilikUvQtyPlus">+</button>
-                                            </div>
-                                            <div class="quick-qty-group">
-                                                <button type="button" class="quick-qty-btn" data-qty="1">1 pcs</button>
-                                                <button type="button" class="quick-qty-btn" data-qty="5">5 pcs</button>
-                                                <button type="button" class="quick-qty-btn active" data-qty="10">10 pcs</button>
-                                                <button type="button" class="quick-qty-btn" data-qty="25">25 pcs</button>
-                                                <button type="button" class="quick-qty-btn" data-qty="50">50 pcs</button>
-                                                <button type="button" class="quick-qty-btn" data-qty="100">100 pcs</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {{-- =========================================================
-                                    3. DISKON PENJUALAN
-                                ========================================================== --}}
-                                <div class="form-section" style="padding: 20px 22px;">
-                                    <div class="form-section-head" style="margin-bottom: 14px;">
-                                        <span class="eyebrow"
-                                            style="font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 6px;">
-                                            <i class="bi bi-tag"></i> 3. DISKON PENJUALAN
-                                        </span>
-                                    </div>
-
+                                <div class="form-module-card-body">
                                     <div class="field" style="margin-bottom: 16px;">
                                         <label class="field-label">
                                             Jenis Diskon
@@ -951,7 +1141,7 @@
 
                                     <div class="form-grid">
                                         {{-- Input Diskon --}}
-                                        <div class="field" id="discountValueField" hidden>
+                                        <div class="field" id="discountValueField" hidden style="margin-bottom: 0;">
                                             <div style="display: flex; align-items: center; gap: 5px;">
                                                 <label class="field-label" for="discount_value" id="discountValueLabel">
                                                     Nilai Diskon
@@ -967,44 +1157,41 @@
                                             </div>
                                         </div>
                                     </div>
-                                </div>
 
-                                {{-- =========================================================
-                                    4. CATATAN KHUSUS ESTIMASI
-                                ========================================================== --}}
-                                <div class="form-section" style="padding: 20px 22px;">
-                                    <div class="form-section-head" style="margin-bottom: 14px;">
-                                        <span class="eyebrow"
-                                            style="font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 6px;">
-                                            <i class="bi bi-chat-left-text"></i> 4. CATATAN KHUSUS / KETERANGAN
-                                        </span>
-                                    </div>
-                                    <div class="field">
+                                    <div class="form-module-divider"></div>
+
+                                    {{-- Catatan Khusus Produksi / Penawaran --}}
+                                    <div class="field" style="margin-bottom: 0;">
                                         <label class="field-label" for="merch_custom_notes">
-                                            Catatan Produksi / Penawaran (Opsional)
+                                            Catatan Produksi / Penawaran <span
+                                                style="font-weight: 400; color: var(--t-muted); font-size: 11.5px;">(Opsional)</span>
                                         </label>
                                         <textarea id="merch_custom_notes" class="textarea" rows="2"
                                             placeholder="Catatan tambahan (contoh: warna tali biru BCA, logo di lanyard diulang setiap 5 cm, nomorator mulai dari 001501)..."
-                                            style="width: 100%; min-height: 76px;"></textarea>
+                                            style="width: 100%; min-height: 70px;"></textarea>
                                     </div>
                                 </div>
 
-                                {{-- ACTION BUTTONS: KEMBALI & RESET FORM (SEPERTI KALENDER) --}}
-                                <div class="card-foot"
-                                    style="padding: 16px 22px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; background: var(--bg-muted); border-radius: 0 0 14px 14px;">
-                                    <a href="{{ route('admin_home') }}" class="btn-secondary-merch">
-                                        <i class="bi bi-arrow-left"></i>
-                                        <span>Kembali</span>
-                                    </a>
-                                    <button type="button" id="btnResetMerchForm" class="btn-secondary-merch">
-                                        <i class="bi bi-arrow-counterclockwise"></i>
-                                        <span>Reset Form</span>
-                                    </button>
+                                {{-- Card Actions: Status, Reset & Batal --}}
+                                <div class="form-actions"
+                                    style="padding: 16px 20px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                                    <span class="badge dot success" id="realtimeStatusBadge">
+                                        <i class="bi bi-lightning-charge-fill" style="margin-right: 4px;"></i> Kalkulasi
+                                        Otomatis Aktif
+                                    </span>
+
+                                    <div style="display: flex; gap: 8px;">
+                                        <button type="button" id="btnResetMerchForm" class="btn btn--ghost">
+                                            <i class="bi bi-arrow-counterclockwise"></i> Reset Form
+                                        </button>
+                                        <a href="{{ route('admin_home') }}" class="btn btn--ghost">
+                                            Batal
+                                        </a>
+                                    </div>
                                 </div>
+                            </section>
 
-                            </form>
-
-                        </section>
+                        </form>
                     </div>
 
                     {{-- =========================================================
@@ -1076,13 +1263,18 @@
                                 {{-- Info Diskon --}}
                                 <div id="liveDiscountWrap"
                                     style="display: none; margin: 8px 0 10px; padding: 8px 12px; background: rgba(239, 68, 68, 0.08); border-radius: 8px; border: 1px dashed rgba(239, 68, 68, 0.35);">
-                                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12.5px;">
+                                    <div
+                                        style="display: flex; justify-content: space-between; align-items: center; font-size: 12.5px;">
                                         <span style="color: var(--t-muted);">Harga Sebelum Diskon:</span>
-                                        <s id="liveSubtotalPrice" style="color: var(--t-muted); font-weight: 600;">Rp 0</s>
+                                        <s id="liveSubtotalPrice" style="color: var(--t-muted); font-weight: 600;">Rp
+                                            0</s>
                                     </div>
-                                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12.5px; margin-top: 4px;">
-                                        <span style="color: #ef4444; font-weight: 600;">Hemat Diskon (<span id="liveDiscountDesc">-</span>):</span>
-                                        <strong id="liveDiscountAmount" style="color: #ef4444; font-weight: 700;">- Rp 0</strong>
+                                    <div
+                                        style="display: flex; justify-content: space-between; align-items: center; font-size: 12.5px; margin-top: 4px;">
+                                        <span style="color: #ef4444; font-weight: 600;">Hemat Diskon (<span
+                                                id="liveDiscountDesc">-</span>):</span>
+                                        <strong id="liveDiscountAmount" style="color: #ef4444; font-weight: 700;">- Rp
+                                            0</strong>
                                     </div>
                                 </div>
 
@@ -1090,26 +1282,34 @@
                                 <div id="liveTaxToggleWrap"
                                     style="margin: 12px 0 14px; padding: 10px 14px; background: rgba(59, 130, 246, 0.08); border-radius: 9px; border: 1px solid rgba(59, 130, 246, 0.25); transition: all 0.2s ease;">
                                     {{-- Toggle PPN 11% --}}
-                                    <label for="tax_enabled_check" style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; margin: 0; width: 100%;">
-                                        <span style="font-size: 13px; font-weight: 600; color: var(--t-base); display: flex; align-items: center; gap: 8px;">
-                                            <i class="bi bi-receipt-cutoff" style="color: #60a5fa; font-size: 15px;"></i>
+                                    <label for="tax_enabled_check"
+                                        style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; margin: 0; width: 100%;">
+                                        <span
+                                            style="font-size: 13px; font-weight: 600; color: var(--t-base); display: flex; align-items: center; gap: 8px;">
+                                            <i class="bi bi-receipt-cutoff"
+                                                style="color: #60a5fa; font-size: 15px;"></i>
                                             <span>Kenakan PPN 11%</span>
                                         </span>
                                         <span class="ppn-toggle-switch">
-                                            <input type="checkbox" id="tax_enabled_check" name="tax_enabled" value="1">
+                                            <input type="checkbox" id="tax_enabled_check" name="tax_enabled"
+                                                value="1">
                                             <span class="ppn-toggle-slider"></span>
                                         </span>
                                     </label>
 
                                     {{-- Rincian Pajak (Hanya tampil saat PPN aktif) --}}
-                                    <div id="liveTaxDetailsRow" style="display: none; margin-top: 8px; padding-top: 8px; border-top: 1px dashed rgba(59, 130, 246, 0.25); font-size: 12px;">
-                                        <div style="display: flex; justify-content: space-between; align-items: center; color: var(--t-muted);">
+                                    <div id="liveTaxDetailsRow"
+                                        style="display: none; margin-top: 8px; padding-top: 8px; border-top: 1px dashed rgba(59, 130, 246, 0.25); font-size: 12px;">
+                                        <div
+                                            style="display: flex; justify-content: space-between; align-items: center; color: var(--t-muted);">
                                             <span>Dasar Pengenaan Pajak (DPP):</span>
                                             <span id="liveTaxBaseAmount" style="font-weight: 600;">Rp 0,00</span>
                                         </div>
-                                        <div id="liveTaxPpnRow" style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
+                                        <div id="liveTaxPpnRow"
+                                            style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
                                             <span style="color: #60a5fa; font-weight: 600;">PPN (11%):</span>
-                                            <strong id="liveTaxAmount" style="color: #60a5fa; font-weight: 700;">+ Rp 0,00</strong>
+                                            <strong id="liveTaxAmount" style="color: #60a5fa; font-weight: 700;">+ Rp
+                                                0,00</strong>
                                         </div>
                                     </div>
                                 </div>
@@ -1134,7 +1334,8 @@
                                 {{-- TOMBOL AKSI ESTIMASI --}}
                                 <div style="display: flex; flex-direction: column; gap: 10px;">
                                     {{-- Tombol Detail Estimasi (Membuka Modal Pop-up Rincian SPH) --}}
-                                    <button type="button" id="btnOpenDetailEstimasiModal" class="btn-detail-estimation">
+                                    <button type="button" id="btnOpenDetailEstimasiModal"
+                                        class="btn-detail-estimation">
                                         <i class="bi bi-file-earmark-spreadsheet"></i>
                                         <span>Detail Estimasi</span>
                                     </button>
@@ -1147,7 +1348,7 @@
 
                                     {{-- Tombol Kirim ke Cetakia --}}
                                     <button type="button" id="btnSendToCetakia" class="btn"
-                                        style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 11px 18px; font-size: 13.5px; font-weight: 700; background: linear-gradient(135deg, #1e3a8a 0%, #0284c7 100%); color: #fff; border: none; border-radius: 9px; cursor: pointer; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35); transition: all 0.2s ease;">
+                                        style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 11px 18px; font-size: 13.5px; font-weight: 700; background: linear-gradient(135deg, #059669 0%, #10b981 100%); color: #fff; border: none; border-radius: 9px; cursor: pointer; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35); transition: all 0.2s ease;">
                                         <i class="bi bi-cloud-arrow-up-fill" style="font-size: 16px;"></i>
                                         <span>Kirim Penawaran ke Cetakia</span>
                                     </button>
@@ -1167,7 +1368,8 @@
                             style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; padding: 18px 22px; margin-bottom: 0; border-bottom: 1px solid var(--border);">
                             <div style="min-width: 0; max-width: 100%;">
                                 <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                                    <span class="eyebrow" style="color: var(--primary); font-weight: 700; white-space: normal; word-break: break-word; overflow-wrap: break-word; letter-spacing: 0.05em;">
+                                    <span class="eyebrow"
+                                        style="color: var(--primary); font-weight: 700; white-space: normal; word-break: break-word; overflow-wrap: break-word; letter-spacing: 0.05em;">
                                         TABEL DAFTAR HARGA &amp; PRICELIST RESMI
                                     </span>
                                     <span id="matrixCategoryIndicatorBadge" class="badge-cat-indicator">
@@ -1199,7 +1401,8 @@
                                     </select>
                                 </div>
 
-                                <div class="matrix-search-box" style="position: relative; flex: 1 1 200px; min-width: 0;">
+                                <div class="matrix-search-box"
+                                    style="position: relative; flex: 1 1 200px; min-width: 0;">
                                     <input type="text" id="merchMatrixSearch" class="input"
                                         placeholder="Cari varian, ketebalan, harga..."
                                         style="padding-left: 34px; padding-right: 30px; font-size: 12.5px; height: 36px; border-radius: 8px;">
@@ -1256,7 +1459,8 @@
             {{-- MODAL HEAD --}}
             <div class="modal-head-custom">
                 <div>
-                    <span class="eyebrow" style="color: var(--primary); font-weight: 700;">PREVIEW PENAWARAN &amp; DETAIL
+                    <span class="eyebrow" style="color: var(--primary); font-weight: 700;">PREVIEW PENAWARAN &amp;
+                        DETAIL
                         ESTIMASI</span>
                     <h3 class="modal-title-custom">Detail Estimasi Merchandise, Identitas &amp; Form</h3>
                 </div>
@@ -1275,7 +1479,8 @@
                     </div>
                     <div style="text-align: right; font-size: 12px; color: var(--t-muted);">
                         <div>Tanggal: <strong id="modalQuoteDate">{{ date('d/m/Y') }}</strong></div>
-                        <div>Berlaku s/d: <strong id="modalQuoteExpired">{{ date('d/m/Y', strtotime('+30 days')) }}</strong>
+                        <div>Berlaku s/d: <strong
+                                id="modalQuoteExpired">{{ date('d/m/Y', strtotime('+30 days')) }}</strong>
                         </div>
                         <div>Status: <strong style="color: #22c55e;">Estimasi Resmi</strong></div>
                     </div>
@@ -1328,7 +1533,8 @@
                             </td>
                             <td id="modalTableItemQty" style="padding: 12px; text-align: center;">-</td>
                             <td id="modalTableItemUnitPrice" style="padding: 12px; text-align: right;">-</td>
-                            <td id="modalTableItemSubtotal" style="padding: 12px; text-align: right; font-weight: 700;">-
+                            <td id="modalTableItemSubtotal" style="padding: 12px; text-align: right; font-weight: 700;">
+                                -
                             </td>
                         </tr>
                         <tr id="modalTableExtraRow" style="display: none;">
@@ -1341,23 +1547,28 @@
                                 style="padding: 10px 12px; text-align: right; font-weight: 700;">-</td>
                         </tr>
                         <tr id="modalTableDiscountRow" style="display: none;">
-                            <td colspan="3" style="padding: 10px 12px; text-align: right; color: #ef4444; font-weight: 600;">
+                            <td colspan="3"
+                                style="padding: 10px 12px; text-align: right; color: #ef4444; font-weight: 600;">
                                 Hemat Diskon (<span id="modalTableDiscountDesc">-</span>):
                             </td>
                             <td id="modalTableDiscountAmount"
-                                style="padding: 10px 12px; text-align: right; color: #ef4444; font-weight: 700;">- Rp 0,00</td>
+                                style="padding: 10px 12px; text-align: right; color: #ef4444; font-weight: 700;">- Rp 0,00
+                            </td>
                         </tr>
                         <tr id="modalTableTaxRow" style="display: none;">
-                            <td colspan="3" style="padding: 10px 12px; text-align: right; color: #2563eb; font-weight: 600;">
+                            <td colspan="3"
+                                style="padding: 10px 12px; text-align: right; color: #2563eb; font-weight: 600;">
                                 PPN (11%):
                             </td>
                             <td id="modalTableTaxAmount"
-                                style="padding: 10px 12px; text-align: right; color: #2563eb; font-weight: 700;">+ Rp 0,00</td>
+                                style="padding: 10px 12px; text-align: right; color: #2563eb; font-weight: 700;">+ Rp 0,00
+                            </td>
                         </tr>
                     </tbody>
                     <tfoot>
                         <tr>
-                            <th colspan="3" style="padding: 14px 12px; text-align: right; text-transform: uppercase;">
+                            <th colspan="3"
+                                style="padding: 14px 12px; text-align: right; text-transform: uppercase;">
                                 TOTAL ESTIMASI HARGA:
                             </th>
                             <th id="modalGrandTotal"
@@ -1370,7 +1581,8 @@
 
                 <div
                     style="font-size: 11px; color: var(--t-muted); border-top: 1px dashed var(--border); padding-top: 10px; line-height: 1.5;">
-                    * Penawaran resmi berlaku selama masa berlaku yang ditentukan dari tanggal diterbitkan. Harga sudah termasuk proses
+                    * Penawaran resmi berlaku selama masa berlaku yang ditentukan dari tanggal diterbitkan. Harga sudah
+                    termasuk proses
                     cetak terstandar dan quality control Cipta Grafika.
                 </div>
             </div>
@@ -1398,22 +1610,28 @@
         MODAL: KONFIRMASI PENGIRIMAN KE CETAKIA (DEV MODE)
     ========================================================== --}}
     <div class="modal-overlay" id="modalCetakiaConfirm">
-        <div class="modal modal-content-custom" style="max-width: 530px; border-radius: 16px; overflow: hidden; padding: 0; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.45);">
+        <div class="modal modal-content-custom"
+            style="max-width: 530px; border-radius: 16px; overflow: hidden; padding: 0; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.45);">
             {{-- HEADER DENGAN GRADASI BIRU-CYAN ELEGAN --}}
-            <div style="background: linear-gradient(135deg, #1e3a8a 0%, #0284c7 100%); color: #fff; padding: 22px 24px; position: relative;">
+            <div
+                style="background: linear-gradient(135deg, #1e3a8a 0%, #0284c7 100%); color: #fff; padding: 22px 24px; position: relative;">
                 <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                     <div style="display: flex; align-items: center; gap: 12px;">
-                        <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(255, 255, 255, 0.18); display: flex; align-items: center; justify-content: center; font-size: 22px;">
+                        <div
+                            style="width: 44px; height: 44px; border-radius: 12px; background: rgba(255, 255, 255, 0.18); display: flex; align-items: center; justify-content: center; font-size: 22px;">
                             <i class="bi bi-cloud-arrow-up-fill"></i>
                         </div>
                         <div>
-                            <span class="badge" style="background: rgba(255, 255, 255, 0.2); color: #fff; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 4px;">
+                            <span class="badge"
+                                style="background: rgba(255, 255, 255, 0.2); color: #fff; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 4px;">
                                 CETAKIA &middot; INTEGRASI RESMI
                             </span>
-                            <h3 style="margin: 0; font-size: 17.5px; font-weight: 700; color: #fff;">Konfirmasi Kirim Penawaran</h3>
+                            <h3 style="margin: 0; font-size: 17.5px; font-weight: 700; color: #fff;">Konfirmasi Kirim
+                                Penawaran</h3>
                         </div>
                     </div>
-                    <button type="button" id="btnCloseConfirmModal" class="btn-modal-close-confirm" aria-label="Tutup">
+                    <button type="button" id="btnCloseConfirmModal" class="btn-modal-close-confirm"
+                        aria-label="Tutup">
                         <i class="bi bi-x-lg"></i>
                     </button>
                 </div>
@@ -1422,55 +1640,73 @@
             {{-- BODY DENGAN RINGKASAN STRUKTUR RAPI --}}
             <div style="padding: 22px 24px; background: var(--bg-card);">
                 <p style="margin: 0 0 16px; font-size: 13px; color: var(--t-muted); line-height: 1.5;">
-                    Data penawaran merchandise akan dikirim dan dicatat sebagai draf transaksi resmi di sistem Cetakia. Silakan periksa kembali rincian di bawah ini:
+                    Data penawaran merchandise akan dikirim dan dicatat sebagai draf transaksi resmi di sistem Cetakia.
+                    Silakan periksa kembali rincian di bawah ini:
                 </p>
 
                 {{-- CARD DETAIL TRANSAKSI --}}
-                <div style="background: var(--bg-muted); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 16px;">
+                <div
+                    style="background: var(--bg-muted); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 16px;">
                     <div style="display: flex; flex-direction: column; gap: 11px; font-size: 13px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--border); padding-bottom: 9px;">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--border); padding-bottom: 9px;">
                             <span style="color: var(--t-muted);">Pelanggan (Customer):</span>
                             <strong id="confirmCustomerName" style="color: var(--t-base); font-size: 13.5px;">-</strong>
                         </div>
-                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--border); padding-bottom: 9px;">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--border); padding-bottom: 9px;">
                             <span style="color: var(--t-muted);">Sales PIC:</span>
                             <strong id="confirmSalesName" style="color: var(--t-base); font-size: 13.5px;">-</strong>
                         </div>
-                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--border); padding-bottom: 9px;">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--border); padding-bottom: 9px;">
                             <span style="color: var(--t-muted);">Produk &amp; Kuantiti:</span>
-                            <span id="confirmItemDesc" style="color: var(--t-base); font-weight: 600; text-align: right; max-width: 60%;">-</span>
+                            <span id="confirmItemDesc"
+                                style="color: var(--t-base); font-weight: 600; text-align: right; max-width: 60%;">-</span>
                         </div>
-                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--border); padding-bottom: 9px;">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--border); padding-bottom: 9px;">
                             <span style="color: var(--t-muted);">Syarat Pembayaran:</span>
-                            <span id="confirmTermsText" class="badge" style="background: var(--bg-card); color: var(--t-base); border: 1px solid var(--border); font-size: 11.5px;">Cash / Tunai</span>
+                            <span id="confirmTermsText" class="badge"
+                                style="background: var(--bg-card); color: var(--t-base); border: 1px solid var(--border); font-size: 11.5px;">Cash
+                                / Tunai</span>
                         </div>
-                        <div id="confirmDiscountRow" style="display: none; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--border); padding-bottom: 9px;">
+                        <div id="confirmDiscountRow"
+                            style="display: none; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--border); padding-bottom: 9px;">
                             <span style="color: var(--t-muted);">Diskon:</span>
                             <span id="confirmDiscountText" style="font-weight: 600; color: #ef4444;">- Rp 0,00</span>
                         </div>
-                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--border); padding-bottom: 9px;">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--border); padding-bottom: 9px;">
                             <span style="color: var(--t-muted);">Pajak Pertambahan Nilai:</span>
                             <span id="confirmTaxText" style="font-weight: 600; color: #2563eb;">Non-PPN (0%)</span>
                         </div>
-                        <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 2px;">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; padding-top: 2px;">
                             <span style="font-weight: 700; color: var(--t-base);">Grand Total Penawaran:</span>
-                            <strong id="confirmGrandTotal" style="font-size: 16px; color: var(--primary);">Rp 0,00</strong>
+                            <strong id="confirmGrandTotal" style="font-size: 16px; color: var(--primary);">Rp
+                                0,00</strong>
                         </div>
                     </div>
                 </div>
 
                 {{-- INFO KETENTUAN DEV MODE --}}
-                <div style="display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; background: rgba(59, 130, 246, 0.08); border-radius: 10px; border: 1px solid rgba(59, 130, 246, 0.2); margin-bottom: 20px; font-size: 12px; color: var(--t-muted); line-height: 1.45;">
-                    <i class="bi bi-shield-check" style="color: #2563eb; font-size: 16px; margin-top: 1px; flex-shrink: 0;"></i>
-                    <span>Penawaran akan dikirim ke API Cetakia Development dan tercatat sebagai Draf (Draft). Aman dan tidak mengubah data master apapun.</span>
+                <div
+                    style="display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; background: rgba(59, 130, 246, 0.08); border-radius: 10px; border: 1px solid rgba(59, 130, 246, 0.2); margin-bottom: 20px; font-size: 12px; color: var(--t-muted); line-height: 1.45;">
+                    <i class="bi bi-shield-check"
+                        style="color: #2563eb; font-size: 16px; margin-top: 1px; flex-shrink: 0;"></i>
+                    <span>Penawaran akan dikirim ke API Cetakia Development dan tercatat sebagai Draf (Draft). Aman dan
+                        tidak mengubah data master apapun.</span>
                 </div>
 
                 {{-- BUTTONS --}}
                 <div style="display: flex; gap: 10px;">
-                    <button type="button" id="btnCancelConfirmModal" class="btn" style="flex: 1; padding: 12px 18px; font-size: 13.5px; font-weight: 600; background: var(--bg-muted); color: var(--t-base); border: 1.5px solid var(--border); border-radius: 10px; cursor: pointer; transition: all 0.2s ease;">
+                    <button type="button" id="btnCancelConfirmModal" class="btn"
+                        style="flex: 1; padding: 12px 18px; font-size: 13.5px; font-weight: 600; background: var(--bg-muted); color: var(--t-base); border: 1.5px solid var(--border); border-radius: 10px; cursor: pointer; transition: all 0.2s ease;">
                         <i class="bi bi-arrow-left"></i> Periksa Lagi
                     </button>
-                    <button type="button" id="btnExecuteSendToCetakia" class="btn" style="flex: 1.4; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 18px; font-size: 14px; font-weight: 700; background: linear-gradient(135deg, #059669 0%, #10b981 100%); color: #fff; border: none; border-radius: 10px; cursor: pointer; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3); transition: all 0.2s ease;">
+                    <button type="button" id="btnExecuteSendToCetakia" class="btn"
+                        style="flex: 1.4; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 18px; font-size: 14px; font-weight: 700; background: linear-gradient(135deg, #059669 0%, #10b981 100%); color: #fff; border: none; border-radius: 10px; cursor: pointer; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3); transition: all 0.2s ease;">
                         <i class="bi bi-send-fill"></i>
                         <span>Ya, Kirim Sekarang</span>
                     </button>
@@ -1483,30 +1719,41 @@
         MODAL: NOTIFIKASI BERHASIL KIRIM KE CETAKIA
     ========================================================== --}}
     <div class="modal-overlay" id="modalCetakiaSuccess">
-        <div class="modal modal-content-custom" style="max-width: 520px; text-align: center; padding: 0; overflow: hidden; border-radius: 14px;">
-            <div style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); color: #fff; padding: 28px 24px 22px;">
-                <div style="width: 58px; height: 58px; background: rgba(255, 255, 255, 0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; font-size: 28px;">
+        <div class="modal modal-content-custom"
+            style="max-width: 520px; text-align: center; padding: 0; overflow: hidden; border-radius: 14px;">
+            <div
+                style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); color: #fff; padding: 28px 24px 22px;">
+                <div
+                    style="width: 58px; height: 58px; background: rgba(255, 255, 255, 0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; font-size: 28px;">
                     <i class="bi bi-check-lg"></i>
                 </div>
-                <h3 style="margin: 0 0 6px; font-size: 19px; font-weight: 700; color: #fff;">Quotation Berhasil Terkirim!</h3>
-                <p style="margin: 0; font-size: 13px; opacity: 0.9;">Penawaran harga telah resmi tercatat di sistem Cetakia.</p>
+                <h3 style="margin: 0 0 6px; font-size: 19px; font-weight: 700; color: #fff;">Quotation Berhasil Terkirim!
+                </h3>
+                <p style="margin: 0; font-size: 13px; opacity: 0.9;">Penawaran harga telah resmi tercatat di sistem
+                    Cetakia.</p>
             </div>
 
             <div style="padding: 24px; text-align: left;">
-                <div style="background: var(--bg-muted); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; margin-bottom: 18px;">
+                <div
+                    style="background: var(--bg-muted); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; margin-bottom: 18px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                         <span style="font-size: 12px; color: var(--t-muted);">Nomor Transaksi Resmi:</span>
-                        <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #059669; font-weight: 700; font-size: 11.5px;">201 Created</span>
+                        <span class="badge"
+                            style="background: rgba(16, 185, 129, 0.15); color: #059669; font-weight: 700; font-size: 11.5px;">201
+                            Created</span>
                     </div>
                     <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-                        <strong id="cetakiaSuccessCode" style="font-size: 17px; letter-spacing: 0.5px; color: var(--t-base); font-family: monospace;">-</strong>
-                        <button type="button" id="btnCopyCetakiaCode" class="btn btn--sm btn--ghost" style="padding: 4px 10px; font-size: 12px; border: 1px solid var(--border); border-radius: 6px; cursor: pointer;">
+                        <strong id="cetakiaSuccessCode"
+                            style="font-size: 17px; letter-spacing: 0.5px; color: var(--t-base); font-family: monospace;">-</strong>
+                        <button type="button" id="btnCopyCetakiaCode" class="btn btn--sm btn--ghost"
+                            style="padding: 4px 10px; font-size: 12px; border: 1px solid var(--border); border-radius: 6px; cursor: pointer;">
                             <i class="bi bi-copy"></i> Salin
                         </button>
                     </div>
                 </div>
 
-                <div style="font-size: 13px; display: flex; flex-direction: column; gap: 8px; color: var(--t-base); margin-bottom: 20px;">
+                <div
+                    style="font-size: 13px; display: flex; flex-direction: column; gap: 8px; color: var(--t-base); margin-bottom: 20px;">
                     <div style="display: flex; justify-content: space-between;">
                         <span style="color: var(--t-muted);">Pelanggan:</span>
                         <strong id="cetakiaSuccessCustomer">-</strong>
@@ -1517,12 +1764,14 @@
                     </div>
                     <div style="display: flex; justify-content: space-between;">
                         <span style="color: var(--t-muted);">Total Penawaran:</span>
-                        <strong id="cetakiaSuccessGrandTotal" style="color: #059669; font-size: 14.5px;">Rp 0,00</strong>
+                        <strong id="cetakiaSuccessGrandTotal" style="color: #059669; font-size: 14.5px;">Rp
+                            0,00</strong>
                     </div>
                 </div>
 
                 <div style="margin-top: 10px;">
-                    <button type="button" id="btnCloseCetakiaModal" class="btn" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 18px; font-size: 14px; font-weight: 700; background: var(--primary); color: #fff; border: none; border-radius: 10px; cursor: pointer; transition: all 0.2s ease;">
+                    <button type="button" id="btnCloseCetakiaModal" class="btn"
+                        style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 18px; font-size: 14px; font-weight: 700; background: var(--primary); color: #fff; border: none; border-radius: 10px; cursor: pointer; transition: all 0.2s ease;">
                         <span>Tutup &amp; Selesai</span>
                     </button>
                 </div>
@@ -1550,11 +1799,13 @@
             line-height: 1.4;
             user-select: none;
         }
+
         .quote-preset-btn:hover {
             background: var(--primary-soft);
             color: var(--primary);
             border-color: var(--primary);
         }
+
         .quote-preset-btn.active,
         .quote-preset-btn.is-active {
             background: var(--primary);
@@ -1562,6 +1813,7 @@
             border-color: var(--primary);
             box-shadow: 0 1px 3px var(--primary-ring);
         }
+
         /* Modern iOS-Style PPN Toggle Switch */
         .ppn-toggle-switch {
             position: relative;
@@ -1609,9 +1861,10 @@
         .ppn-toggle-switch input:checked+.ppn-toggle-slider:before {
             transform: translateX(20px);
         }
+
         /* =========================================================
-           LAYOUT, OVERFLOW & TOPBAR STACKING PROTECTION
-        ========================================================== */
+               LAYOUT, OVERFLOW & TOPBAR STACKING PROTECTION
+            ========================================================== */
         .main,
         .content,
         .merch-form-col,
@@ -1654,8 +1907,8 @@
         }
 
         /* ---------------------------------------------------------
-           FORM FIELDS, LABELS & SECONDARY BUTTONS (MATCHING CALENDAR)
-        --------------------------------------------------------- */
+               FORM FIELDS, LABELS & SECONDARY BUTTONS (MATCHING CALENDAR)
+            --------------------------------------------------------- */
         .merch-form-col .field {
             display: flex;
             flex-direction: column;
@@ -1720,8 +1973,8 @@
         }
 
         /* ---------------------------------------------------------
-           TAB NAVIGATION BUTTONS
-        --------------------------------------------------------- */
+               TAB NAVIGATION BUTTONS
+            --------------------------------------------------------- */
         .merch-tab-btn {
             display: inline-flex;
             align-items: center;
@@ -1766,8 +2019,8 @@
         }
 
         /* ---------------------------------------------------------
-           CHOICE CARDS & PILLS
-        --------------------------------------------------------- */
+               CHOICE CARDS & PILLS
+            --------------------------------------------------------- */
         .choice-cards-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
@@ -1885,8 +2138,8 @@
         }
 
         /* ---------------------------------------------------------
-           STEPPER & QUICK QUANTITY BUTTONS
-        --------------------------------------------------------- */
+               STEPPER & QUICK QUANTITY BUTTONS
+            --------------------------------------------------------- */
         .qty-btn {
             width: 38px;
             height: 38px;
@@ -1955,8 +2208,8 @@
         }
 
         /* ---------------------------------------------------------
-           STICKY SUMMARY CARD (SAFE STACKING BELOW TOPBAR)
-        --------------------------------------------------------- */
+               STICKY SUMMARY CARD (SAFE STACKING BELOW TOPBAR)
+            --------------------------------------------------------- */
         .merch-sticky-card {
             position: static;
         }
@@ -2038,15 +2291,25 @@
             transition: all 0.2s ease;
         }
 
+        .btn-action-wa i {
+            color: #22c55e;
+            font-size: 15px;
+            transition: transform 0.2s ease;
+        }
+
         .btn-action-wa:hover {
             background: var(--bg-hover);
             border-color: #22c55e;
             color: #22c55e;
         }
 
+        .btn-action-wa:hover i {
+            transform: scale(1.15);
+        }
+
         /* ---------------------------------------------------------
-                   MATRIKS DAFTAR HARGA & PAGINATION
-                   --------------------------------------------------------- */
+                       MATRIKS DAFTAR HARGA & PAGINATION
+                       --------------------------------------------------------- */
         .badge-cat-indicator {
             display: inline-block;
             font-size: 11px;
@@ -2121,8 +2384,8 @@
         }
 
         /* ---------------------------------------------------------
-                   MODAL POPUP STYLES
-                   --------------------------------------------------------- */
+                       MODAL POPUP STYLES
+                       --------------------------------------------------------- */
         .modal-overlay {
             position: fixed !important;
             inset: 0 !important;
@@ -2269,8 +2532,8 @@
         }
 
         /* ---------------------------------------------------------
-                   PRINT STYLES
-                   --------------------------------------------------------- */
+                       PRINT STYLES
+                       --------------------------------------------------------- */
         @media print {
             body * {
                 visibility: hidden !important;
@@ -2333,8 +2596,8 @@
         }
 
         /* ---------------------------------------------------------
-           TOAST NOTIFICATION (COPY SUCCESS)
-           --------------------------------------------------------- */
+               TOAST NOTIFICATION (COPY SUCCESS)
+               --------------------------------------------------------- */
         .merch-toast-container {
             position: fixed;
             top: 24px;
@@ -2421,10 +2684,10 @@
         }
 
         /* =========================================================
-           SELECT2 STYLING HARMONIZATION (IDENTICAL TO CALENDAR ESTIMATOR)
-        ========================================================== */
+               SELECT2 STYLING HARMONIZATION (IDENTICAL TO CALENDAR ESTIMATOR)
+            ========================================================== */
         /* Scope 100% width ONLY to the field select2 container, NEVER globally */
-        .field > .select2-container,
+        .field>.select2-container,
         .field .select2-container--default {
             width: 100% !important;
             max-width: 100% !important;
@@ -2432,7 +2695,7 @@
         }
 
         /* Scope compact width ONLY to table page-size select2 */
-        .select2-sm-wrap > .select2-container,
+        .select2-sm-wrap>.select2-container,
         .select2-sm-wrap .select2-container--default {
             width: 85px !important;
             min-width: 85px !important;
@@ -2532,6 +2795,188 @@
         .select2-sm-wrap .select2-container--default .select2-selection--single .select2-selection__arrow {
             height: 34px;
             right: 6px;
+        }
+
+        /* Modular Form Cards - Modern Clean UX */
+        .form-module-card {
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+            overflow: hidden;
+            transition: box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+
+        .form-module-card:hover {
+            border-color: rgba(37, 99, 235, 0.3);
+        }
+
+        .form-module-card-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .form-module-head-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .form-module-step-badge {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.15) 0%, rgba(37, 99, 235, 0.08) 100%);
+            color: var(--primary);
+            font-size: 13px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(37, 99, 235, 0.25);
+            flex-shrink: 0;
+        }
+
+        .form-module-title {
+            font-size: 14.5px;
+            font-weight: 700;
+            color: var(--t-base);
+            margin: 0;
+            line-height: 1.3;
+        }
+
+        .form-module-subtitle {
+            font-size: 12px;
+            color: var(--t-muted);
+            margin: 2px 0 0;
+            line-height: 1.4;
+        }
+
+        .form-module-card-body {
+            padding: 20px;
+        }
+
+        /* Dedicated Address Sync Panel for Cetakia Quotation */
+        .address-sync-panel {
+            background: var(--bg-muted);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px 16px;
+            margin-top: 14px;
+            margin-bottom: 16px;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .address-sync-panel:focus-within {
+            border-color: rgba(37, 99, 235, 0.35);
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.06);
+        }
+
+        .address-sync-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .address-sync-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--t-base);
+        }
+
+        .badge-req-cetakia {
+            font-size: 10.5px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 20px;
+            background: rgba(37, 99, 235, 0.12);
+            color: var(--primary);
+            border: 1px solid rgba(37, 99, 235, 0.25);
+            letter-spacing: 0.2px;
+        }
+
+        .address-textarea {
+            min-height: 56px;
+            line-height: 1.4;
+            font-size: 13px;
+        }
+
+        .btn-copy-address {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 8px;
+            font-size: 11px;
+            font-weight: 500;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: var(--bg-card);
+            color: var(--t-muted);
+            cursor: pointer;
+            transition: all 0.15s ease-in-out;
+            line-height: 1.4;
+            user-select: none;
+        }
+
+        .btn-copy-address:hover {
+            background: var(--primary-soft);
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        /* Divider inside card */
+        .form-module-divider {
+            height: 1px;
+            background: var(--border);
+            margin: 20px 0;
+        }
+
+        @media (max-width: 768px) {
+            .form-module-card {
+                margin-bottom: 16px;
+                border-radius: 10px;
+            }
+
+            .form-module-card-head {
+                padding: 12px 14px;
+            }
+
+            .form-module-card-body {
+                padding: 14px;
+            }
+
+            .form-module-title {
+                font-size: 13.5px;
+            }
+
+            .form-module-subtitle {
+                font-size: 11.5px;
+            }
+
+            .address-sync-panel {
+                padding: 12px;
+                margin-bottom: 16px;
+            }
+
+            .address-sync-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 6px;
+            }
+
+            .address-sync-header .btn-copy-address {
+                align-self: flex-start;
+            }
         }
     </style>
 
@@ -2633,7 +3078,8 @@
                     $('.btn-expire-preset-merch').removeClass('active');
                     $(this).addClass('active');
                     const days = parseInt($(this).data('days')) || 30;
-                    const baseDateVal = $('#quotation_date').val() || new Date().toISOString().split('T')[0];
+                    const baseDateVal = $('#quotation_date').val() || new Date().toISOString().split('T')[
+                    0];
                     const baseDate = new Date(baseDateVal);
                     baseDate.setDate(baseDate.getDate() + days);
                     const yyyy = baseDate.getFullYear();
@@ -2691,7 +3137,8 @@
                                     discountValueInput.placeholder = 'Contoh: 10';
                                 }
                                 if (discountSuffix) discountSuffix.textContent = '%';
-                                if (discountValueLabel) discountValueLabel.textContent = 'Persentase Diskon';
+                                if (discountValueLabel) discountValueLabel.textContent =
+                                    'Persentase Diskon';
                             } else if (type === 'nominal') {
                                 if (discountValueField) discountValueField.hidden = false;
                                 if (discountValueInput) {
@@ -2700,7 +3147,8 @@
                                     discountValueInput.placeholder = 'Contoh: 25.000';
                                 }
                                 if (discountSuffix) discountSuffix.textContent = 'Rp';
-                                if (discountValueLabel) discountValueLabel.textContent = 'Nominal Diskon';
+                                if (discountValueLabel) discountValueLabel.textContent =
+                                    'Nominal Diskon';
                             }
                             calculateTaxAndTotal();
                         });
@@ -2709,7 +3157,8 @@
 
                 if (discountValueInput) {
                     discountValueInput.addEventListener('input', function() {
-                        const selectedType = document.querySelector('input[name="discount_type"]:checked')?.value;
+                        const selectedType = document.querySelector('input[name="discount_type"]:checked')
+                            ?.value;
 
                         if (selectedType === 'percentage') {
                             let value = this.value.replace(/[^0-9.]/g, '');
@@ -3108,7 +3557,8 @@
             });
             document.querySelectorAll('#panelMug .quick-qty-btn').forEach(b => {
                 b.addEventListener('click', function() {
-                    document.querySelectorAll('#panelMug .quick-qty-btn').forEach(btn => btn.classList.remove('active'));
+                    document.querySelectorAll('#panelMug .quick-qty-btn').forEach(btn => btn
+                        .classList.remove('active'));
                     this.classList.add('active');
                     mugQty = parseInt(this.getAttribute('data-qty'));
                     if (mugQtyInput) mugQtyInput.value = mugQty;
@@ -3136,7 +3586,8 @@
             });
             document.querySelectorAll('#panelPvcCard .quick-qty-btn').forEach(b => {
                 b.addEventListener('click', function() {
-                    document.querySelectorAll('#panelPvcCard .quick-qty-btn').forEach(btn => btn.classList.remove('active'));
+                    document.querySelectorAll('#panelPvcCard .quick-qty-btn').forEach(btn => btn
+                        .classList.remove('active'));
                     this.classList.add('active');
                     pvcCardQty = parseInt(this.getAttribute('data-qty'));
                     if (pvcCardQtyInput) pvcCardQtyInput.value = pvcCardQty;
@@ -3148,7 +3599,8 @@
             document.querySelectorAll('input[name="akrilik_variant"]').forEach(r => {
                 r.addEventListener('change', function() {
                     akrilikVariant = this.value;
-                    document.querySelectorAll('#cardAkrilikGantungan, #cardAkrilikStandee').forEach(c => c.classList.remove('active'));
+                    document.querySelectorAll('#cardAkrilikGantungan, #cardAkrilikStandee').forEach(
+                        c => c.classList.remove('active'));
                     this.closest('.choice-card')?.classList.add('active');
                     updateCalculation();
                     renderMatrixTable();
@@ -3173,7 +3625,8 @@
             });
             document.querySelectorAll('#panelAkrilikUv .quick-qty-btn').forEach(b => {
                 b.addEventListener('click', function() {
-                    document.querySelectorAll('#panelAkrilikUv .quick-qty-btn').forEach(btn => btn.classList.remove('active'));
+                    document.querySelectorAll('#panelAkrilikUv .quick-qty-btn').forEach(btn => btn
+                        .classList.remove('active'));
                     this.classList.add('active');
                     akrilikUvQty = parseInt(this.getAttribute('data-qty'));
                     if (akrilikUvQtyInput) akrilikUvQtyInput.value = akrilikUvQty;
@@ -3342,7 +3795,7 @@
                 } else if (activeTab === 'mug') {
                     categoryBadge.textContent = 'MUG SUBLIMASI';
                     productTitle.textContent = 'Mug Keramik Sublimasi SNI Full Color';
-                    
+
                     let activeTier = null;
                     dbMugItems.forEach(t => {
                         const min = parseInt(t.min_qty);
@@ -3355,7 +3808,8 @@
                     unit = activeTier ? parseFloat(activeTier.price) : 25000;
                     total = unit * mugQty;
 
-                    specsDesc.textContent = `Keramik Putih Standar SNI (11 oz) · Sublimasi Full Color Tahan Cuci · Tier: ${activeTier?.tier_label || '-'}`;
+                    specsDesc.textContent =
+                        `Keramik Putih Standar SNI (11 oz) · Sublimasi Full Color Tahan Cuci · Tier: ${activeTier?.tier_label || '-'}`;
                     qtyVal.textContent = `${mugQty} pcs`;
                     tierVal.textContent = activeTier ? `Tier: ${activeTier.tier_label}` : '-';
                     unitPriceLabel.textContent = 'Harga Satuan:';
@@ -3391,7 +3845,8 @@
                     unit = activeTier ? parseFloat(activeTier.price) : 10000;
                     total = unit * pvcCardQty;
 
-                    specsDesc.textContent = `Bahan PVC Standard ATM (0.76 mm) · Cetak 2 Sisi Full Color Anti Air · Tier: ${activeTier?.tier_label || '-'}`;
+                    specsDesc.textContent =
+                        `Bahan PVC Standard ATM (0.76 mm) · Cetak 2 Sisi Full Color Anti Air · Tier: ${activeTier?.tier_label || '-'}`;
                     qtyVal.textContent = `${pvcCardQty} pcs`;
                     tierVal.textContent = activeTier ? `Tier: ${activeTier.tier_label}` : '-';
                     unitPriceLabel.textContent = 'Harga Satuan:';
@@ -3420,13 +3875,15 @@
                         return i.name.toLowerCase().includes('gantungan');
                     }) || dbAkrilikUvItems[0];
 
-                    const itemName = item ? item.name : (akrilikVariant === 'standee' ? 'Standee Mini Akrilik UV' : 'Gantungan Kunci Akrilik UV');
+                    const itemName = item ? item.name : (akrilikVariant === 'standee' ? 'Standee Mini Akrilik UV' :
+                        'Gantungan Kunci Akrilik UV');
                     productTitle.textContent = `${itemName} (2 Muka 1 Lapis)`;
 
                     unit = item ? parseFloat(item.price) : 20000;
                     total = unit * akrilikUvQty;
 
-                    specsDesc.textContent = `Bahan Akrilik Bening 3 mm · Flatbed UV 2 Muka · 1 Lapis Akrilik Solid · Min. Order ${item?.min_order_qty || 1} pcs`;
+                    specsDesc.textContent =
+                        `Bahan Akrilik Bening 3 mm · Flatbed UV 2 Muka · 1 Lapis Akrilik Solid · Min. Order ${item?.min_order_qty || 1} pcs`;
                     qtyVal.textContent = `${akrilikUvQty} pcs`;
                     tierVal.textContent = item?.spec_label || '2 Muka 1 Lapis';
                     unitPriceLabel.textContent = 'Harga Satuan:';
@@ -3446,13 +3903,16 @@
                     merchMatName = `Tali Tissue Sublimasi ${(lanyardWidth === '2cm') ? '2.0 cm' : '2.5 cm'}`;
                 } else if (activeTab === 'nametag') {
                     merchItemQty = nametagQty;
-                    merchMatName = `Akrilik / Logam (+ ${(nametagFastener === 'magnet') ? 'Magnet Neodymium' : 'Peniti Stainless'}`;
+                    merchMatName =
+                        `Akrilik / Logam (+ ${(nametagFastener === 'magnet') ? 'Magnet Neodymium' : 'Peniti Stainless'}`;
                 } else if (activeTab === 'plakat') {
                     merchItemQty = plakatQty;
-                    merchMatName = (plakatMaterial === 'kayu') ? 'Kayu Solid Ukir' : `Akrilik Bening ${plakatThickness.toUpperCase()}`;
+                    merchMatName = (plakatMaterial === 'kayu') ? 'Kayu Solid Ukir' :
+                        `Akrilik Bening ${plakatThickness.toUpperCase()}`;
                 } else if (activeTab === 'nota') {
                     merchItemQty = notaRimQty;
-                    merchMatName = `${(notaPaper === 'ncr') ? 'Kertas NCR Carbonless' : 'Kertas HVS Putih'} (${notaPly} Ply, ${notaInk} Tinta)`;
+                    merchMatName =
+                        `${(notaPaper === 'ncr') ? 'Kertas NCR Carbonless' : 'Kertas HVS Putih'} (${notaPly} Ply, ${notaInk} Tinta)`;
                 } else if (activeTab === 'mug') {
                     merchItemQty = mugQty;
                     merchMatName = 'Keramik Putih SNI 11 oz';
@@ -3525,7 +3985,8 @@
                         const discAmtEl = document.getElementById('liveDiscountAmount');
                         if (discAmtEl) discAmtEl.textContent = '- ' + formatRupiah(discAmt);
                         const discDescEl = document.getElementById('liveDiscountDesc');
-                        if (discDescEl) discDescEl.textContent = (discountType === 'percentage' ? `${discountVal}%` : 'Nominal');
+                        if (discDescEl) discDescEl.textContent = (discountType === 'percentage' ?
+                            `${discountVal}%` : 'Nominal');
                     } else {
                         discWrap.style.display = 'none';
                     }
@@ -3738,7 +4199,8 @@
 
                 // Render Baris Kosong jika 0 hasil
                 if (totalItems === 0) {
-                    const colSpan = (activeTab === 'nota') ? 8 : ((activeTab === 'plakat' || activeTab === 'mug' || activeTab === 'pvccard' || activeTab === 'akrilikuv') ? 7 : 6);
+                    const colSpan = (activeTab === 'nota') ? 8 : ((activeTab === 'plakat' || activeTab === 'mug' ||
+                        activeTab === 'pvccard' || activeTab === 'akrilikuv') ? 7 : 6);
                     tbody.innerHTML = `
                         <tr>
                             <td colspan="${colSpan}" style="text-align: center; padding: 32px 20px; color: var(--t-muted);">
@@ -3918,7 +4380,8 @@
                     } else if (activeTab === 'akrilikuv') {
                         const isGantungan = row.name.toLowerCase().includes('gantungan');
                         const isStandee = row.name.toLowerCase().includes('standee');
-                        const isCurrentActive = (akrilikVariant === 'standee' && isStandee) || (akrilikVariant === 'gantungan' && isGantungan);
+                        const isCurrentActive = (akrilikVariant === 'standee' && isStandee) || (
+                            akrilikVariant === 'gantungan' && isGantungan);
                         if (isCurrentActive) tr.className = 'row-active';
 
                         tr.innerHTML = `
@@ -3955,7 +4418,8 @@
                                 `input[name="lanyard_width"][value="${lanyardWidth}"]`);
                             if (radWidth) {
                                 radWidth.checked = true;
-                                document.querySelectorAll('#cardLanyardWidth2cm, #cardLanyardWidth25cm')
+                                document.querySelectorAll(
+                                        '#cardLanyardWidth2cm, #cardLanyardWidth25cm')
                                     .forEach(c => c.classList.remove('active'));
                                 radWidth.closest('.choice-card')?.classList.add('active');
                             }
@@ -3981,7 +4445,8 @@
                             if (radType) {
                                 radType.checked = true;
                                 document.querySelectorAll(
-                                    '#cardNametagBiasa, #cardNametagResin, #cardNametagResinEmas')
+                                        '#cardNametagBiasa, #cardNametagResin, #cardNametagResinEmas'
+                                        )
                                     .forEach(c => c.classList.remove('active'));
                                 radType.closest('.choice-card')?.classList.add('active');
                             }
@@ -3994,14 +4459,16 @@
                                 `input[name="plakat_material"][value="${mat}"]`);
                             if (radMat) {
                                 radMat.checked = true;
-                                document.querySelectorAll('#cardPlakatMatAkrilik, #cardPlakatMatKayu')
+                                document.querySelectorAll(
+                                        '#cardPlakatMatAkrilik, #cardPlakatMatKayu')
                                     .forEach(c => c.classList.remove('active'));
                                 radMat.closest('.choice-card')?.classList.add('active');
                             }
 
                             const akrilikOpts = document.getElementById('plakatAkrilikOptions');
                             if (akrilikOpts) {
-                                akrilikOpts.style.display = (plakatMaterial === 'akrilik') ? 'grid' :
+                                akrilikOpts.style.display = (plakatMaterial === 'akrilik') ?
+                                    'grid' :
                                     'none';
                             }
 
@@ -4029,7 +4496,8 @@
                                     `input[name="plakat_base"][value="${base}"]`);
                                 if (radBase) {
                                     radBase.checked = true;
-                                    document.querySelectorAll('#pillPlakatBaseAkrilik, #pillPlakatBaseHitam')
+                                    document.querySelectorAll(
+                                            '#pillPlakatBaseAkrilik, #pillPlakatBaseHitam')
                                         .forEach(p => p.classList.remove('active'));
                                     radBase.closest('.choice-pill')?.classList.add('active');
                                 }
@@ -4038,7 +4506,8 @@
                                     `input[name="plakat_box"][value="${box}"]`);
                                 if (radBox) {
                                     radBox.checked = true;
-                                    document.querySelectorAll('#pillPlakatWithBox, #pillPlakatNoBox')
+                                    document.querySelectorAll(
+                                            '#pillPlakatWithBox, #pillPlakatNoBox')
                                         .forEach(p => p.classList.remove('active'));
                                     radBox.closest('.choice-pill')?.classList.add('active');
                                 }
@@ -4087,7 +4556,8 @@
                             if (radPly) {
                                 radPly.checked = true;
                                 document.querySelectorAll(
-                                    '#pillNotaPly1, #pillNotaPly2, #pillNotaPly3, #pillNotaPly4')
+                                        '#pillNotaPly1, #pillNotaPly2, #pillNotaPly3, #pillNotaPly4'
+                                        )
                                     .forEach(p => p.classList.remove('active'));
                                 radPly.closest('.choice-pill')?.classList.add('active');
                             }
@@ -4096,7 +4566,8 @@
                                 `input[name="nota_ink"][value="${ink}"]`);
                             if (radInk) {
                                 radInk.checked = true;
-                                document.querySelectorAll('#pillNotaInk1, #pillNotaInk2, #pillNotaInk3')
+                                document.querySelectorAll(
+                                        '#pillNotaInk1, #pillNotaInk2, #pillNotaInk3')
                                     .forEach(p => p.classList.remove('active'));
                                 radInk.closest('.choice-pill')?.classList.add('active');
                             }
@@ -4121,10 +4592,13 @@
                         } else if (this.hasAttribute('data-pick-akrilikuv')) {
                             const variant = this.getAttribute('data-variant');
                             akrilikVariant = variant;
-                            const radVariant = document.querySelector(`input[name="akrilik_variant"][value="${variant}"]`);
+                            const radVariant = document.querySelector(
+                                `input[name="akrilik_variant"][value="${variant}"]`);
                             if (radVariant) {
                                 radVariant.checked = true;
-                                document.querySelectorAll('#cardAkrilikGantungan, #cardAkrilikStandee').forEach(c => c.classList.remove('active'));
+                                document.querySelectorAll(
+                                    '#cardAkrilikGantungan, #cardAkrilikStandee').forEach(c => c
+                                    .classList.remove('active'));
                                 radVariant.closest('.choice-card')?.classList.add('active');
                             }
                         }
@@ -4134,7 +4608,8 @@
                         renderMatrixTable();
 
                         // Tampilkan toast konfirmasi elegan
-                        showMerchToast('Pilihan Diterapkan', 'Spesifikasi dari tabel harga berhasil diterapkan ke formulir.');
+                        showMerchToast('Pilihan Diterapkan',
+                            'Spesifikasi dari tabel harga berhasil diterapkan ke formulir.');
 
                         // Smooth scroll ke atas form
                         document.querySelector('.merch-form-col')?.scrollIntoView({
@@ -4215,6 +4690,7 @@
                 matrixCurrentPage = 1;
                 renderMatrixTable();
             });
+
             function handleMatrixPageSizeChange() {
                 const sel = document.getElementById('merchMatrixPageSize');
                 if (!sel) return;
@@ -4226,7 +4702,8 @@
             if (typeof $ !== 'undefined' && $.fn.select2) {
                 $('#merchMatrixPageSize').on('change.select2 change', handleMatrixPageSizeChange);
             } else {
-                document.getElementById('merchMatrixPageSize')?.addEventListener('change', handleMatrixPageSizeChange);
+                document.getElementById('merchMatrixPageSize')?.addEventListener('change',
+                    handleMatrixPageSizeChange);
             }
 
             // Helper ambil nama pelanggan terpilih dari Select2 Cetakia
@@ -4319,7 +4796,8 @@
                 const modalDiscDesc = document.getElementById('modalTableDiscountDesc');
                 if (modalDiscRow) modalDiscRow.style.display = discAmt > 0 ? 'table-row' : 'none';
                 if (modalDiscAmt) modalDiscAmt.textContent = '- ' + formatRupiah(discAmt);
-                if (modalDiscDesc) modalDiscDesc.textContent = (discountType === 'percentage' ? `${discountVal}%` : 'Nominal');
+                if (modalDiscDesc) modalDiscDesc.textContent = (discountType === 'percentage' ? `${discountVal}%` :
+                    'Nominal');
 
                 const modalTaxRow = document.getElementById('modalTableTaxRow');
                 const modalTaxAmount = document.getElementById('modalTableTaxAmount');
@@ -4429,7 +4907,7 @@
                 const specs = document.getElementById('summaryMerchSpecs')?.textContent || '';
                 const qty = document.getElementById('summaryMerchQty')?.textContent || '';
 
-const isTax = $('#tax_enabled_check').is(':checked');
+                const isTax = $('#tax_enabled_check').is(':checked');
                 const textLines = [
                     `*SURAT PENAWARAN HARGA (SPH) - CIPTA GRAFIKA*`,
                     `Kepada Yth: *${custName}*`,
@@ -4449,7 +4927,8 @@ const isTax = $('#tax_enabled_check').is(':checked');
                     // Tactile button feedback
                     if (btn) {
                         const originalHtml = btn.innerHTML;
-                        btn.innerHTML = `<i class="bi bi-check-circle-fill"></i> <span>Tersalin ke Clipboard!</span>`;
+                        btn.innerHTML =
+                            `<i class="bi bi-check-circle-fill"></i> <span>Tersalin ke Clipboard!</span>`;
                         btn.style.pointerEvents = 'none';
                         setTimeout(() => {
                             btn.innerHTML = originalHtml;
@@ -4487,14 +4966,16 @@ const isTax = $('#tax_enabled_check').is(':checked');
                 const custSelect = document.getElementById('merch_customer_id');
                 if (typeof $ !== 'undefined') {
                     $('#merch_customer_id').val('').trigger('change.select2');
-                    $('#cetakia_user_id').val($('#cetakia_user_id option:first').val()).trigger('change.select2');
+                    $('#cetakia_user_id').val($('#cetakia_user_id option:first').val()).trigger(
+                        'change.select2');
                     $('#cetakia_terms').val('0').trigger('change.select2');
                     $('#tax_enabled_check').prop('checked', false);
                     const liveTaxDetails = document.getElementById('liveTaxDetailsRow');
                     if (liveTaxDetails) liveTaxDetails.style.display = 'none';
 
                     // Reset Diskon
-                    const discountNoneRadio = document.querySelector('input[name="discount_type"][value="none"]');
+                    const discountNoneRadio = document.querySelector(
+                        'input[name="discount_type"][value="none"]');
                     if (discountNoneRadio) discountNoneRadio.checked = true;
                     const discountValueField = document.getElementById('discountValueField');
                     if (discountValueField) discountValueField.hidden = true;
@@ -4513,7 +4994,8 @@ const isTax = $('#tax_enabled_check').is(':checked');
                     const today = new Date().toISOString().split('T')[0];
                     const next30 = new Date();
                     next30.setDate(next30.getDate() + 30);
-                    const next30Str = `${next30.getFullYear()}-${String(next30.getMonth() + 1).padStart(2, '0')}-${String(next30.getDate()).padStart(2, '0')}`;
+                    const next30Str =
+                        `${next30.getFullYear()}-${String(next30.getMonth() + 1).padStart(2, '0')}-${String(next30.getDate()).padStart(2, '0')}`;
                     $('#quotation_date').val(today);
                     $('#quotation_expired').val(next30Str);
                     $('.btn-expire-preset-merch').removeClass('active');
@@ -4613,7 +5095,8 @@ const isTax = $('#tax_enabled_check').is(':checked');
 
                 updateCalculation();
                 renderMatrixTable();
-                showMerchToast('Formulir Direset', 'Spesifikasi dan informasi pelanggan dikembalikan ke pengaturan awal.');
+                showMerchToast('Formulir Direset',
+                    'Spesifikasi dan informasi pelanggan dikembalikan ke pengaturan awal.');
             });
 
             // Inisialisasi awal kalkulasi & tabel
@@ -4629,15 +5112,18 @@ const isTax = $('#tax_enabled_check').is(':checked');
                 if (!container) {
                     container = document.createElement('div');
                     container.id = 'notifToastContainer';
-                    container.style.cssText = 'position: fixed; top: 24px; right: 24px; z-index: 99999; display: flex; flex-direction: column; gap: 10px; pointer-events: none;';
+                    container.style.cssText =
+                        'position: fixed; top: 24px; right: 24px; z-index: 99999; display: flex; flex-direction: column; gap: 10px; pointer-events: none;';
                     document.body.appendChild(container);
                 }
                 const toast = document.createElement('div');
-                toast.style.cssText = 'pointer-events: auto; min-width: 300px; max-width: 420px; background: var(--bg-card); border-left: 4px solid ' +
+                toast.style.cssText =
+                    'pointer-events: auto; min-width: 300px; max-width: 420px; background: var(--bg-card); border-left: 4px solid ' +
                     (type === 'error' ? '#ef4444' : (type === 'warning' ? '#f59e0b' : '#10b981')) +
                     '; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.25); border-radius: 10px; padding: 14px 16px; display: flex; align-items: flex-start; gap: 12px; transition: all 0.3s ease; transform: translateX(120%); opacity: 0;';
                 const iconColor = type === 'error' ? '#ef4444' : (type === 'warning' ? '#f59e0b' : '#10b981');
-                const iconClass = type === 'error' ? 'bi-exclamation-circle-fill' : (type === 'warning' ? 'bi-exclamation-triangle-fill' : 'bi-check-circle-fill');
+                const iconClass = type === 'error' ? 'bi-exclamation-circle-fill' : (type === 'warning' ?
+                    'bi-exclamation-triangle-fill' : 'bi-check-circle-fill');
                 toast.innerHTML = `
                     <i class="bi ${iconClass}" style="color: ${iconColor}; font-size: 20px; margin-top: 2px;"></i>
                     <div style="flex: 1;">
@@ -4665,20 +5151,24 @@ const isTax = $('#tax_enabled_check').is(':checked');
                 e.preventDefault();
 
                 if (!latestMerchCalculation) {
-                    showNotificationToast('Perhitungan Belum Siap', 'Silakan tentukan spesifikasi merchandise terlebih dahulu hingga hasil hitungan muncul.', 'warning');
+                    showNotificationToast('Perhitungan Belum Siap',
+                        'Silakan tentukan spesifikasi merchandise terlebih dahulu hingga hasil hitungan muncul.',
+                        'warning');
                     return;
                 }
 
                 const customerId = $('#merch_customer_id').val();
                 if (!customerId) {
-                    showNotificationToast('Pilih Pelanggan', 'Silakan pilih Nama Pelanggan (Cetakia) terlebih dahulu.', 'warning');
+                    showNotificationToast('Pilih Pelanggan',
+                        'Silakan pilih Nama Pelanggan (Cetakia) terlebih dahulu.', 'warning');
                     $('#merch_customer_id').select2('open');
                     return;
                 }
 
                 const userId = $('#cetakia_user_id').val();
                 if (!userId) {
-                    showNotificationToast('Pilih Sales PIC', 'Silakan pilih Sales / PIC Penanggung Jawab terlebih dahulu.', 'warning');
+                    showNotificationToast('Pilih Sales PIC',
+                        'Silakan pilih Sales / PIC Penanggung Jawab terlebih dahulu.', 'warning');
                     $('#cetakia_user_id').select2('open');
                     return;
                 }
@@ -4686,7 +5176,9 @@ const isTax = $('#tax_enabled_check').is(':checked');
                 const billTo = ($('#bill_to').val() || '').trim();
                 const shipTo = ($('#ship_to').val() || '').trim();
                 if (!billTo || !shipTo) {
-                    showNotificationToast('Alamat Belum Lengkap', 'Silakan lengkapi Alamat Penagihan (Bill To) dan Alamat Pengiriman (Ship To).', 'warning');
+                    showNotificationToast('Alamat Belum Lengkap',
+                        'Silakan lengkapi Alamat Penagihan (Bill To) dan Alamat Pengiriman (Ship To).',
+                        'warning');
                     return;
                 }
 
@@ -4694,7 +5186,8 @@ const isTax = $('#tax_enabled_check').is(':checked');
                 const subtotal = Number(latestMerchCalculation.subtotal) || 0;
                 const qty = Number(latestMerchCalculation.qty) || 1;
 
-                const discountType = document.querySelector('input[name="discount_type"]:checked')?.value || 'none';
+                const discountType = document.querySelector('input[name="discount_type"]:checked')?.value ||
+                    'none';
                 const discountRaw = ($('#discount_value').val() || '').replace(/\./g, '').replace(',', '.');
                 const discountVal = parseFloat(discountRaw) || 0;
                 let discAmt = 0;
@@ -4708,7 +5201,8 @@ const isTax = $('#tax_enabled_check').is(':checked');
                 const taxAmt = isTax ? Math.round(dpp * 0.11) : 0;
                 const grandTotal = dpp + taxAmt;
 
-                const custName = $('#merch_customer_id option:selected').data('name') || $('#merch_customer_id option:selected').text().trim() || 'Pelanggan Terpilih';
+                const custName = $('#merch_customer_id option:selected').data('name') || $(
+                    '#merch_customer_id option:selected').text().trim() || 'Pelanggan Terpilih';
                 const salesName = $('#cetakia_user_id option:selected').text().trim() || '-';
                 const termsVal = parseInt($('#cetakia_terms').val() || '0');
                 const termsText = $('#cetakia_terms option:selected').text().trim() || 'Cash / Tunai';
@@ -4726,29 +5220,35 @@ const isTax = $('#tax_enabled_check').is(':checked');
                 const isNota = (r.category === 'nota');
                 const targetUnitName = isNota ? 'Rim' : 'Pcs';
                 const targetUnitCode = isNota ? 'rim' : 'pcs';
-                const targetUnitId = isNota ? '019b8a5f-2942-7383-be6b-a7984193d8ab' : '019b8a5f-0400-77c0-aeac-3f9eeaed8889';
+                const targetUnitId = isNota ? '019b8a5f-2942-7383-be6b-a7984193d8ab' :
+                    '019b8a5f-0400-77c0-aeac-3f9eeaed8889';
                 const unitSuffix = isNota ? ' Rim' : ' pcs';
 
                 // Update info di Modal Konfirmasi
                 $('#confirmCustomerName').text(custName);
                 $('#confirmSalesName').text(salesName);
-                $('#confirmItemDesc').text(itemName + ' (' + qty.toLocaleString('id-ID') + unitSuffix + ')');
+                $('#confirmItemDesc').text(itemName + ' (' + qty.toLocaleString('id-ID') + unitSuffix +
+                ')');
                 $('#confirmTermsText').text(termsText);
                 if (discAmt > 0) {
                     $('#confirmDiscountRow').show();
-                    $('#confirmDiscountText').text('- ' + formatRupiah(discAmt) + ' (' + (discountType === 'percentage' ? discountVal + '%' : 'Nominal') + ')');
+                    $('#confirmDiscountText').text('- ' + formatRupiah(discAmt) + ' (' + (discountType ===
+                        'percentage' ? discountVal + '%' : 'Nominal') + ')');
                 } else {
                     $('#confirmDiscountRow').hide();
                 }
-                $('#confirmTaxText').text(isTax ? 'PPN 11% (+ ' + formatRupiah(taxAmt) + ')' : 'Non-PPN (0%)');
+                $('#confirmTaxText').text(isTax ? 'PPN 11% (+ ' + formatRupiah(taxAmt) + ')' :
+                    'Non-PPN (0%)');
                 $('#confirmGrandTotal').text(formatRupiah(grandTotal));
 
                 // Simpan payload siap kirim
                 pendingCetakiaPayload = {
                     customer_id: customerId,
                     user_id: userId,
-                    quotation_date: $('#quotation_date').val() || new Date().toISOString().split('T')[0],
-                    quotation_expired: $('#quotation_expired').val() || new Date(Date.now() + 30*86400000).toISOString().split('T')[0],
+                    quotation_date: $('#quotation_date').val() || new Date().toISOString().split('T')[
+                        0],
+                    quotation_expired: $('#quotation_expired').val() || new Date(Date.now() + 30 *
+                        86400000).toISOString().split('T')[0],
                     bill_to: billTo,
                     ship_to: shipTo,
                     notes: ($('#merch_custom_notes').val() || '').trim(),
@@ -4765,21 +5265,19 @@ const isTax = $('#tax_enabled_check').is(':checked');
                     pph: 0,
                     pph_amount: 0,
                     grand_total: grandTotal,
-                    items: [
-                        {
-                            type: 'product',
-                            item: itemName,
-                            category: r.categoryLabel,
-                            material_name: r.materialName || '',
-                            description: itemDesc,
-                            qty: qty,
-                            price: Number(r.unitPrice),
-                            unit_id: targetUnitId,
-                            unit_name: targetUnitName,
-                            unit_code: targetUnitCode,
-                            amount: subtotal
-                        }
-                    ],
+                    items: [{
+                        type: 'product',
+                        item: itemName,
+                        category: r.categoryLabel,
+                        material_name: r.materialName || '',
+                        description: itemDesc,
+                        qty: qty,
+                        price: Number(r.unitPrice),
+                        unit_id: targetUnitId,
+                        unit_name: targetUnitName,
+                        unit_code: targetUnitCode,
+                        amount: subtotal
+                    }],
                     _display: {
                         customerName: custName,
                         salesName: salesName,
@@ -4808,7 +5306,7 @@ const isTax = $('#tax_enabled_check').is(':checked');
                 delete payloadData._display;
 
                 $.ajax({
-                    url: '{{ route("admin_cetakia_quotation_store") }}',
+                    url: '{{ route('admin_cetakia_quotation_store') }}',
                     method: 'POST',
                     contentType: 'application/json',
                     data: JSON.stringify(payloadData),
@@ -4820,15 +5318,20 @@ const isTax = $('#tax_enabled_check').is(':checked');
                         $('#modalCetakiaConfirm').removeClass('is-open');
 
                         if (res.success && res.data) {
-                            const qCode = (res.data.quotation && res.data.quotation.quotation_code) ? res.data.quotation.quotation_code : (res.data.quotation_code || res.data.code || '-');
+                            const qCode = (res.data.quotation && res.data.quotation
+                                .quotation_code) ? res.data.quotation.quotation_code : (res
+                                .data.quotation_code || res.data.code || '-');
                             $('#cetakiaSuccessCode').text(qCode);
                             $('#cetakiaSuccessCustomer').text(disp.customerName || '-');
                             $('#cetakiaSuccessSales').text(disp.salesName || '-');
-                            $('#cetakiaSuccessGrandTotal').text(formatRupiah(disp.grandTotal || 0));
+                            $('#cetakiaSuccessGrandTotal').text(formatRupiah(disp.grandTotal ||
+                                0));
                             $('#modalCetakiaSuccess').addClass('is-open');
-                            showNotificationToast('Quotation Berhasil!', 'Penawaran ' + qCode + ' telah resmi tercatat di Cetakia (Dev Mode).', 'success');
+                            showNotificationToast('Quotation Berhasil!', 'Penawaran ' + qCode +
+                                ' telah resmi tercatat di Cetakia (Dev Mode).', 'success');
                         } else {
-                            showNotificationToast('Pemberitahuan Cetakia', res.message || 'Gagal membuat penawaran di Cetakia.', 'error');
+                            showNotificationToast('Pemberitahuan Cetakia', res.message ||
+                                'Gagal membuat penawaran di Cetakia.', 'error');
                         }
                     },
                     error: function(xhr) {
@@ -4851,7 +5354,8 @@ const isTax = $('#tax_enabled_check').is(':checked');
                 const code = $('#cetakiaSuccessCode').text().trim();
                 if (code && code !== '-') {
                     fallbackCopyText(code, function() {
-                        showNotificationToast('Nomor Disalin!', 'Kode penawaran ' + code + ' telah disalin ke clipboard.', 'success');
+                        showNotificationToast('Nomor Disalin!', 'Kode penawaran ' + code +
+                            ' telah disalin ke clipboard.', 'success');
                     });
                 }
             });

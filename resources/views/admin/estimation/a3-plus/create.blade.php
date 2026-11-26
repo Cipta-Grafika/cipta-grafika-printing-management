@@ -20,6 +20,152 @@
             width: 100%;
         }
 
+        /* =========================================================
+           MODULAR FORM CARDS STYLING (UX IMPROVEMENT)
+        ========================================================== */
+        .form-module-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+            overflow: hidden;
+            transition: box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+
+        .form-module-card:hover {
+            border-color: rgba(37, 99, 235, 0.3);
+        }
+
+        .form-module-card-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .form-module-head-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .form-module-step-badge {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.15) 0%, rgba(37, 99, 235, 0.08) 100%);
+            color: var(--primary);
+            font-size: 13px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(37, 99, 235, 0.25);
+            flex-shrink: 0;
+        }
+
+        .form-module-title {
+            font-size: 14.5px;
+            font-weight: 700;
+            color: var(--t-base);
+            margin: 0;
+            line-height: 1.3;
+        }
+
+        .form-module-subtitle {
+            font-size: 12px;
+            color: var(--t-muted);
+            margin: 2px 0 0;
+            line-height: 1.4;
+        }
+
+        .form-module-card-body {
+            padding: 20px;
+        }
+
+        /* Dedicated Address Sync Panel for Cetakia Quotation */
+        .address-sync-panel {
+            background: var(--bg-muted);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px 16px;
+            margin-bottom: 18px;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .address-sync-panel:focus-within {
+            border-color: rgba(37, 99, 235, 0.35);
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.06);
+        }
+
+        .address-sync-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .address-sync-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--t-base);
+        }
+
+        .badge-req-cetakia {
+            font-size: 10.5px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 20px;
+            background: rgba(37, 99, 235, 0.12);
+            color: var(--primary);
+            border: 1px solid rgba(37, 99, 235, 0.25);
+            letter-spacing: 0.2px;
+        }
+
+        .address-textarea {
+            min-height: 56px;
+            line-height: 1.4;
+            font-size: 13px;
+        }
+
+        /* Divider inside card */
+        .form-module-divider {
+            height: 1px;
+            background: var(--border);
+            margin: 22px 0;
+        }
+
+        /* Additional Components Header */
+        .additional-components-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .additional-components-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--t-base);
+            margin: 0;
+        }
+
+        .additional-components-subtitle {
+            font-size: 12px;
+            color: var(--t-muted);
+            margin: 2px 0 0;
+        }
+
         /* Quotation & Date Picker Theming (Dark & Light) */
         :root[data-theme="dark"] input[type="date"],
         [data-theme="dark"] input[type="date"] {
@@ -132,10 +278,18 @@
             cursor: pointer;
             transition: all 0.2s ease;
         }
+        .btn-action-wa i {
+            color: #22c55e;
+            font-size: 15px;
+            transition: transform 0.2s ease;
+        }
         .btn-action-wa:hover {
             background: var(--bg-hover);
             border-color: #22c55e;
             color: #22c55e;
+        }
+        .btn-action-wa:hover i {
+            transform: scale(1.15);
         }
 
         /* Modern PPN 11% Toggle Switch Styling */
@@ -1436,6 +1590,43 @@
 
         /* Mobile Responsive */
         @media (max-width: 768px) {
+            .form-module-card {
+                margin-bottom: 16px;
+                border-radius: 10px;
+            }
+            .form-module-card-head {
+                padding: 12px 14px;
+            }
+            .form-module-card-body {
+                padding: 14px;
+            }
+            .form-module-title {
+                font-size: 13.5px;
+            }
+            .form-module-subtitle {
+                font-size: 11.5px;
+            }
+            .address-sync-panel {
+                padding: 12px;
+                margin-bottom: 16px;
+            }
+            .address-sync-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 6px;
+            }
+            .address-sync-header .btn-copy-address {
+                align-self: flex-start;
+            }
+            .additional-components-head {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .additional-components-head .btn {
+                width: 100%;
+                max-width: none !important;
+            }
+
             .printable-info-grid {
                 grid-template-columns: 1fr;
             }
@@ -1570,194 +1761,203 @@
                         KOLOM KIRI: FORM ESTIMASI DIGITAL PRINT A3+
                     ========================================================== --}}
                     <div class="a3plus-form-col">
-                        <section class="card" style="margin-bottom: 24px;">
-
-                            {{-- CARD HEADER --}}
-                            <div class="card-head">
-                                <div class="card-title-wrap">
-                                    <span class="eyebrow">
-                                        FORMULIR SPESIFIKASI DIGITAL PRINT A3+
-                                    </span>
-                                </div>
-                            </div>
-
-                            {{-- FORM ESTIMASI A3+ --}}
-                            <form action="{{ route('admin_store_a3plus') }}" method="POST" id="a3PlusEstimationForm">
-                                @csrf
+                        {{-- FORM ESTIMASI A3+ --}}
+                        <form action="{{ route('admin_store_a3plus') }}" method="POST" id="a3PlusEstimationForm">
+                            @csrf
 
                             {{-- =========================================================
-                                1. INFORMASI ESTIMASI & PELANGGAN
+                                1. INFORMASI PELANGGAN & LOKASI
                             ========================================================== --}}
-                            <div class="form-section">
-                                <div class="form-section-head">
-                                    <span class="eyebrow" style="font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 6px;">
-                                        <i class="bi bi-person-badge"></i> 1. INFORMASI PELANGGAN &amp; LOKASI
-                                    </span>
-                                </div>
-
-                                <div class="form-grid">
-                                    {{-- Lokasi --}}
-                                    <div class="field" style="margin-bottom: 20px;">
-                                        <label class="field-label" for="location_id">
-                                            Lokasi
-                                            <span class="req">*</span>
-                                        </label>
-
-                                        <select id="location_id" name="location_id" class="select select2" required>
-                                            <option value="">Pilih Lokasi</option>
-                                            @foreach ($locations ?? [] as $location)
-                                                <option value="{{ $location->id }}"
-                                                    {{ old('location_id') == $location->id ? 'selected' : '' }}>
-                                                    {{ $location->name }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-
-                                    {{-- Pilihan Harga / Pricing Profile --}}
-                                    <div class="field" style="margin-bottom: 20px;">
-                                        <label class="field-label" for="price_type">
-                                            Pilihan Harga
-                                            <span class="req">*</span>
-                                        </label>
-
-                                        <select id="price_type" name="price_type" class="select select2" required>
-                                            <option value="general" selected>Harga Umum</option>
-                                            <option value="division">Harga Divisi</option>
-                                        </select>
+                            <section class="card form-module-card">
+                                <div class="form-module-card-head">
+                                    <div class="form-module-head-left">
+                                        <div class="form-module-step-badge">1</div>
+                                        <div>
+                                            <h3 class="form-module-title">Informasi Pelanggan &amp; Lokasi</h3>
+                                            <p class="form-module-subtitle">Cabang operasional, level harga, sales PIC, dan data pelanggan penawaran.</p>
+                                        </div>
                                     </div>
                                 </div>
 
-                                {{-- Informasi Sales & Syarat Pembayaran (Cetakia Integration) --}}
-                                <div class="form-grid">
-                                    {{-- Sales / PIC Penanggung Jawab --}}
-                                    <div class="field" style="margin-bottom: 16px;">
-                                        <label class="field-label" for="cetakia_user_id">
-                                            Sales / PIC Penanggung Jawab <span style="color: #ef4444;">*</span>
-                                        </label>
-                                        <select id="cetakia_user_id" name="user_id" class="select select2">
-                                            <option value="">-- Pilih Sales (Cetakia) --</option>
-                                            @foreach ($salesUsers ?? [] as $sales)
-                                                <option value="{{ $sales['id'] }}" {{ $loop->first ? 'selected' : '' }}>
-                                                    {{ $sales['name'] }} ({{ $sales['role_name'] ?? $sales['role'] ?? 'Sales' }})
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                        <small class="field-help">Digunakan untuk penerbitan kode penawaran resmi Cetakia.</small>
-                                    </div>
-
-                                    {{-- Syarat Pembayaran (Terms) --}}
-                                    <div class="field" style="margin-bottom: 16px;">
-                                        <label class="field-label" for="cetakia_terms">
-                                            Syarat Pembayaran (Terms)
-                                        </label>
-                                        <select id="cetakia_terms" name="terms" class="select select2">
-                                            <option value="0" selected>Cash / Tunai (0 Hari)</option>
-                                            <option value="7">Kredit 7 Hari</option>
-                                            <option value="14">Kredit 14 Hari</option>
-                                            <option value="30">Kredit 30 Hari</option>
-                                        </select>
-                                        <small class="field-help">Durasi tempo pembayaran yang disepakati.</small>
-                                    </div>
-                                </div>
-
-                                {{-- Informasi Pelanggan (Untuk Surat Penawaran & Cetakia) --}}
-                                <div class="form-grid">
-                                    {{-- Nama Pelanggan (Select2 Cetakia) --}}
-                                    <div class="field" style="margin-bottom: 16px;">
-                                        <label class="field-label" for="customer_id">
-                                            Nama Pelanggan / Perusahaan (Cetakia) <span style="color: #ef4444;">*</span>
-                                        </label>
-                                        <select id="customer_id" name="customer_id" class="select" style="width: 100%;">
-                                            <option value="">-- Pilih Pelanggan (Cetakia) --</option>
-                                        </select>
-                                        <input type="hidden" id="customer_name" name="customer_name" value="">
-                                    </div>
-
-                                    {{-- No. WhatsApp / Telepon --}}
-                                    <div class="field" style="margin-bottom: 16px;">
-                                        <label class="field-label" for="customer_phone">
-                                            No. WhatsApp / Telepon (Opsional)
-                                        </label>
-                                        <input type="text" id="customer_phone" name="customer_phone" class="input"
-                                            placeholder="Contoh: 08123456789">
-                                    </div>
-                                </div>
-
-                                {{-- Alamat Penagihan & Pengiriman (Cetakia Quotation) --}}
-                                <div class="form-grid">
-                                    {{-- Alamat Penagihan (Bill To) --}}
-                                    <div class="field" style="margin-bottom: 16px;">
-                                        <label class="field-label" for="bill_to">
-                                            Alamat Penagihan (Bill To)
-                                        </label>
-                                        <textarea id="bill_to" name="bill_to" class="input" rows="2" style="height: auto; resize: vertical;"
-                                            placeholder="Alamat penagihan pelanggan..."></textarea>
-                                    </div>
-
-                                    {{-- Alamat Pengiriman (Ship To) --}}
-                                    <div class="field" style="margin-bottom: 16px;">
-                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                                            <label class="field-label" for="ship_to" style="margin-bottom: 0;">
-                                                Alamat Pengiriman (Ship To)
+                                <div class="form-module-card-body">
+                                    <div class="form-grid">
+                                        {{-- Lokasi --}}
+                                        <div class="field" style="margin-bottom: 20px;">
+                                            <label class="field-label" for="location_id">
+                                                Lokasi
+                                                <span class="req">*</span>
                                             </label>
-                                            <button type="button" id="btn_copy_bill_to_a3" class="btn-copy-address" title="Salin dari Alamat Penagihan">
+
+                                            <select id="location_id" name="location_id" class="select select2" required>
+                                                <option value="">Pilih Lokasi</option>
+                                                @foreach ($locations ?? [] as $location)
+                                                    <option value="{{ $location->id }}"
+                                                        {{ old('location_id') == $location->id ? 'selected' : '' }}>
+                                                        {{ $location->name }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+
+                                        {{-- Pilihan Harga / Pricing Profile --}}
+                                        <div class="field" style="margin-bottom: 20px;">
+                                            <label class="field-label" for="price_type">
+                                                Pilihan Harga
+                                                <span class="req">*</span>
+                                            </label>
+
+                                            <select id="price_type" name="price_type" class="select select2" required>
+                                                <option value="general" selected>Harga Umum</option>
+                                                <option value="division">Harga Divisi</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    {{-- Informasi Sales & Syarat Pembayaran (Cetakia Integration) --}}
+                                    <div class="form-grid">
+                                        {{-- Sales / PIC Penanggung Jawab --}}
+                                        <div class="field" style="margin-bottom: 16px;">
+                                            <label class="field-label" for="cetakia_user_id">
+                                                Sales / PIC Penanggung Jawab <span style="color: #ef4444;">*</span>
+                                            </label>
+                                            <select id="cetakia_user_id" name="user_id" class="select select2">
+                                                <option value="">-- Pilih Sales (Cetakia) --</option>
+                                                @foreach ($salesUsers ?? [] as $sales)
+                                                    <option value="{{ $sales['id'] }}" {{ $loop->first ? 'selected' : '' }}>
+                                                        {{ $sales['name'] }} ({{ $sales['role_name'] ?? $sales['role'] ?? 'Sales' }})
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                            <small class="field-help">Digunakan untuk penerbitan kode penawaran resmi Cetakia.</small>
+                                        </div>
+
+                                        {{-- Syarat Pembayaran (Terms) --}}
+                                        <div class="field" style="margin-bottom: 16px;">
+                                            <label class="field-label" for="cetakia_terms">
+                                                Syarat Pembayaran (Terms)
+                                            </label>
+                                            <select id="cetakia_terms" name="terms" class="select select2">
+                                                <option value="0" selected>Cash / Tunai (0 Hari)</option>
+                                                <option value="7">Kredit 7 Hari</option>
+                                                <option value="14">Kredit 14 Hari</option>
+                                                <option value="30">Kredit 30 Hari</option>
+                                            </select>
+                                            <small class="field-help">Durasi tempo pembayaran yang disepakati.</small>
+                                        </div>
+                                    </div>
+
+                                    {{-- Informasi Pelanggan (Untuk Surat Penawaran & Cetakia) --}}
+                                    <div class="form-grid">
+                                        {{-- Nama Pelanggan (Select2 Cetakia) --}}
+                                        <div class="field" style="margin-bottom: 16px;">
+                                            <label class="field-label" for="customer_id">
+                                                Nama Pelanggan / Perusahaan (Cetakia) <span style="color: #ef4444;">*</span>
+                                            </label>
+                                            <select id="customer_id" name="customer_id" class="select" style="width: 100%;">
+                                                <option value="">-- Pilih Pelanggan (Cetakia) --</option>
+                                            </select>
+                                            <input type="hidden" id="customer_name" name="customer_name" value="">
+                                        </div>
+
+                                        {{-- No. WhatsApp / Telepon --}}
+                                        <div class="field" style="margin-bottom: 16px;">
+                                            <label class="field-label" for="customer_phone">
+                                                No. WhatsApp / Telepon (Opsional)
+                                            </label>
+                                            <input type="text" id="customer_phone" name="customer_phone" class="input"
+                                                placeholder="Contoh: 08123456789">
+                                        </div>
+                                    </div>
+
+                                    {{-- Panel Alamat Penagihan & Pengiriman (Quotation Cetakia - WAJIB) --}}
+                                    <div class="address-sync-panel">
+                                        <div class="address-sync-header">
+                                            <div class="address-sync-title">
+                                                <i class="bi bi-geo-alt-fill" style="color: var(--primary);"></i>
+                                                <span>Alamat Penagihan &amp; Pengiriman (Quotation Cetakia)</span>
+                                                <span class="badge-req-cetakia">Wajib Cetakia</span>
+                                            </div>
+                                            <button type="button" id="btn_copy_bill_to_a3" class="btn-copy-address" title="Salin Alamat Penagihan ke Alamat Pengiriman">
                                                 <i class="bi bi-copy"></i> Sama dgn Bill To
                                             </button>
                                         </div>
-                                        <textarea id="ship_to" name="ship_to" class="input" rows="2" style="height: auto; resize: vertical;"
-                                            placeholder="Alamat tujuan pengiriman..."></textarea>
-                                    </div>
-                                </div>
 
-                                {{-- Masa Berlaku & Tanggal Penawaran (Cetakia Quotation) --}}
-                                <div class="form-grid">
-                                    {{-- Tanggal Penawaran --}}
-                                    <div class="field" style="margin-bottom: 16px;">
-                                        <label class="field-label" for="quotation_date">
-                                            Tanggal Penawaran
-                                        </label>
-                                        <input type="date" id="quotation_date" name="quotation_date" class="input"
-                                            value="{{ date('Y-m-d') }}">
-                                    </div>
+                                        <div class="form-grid">
+                                            {{-- Alamat Penagihan (Bill To) --}}
+                                            <div class="field" style="margin-bottom: 0;">
+                                                <label class="field-label" for="bill_to" style="font-size: 12px; margin-bottom: 4px; color: var(--t-muted);">
+                                                    Alamat Penagihan (Bill To) <span class="req" style="color: #ef4444;">*</span>
+                                                </label>
+                                                <textarea id="bill_to" name="bill_to" class="input address-textarea" rows="2" style="height: auto; min-height: 58px; resize: vertical;"
+                                                    placeholder="Alamat penagihan pelanggan..."></textarea>
+                                            </div>
 
-                                    {{-- Masa Berlaku Penawaran --}}
-                                    <div class="field" style="margin-bottom: 16px;">
-                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                                            <label class="field-label" for="quotation_expired" style="margin-bottom: 0;">
-                                                Masa Berlaku Penawaran (Expired)
-                                            </label>
-                                            <div style="display: flex; gap: 5px;">
-                                                <button type="button" class="quote-preset-btn btn-expire-preset-a3" data-days="3" title="Berlaku 3 Hari">+3 Hr</button>
-                                                <button type="button" class="quote-preset-btn btn-expire-preset-a3" data-days="7" title="Berlaku 7 Hari">+7 Hr</button>
-                                                <button type="button" class="quote-preset-btn btn-expire-preset-a3" data-days="14" title="Berlaku 14 Hari">+14 Hr</button>
-                                                <button type="button" class="quote-preset-btn btn-expire-preset-a3 active" data-days="30" title="Berlaku 30 Hari">+30 Hr</button>
+                                            {{-- Alamat Pengiriman (Ship To) --}}
+                                            <div class="field" style="margin-bottom: 0;">
+                                                <label class="field-label" for="ship_to" style="font-size: 12px; margin-bottom: 4px; color: var(--t-muted);">
+                                                    Alamat Pengiriman (Ship To) <span class="req" style="color: #ef4444;">*</span>
+                                                </label>
+                                                <textarea id="ship_to" name="ship_to" class="input address-textarea" rows="2" style="height: auto; min-height: 58px; resize: vertical;"
+                                                    placeholder="Alamat tujuan pengiriman..."></textarea>
                                             </div>
                                         </div>
-                                        <input type="date" id="quotation_expired" name="quotation_expired" class="input"
-                                            value="{{ date('Y-m-d', strtotime('+30 days')) }}">
+                                    </div>
+
+                                    {{-- Masa Berlaku & Tanggal Penawaran (Cetakia Quotation) --}}
+                                    <div class="form-grid">
+                                        {{-- Tanggal Penawaran --}}
+                                        <div class="field" style="margin-bottom: 16px;">
+                                            <label class="field-label" for="quotation_date">
+                                                Tanggal Penawaran
+                                            </label>
+                                            <input type="date" id="quotation_date" name="quotation_date" class="input"
+                                                value="{{ date('Y-m-d') }}">
+                                        </div>
+
+                                        {{-- Masa Berlaku Penawaran --}}
+                                        <div class="field" style="margin-bottom: 16px;">
+                                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                                                <label class="field-label" for="quotation_expired" style="margin-bottom: 0;">
+                                                    Masa Berlaku Penawaran (Expired)
+                                                </label>
+                                                <div style="display: flex; gap: 5px;">
+                                                    <button type="button" class="quote-preset-btn btn-expire-preset-a3" data-days="3" title="Berlaku 3 Hari">+3 Hr</button>
+                                                    <button type="button" class="quote-preset-btn btn-expire-preset-a3" data-days="7" title="Berlaku 7 Hari">+7 Hr</button>
+                                                    <button type="button" class="quote-preset-btn btn-expire-preset-a3" data-days="14" title="Berlaku 14 Hari">+14 Hr</button>
+                                                    <button type="button" class="quote-preset-btn btn-expire-preset-a3 active" data-days="30" title="Berlaku 30 Hari">+30 Hr</button>
+                                                </div>
+                                            </div>
+                                            <input type="date" id="quotation_expired" name="quotation_expired" class="input"
+                                                value="{{ date('Y-m-d', strtotime('+30 days')) }}">
+                                        </div>
+                                    </div>
+
+                                    {{-- Catatan Produksi / Penawaran --}}
+                                    <div class="field" style="margin-bottom: 0;">
+                                        <label class="field-label" for="customer_notes">
+                                            Catatan Khusus Penawaran / Produksi <span style="font-weight: 400; color: var(--t-muted); font-size: 11.5px;">(Opsional)</span>
+                                        </label>
+                                        <input type="text" id="customer_notes" name="customer_notes" class="input"
+                                            placeholder="Contoh: Packing per 100 pcs plastik mika, cetak prioritas...">
+                                    </div>
+                                </div>
+                            </section>
+
+                            {{-- =========================================================
+                                2. PILIHAN KERTAS & SPESIFIKASI CETAK
+                            ========================================================== --}}
+                            <section class="card form-module-card">
+                                <div class="form-module-card-head">
+                                    <div class="form-module-head-left">
+                                        <div class="form-module-step-badge">2</div>
+                                        <div>
+                                            <h3 class="form-module-title">Pilihan Kertas &amp; Spesifikasi Cetak</h3>
+                                            <p class="form-module-subtitle">Kategori material, jenis kertas / stiker, mode warna, dan ukuran produk.</p>
+                                        </div>
                                     </div>
                                 </div>
 
-                                {{-- Catatan Produksi / Penawaran --}}
-                                <div class="field" style="margin-bottom: 20px;">
-                                    <label class="field-label" for="customer_notes">
-                                        Catatan Khusus Penawaran / Produksi (Opsional)
-                                    </label>
-                                    <input type="text" id="customer_notes" name="customer_notes" class="input"
-                                        placeholder="Contoh: Packing per 100 pcs plastik mika, cetak prioritas...">
-                                </div>
-                            </div>
-
-                            {{-- =========================================================
-                                2. MODE PRODUKSI & SPESIFIKASI CETAK
-                            ========================================================== --}}
-                            <div class="form-section">
-                                <div class="form-section-head">
-                                    <span class="eyebrow">
-                                        SPESIFIKASI CETAK A3+
-                                    </span>
-                                </div>
+                                <div class="form-module-card-body">
 
                                 <div class="form-grid">
                                     {{-- Kategori --}}
@@ -1991,16 +2191,24 @@
                                     </div>
                                 </div>
                             </div>
+                        </section>
 
-                            {{-- =========================================================
-                                3. FINISHING: LAMINASI & CUTTING
-                            ========================================================== --}}
-                            <div class="form-section" id="finishingSection">
-                                <div class="form-section-head">
-                                    <span class="eyebrow">
-                                        FINISHING: LAMINASI &amp; CUTTING
-                                    </span>
+                        {{-- =========================================================
+                            3. FINISHING & KOMPONEN TAMBAHAN
+                        ========================================================== --}}
+                        <section class="card form-module-card" id="finishingSectionCard">
+                            <div class="form-module-card-head">
+                                <div class="form-module-head-left">
+                                    <div class="form-module-step-badge">3</div>
+                                    <div>
+                                        <h3 class="form-module-title">Finishing &amp; Komponen Tambahan</h3>
+                                        <p class="form-module-subtitle">Laminasi pelindung, pemotongan mesin, dan aksesoris / komponen pelengkap.</p>
+                                    </div>
                                 </div>
+                            </div>
+
+                            <div class="form-module-card-body">
+                                <div id="finishingSection">
 
                                 <div class="form-grid">
                                     {{-- Laminasi --}}
@@ -2105,7 +2313,7 @@
                             </div>
 
                             {{-- Notice Finishing untuk Display --}}
-                            <div id="displayFinishingNotice" class="form-section"
+                            <div id="displayFinishingNotice"
                                 style="display: none; margin-bottom: 20px;">
                                 <div
                                     style="padding: 14px 18px; border-radius: 8px; background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.2); font-size: 13.5px; color: #065f46;">
@@ -2115,27 +2323,21 @@
                                 </div>
                             </div>
 
-                            {{-- =========================================================
-                                4. KOMPONEN TAMBAHAN
-                            ========================================================== --}}
-                            <div class="form-section"
-                                style="margin-top: 20px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 20px;">
+                            <div class="form-module-divider"></div>
 
-                                <div class="form-section-header"
-                                    style="display: flex; flex-direction: column; gap: 15px;">
+                            {{-- Komponen Tambahan --}}
+                            <div class="additional-components-section">
+                                <div class="additional-components-head">
                                     <div>
-                                        <div class="form-section-title">
-                                            Komponen Tambahan
-                                        </div>
-                                        <div class="form-section-description eyebrow">
-                                            Tambahkan komponen tambahan / jasa khusus yang digunakan dalam estimasi
-                                            (opsional).
-                                        </div>
+                                        <h4 class="additional-components-title">Komponen Tambahan / Jasa</h4>
+                                        <p class="additional-components-subtitle">
+                                            Tambahkan komponen tambahan / jasa khusus yang digunakan dalam estimasi (opsional).
+                                        </p>
                                     </div>
 
                                     <button type="button" class="btn btn--primary" id="addAdditionalComponentButton"
                                         style="max-width: 220px;">
-                                        + Tambah Komponen
+                                        <i class="bi bi-plus-lg"></i> Tambah Komponen
                                     </button>
                                 </div>
 
@@ -2143,16 +2345,24 @@
                                     {{-- Komponen tambahan akan digenerate via JavaScript --}}
                                 </div>
                             </div>
+                        </div>
+                    </section>
 
-                            {{-- =========================================================
-                                5. DISKON & LEAD TIME
-                            ========================================================== --}}
-                            <div class="form-section">
-                                <div class="form-section-head">
-                                    <span class="eyebrow">
-                                        DISKON &amp; ESTIMASI WAKTU
-                                    </span>
+                    {{-- =========================================================
+                        4. POTONGAN DISKON & ESTIMASI WAKTU
+                    ========================================================== --}}
+                    <section class="card form-module-card" style="margin-bottom: 24px;">
+                        <div class="form-module-card-head">
+                            <div class="form-module-head-left">
+                                <div class="form-module-step-badge">4</div>
+                                <div>
+                                    <h3 class="form-module-title">Diskon, Estimasi Waktu &amp; Aksi</h3>
+                                    <p class="form-module-subtitle">Potongan harga penawaran dan estimasi durasi hari kerja pengerjaan.</p>
                                 </div>
+                            </div>
+                        </div>
+
+                        <div class="form-module-card-body">
 
                                 <div class="field" style="margin-bottom: 20px;">
                                     <label class="field-label">
@@ -2240,9 +2450,7 @@
                                 </div>
                             </div>
 
-                            {{-- =========================================================
-                                6. STATUS & RESET
-                            ========================================================== --}}
+                            {{-- Card Actions: Status, Reset & Batal --}}
                             <div class="form-actions" style="padding: 16px 20px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
                                 <span class="badge dot success" id="realtimeStatusBadge">
                                     <i class="bi bi-lightning-charge-fill" style="margin-right: 4px;"></i> Kalkulasi Otomatis Aktif
@@ -2257,8 +2465,8 @@
                                     </a>
                                 </div>
                             </div>
-                        </form>
-                    </section>
+                        </section>
+                    </form>
                 </div>
 
                 {{-- =========================================================

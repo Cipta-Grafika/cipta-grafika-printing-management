@@ -22,6 +22,129 @@
             width: 100%;
         }
 
+        /* =========================================================
+           MODULAR FORM CARDS STYLING (UX IMPROVEMENT)
+        ========================================================== */
+        .form-module-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+            overflow: hidden;
+            transition: box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+
+        .form-module-card:hover {
+            border-color: rgba(37, 99, 235, 0.3);
+        }
+
+        .form-module-card-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .form-module-head-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .form-module-step-badge {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.15) 0%, rgba(37, 99, 235, 0.08) 100%);
+            color: var(--primary);
+            font-size: 13px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(37, 99, 235, 0.25);
+            flex-shrink: 0;
+        }
+
+        .form-module-title {
+            font-size: 14.5px;
+            font-weight: 700;
+            color: var(--t-base);
+            margin: 0;
+            line-height: 1.3;
+        }
+
+        .form-module-subtitle {
+            font-size: 12px;
+            color: var(--t-muted);
+            margin: 2px 0 0;
+            line-height: 1.4;
+        }
+
+        .form-module-card-body {
+            padding: 20px;
+        }
+
+        /* Dedicated Address Sync Panel for Cetakia Quotation */
+        .address-sync-panel {
+            background: var(--bg-muted);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px 16px;
+            margin-bottom: 18px;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .address-sync-panel:focus-within {
+            border-color: rgba(37, 99, 235, 0.35);
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.06);
+        }
+
+        .address-sync-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .address-sync-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--t-base);
+        }
+
+        .badge-req-cetakia {
+            font-size: 10.5px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 20px;
+            background: rgba(37, 99, 235, 0.12);
+            color: var(--primary);
+            border: 1px solid rgba(37, 99, 235, 0.25);
+            letter-spacing: 0.2px;
+        }
+
+        .address-textarea {
+            min-height: 56px;
+            line-height: 1.4;
+            font-size: 13px;
+        }
+
+        /* Divider inside card */
+        .form-module-divider {
+            height: 1px;
+            background: var(--border);
+            margin: 22px 0;
+        }
+
         /* Quotation & Date Picker Theming (Dark & Light) */
         :root[data-theme="dark"] input[type="date"],
         [data-theme="dark"] input[type="date"] {
@@ -134,10 +257,18 @@
             cursor: pointer;
             transition: all 0.2s ease;
         }
+        .btn-action-wa i {
+            color: #22c55e;
+            font-size: 15px;
+            transition: transform 0.2s ease;
+        }
         .btn-action-wa:hover {
             background: var(--bg-hover);
             border-color: #22c55e;
             color: #22c55e;
+        }
+        .btn-action-wa:hover i {
+            transform: scale(1.15);
         }
 
         /* Modern PPN 11% Toggle Switch Styling */
@@ -1561,6 +1692,35 @@
 
         /* Mobile Responsive */
         @media (max-width: 768px) {
+            .form-module-card {
+                margin-bottom: 16px;
+                border-radius: 10px;
+            }
+            .form-module-card-head {
+                padding: 12px 14px;
+            }
+            .form-module-card-body {
+                padding: 14px;
+            }
+            .form-module-title {
+                font-size: 13.5px;
+            }
+            .form-module-subtitle {
+                font-size: 11.5px;
+            }
+            .address-sync-panel {
+                padding: 12px;
+                margin-bottom: 16px;
+            }
+            .address-sync-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 6px;
+            }
+            .address-sync-header .btn-copy-address {
+                align-self: flex-start;
+            }
+
             .printable-info-grid {
                 grid-template-columns: 1fr;
             }
@@ -1740,38 +1900,33 @@
                         KOLOM KIRI: FORM ESTIMASI LARGE FORMAT
                     ========================================================== --}}
                     <div class="lf-form-col">
-                        <section class="card" style="margin-bottom: 24px;">
+                        {{-- FORM ESTIMASI LF --}}
+                        <form action="{{ route('admin_store_lf') }}" method="POST" id="largeFormatEstimationForm">
+                            @csrf
 
-                            {{-- CARD HEADER --}}
-                            <div class="card-head">
-                                <div class="card-title-wrap">
-                                    <span class="eyebrow">
-                                        FORMULIR SPESIFIKASI LARGE FORMAT
-                                    </span>
-                                </div>
-                            </div>
+                            {{-- Hidden inputs custom size & display identity --}}
+                            <input type="hidden" name="material_price_size_id" id="material_price_size_id">
+                            <input type="hidden" name="lamination_price_size_id" id="lamination_price_size_id">
+                            <input type="hidden" name="display_configuration_id" id="display_configuration_id">
+                            <input type="hidden" name="display_product_id" id="display_product_id">
+                            <input type="hidden" name="display_component_id" id="display_component_id">
+                            <input type="hidden" name="display_component_type" id="display_component_type">
 
-                            {{-- FORM ESTIMASI LF --}}
-                            <form action="{{ route('admin_store_lf') }}" method="POST" id="largeFormatEstimationForm">
-                                @csrf
-
-                                {{-- Hidden inputs custom size & display identity --}}
-                                <input type="hidden" name="material_price_size_id" id="material_price_size_id">
-                                <input type="hidden" name="lamination_price_size_id" id="lamination_price_size_id">
-                                <input type="hidden" name="display_configuration_id" id="display_configuration_id">
-                                <input type="hidden" name="display_product_id" id="display_product_id">
-                                <input type="hidden" name="display_component_id" id="display_component_id">
-                                <input type="hidden" name="display_component_type" id="display_component_type">
-
-                                {{-- =========================================================
-                                    1. INFORMASI PELANGGAN & LOKASI
-                                ========================================================== --}}
-                                <div class="form-section">
-                                    <div class="form-section-head">
-                                        <span class="eyebrow" style="font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 6px;">
-                                            <i class="bi bi-person-badge"></i> 1. INFORMASI PELANGGAN &amp; LOKASI
-                                        </span>
+                            {{-- =========================================================
+                                1. INFORMASI PELANGGAN & LOKASI
+                            ========================================================== --}}
+                            <section class="card form-module-card">
+                                <div class="form-module-card-head">
+                                    <div class="form-module-head-left">
+                                        <div class="form-module-step-badge">1</div>
+                                        <div>
+                                            <h3 class="form-module-title">Informasi Pelanggan &amp; Lokasi</h3>
+                                            <p class="form-module-subtitle">Cabang operasional, level harga, sales PIC, dan data penawaran resmi Cetakia.</p>
+                                        </div>
                                     </div>
+                                </div>
+
+                                <div class="form-module-card-body">
 
                                     <div class="form-grid">
                                         {{-- Lokasi --}}
@@ -1879,29 +2034,37 @@
                                         </div>
                                     </div>
 
-                                    {{-- Alamat Penagihan & Pengiriman (Cetakia Quotation) --}}
-                                    <div class="form-grid">
-                                        {{-- Alamat Penagihan (Bill To) --}}
-                                        <div class="field" style="margin-bottom: 16px;">
-                                            <label class="field-label" for="bill_to">
-                                                Alamat Penagihan (Bill To)
-                                            </label>
-                                            <textarea id="bill_to" name="bill_to" class="input" rows="2" style="height: auto; resize: vertical;"
-                                                placeholder="Alamat penagihan pelanggan..."></textarea>
+                                    {{-- Panel Alamat Penagihan & Pengiriman (Quotation Cetakia - WAJIB) --}}
+                                    <div class="address-sync-panel">
+                                        <div class="address-sync-header">
+                                            <div class="address-sync-title">
+                                                <i class="bi bi-geo-alt-fill" style="color: var(--primary);"></i>
+                                                <span>Alamat Penagihan &amp; Pengiriman (Quotation Cetakia)</span>
+                                                <span class="badge-req-cetakia">Wajib Cetakia</span>
+                                            </div>
+                                            <button type="button" id="btn_copy_bill_to_lf" class="btn-copy-address" title="Salin Alamat Penagihan ke Alamat Pengiriman">
+                                                <i class="bi bi-copy"></i> Sama dgn Bill To
+                                            </button>
                                         </div>
 
-                                        {{-- Alamat Pengiriman (Ship To) --}}
-                                        <div class="field" style="margin-bottom: 16px;">
-                                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                                                <label class="field-label" for="ship_to" style="margin-bottom: 0;">
-                                                    Alamat Pengiriman (Ship To)
+                                        <div class="form-grid">
+                                            {{-- Alamat Penagihan (Bill To) --}}
+                                            <div class="field" style="margin-bottom: 0;">
+                                                <label class="field-label" for="bill_to" style="font-size: 12px; margin-bottom: 4px; color: var(--t-muted);">
+                                                    Alamat Penagihan (Bill To) <span class="req" style="color: #ef4444;">*</span>
                                                 </label>
-                                                <button type="button" id="btn_copy_bill_to_lf" class="btn-copy-address" title="Salin dari Alamat Penagihan">
-                                                    <i class="bi bi-copy"></i> Sama dgn Bill To
-                                                </button>
+                                                <textarea id="bill_to" name="bill_to" class="input address-textarea" rows="2" style="height: auto; min-height: 58px; resize: vertical;"
+                                                    placeholder="Alamat penagihan pelanggan..."></textarea>
                                             </div>
-                                            <textarea id="ship_to" name="ship_to" class="input" rows="2" style="height: auto; resize: vertical;"
-                                                placeholder="Alamat tujuan pengiriman..."></textarea>
+
+                                            {{-- Alamat Pengiriman (Ship To) --}}
+                                            <div class="field" style="margin-bottom: 0;">
+                                                <label class="field-label" for="ship_to" style="font-size: 12px; margin-bottom: 4px; color: var(--t-muted);">
+                                                    Alamat Pengiriman (Ship To) <span class="req" style="color: #ef4444;">*</span>
+                                                </label>
+                                                <textarea id="ship_to" name="ship_to" class="input address-textarea" rows="2" style="height: auto; min-height: 58px; resize: vertical;"
+                                                    placeholder="Alamat tujuan pengiriman..."></textarea>
+                                            </div>
                                         </div>
                                     </div>
 
@@ -1935,24 +2098,31 @@
                                     </div>
 
                                     {{-- Catatan Khusus --}}
-                                    <div class="field" style="margin-bottom: 20px;">
+                                    <div class="field" style="margin-bottom: 0;">
                                         <label class="field-label" for="customer_notes">
-                                            Catatan Khusus Penawaran / Produksi (Opsional)
+                                            Catatan Khusus Penawaran / Produksi <span style="font-weight: 400; color: var(--t-muted); font-size: 11.5px;">(Opsional)</span>
                                         </label>
                                         <input type="text" id="customer_notes" name="customer_notes" class="input"
                                             placeholder="Contoh: Mata ayam 4 sudut, lebihan bahan keliling 2 cm...">
                                     </div>
                                 </div>
+                            </section>
 
-                                {{-- =========================================================
-                                    2. SPESIFIKASI CETAK LARGE FORMAT
-                                ========================================================== --}}
-                                <div class="form-section">
-                                    <div class="form-section-head">
-                                        <span class="eyebrow" style="font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 6px;">
-                                            <i class="bi bi-aspect-ratio"></i> 2. SPESIFIKASI CETAK LARGE FORMAT
-                                        </span>
+                            {{-- =========================================================
+                                2. SPESIFIKASI CETAK LARGE FORMAT
+                            ========================================================== --}}
+                            <section class="card form-module-card">
+                                <div class="form-module-card-head">
+                                    <div class="form-module-head-left">
+                                        <div class="form-module-step-badge">2</div>
+                                        <div>
+                                            <h3 class="form-module-title">Spesifikasi Cetak Large Format</h3>
+                                            <p class="form-module-subtitle">Kategori material outdoor/indoor, ukuran cetak (panjang &amp; lebar), dan laminasi.</p>
+                                        </div>
                                     </div>
+                                </div>
+
+                                <div class="form-module-card-body">
 
                                     <div class="form-grid">
                                         {{-- Kategori --}}
@@ -2105,41 +2275,47 @@
                                         </div>
                                     </div>
                                 </div>
+                            </section>
 
-                                {{-- =========================================================
-                                    3. KOMPONEN TAMBAHAN
-                                ========================================================== --}}
-                                <div class="form-section" style="margin-top: 20px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 16px;">
-                                    <div class="form-section-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                            {{-- =========================================================
+                                3. KOMPONEN TAMBAHAN
+                            ========================================================== --}}
+                            <section class="card form-module-card">
+                                <div class="form-module-card-head">
+                                    <div class="form-module-head-left">
+                                        <div class="form-module-step-badge">3</div>
                                         <div>
-                                            <div class="form-section-title" style="font-size: 14px; font-weight: 700; color: var(--primary);">
-                                                <i class="bi bi-puzzle"></i> 3. KOMPONEN TAMBAHAN
-                                            </div>
-                                            <div class="form-section-description eyebrow" style="font-size: 11.5px; color: var(--t-muted); margin-top: 2px;">
-                                                Tambahkan komponen finishing, mata ayam, lem, selongsong, atau jasa pemasangan.
-                                            </div>
+                                            <h3 class="form-module-title">Komponen Tambahan / Finishing</h3>
+                                            <p class="form-module-subtitle">Finishing mata ayam, lem, selongsong, atau jasa pemasangan.</p>
                                         </div>
-
-                                        <button type="button" class="btn btn--primary" id="addAdditionalComponentButton">
-                                            <i class="bi bi-plus-lg"></i> Tambah Komponen
-                                        </button>
                                     </div>
+                                    <button type="button" class="btn btn--primary" id="addAdditionalComponentButton" style="max-width: 220px;">
+                                        <i class="bi bi-plus-lg"></i> Tambah Komponen
+                                    </button>
+                                </div>
 
+                                <div class="form-module-card-body">
                                     <div id="additionalComponentsContainer">
                                         {{-- Komponen tambahan dinamis di-generate oleh JS --}}
                                     </div>
                                 </div>
+                            </section>
 
-                                {{-- =========================================================
-                                    4. DISKON & ESTIMASI WAKTU
-                                ========================================================== --}}
-                                <div class="form-section">
-                                    <div class="form-section-head">
-                                        <span class="eyebrow" style="font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 6px;">
-                                            <i class="bi bi-percent"></i> 4. DISKON &amp; ESTIMASI WAKTU
-                                        </span>
+                            {{-- =========================================================
+                                4. DISKON, ESTIMASI WAKTU & AKSI
+                            ========================================================== --}}
+                            <section class="card form-module-card" style="margin-bottom: 24px;">
+                                <div class="form-module-card-head">
+                                    <div class="form-module-head-left">
+                                        <div class="form-module-step-badge">4</div>
+                                        <div>
+                                            <h3 class="form-module-title">Diskon, Estimasi Waktu &amp; Aksi</h3>
+                                            <p class="form-module-subtitle">Potongan harga penawaran dan estimasi durasi hari kerja pengerjaan.</p>
+                                        </div>
                                     </div>
+                                </div>
 
+                                <div class="form-module-card-body">
                                     <div class="field" style="margin-bottom: 20px;">
                                         <label class="field-label">
                                             Jenis Diskon
@@ -2226,11 +2402,9 @@
                                     </div>
                                 </div>
 
-                                {{-- =========================================================
-                                    5. STATUS & RESET
-                                ========================================================== --}}
+                                {{-- Card Actions: Status, Reset & Batal --}}
                                 <div class="form-actions" style="padding: 16px 20px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
-                                    <span class="badge" id="realtimeStatusBadge" style="background: rgba(37, 99, 235, 0.1); color: var(--primary); border: 1px solid rgba(37, 99, 235, 0.25);">
+                                    <span class="badge dot success" id="realtimeStatusBadge">
                                         <i class="bi bi-lightning-charge-fill" style="margin-right: 4px;"></i> Kalkulasi Otomatis Aktif
                                     </span>
 
@@ -2243,8 +2417,8 @@
                                         </a>
                                     </div>
                                 </div>
-                            </form>
-                        </section>
+                            </section>
+                        </form>
                     </div>
 
                     {{-- =========================================================
