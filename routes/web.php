@@ -219,6 +219,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/admin/material-prices/export', [MaterialPriceCT::class, 'export'])->name('admin_export_material_price');
 
     Route::get('/admin/estimations', [EstimationCT::class, 'index'])->name('admin_estimations');
+    Route::get('/admin/estimations/data', [EstimationCT::class, 'data'])->name('admin_estimations_data');
+    Route::get('/admin/estimations/detail/{id}', [EstimationCT::class, 'show'])->name('admin_estimations_detail');
     Route::get('/admin/estimations/create-lf', [EstimationCT::class, 'createLF'])->name('admin_create_lf_estimation');
     Route::get('/admin/estimation/create-lf/get-materials', [EstimationCT::class, 'getMaterials'])->name('admin_get_materials');
     Route::get('/admin/estimation/create-lf/get-pricelist', [EstimationCT::class, 'getPriceListLF'])->name('admin_get_pricelist_lf');

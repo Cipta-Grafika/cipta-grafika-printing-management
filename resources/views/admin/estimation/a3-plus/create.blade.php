@@ -3396,6 +3396,10 @@
                             <i class="bi bi-copy"></i> Salin
                         </button>
                     </div>
+                    <div id="wrapLocalEstimationCode" style="display: none; justify-content: space-between; align-items: center; margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border);">
+                        <span style="font-size: 12px; color: var(--t-muted);">Kode Estimasi Lokal:</span>
+                        <strong id="cetakiaSuccessLocalCode" style="font-size: 13px; font-family: monospace; color: var(--primary); font-weight: 700;">-</strong>
+                    </div>
                 </div>
 
                 <div style="font-size: 13px; display: flex; flex-direction: column; gap: 8px; color: var(--t-base); margin-bottom: 20px;">
@@ -3413,7 +3417,11 @@
                     </div>
                 </div>
 
-                <div style="margin-top: 10px;">
+                <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 8px;">
+                    <a href="{{ route('admin_estimations') }}" class="btn" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 11px 18px; font-size: 13.5px; font-weight: 600; background: var(--bg-hover); color: var(--t-base); border: 1px solid var(--border); border-radius: 10px; text-decoration: none; cursor: pointer; transition: all 0.2s ease;">
+                        <i class="bi bi-file-earmark-text"></i>
+                        <span>Buka Riwayat Penawaran</span>
+                    </a>
                     <button type="button" id="btnCloseCetakiaModal" class="btn" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 18px; font-size: 14px; font-weight: 700; background: var(--primary); color: #fff; border: none; border-radius: 10px; cursor: pointer; transition: all 0.2s ease;">
                         <i class="bi bi-check-circle-fill"></i>
                         <span>Selesai / Tutup</span>
@@ -5891,6 +5899,16 @@
                 // Simpan payload untuk dieksekusi dari modal konfirmasi
                 pendingCetakiaPayload = {
                     customer_id: customerId,
+                    customer_name: custName,
+                    customer_phone: ($('#customer_phone').val() || '').trim(),
+                    sales_name: salesName,
+                    estimation_type: 'a3_plus',
+                    location_id: $('#location_id').val() || null,
+                    price_type: $('#price_type').val() || 'general',
+                    total_hpp: lastCalculatedData.total_hpp || 0,
+                    total_profit: lastCalculatedData.profit || 0,
+                    margin_percent: lastCalculatedData.margin || 0,
+                    markup_percent: lastCalculatedData.markup || 0,
                     user_id: userId,
                     quotation_date: $('#quotation_date').val() || new Date().toISOString().split('T')[0],
                     quotation_expired: $('#quotation_expired').val() || new Date().toISOString().split('T')[0],
@@ -5922,7 +5940,27 @@
                             unit_id: '{{ $cetakiaLembarUnitId ?? "019b8a5f-486a-7779-a895-9cbfce459ae8" }}',
                             unit_name: 'Lembar',
                             unit_code: 'lbr',
-                            amount: subtotal
+                            amount: subtotal,
+                            hpp_per_unit: finalItemQty > 0 ? (lastCalculatedData.total_hpp / finalItemQty) : 0,
+                            total_hpp: lastCalculatedData.total_hpp || 0,
+                            profit: lastCalculatedData.profit || 0,
+                            margin_percent: lastCalculatedData.margin || 0,
+                            markup_percent: lastCalculatedData.markup || 0,
+                            technical_details: {
+                                material_name: lastCalculatedData.material_name || '',
+                                print_color: lastCalculatedData.print_color || $('#print_color').val(),
+                                print_side: lastCalculatedData.print_side || $('#print_side').val(),
+                                finished_size: lastCalculatedData.finished_size || '',
+                                total_sheets: finalItemQty,
+                                imposition_info: lastCalculatedData.imposition_info || '',
+                                lamination: Boolean(lastCalculatedData.lamination),
+                                lamination_name: lastCalculatedData.lamination_name || '',
+                                lamination_cost: lastCalculatedData.lamination_subtotal || 0,
+                                cutting: Boolean(lastCalculatedData.cutting),
+                                cutting_name: lastCalculatedData.cutting_name || '',
+                                cutting_cost: lastCalculatedData.cutting_subtotal || 0,
+                                production_mode: $('#production_mode').val() || 'layout'
+                            }
                         }
                     ],
                     _display: {
@@ -5978,12 +6016,24 @@
 
                         if (res.success && res.data) {
                             const qCode = (res.data.quotation && res.data.quotation.quotation_code) ? res.data.quotation.quotation_code : (res.data.quotation_code || res.data.code || '-');
+                            const localCode = res.data.local_estimation_code || '';
                             $('#cetakiaSuccessCode').text(qCode);
                             $('#cetakiaSuccessCustomer').text(disp.customerName || '-');
                             $('#cetakiaSuccessSales').text(disp.salesName || '-');
                             $('#cetakiaSuccessGrandTotal').text(formatRupiah(disp.grandTotal || 0));
+
+                            if (localCode) {
+                                $('#cetakiaSuccessLocalCode').text(localCode);
+                                $('#wrapLocalEstimationCode').css('display', 'flex');
+                            } else {
+                                $('#wrapLocalEstimationCode').hide();
+                            }
+
                             $('#modalCetakiaSuccess').addClass('is-open');
-                            showNotificationToast('Quotation Berhasil!', 'Penawaran ' + qCode + ' telah resmi tercatat di Cetakia (Dev Mode).', 'success');
+                            const notifMsg = localCode 
+                                ? ('Penawaran ' + qCode + ' (' + localCode + ') telah resmi tercatat di Cetakia & tersimpan di Riwayat Estimasi.')
+                                : ('Penawaran ' + qCode + ' telah resmi tercatat di Cetakia (Dev Mode).');
+                            showNotificationToast('Quotation Berhasil!', notifMsg, 'success');
                         } else {
                             showNotificationToast('Pemberitahuan Cetakia', res.message || 'Gagal membuat penawaran di Cetakia.', 'error');
                         }

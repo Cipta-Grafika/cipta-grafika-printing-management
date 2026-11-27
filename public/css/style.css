@@ -218,8 +218,6 @@ body {
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior-y: contain;
-    scrollbar-width: thin;
-    scrollbar-color: var(--border) transparent;
     padding: 22px 16px 18px;
     position: sticky;
     top: 0;
@@ -227,9 +225,23 @@ body {
 .d-sidebar::-webkit-scrollbar {
     width: 4px;
 }
+.d-sidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
 .d-sidebar::-webkit-scrollbar-thumb {
     background: var(--border);
     border-radius: 4px;
+}
+.d-sidebar::-webkit-scrollbar-button {
+    display: none;
+    width: 0;
+    height: 0;
+}
+@supports not selector(::-webkit-scrollbar) {
+    .d-sidebar {
+        scrollbar-width: thin;
+        scrollbar-color: var(--border) transparent;
+    }
 }
 .brand {
     align-items: center;

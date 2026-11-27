@@ -8,10 +8,27 @@
                     label: "Estimasi",
                     items: [
                         {
-                            key: "dashboard",
-                            text: "Buat Estimasi",
-                            href: window.adminRoutes.dashboard,
-                            icon: '<path d="M12 5v14"/><path d="M5 12h14"/>',
+                            key: "estimation-group",
+                            text: "Penawaran",
+                            icon: `
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                <polyline points="14 2 14 8 20 8"/>
+                                <line x1="16" y1="13" x2="8" y2="13"/>
+                                <line x1="16" y1="17" x2="8" y2="17"/>
+                                <line x1="10" y1="9" x2="8" y2="9"/>
+                            `,
+                            children: [
+                                {
+                                    key: "dashboard",
+                                    text: "Kalkulasi Cetak",
+                                    href: window.adminRoutes.dashboard,
+                                },
+                                {
+                                    key: "estimation-history",
+                                    text: "Riwayat Penawaran",
+                                    href: window.adminRoutes.estimation_history || "/admin/estimations",
+                                },
+                            ],
                         },
                     ],
                 },
@@ -102,10 +119,13 @@
                             text: "Vendor",
                             href: window.adminRoutes.vendors,
                             icon: `
-                                <path d="M3 9l1-5h16l1 5"/>
-                                <path d="M4 9a2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0"/>
-                                <rect x="4" y="9" width="16" height="11" rx="1"/>
-                                <path d="M9 20v-5h6v5"/>
+                                <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/>
+                                <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/>
+                                <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/>
+                                <path d="M10 6h4"/>
+                                <path d="M10 10h4"/>
+                                <path d="M10 14h4"/>
+                                <path d="M10 18h4"/>
                             `,
                         },
                     ],

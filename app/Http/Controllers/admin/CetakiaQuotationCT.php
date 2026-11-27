@@ -7,6 +7,8 @@ use App\Services\CetakiaApiService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class CetakiaQuotationCT extends Controller
 {
@@ -48,6 +50,23 @@ class CetakiaQuotationCT extends Controller
             'items.*.qty'       => 'required|numeric|min:0.01',
             'items.*.price'     => 'required|numeric|min:0',
             'items.*.amount'    => 'required|numeric|min:0',
+            // Metadata opsional untuk sinkronisasi transaksi estimasi lokal
+            'customer_name'             => 'nullable|string',
+            'customer_phone'            => 'nullable|string',
+            'sales_name'                => 'nullable|string',
+            'estimation_type'           => 'nullable|string',
+            'location_id'               => 'nullable',
+            'price_type'                => 'nullable|string',
+            'total_hpp'                 => 'nullable|numeric',
+            'total_profit'              => 'nullable|numeric',
+            'margin_percent'            => 'nullable|numeric',
+            'markup_percent'            => 'nullable|numeric',
+            'items.*.hpp_per_unit'      => 'nullable|numeric',
+            'items.*.total_hpp'         => 'nullable|numeric',
+            'items.*.profit'            => 'nullable|numeric',
+            'items.*.margin_percent'    => 'nullable|numeric',
+            'items.*.markup_percent'    => 'nullable|numeric',
+            'items.*.technical_details' => 'nullable',
         ]);
 
         $subTotal       = round((float) $request->input('sub_total'), 2);
@@ -269,6 +288,169 @@ class CetakiaQuotationCT extends Controller
 
         if (!empty($result['data']['quotation']['quotation_code'])) {
             $result['data']['quotation_code'] = $result['data']['quotation']['quotation_code'];
+        }
+
+        // SIMPAN TRANSAKSI ESTIMASI KE DATABASE LOKAL JIKA DISPATCH KE CETAKIA BERHASIL
+        if (!empty($result['success']) && !empty($result['data'])) {
+            try {
+                $cetakiaQuotationCode = $result['data']['quotation']['quotation_code'] 
+                    ?? $result['data']['quotation_code'] 
+                    ?? null;
+                $cetakiaQuotationId = $result['data']['quotation']['id'] ?? null;
+
+                // Resolusi Nama Pelanggan
+                $customerName = trim((string) $request->input('customer_name'));
+                if (empty($customerName)) {
+                    $customerName = 'Pelanggan Cetakia';
+                }
+
+                // Resolusi Nama Sales PIC
+                $salesName = trim((string) $request->input('sales_name'));
+                if (empty($salesName)) {
+                    $salesList = $this->cetakiaService->getSalesUsers();
+                    foreach ($salesList as $s) {
+                        if (($s['id'] ?? '') === $request->input('user_id')) {
+                            $salesName = $s['name'] ?? $s['username'] ?? '';
+                            break;
+                        }
+                    }
+                }
+                if (empty($salesName)) {
+                    $salesName = 'Sales Cetakia';
+                }
+
+                // Resolusi Lokasi Cabang
+                $locationId = $request->input('location_id');
+                if ($locationId) {
+                    $locationId = (int) $locationId;
+                    if (!DB::table('m_locations')->where('id', $locationId)->exists()) {
+                        $locationId = null;
+                    }
+                } else {
+                    $locationId = null;
+                }
+
+                // Generate Kode Estimasi Lokal Unik: EST-{TYPE}-{YYYYMM}-{SEQ}
+                $estType = (string) $request->input('estimation_type', 'a3_plus');
+                $typeCodeMap = [
+                    'a3_plus'      => 'A3',
+                    'large_format' => 'LF',
+                    'offset'       => 'OF',
+                    'calendar'     => 'KL',
+                    'merchandise'  => 'MC',
+                ];
+                $typePrefix = $typeCodeMap[$estType] ?? 'EST';
+                $ymPrefix = 'EST-' . $typePrefix . '-' . date('Ym');
+
+                DB::beginTransaction();
+
+                $latest = DB::table('t_estimations')
+                    ->where('estimation_code', 'like', $ymPrefix . '-%')
+                    ->orderBy('id', 'desc')
+                    ->lockForUpdate()
+                    ->first();
+
+                $seq = 1;
+                if ($latest && preg_match('/-(\d+)$/', $latest->estimation_code, $matches)) {
+                    $seq = (int) $matches[1] + 1;
+                }
+                $estimationCode = sprintf('%s-%04d', $ymPrefix, $seq);
+
+                $currentUser = Auth::user();
+                $authorName = $currentUser ? ($currentUser->name ?? $currentUser->username ?? 'User') : 'System';
+
+                $estimationId = DB::table('t_estimations')->insertGetId([
+                    'estimation_code'         => $estimationCode,
+                    'cetakia_quotation_code'  => $cetakiaQuotationCode,
+                    'cetakia_quotation_id'    => $cetakiaQuotationId,
+                    'estimation_type'         => $estType,
+                    'location_id'             => $locationId,
+                    'customer_id'             => (string) $request->input('customer_id'),
+                    'customer_name'           => $customerName,
+                    'customer_phone'          => $request->input('customer_phone'),
+                    'sales_user_id'           => (string) $request->input('user_id'),
+                    'sales_name'              => $salesName,
+                    'price_type'              => (string) $request->input('price_type', 'general'),
+                    'quotation_date'          => $qDateRaw,
+                    'quotation_expired'       => $qExpRaw,
+                    'terms'                   => (int) ($request->input('terms') ?? 0),
+                    'bill_to'                 => $request->input('bill_to'),
+                    'ship_to'                 => $request->input('ship_to'),
+                    'notes'                   => $request->input('notes'),
+                    'subtotal'                => $subTotal,
+                    'discount_enabled'        => $discountEnabled,
+                    'discount_type'           => $discountType,
+                    'discount_value'          => $discountVal,
+                    'discount_amount'         => $discountAmount,
+                    'tax_enabled'             => $taxEnabled,
+                    'tax_rate'                => $taxRate,
+                    'tax_amount'              => $taxAmount,
+                    'grand_total'             => $grandTotal,
+                    'total_hpp'               => (float) $request->input('total_hpp', 0),
+                    'total_profit'            => (float) $request->input('total_profit', 0),
+                    'margin_percent'          => $request->input('margin_percent') !== null ? (float) $request->input('margin_percent') : null,
+                    'markup_percent'          => $request->input('markup_percent') !== null ? (float) $request->input('markup_percent') : null,
+                    'status'                  => 'sent_to_cetakia',
+                    'created_by'              => $authorName,
+                    'updated_by'              => $authorName,
+                    'created_at'              => now(),
+                    'updated_at'              => now(),
+                ]);
+
+                // Insert Items
+                $rawItems = $request->input('items', []);
+                foreach ($rawItems as $it) {
+                    $itPrice = (float) ($it['price'] ?? 0);
+                    $itQty   = (float) ($it['qty'] ?? 1);
+                    $itAmount = round($itQty * $itPrice, 2);
+
+                    $techDetails = $it['technical_details'] ?? null;
+                    if (empty($techDetails)) {
+                        $techDetails = null;
+                    } elseif (is_array($techDetails)) {
+                        $techDetails = json_encode($techDetails);
+                    }
+
+                    DB::table('t_estimation_items')->insert([
+                        'estimation_id'     => $estimationId,
+                        'item_name'         => (string) ($it['item'] ?? 'Digital Print A3+'),
+                        'item_category'     => (string) ($it['category'] ?? 'Digital Print A3+'),
+                        'description'       => (string) ($it['description'] ?? ''),
+                        'qty'               => $itQty,
+                        'unit_id'           => $it['unit_id'] ?? null,
+                        'unit_name'         => (string) ($it['unit_name'] ?? 'Lembar'),
+                        'unit_price'        => $itPrice,
+                        'subtotal'          => $itAmount,
+                        'hpp_per_unit'      => (float) ($it['hpp_per_unit'] ?? 0),
+                        'total_hpp'         => (float) ($it['total_hpp'] ?? 0),
+                        'profit'            => (float) ($it['profit'] ?? 0),
+                        'margin_percent'    => isset($it['margin_percent']) ? (float) $it['margin_percent'] : null,
+                        'markup_percent'    => isset($it['markup_percent']) ? (float) $it['markup_percent'] : null,
+                        'technical_details' => $techDetails,
+                        'created_by'        => $authorName,
+                        'updated_by'        => $authorName,
+                        'created_at'        => now(),
+                        'updated_at'        => now(),
+                    ]);
+                }
+
+                DB::commit();
+
+                $result['data']['local_estimation_id'] = $estimationId;
+                $result['data']['local_estimation_code'] = $estimationCode;
+
+                Log::info('CetakiaQuotationCT: Berhasil menyimpan transaksi estimasi ke database lokal', [
+                    'estimation_id'   => $estimationId,
+                    'estimation_code' => $estimationCode,
+                    'quotation_code'  => $cetakiaQuotationCode,
+                ]);
+            } catch (\Throwable $e) {
+                DB::rollBack();
+                Log::error('CetakiaQuotationCT: Gagal menyimpan transaksi estimasi lokal', [
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                ]);
+            }
         }
 
         return response()->json($result, $result['statusCode'] ?? 200);

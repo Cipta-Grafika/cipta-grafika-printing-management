@@ -67,7 +67,11 @@
     $pageData = match ($routeName) {
         'admin_home' => [
             'active' => 'dashboard',
-            'crumbs' => 'Estimasi | Buat Estimasi',
+            'crumbs' => 'Estimasi | Kalkulasi Cetak',
+        ],
+        'admin_estimations' => [
+            'active' => 'estimation-history',
+            'crumbs' => 'Estimasi | Riwayat Penawaran',
         ],
         'admin_categories' => [
             'active' => 'categories',
@@ -589,6 +593,7 @@
             categories: "{{ route('admin_categories') }}",
             engines: "{{ route('admin_engines') }}",
             dashboard: "{{ route('admin_home') }}",
+            estimation_history: "{{ route('admin_estimations') }}",
             vendors: "{{ route('admin_vendors') }}",
             engine_rates: "{{ route('admin_engine_rates') }}",
             finishing_services: "{{ route('admin_finishing_services') }}",

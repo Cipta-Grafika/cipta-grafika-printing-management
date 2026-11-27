@@ -3,14 +3,240 @@
 namespace App\Http\Controllers\admin;
 
 use App\Http\Controllers\Controller;
+use App\Services\CetakiaApiService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
+use Carbon\Carbon;
 use Exception;
 
 class EstimationCT extends Controller
 {
-    public function index() {}
+    protected CetakiaApiService $cetakiaService;
+
+    public function __construct(CetakiaApiService $cetakiaService)
+    {
+        $this->cetakiaService = $cetakiaService;
+    }
+
+    public function index()
+    {
+        $defaultEndDate = Carbon::now('Asia/Jakarta')->toDateString();
+        $defaultStartDate = Carbon::now('Asia/Jakarta')->subDays(6)->toDateString();
+        $initialQuotationsPayload = null;
+
+        try {
+            $apiResult = $this->cetakiaService->getQuotations([
+                'page'      => 1,
+                'limit'     => 10,
+                'search'    => '',
+                'status'    => 'all',
+                'startDate' => $defaultStartDate,
+                'endDate'   => $defaultEndDate,
+            ]);
+
+            if (!empty($apiResult['success'])) {
+                $meta = $apiResult['meta'] ?? [];
+                $filteredTotal = (int) ($meta['total'] ?? count($apiResult['data'] ?? []));
+                $overallTotal  = (int) ($meta['overall_total'] ?? $filteredTotal);
+
+                $initialQuotationsPayload = [
+                    'draw'            => 1,
+                    'recordsTotal'    => $overallTotal,
+                    'recordsFiltered' => $filteredTotal,
+                    'data'            => $apiResult['data'] ?? [],
+                ];
+            }
+        } catch (\Throwable $e) {
+            $initialQuotationsPayload = null;
+        }
+
+        return view('admin.estimation.history.index', [
+            'initialQuotationsPayload' => $initialQuotationsPayload,
+            'defaultStartDate'         => $defaultStartDate,
+            'defaultEndDate'           => $defaultEndDate,
+        ]);
+    }
+
+    public function data(Request $request)
+    {
+        $start  = (int) $request->input('start', 0);
+        $length = (int) $request->input('length', 10);
+        if ($length <= 0) {
+            $length = 10;
+        }
+        $length = min($length, 100);
+
+        $page = (int) floor($start / $length) + 1;
+        $search = $request->input('search.value');
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+        $status = $request->input('status');
+
+        if ($request->boolean('refresh')) {
+            $this->cetakiaService->invalidateQuotationsCache();
+        }
+
+        $serviceParams = [
+            'page'      => $page,
+            'limit'     => $length,
+            'search'    => $search,
+            'status'    => $status,
+            'startDate' => $startDate,
+            'endDate'   => $endDate,
+        ];
+
+        $order = $request->input('order');
+        if (is_array($order) && isset($order[0]['column'])) {
+            $sortableColumnMap = [
+                1 => 'quotation_code',
+                2 => 'status',
+                4 => 'quotation_date',
+                5 => 'quotation_expired',
+                6 => 'amount',
+            ];
+            $colIndex = (int) $order[0]['column'];
+            if (isset($sortableColumnMap[$colIndex])) {
+                $serviceParams['sortField'] = $sortableColumnMap[$colIndex];
+                $serviceParams['sortDirection'] = strtolower((string) ($order[0]['dir'] ?? 'desc')) === 'asc' ? 'ASC' : 'DESC';
+            }
+        }
+
+        $apiResult = $this->cetakiaService->getQuotations($serviceParams);
+
+        $meta = $apiResult['meta'] ?? [];
+
+        if (!$apiResult['success']) {
+            return response()->json([
+                'draw'            => (int) $request->input('draw'),
+                'recordsTotal'    => (int) ($meta['overall_total'] ?? 0),
+                'recordsFiltered' => 0,
+                'data'            => [],
+                'error'           => $apiResult['message'] ?? 'Gagal memuat data dari Cetakia.',
+            ]);
+        }
+
+        $filteredTotal = (int) ($meta['total'] ?? count($apiResult['data'] ?? []));
+        $overallTotal  = (int) ($meta['overall_total'] ?? $filteredTotal);
+
+        return response()->json([
+            'draw'            => (int) $request->input('draw'),
+            'recordsTotal'    => $overallTotal,
+            'recordsFiltered' => $filteredTotal,
+            'data'            => $apiResult['data'] ?? [],
+        ]);
+    }
+
+    public function show($id)
+    {
+        $rawId = trim((string) $id);
+
+        if (ctype_digit($rawId)) {
+            $estimation = DB::table('t_estimations')->where('id', (int) $rawId)->first();
+            if (!$estimation) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Data riwayat estimasi tidak ditemukan.',
+                ], 404);
+            }
+
+            $items = DB::table('t_estimation_items')->where('estimation_id', $estimation->id)->get();
+
+            return response()->json([
+                'success' => true,
+                'source'  => 'local',
+                'data'    => [
+                    'estimation' => $estimation,
+                    'items'      => $items,
+                ],
+            ]);
+        }
+
+        $apiResult = $this->cetakiaService->getQuotationDetail($rawId);
+        if (!empty($apiResult['success']) && !empty($apiResult['data'])) {
+            return response()->json([
+                'success' => true,
+                'source'  => 'cetakia',
+                'data'    => $apiResult['data'],
+            ]);
+        }
+
+        // Fallback read-only ke tabel lokal jika quotation tersimpan lokal dengan cetakia_quotation_id
+        $localEstimation = null;
+        try {
+            if (Schema::hasTable('t_estimations') && Schema::hasTable('t_estimation_items')) {
+                $localEstimation = DB::table('t_estimations')
+                    ->where('cetakia_quotation_id', $rawId)
+                    ->first();
+            }
+        } catch (\Throwable $e) {
+            $localEstimation = null;
+        }
+
+        if ($localEstimation) {
+            $localItems = DB::table('t_estimation_items')
+                ->where('estimation_id', $localEstimation->id)
+                ->get()
+                ->map(fn ($it) => [
+                    'id'          => (string) $it->id,
+                    'type'        => 'product',
+                    'item'        => $it->item_name,
+                    'description' => $it->description,
+                    'image'       => null,
+                    'qty'         => (float) $it->qty,
+                    'price'       => (float) $it->unit_price,
+                    'unit_code'   => $it->unit_name,
+                    'amount'      => (float) $it->subtotal,
+                ])
+                ->values()
+                ->all();
+
+            return response()->json([
+                'success' => true,
+                'source'  => 'local_fallback',
+                'data'    => [
+                    'id'               => $rawId,
+                    'quotation_code'   => $localEstimation->cetakia_quotation_code ?: $localEstimation->estimation_code,
+                    'quotation_date'   => $localEstimation->quotation_date,
+                    'quotation_expired'=> $localEstimation->quotation_expired,
+                    'status'           => $localEstimation->status,
+                    'customer_name'    => $localEstimation->customer_name,
+                    'user_name'        => $localEstimation->sales_name,
+                    'bill_to'          => $localEstimation->bill_to,
+                    'ship_to'          => $localEstimation->ship_to,
+                    'notes'            => $localEstimation->notes,
+                    'terms'            => (int) $localEstimation->terms,
+                    'sub_total'        => (float) $localEstimation->subtotal,
+                    'discount_enabled' => (bool) $localEstimation->discount_enabled,
+                    'discount_type'    => $localEstimation->discount_type,
+                    'discount'         => (float) $localEstimation->discount_value,
+                    'discount_amount'  => (float) $localEstimation->discount_amount,
+                    'tax_enabled'      => (bool) $localEstimation->tax_enabled,
+                    'tax'              => (float) $localEstimation->tax_rate,
+                    'tax_amount'       => (float) $localEstimation->tax_amount,
+                    'pph_enabled'      => false,
+                    'pph'              => 0,
+                    'pph_amount'       => 0,
+                    'grand_total'      => (float) $localEstimation->grand_total,
+                    'total_items'      => count($localItems),
+                    'convert_so'       => false,
+                    'convert_invoice'  => false,
+                    'items'            => $localItems,
+                ],
+            ]);
+        }
+
+        $statusCode = (int) ($apiResult['statusCode'] ?? 404);
+        if ($statusCode < 400 || $statusCode > 599) {
+            $statusCode = 404;
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => $apiResult['message'] ?? 'Detail quotation tidak ditemukan.',
+        ], $statusCode);
+    }
 
     public function createLF()
     {
