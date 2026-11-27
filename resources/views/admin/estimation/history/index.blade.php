@@ -1245,13 +1245,16 @@
             z-index: 1200;
             backdrop-filter: blur(5px);
             -webkit-backdrop-filter: blur(5px);
-            padding: 16px;
+            padding: max(24px, env(safe-area-inset-top, 24px)) 20px max(24px, env(safe-area-inset-bottom, 24px)) !important;
+            box-sizing: border-box;
         }
 
         #modalDetailQuotation .modal-dialog--wide {
-            width: min(1060px, calc(100vw - 32px));
+            width: min(1060px, calc(100vw - 40px));
             max-width: 1060px;
-            max-height: 92vh;
+            max-height: calc(100vh - 48px);
+            max-height: calc(100dvh - 48px);
+            margin: auto;
             border-radius: 16px;
             background: var(--bg-card);
             border: 1px solid var(--border);
@@ -1275,6 +1278,7 @@
             border-bottom: 1px solid var(--border-soft);
             background: linear-gradient(135deg, rgba(37, 99, 235, 0.07), rgba(59, 130, 246, 0.015));
             flex-shrink: 0;
+            position: relative;
         }
 
         html[data-theme="dark"] .qdet-header {
@@ -1286,6 +1290,7 @@
             align-items: center;
             gap: 14px;
             min-width: 0;
+            flex: 1 1 auto;
         }
 
         .qdet-doc-icon {
@@ -1311,8 +1316,9 @@
         .qdet-code-row {
             display: flex;
             align-items: center;
-            gap: 8px;
-            flex-wrap: wrap;
+            gap: 6px;
+            flex-wrap: nowrap;
+            min-width: 0;
         }
 
         .qdet-code-title {
@@ -1322,6 +1328,9 @@
             font-weight: 700;
             color: var(--t-base);
             letter-spacing: -0.01em;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .qdet-subtitle {
@@ -1340,11 +1349,40 @@
         .qdet-body {
             padding: 20px 24px;
             overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
             flex: 1 1 auto;
             min-height: 0;
-            display: flex;
-            flex-direction: column;
-            gap: 18px;
+            display: block;
+        }
+
+        .qdet-body > * + * {
+            margin-top: 16px;
+        }
+
+        .qdet-body::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .qdet-body::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .qdet-body::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 5px;
+        }
+
+        .qdet-body::-webkit-scrollbar-button {
+            display: none;
+            width: 0;
+            height: 0;
+        }
+
+        @supports not selector(::-webkit-scrollbar) {
+            .qdet-body {
+                scrollbar-width: thin;
+                scrollbar-color: var(--border) transparent;
+            }
         }
 
         .qdet-meta-grid {
@@ -1786,35 +1824,134 @@
 
         @media (max-width: 640px) {
             #modalDetailQuotation {
-                padding: 8px;
+                padding: max(22px, env(safe-area-inset-top, 22px)) 12px max(22px, env(safe-area-inset-bottom, 22px)) !important;
             }
 
             #modalDetailQuotation .modal-dialog--wide {
-                width: calc(100vw - 16px);
+                width: calc(100vw - 24px);
                 max-width: none;
-                max-height: 94vh;
+                max-height: calc(100vh - 52px);
+                max-height: calc(100dvh - 52px);
                 border-radius: 14px;
             }
 
-            .qdet-header,
-            .qdet-body,
-            .qdet-footer {
-                padding-left: 14px;
-                padding-right: 14px;
+            .qdet-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+                padding: 14px 48px 14px 14px;
+            }
+
+            .qdet-header-left {
+                width: 100%;
+                gap: 11px;
+            }
+
+            .qdet-doc-icon {
+                width: 38px;
+                height: 38px;
+                font-size: 17px;
+                border-radius: 10px;
+            }
+
+            .qdet-code-title {
+                font-size: 14.5px;
+            }
+
+            .qdet-subtitle {
+                font-size: 12px;
+            }
+
+            .qdet-header-right {
+                padding-left: 49px;
+            }
+
+            .qdet-header-right .modal-close {
+                position: absolute;
+                top: 12px;
+                right: 10px;
+            }
+
+            .qdet-body {
+                padding: 14px;
+            }
+
+            .qdet-body > * + * {
+                margin-top: 12px;
             }
 
             .qdet-meta-grid {
-                grid-template-columns: 1fr;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 12px;
                 padding: 12px;
             }
 
+            .qdet-items-table {
+                min-width: 0;
+            }
+
+            .qdet-items-table thead {
+                display: none;
+            }
+
+            .qdet-items-table tr.qdet-item-row {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 10px 12px;
+                padding: 13px 14px;
+                border-bottom: 1px solid var(--border-soft);
+            }
+
+            .qdet-items-table tr.qdet-item-row:last-child {
+                border-bottom: none;
+            }
+
+            .qdet-items-table tr.qdet-item-row td {
+                display: flex;
+                flex-direction: column;
+                gap: 3px;
+                padding: 0 !important;
+                border: none !important;
+                text-align: left !important;
+            }
+
+            .qdet-items-table tr.qdet-item-row td.qdet-td-full {
+                grid-column: 1 / -1;
+            }
+
+            .qdet-items-table tr.qdet-item-row td[data-label]::before {
+                content: attr(data-label);
+                font-size: 10px;
+                font-weight: 700;
+                letter-spacing: 0.05em;
+                text-transform: uppercase;
+                color: var(--t-muted);
+            }
+
+            .qdet-desc-cell {
+                max-width: none;
+                width: 100%;
+            }
+
+            .qdet-subcard {
+                padding: 13px 14px;
+            }
+
             .qdet-footer {
+                padding: 12px 14px;
                 flex-direction: column;
                 align-items: stretch;
+                gap: 10px;
             }
 
             .qdet-footer-right {
                 justify-content: space-between;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .qdet-meta-grid {
+                grid-template-columns: 1fr;
             }
         }
 
@@ -3045,19 +3182,19 @@
                             : '';
 
                         return `
-                            <tr>
-                                <td>
+                            <tr class="qdet-item-row">
+                                <td class="qdet-td-full">
                                     <div class="qdet-item-cell">
                                         ${imgThumb}
                                         <span class="qdet-type-badge">${typeLabel}</span>
                                         <strong style="color: var(--t-base); font-size: 13px;">${itemName}</strong>
                                     </div>
                                 </td>
-                                <td>${descHtml}</td>
-                                <td class="text-center" style="font-weight: 700;">${qtyFormatted}</td>
-                                <td class="text-end" style="white-space: nowrap;">${formatRupiah(it.price)}</td>
-                                <td class="text-center"><span class="qdet-unit-badge">${unitCode}</span></td>
-                                <td class="text-end"><span class="qdet-amount-val">${formatRupiah(it.amount)}</span></td>
+                                <td class="qdet-td-full" data-label="Description">${descHtml}</td>
+                                <td class="text-center" data-label="Qty" style="font-weight: 700;">${qtyFormatted}</td>
+                                <td class="text-end" data-label="Price" style="white-space: nowrap;">${formatRupiah(it.price)}</td>
+                                <td class="text-center" data-label="Unit"><span class="qdet-unit-badge">${unitCode}</span></td>
+                                <td class="text-end" data-label="Amount"><span class="qdet-amount-val">${formatRupiah(it.amount)}</span></td>
                             </tr>
                         `;
                     }).join('');
