@@ -95,6 +95,48 @@ document.addEventListener('DOMContentLoaded', function() {
         /* =====================================================================
            IMPOSISI REALTIME (UNTUK MODE LAYOUT) & SUMMARY PAKET DISPLAY
            ===================================================================== */
+        function getA3CuttingGapInfo() {
+            const selectEl = cuttingSelect && cuttingSelect.length ? cuttingSelect[0] : null;
+            if (!selectEl) {
+                return { gapCm: 0, gapMm: 0, label: 'Tanpa Cutting' };
+            }
+
+            const val = String(cuttingSelect.val() || 'none').toLowerCase().trim();
+            const selectedOpt = selectEl.options[selectEl.selectedIndex];
+            const rawLabel = selectedOpt
+                ? (selectedOpt.getAttribute('data-cutting-label') || selectedOpt.textContent || '').trim()
+                : '';
+
+            let gapCm = 0;
+            if (selectedOpt && selectedOpt.hasAttribute('data-gap-cm')) {
+                const parsed = parseFloat(selectedOpt.getAttribute('data-gap-cm'));
+                gapCm = Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+            } else if (val === 'none' || val === 'potong' || val === '') {
+                gapCm = 0;
+            } else {
+                const lowerText = `${val} ${rawLabel}`.toLowerCase();
+                if (lowerText.includes('die')) {
+                    gapCm = 0.5;
+                } else if (lowerText.includes('kiss')) {
+                    gapCm = 0.2;
+                }
+            }
+
+            return {
+                gapCm,
+                gapMm: Math.round(gapCm * 10),
+                label: rawLabel || 'Cutting'
+            };
+        }
+
+        function fitA3AxisWithGap(printableAxis, pieceDim, gapCm) {
+            const eps = 1e-9;
+            if (pieceDim <= 0 || pieceDim > printableAxis + eps) {
+                return 0;
+            }
+            return Math.max(0, Math.floor(((printableAxis + gapCm) / (pieceDim + gapCm)) + eps));
+        }
+
         function updateLiveImposition() {
             const mode = modeSelect.val();
             if (mode !== 'layout') return;
@@ -102,18 +144,35 @@ document.addEventListener('DOMContentLoaded', function() {
             const length = parseFloat($('#a3_length').val()) || 9.0;
             const width = parseFloat($('#a3_width').val()) || 5.5;
             const qty = parseInt($('#a3_qty').val()) || 1;
+            const gapInfo = getA3CuttingGapInfo();
 
             const sheetL = 47.5;
             const sheetW = 31.5;
 
-            const upNormal = Math.floor(sheetL / length) * Math.floor(sheetW / width);
-            const upRotated = Math.floor(sheetL / width) * Math.floor(sheetW / length);
-            const upCount = Math.max(1, Math.max(upNormal, upRotated));
+            const upNormal = fitA3AxisWithGap(sheetL, length, gapInfo.gapCm) * fitA3AxisWithGap(sheetW, width, gapInfo.gapCm);
+            const upRotated = fitA3AxisWithGap(sheetL, width, gapInfo.gapCm) * fitA3AxisWithGap(sheetW, length, gapInfo.gapCm);
+            const rawUp = Math.max(upNormal, upRotated);
             const orientation = upRotated > upNormal ? 'Rotated' : 'Normal';
-            const totalSheets = Math.ceil(qty / upCount);
 
-            $('#a3ImpositionUp').text(`${upCount} pcs (${orientation})`);
-            $('#a3ImpositionSheets').text(`${totalSheets.toLocaleString('id-ID')} Lembar`);
+            if (rawUp > 0) {
+                const totalSheets = Math.ceil(qty / rawUp);
+                $('#a3ImpositionUp').text(`${rawUp} pcs (${orientation})`);
+                $('#a3ImpositionSheets').text(`${totalSheets.toLocaleString('id-ID')} Lembar`);
+            } else {
+                $('#a3ImpositionUp').text('Ukuran melebihi lembar A3+');
+                $('#a3ImpositionSheets').text('—');
+            }
+
+            const gapNoteEl = document.getElementById('a3ImpositionGapNote');
+            if (gapNoteEl) {
+                if (gapInfo.gapMm > 0) {
+                    gapNoteEl.textContent = `Jarak antar pcs: +${gapInfo.gapMm} mm (${gapInfo.label})`;
+                    gapNoteEl.classList.remove('hidden');
+                } else {
+                    gapNoteEl.textContent = '';
+                    gapNoteEl.classList.add('hidden');
+                }
+            }
         }
 
         function updateDisplayPackageSummary() {
@@ -157,6 +216,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 $('#a3PotongOverrideField').hide();
                 potongOverrideSelect.val('').trigger('change');
             }
+            updateLiveImposition();
             scheduleEstimation();
         });
 

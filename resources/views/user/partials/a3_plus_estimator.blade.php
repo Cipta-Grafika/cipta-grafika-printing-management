@@ -190,6 +190,7 @@
                                 <span class="text-zinc-500 dark:text-zinc-400">Kebutuhan lembar A3+:</span>
                                 <strong id="a3ImpositionSheets" class="text-accent font-semibold">—</strong>
                             </div>
+                            <div id="a3ImpositionGapNote" class="text-[11px] text-accent pt-0.5 hidden"></div>
                         </div>
                     </div>
                 </div>
@@ -245,8 +246,8 @@
                         Finishing Cutting / Jasa Potong
                     </label>
                     <select id="a3_cutting_type" name="cutting_type" class="estimator-choice-source">
-                        <option value="">Pilih Cutting...</option>
-                        <option value="none">Tanpa Cutting</option>
+                        <option value="" data-gap-cm="0">Pilih Cutting...</option>
+                        <option value="none" data-gap-cm="0" data-cutting-label="Tanpa Cutting">Tanpa Cutting</option>
                         @foreach ($a3Cuttings ?? [] as $cut)
                             @php
                                 $lowerName = strtolower(trim($cut->name));
@@ -262,8 +263,9 @@
                                     $desc = ' (Garis Cacah)';
                                 }
                                 $val = $isPotong ? 'potong' : $cut->id;
+                                $gapCm = $isPotong ? 0.0 : \App\Support\A3PlusImposition::gapCmFromName($cut->name);
                             @endphp
-                            <option value="{{ $val }}">{{ $cut->name }}{{ $desc }}</option>
+                            <option value="{{ $val }}" data-gap-cm="{{ $gapCm }}" data-cutting-label="{{ $cut->name }}">{{ $cut->name }}{{ $desc }}</option>
                         @endforeach
                     </select>
                 </div>

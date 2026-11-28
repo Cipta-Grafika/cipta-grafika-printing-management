@@ -4,6 +4,7 @@ namespace App\Http\Controllers\admin;
 
 use App\Http\Controllers\Controller;
 use App\Services\CetakiaApiService;
+use App\Support\A3PlusImposition;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -3876,18 +3877,27 @@ class EstimationCT extends Controller
 
             // 3. IMPOSISI LAYOUT & TOTAL LEMBAR CETAK
             $mode = $validated['production_mode'];
-            $sheetPrintableL = 47.5; // cm (Area cetak efektif A3+)
-            $sheetPrintableW = 31.5; // cm
+            $sheetPrintableL = A3PlusImposition::PRINTABLE_LENGTH_CM; // cm (Area cetak efektif A3+)
+            $sheetPrintableW = A3PlusImposition::PRINTABLE_WIDTH_CM;  // cm
+
+            $cuttingVal = $validated['cutting_type'] ?? 'none';
+            $cuttingResolution = $this->resolveA3plusCutting($cuttingVal);
+            $cuttingGapCm = $mode === 'layout' ? $cuttingResolution['gap_cm'] : 0.0;
 
             if ($mode === 'layout') {
                 $productLength = (float) ($validated['length'] ?? 9.0);
                 $productWidth = (float) ($validated['width'] ?? 5.5);
                 $qty = (int) ($validated['qty'] ?? 1);
 
-                $upNormal = floor($sheetPrintableL / $productLength) * floor($sheetPrintableW / $productWidth);
-                $upRotated = floor($sheetPrintableL / $productWidth) * floor($sheetPrintableW / $productLength);
-                $upCount = max(1, (int) max($upNormal, $upRotated));
-                $orientation = ($upRotated > $upNormal) ? 'Rotated' : 'Normal';
+                $imposition = A3PlusImposition::calculate(
+                    $productLength,
+                    $productWidth,
+                    $cuttingGapCm,
+                    $sheetPrintableL,
+                    $sheetPrintableW
+                );
+                $upCount = $imposition['up_count'];
+                $orientation = $imposition['orientation'];
 
                 $totalSheets = (int) ceil($qty / $upCount);
                 $finishedSize = $productLength . ' × ' . $productWidth . ' cm';
@@ -4010,24 +4020,15 @@ class EstimationCT extends Controller
             }
 
             // 7. FINISHING CUTTING
-            $cuttingVal = $validated['cutting_type'] ?? 'none';
             $cuttingData = null;
             $cuttingSubtotal = 0.0;
             $cuttingTotalHpp = 0.0;
-            $isPotong = false;
+            $isPotong = $cuttingResolution['is_potong'];
 
             if ($cuttingVal && $cuttingVal !== 'none') {
                 $cuttingUnitPrice = 0.0;
                 $cuttingHppUnit = 0.0;
                 $cuttingName = 'Tanpa Cutting';
-
-                $isPotong = ($cuttingVal === 'potong');
-                if (!$isPotong && is_numeric($cuttingVal)) {
-                    $chkCutting = DB::table('m_cuttings')->where('id', (int) $cuttingVal)->first();
-                    if ($chkCutting && strtolower(trim($chkCutting->name)) === 'potong') {
-                        $isPotong = true;
-                    }
-                }
 
                 if ($isPotong) {
                     // Opsi Potong Guillotine (Menggunakan Master Ongkos Potong Minimal)
@@ -4140,21 +4141,7 @@ class EstimationCT extends Controller
                     $cuttingHppUnit = $totalSheets > 0 ? ($cuttingTotalHpp / $totalSheets) : $cuttingTotalHpp;
                 } else {
                     // Jasa Potong Dinamis dari Master Production Cost Finishing Cutting
-                    $cuttingObj = null;
-                    if (is_numeric($cuttingVal)) {
-                        $cuttingObj = DB::table('m_cuttings')->where('id', (int) $cuttingVal)->first();
-                    } else {
-                        // Kompatibilitas dengan string bawaan (kiss, die, perforasi)
-                        if ($cuttingVal === 'kiss') {
-                            $cuttingObj = DB::table('m_cuttings')->whereRaw('LOWER(name) LIKE ?', ['%kiss%'])->first();
-                        } elseif ($cuttingVal === 'die') {
-                            $cuttingObj = DB::table('m_cuttings')->whereRaw('LOWER(name) LIKE ?', ['%die%'])->first();
-                        } elseif ($cuttingVal === 'perforasi') {
-                            $cuttingObj = DB::table('m_cuttings')->whereRaw('LOWER(name) LIKE ?', ['%perforasi%'])->first();
-                        } else {
-                            $cuttingObj = DB::table('m_cuttings')->whereRaw('LOWER(name) = ?', [strtolower(trim($cuttingVal))])->first();
-                        }
-                    }
+                    $cuttingObj = $cuttingResolution['cutting_obj'];
 
                     if ($cuttingObj) {
                         $cuttingName = $cuttingObj->name;
@@ -4358,6 +4345,7 @@ class EstimationCT extends Controller
                     'production_mode' => $mode === 'layout' ? 'Hitung Layout' : 'Direct Sheet',
                     'finished_size' => $finishedSize,
                     'imposition_info' => $mode === 'layout' ? ($upCount . ' pcs (' . $orientation . ')') : 'Direct Sheet',
+                    'cutting_gap_mm' => (int) round($cuttingGapCm * 10),
                     'up_count' => $upCount,
                     'orientation' => $orientation,
                     'qty' => $qty,
@@ -4403,6 +4391,58 @@ class EstimationCT extends Controller
                 'message' => 'Gagal menghitung estimasi Digital Print A3+: ' . $e->getMessage(),
             ], 500);
         }
+    }
+
+    /**
+     * Resolve cutting option metadata and inter-piece spacing (cm) once per A3+ calculation.
+     *
+     * @return array{is_potong: bool, cutting_obj: ?object, gap_cm: float}
+     */
+    private function resolveA3plusCutting(?string $cuttingVal): array
+    {
+        $val = trim((string) $cuttingVal);
+        if ($val === '' || strtolower($val) === 'none') {
+            return [
+                'is_potong' => false,
+                'cutting_obj' => null,
+                'gap_cm' => 0.0,
+            ];
+        }
+
+        if (strtolower($val) === 'potong') {
+            return [
+                'is_potong' => true,
+                'cutting_obj' => null,
+                'gap_cm' => 0.0,
+            ];
+        }
+
+        $cuttingObj = null;
+        if (is_numeric($val)) {
+            $cuttingObj = DB::table('m_cuttings')->where('id', (int) $val)->first();
+        } else {
+            $lowerVal = strtolower($val);
+            if ($lowerVal === 'kiss') {
+                $cuttingObj = DB::table('m_cuttings')->whereRaw('LOWER(name) LIKE ?', ['%kiss%'])->first();
+            } elseif ($lowerVal === 'die') {
+                $cuttingObj = DB::table('m_cuttings')->whereRaw('LOWER(name) LIKE ?', ['%die%'])->first();
+            } elseif ($lowerVal === 'perforasi' || $lowerVal === 'porforasi') {
+                $cuttingObj = DB::table('m_cuttings')->whereRaw('LOWER(name) LIKE ?', ['%perforasi%'])->first();
+            } else {
+                $cuttingObj = DB::table('m_cuttings')->whereRaw('LOWER(name) = ?', [$lowerVal])->first();
+            }
+        }
+
+        $isPotong = $cuttingObj && strtolower(trim((string) $cuttingObj->name)) === 'potong';
+        $gapCm = $isPotong
+            ? 0.0
+            : A3PlusImposition::gapCmFromName($cuttingObj ? $cuttingObj->name : $val);
+
+        return [
+            'is_potong' => $isPotong,
+            'cutting_obj' => $isPotong ? null : $cuttingObj,
+            'gap_cm' => $gapCm,
+        ];
     }
 
     /**

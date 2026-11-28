@@ -2255,7 +2255,7 @@
                                         </label>
 
                                         <select id="cutting_type" name="cutting_type" class="select select2">
-                                            <option value="none" selected>Tanpa Cutting / Tanpa Potong</option>
+                                            <option value="none" data-gap-cm="0" data-cutting-label="Tanpa Cutting" selected>Tanpa Cutting / Tanpa Potong</option>
                                             @foreach ($cuttings ?? [] as $cut)
                                                 @php
                                                     $desc = '';
@@ -2271,8 +2271,9 @@
                                                         $desc = ' (Garis Cacah)';
                                                     }
                                                     $val = $isPotong ? 'potong' : $cut->id;
+                                                    $gapCm = $isPotong ? 0.0 : \App\Support\A3PlusImposition::gapCmFromName($cut->name);
                                                 @endphp
-                                                <option value="{{ $val }}" {{ old('cutting_type') == $val ? 'selected' : '' }}>
+                                                <option value="{{ $val }}" data-gap-cm="{{ $gapCm }}" data-cutting-label="{{ $cut->name }}" {{ old('cutting_type') == $val ? 'selected' : '' }}>
                                                     {{ $cut->name }}{{ $desc }}
                                                 </option>
                                             @endforeach
@@ -3525,15 +3526,65 @@
             // Standar area cetak A3+: 31.5 x 47.5 cm (dengan toleransi potong/bleed)
             const SHEET_PRINTABLE_L = 47.5;
             const SHEET_PRINTABLE_W = 31.5;
+            const IMPOSITION_EPSILON = 1e-9;
+            const impositionNotesEl = document.getElementById('impositionNotes');
+
+            function getSelectedCuttingGapInfo() {
+                const selectEl = cuttingSelect && cuttingSelect.length ? cuttingSelect[0] : null;
+                if (!selectEl) {
+                    return { gapCm: 0, gapMm: 0, label: 'Tanpa Cutting' };
+                }
+
+                const val = String(cuttingSelect.val() || 'none').toLowerCase().trim();
+                const selectedOpt = selectEl.options[selectEl.selectedIndex];
+                const rawLabel = selectedOpt
+                    ? (selectedOpt.getAttribute('data-cutting-label') || selectedOpt.textContent || '').trim()
+                    : '';
+
+                let gapCm = 0;
+                if (selectedOpt && selectedOpt.hasAttribute('data-gap-cm')) {
+                    const parsed = parseFloat(selectedOpt.getAttribute('data-gap-cm'));
+                    gapCm = Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+                } else if (val === 'none' || val === 'potong' || val === '') {
+                    gapCm = 0;
+                } else {
+                    const lowerText = `${val} ${rawLabel}`.toLowerCase();
+                    if (lowerText.includes('die')) {
+                        gapCm = 0.5;
+                    } else if (lowerText.includes('kiss')) {
+                        gapCm = 0.2;
+                    }
+                }
+
+                return {
+                    gapCm,
+                    gapMm: Math.round(gapCm * 10),
+                    label: rawLabel || 'Cutting'
+                };
+            }
+
+            function fitAxisWithGap(printableAxis, pieceDim, gapCm) {
+                if (pieceDim <= 0 || pieceDim > printableAxis + IMPOSITION_EPSILON) {
+                    return 0;
+                }
+                return Math.max(0, Math.floor(((printableAxis + gapCm) / (pieceDim + gapCm)) + IMPOSITION_EPSILON));
+            }
 
             function updateImpositionCalculation() {
                 const l = parseFloat(lengthInput.value) || 0;
                 const w = parseFloat(widthInput.value) || 0;
                 const qty = parseInt(qtyInput.value) || 0;
+                const gapInfo = getSelectedCuttingGapInfo();
+
+                if (impositionNotesEl) {
+                    impositionNotesEl.textContent = gapInfo.gapMm > 0
+                        ? `Dihitung otomatis berdasarkan area cetak A3+ (31.5 × 47.5 cm) + jarak antar pcs ${gapInfo.gapMm} mm (${gapInfo.label}).`
+                        : 'Dihitung otomatis berdasarkan ukuran lembar A3+ (31.5 × 47.5 cm area cetak).';
+                }
 
                 if (l > 0 && w > 0) {
-                    const upNormal = Math.floor(SHEET_PRINTABLE_L / l) * Math.floor(SHEET_PRINTABLE_W / w);
-                    const upRotated = Math.floor(SHEET_PRINTABLE_L / w) * Math.floor(SHEET_PRINTABLE_W / l);
+                    const upNormal = fitAxisWithGap(SHEET_PRINTABLE_L, l, gapInfo.gapCm) * fitAxisWithGap(SHEET_PRINTABLE_W, w, gapInfo.gapCm);
+                    const upRotated = fitAxisWithGap(SHEET_PRINTABLE_L, w, gapInfo.gapCm) * fitAxisWithGap(SHEET_PRINTABLE_W, l, gapInfo.gapCm);
                     const up = Math.max(upNormal, upRotated);
                     const orientation = upRotated > upNormal ? 'Rotated' : 'Normal';
 
@@ -3575,6 +3626,7 @@
                     potongOverrideWrap.style.display = 'none';
                     if (cuttingMasterInfo) cuttingMasterInfo.style.display = 'none';
                 }
+                updateImpositionCalculation();
             });
 
             /* =====================================================
@@ -5075,8 +5127,7 @@
                 if (discWrap) discWrap.style.display = 'none';
 
                 // 9. Reset preview teks imposisi
-                if (layoutUpCountEl) layoutUpCountEl.textContent = '—';
-                if (layoutTotalSheetsEl) layoutTotalSheetsEl.textContent = '—';
+                updateImpositionCalculation();
 
                 // 10. Reset Input Pelanggan & Info Modal Penawaran
                 if (typeof $ !== 'undefined' && $('#customer_id').length) {
